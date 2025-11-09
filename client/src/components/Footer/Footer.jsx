@@ -23,12 +23,12 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           
           {/* Column 1: Logo and Contact Info */}
-          <div className="pr-8">
-            <img src={GSN} alt="Logistics Logo" className="w-28 bg-white p-4" />
-            <p className="mt-6 text-gray-400">
+          <div className="ml-8">
+            <img src={GSN} alt="Logistics Logo" className="w-28 bg-white" />
+            <p className="mt-2 text-gray-400">
               Provide a freight quote from our select premium members 
             </p>
-            <div className="mt-6 space-y-4">
+            <div className="mt-4 space-y-2">
               <div className="flex items-start">
                 <FaMapMarkerAlt className="text-[#CDA435] mt-1 mr-3 flex-shrink-0" />
                 <span>#22, Building 661, Road no 1208, Block 712 Salmabad, 973, Bahrain</span>
@@ -89,7 +89,7 @@ const Footer = () => {
 
       {/* --- LOWER FOOTER / COPYRIGHT SECTION --- */}
       {/* This div is now OUTSIDE the container, so it will be full-width */}
-      <div className="relative mt-16 bg-[#171717] py-6 text-center text-gray-400">
+      <div className="relative mt-1 bg-[#171717] py-6 text-center text-gray-400">
         <p>2025 Copyright © dsolutionstech.in</p>
       </div>
 
