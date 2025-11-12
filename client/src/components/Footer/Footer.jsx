@@ -8,21 +8,17 @@ const Footer = () => {
   return (
     <footer className="relative bg-[#212121] text-gray-300 pt-20 overflow-hidden">
       
-      {/* --- BACKGROUND SECTION (applies to the whole footer) --- */}
+      
       <div
         className="absolute inset-0 w-full h-full bg-no-repeat bg-center top-32"
         style={{ backgroundImage: `url(${footerBgImage})` }}
       ></div>
       <div className="absolute inset-0 w-full h-full bg-black opacity-5"></div> 
-      {/* Increased opacity for a darker look, adjust as needed */}
-      
-
-      {/* --- UPPER FOOTER CONTENT --- */}
-      {/* This container holds the 4 columns and IS NOT full-width */}
+  
       <div className="relative container max-w-7xl mx-auto px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           
-          {/* Column 1: Logo and Contact Info */}
+         
           <div className="ml-8">
             <img src={GSN} alt="Logistics Logo" className="w-28 bg-white" />
             <p className="mt-2 text-gray-400">
@@ -44,7 +40,7 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Column 2: Information */}
+      
           <div>
             <h3 className="text-xl text-white font-semibold">Information</h3>
             <div className="w-16 h-1 bg-[#CDA435] mt-2 mb-6"></div>

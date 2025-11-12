@@ -52,7 +52,7 @@ const Navbar = () => {
     { name: 'Business', href: '#' },
     { name: 'Blacklist', href: '#' },
     { name: 'Contact Us', href: '#', icon: <FaSearch size={14} /> },
-    { name: 'Login', href: '#', icon: <FaUser size={14} /> },
+    { name: 'Login', href: '/login', icon: <FaUser size={14} /> },
     { name: 'Register', href: '#' },
   ];
 
