@@ -46,6 +46,7 @@ import BankDetailEditor from "./pages/BankDetailEditor/BankDetailEditor";
 import GeneralSettings from "./pages/GeneralSettings/GeneralSettings";
 import SendNotifications from "./pages/Notifications/SendNotifications";
 import SendEmails from "./pages/Notifications/SendEmails";
+import UserProfile from "./pages/UserProfile/UserProfile";
 
 // Admin components and layout
 
@@ -116,6 +117,8 @@ function App() {
           <Route path="general-settings" element={<GeneralSettings />} /> 
           <Route path="send-notifications" element={<SendNotifications />} /> 
           <Route path="send-emails" element={<SendEmails />} /> 
+          <Route path="user-Profile" element={<UserProfile />} /> 
+
 
 
 
