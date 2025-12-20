@@ -1,66 +1,100 @@
-import React, { useState, useMemo } from 'react';
-import { FaFilter, FaPen, FaEye } from 'react-icons/fa';
-import { FaArrowUp, FaArrowDown } from 'react-icons/fa6';
+import React, { useState, useEffect, useMemo } from 'react';
+import { FiEye, FiEdit, FiChevronUp, FiChevronDown, FiFilter } from 'react-icons/fi';
+import api from '../../utils/api';
 
-// --- Dummy Data ---
-// A comprehensive set of dummy data to test all features.
-const initialQuotes = [
-  { id: 1, shippingMode: 'Air', arrivalDate: '2024-01-24', createdDate: '2024-01-19', isApproved: true },
-  { id: 2, shippingMode: 'Air', arrivalDate: '2024-01-20', createdDate: '2024-01-19', isApproved: false },
-  { id: 3, shippingMode: 'Air', arrivalDate: '2024-01-27', createdDate: '2024-01-19', isApproved: true },
-  { id: 4, shippingMode: 'Air', arrivalDate: '2024-01-21', createdDate: '2024-01-20', isApproved: true },
-  { id: 5, shippingMode: 'Surface (Road / Rail / Sea)', arrivalDate: '2024-01-31', createdDate: '2024-01-22', isApproved: true },
-  { id: 6, shippingMode: 'Air', arrivalDate: '2021-02-10', createdDate: '2024-01-30', isApproved: false },
-  { id: 7, shippingMode: 'Surface (Road / Rail / Sea)', arrivalDate: '2024-04-30', createdDate: '2024-04-27', isApproved: false },
-  { id: 8, shippingMode: 'Surface (Road / Rail / Sea)', arrivalDate: '2024-05-10', createdDate: '2024-05-07', isApproved: false },
-  { id: 9, shippingMode: 'Air', arrivalDate: '2025-01-16', createdDate: '2025-01-07', isApproved: false },
-  { id: 10, shippingMode: 'Surface (Road / Rail / Sea)', arrivalDate: '2025-01-16', createdDate: '2025-01-07', isApproved: false },
-  { id: 11, shippingMode: 'Air', arrivalDate: '2024-06-05', createdDate: '2024-06-01', isApproved: true },
-  { id: 12, shippingMode: 'Rail', arrivalDate: '2024-07-20', createdDate: '2024-07-15', isApproved: false },
-];
-
-// --- Helper Function for Date Formatting ---
-const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
-};
-
-function QuotesList() {
-  const [quotes, setQuotes] = useState(initialQuotes);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [entriesPerPage, setEntriesPerPage] = useState(10);
-  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
+const QuotesList = () => {
+  const [quotes, setQuotes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
-  // State for filter inputs
-  const [filters, setFilters] = useState({ date: '', quoteType: 'All' });
-  // State to apply filters only when "Filter" button is clicked
-  const [appliedFilters, setAppliedFilters] = useState({ date: '', quoteType: 'All' });
+  // Table controls
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortConfig, setSortConfig] = useState({ key: 'created_at', direction: 'descending' });
+  const [statusFilter, setStatusFilter] = useState('');
 
+  // Modal state
+  const [selectedQuote, setSelectedQuote] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newStatus, setNewStatus] = useState('');
 
-  // --- Logic for Sorting, Filtering, and Searching ---
-  const filteredAndSortedQuotes = useMemo(() => {
-    let sortableQuotes = [...quotes];
+  useEffect(() => {
+    fetchQuotes();
+  }, []);
 
-    // Apply Filters (from appliedFilters state)
-    sortableQuotes = sortableQuotes.filter(quote => {
-        const dateMatch = appliedFilters.date ? quote.createdDate === appliedFilters.date : true;
-        const typeMatch = appliedFilters.quoteType !== 'All' ? quote.shippingMode.includes(appliedFilters.quoteType) : true;
-        return dateMatch && typeMatch;
-    });
+  const fetchQuotes = async () => {
+    try {
+      setLoading(true);
+      const data = await api('/api/quotes/all');
+      setQuotes(data);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    // Apply Search
-    if (searchTerm) {
-        sortableQuotes = sortableQuotes.filter(quote =>
-            Object.values(quote).some(val =>
-                String(val).toLowerCase().includes(searchTerm.toLowerCase())
-            )
-        );
+  const handleStatusUpdate = async () => {
+    if (!selectedQuote || !newStatus) return;
+
+    try {
+      await api(`/api/quotes/${selectedQuote.id}/status`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      // Update local state
+      setQuotes(quotes.map(quote => 
+        quote.id === selectedQuote.id 
+          ? { ...quote, status: newStatus }
+          : quote
+      ));
+
+      setIsModalOpen(false);
+      setSelectedQuote(null);
+      setNewStatus('');
+    } catch (err) {
+      alert('Error updating quote status: ' + err.message);
+    }
+  };
+
+  const openStatusModal = (quote) => {
+    setSelectedQuote(quote);
+    setNewStatus(quote.status);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedQuote(null);
+    setNewStatus('');
+  };
+
+  // Data processing
+  const filteredQuotes = useMemo(() => {
+    let filtered = quotes;
+
+    if (statusFilter) {
+      filtered = filtered.filter(quote => quote.status === statusFilter);
     }
 
-    // Apply Sorting
+    if (searchTerm) {
+      filtered = filtered.filter(quote =>
+        Object.values(quote).some(val =>
+          String(val).toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      );
+    }
+
+    return filtered;
+  }, [quotes, statusFilter, searchTerm]);
+
+  const sortedQuotes = useMemo(() => {
+    let sortable = [...filteredQuotes];
     if (sortConfig.key) {
-      sortableQuotes.sort((a, b) => {
+      sortable.sort((a, b) => {
         if (a[sortConfig.key] < b[sortConfig.key]) {
           return sortConfig.direction === 'ascending' ? -1 : 1;
         }
@@ -70,17 +104,15 @@ function QuotesList() {
         return 0;
       });
     }
-    
-    return sortableQuotes;
-  }, [quotes, searchTerm, sortConfig, appliedFilters]);
+    return sortable;
+  }, [filteredQuotes, sortConfig]);
 
-  // --- Pagination Logic ---
-  const indexOfLastEntry = currentPage * entriesPerPage;
-  const indexOfFirstEntry = indexOfLastEntry - entriesPerPage;
-  const currentEntries = filteredAndSortedQuotes.slice(indexOfFirstEntry, indexOfLastEntry);
-  const totalPages = Math.ceil(filteredAndSortedQuotes.length / entriesPerPage);
+  const paginatedQuotes = useMemo(() => {
+    const firstPageIndex = (currentPage - 1) * itemsPerPage;
+    const lastPageIndex = firstPageIndex + itemsPerPage;
+    return sortedQuotes.slice(firstPageIndex, lastPageIndex);
+  }, [sortedQuotes, currentPage, itemsPerPage]);
 
-  // --- Handlers ---
   const handleSort = (key) => {
     let direction = 'ascending';
     if (sortConfig.key === key && sortConfig.direction === 'ascending') {
@@ -88,192 +120,227 @@ function QuotesList() {
     }
     setSortConfig({ key, direction });
   };
-  
-  const handleApprovalChange = (quoteId) => {
-    setQuotes(quotes.map(quote =>
-      quote.id === quoteId ? { ...quote, isApproved: !quote.isApproved } : quote
-    ));
-  };
 
-  const handleApplyFilters = () => {
-    setCurrentPage(1); // Reset to first page on filter
-    setAppliedFilters(filters);
-  };
-  
-  // --- Sortable Header Component ---
-  const SortableHeader = ({ children, name }) => {
-    const isSorted = sortConfig.key === name;
+  const SortableHeader = ({ children, sortKey }) => (
+    <th className="py-3 px-4 text-left font-semibold cursor-pointer" onClick={() => handleSort(sortKey)}>
+      <div className="flex items-center">
+        {children}
+        {sortConfig.key === sortKey ? (
+          sortConfig.direction === 'ascending' ? 
+            <FiChevronUp className="ml-1" /> : 
+            <FiChevronDown className="ml-1" />
+        ) : null}
+      </div>
+    </th>
+  );
+
+  const getStatusBadge = (status) => {
+    const statusColors = {
+      pending: 'bg-yellow-100 text-yellow-800',
+      approved: 'bg-green-100 text-green-800',
+      rejected: 'bg-red-100 text-red-800',
+      running: 'bg-blue-100 text-blue-800',
+      closed: 'bg-gray-100 text-gray-800'
+    };
+
     return (
-        <th className="p-3 cursor-pointer" onClick={() => handleSort(name)}>
-            <div className="flex items-center justify-between">
-                {children}
-                <span className="ml-2">
-                    {isSorted ? 
-                        (sortConfig.direction === 'ascending' ? <FaArrowUp size={12} /> : <FaArrowDown size={12} />) 
-                        : <div className="opacity-30"><FaArrowUp size={12} /></div>
-                    }
-                </span>
-            </div>
-        </th>
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[status] || 'bg-gray-100 text-gray-800'}`}>
+        {status?.charAt(0).toUpperCase() + status?.slice(1)}
+      </span>
     );
   };
 
+  const totalPages = Math.ceil(sortedQuotes.length / itemsPerPage);
+  const startEntry = (currentPage - 1) * itemsPerPage + 1;
+  const endEntry = Math.min(startEntry + itemsPerPage - 1, sortedQuotes.length);
+
+  if (loading) return <div className="text-center py-8">Loading quotes...</div>;
+  if (error) return <div className="text-red-500 text-center py-8">Error: {error}</div>;
+
   return (
-    <div className="bg-gray-100 min-h-screen p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* --- Filter Section --- */}
-        <div className="bg-white p-4 rounded-t-lg shadow">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-end">
-                <div>
-                    <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                    <input 
-                        id="date"
-                        type="date"
-                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-yellow-500 focus:border-yellow-500"
-                        value={filters.date}
-                        onChange={(e) => setFilters({...filters, date: e.target.value})}
-                    />
-                </div>
-                <div>
-                    <label htmlFor="quoteType" className="block text-sm font-medium text-gray-700 mb-1">Quote Type</label>
-                    <select 
-                        id="quoteType"
-                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-yellow-500 focus:border-yellow-500"
-                        value={filters.quoteType}
-                        onChange={(e) => setFilters({...filters, quoteType: e.target.value})}
-                    >
-                        <option value="All">All</option>
-                        <option value="Air">Air</option>
-                        <option value="Surface">Surface</option>
-                        <option value="Rail">Rail</option>
-                    </select>
-                </div>
-                <button 
-                    onClick={handleApplyFilters}
-                    className="flex items-center justify-center bg-[#eaddc0] hover:bg-opacity-90 text-gray-800 font-semibold py-2 px-4 rounded-md shadow"
-                >
-                    <FaFilter className="mr-2" /> Filter
-                </button>
-            </div>
-        </div>
-
-        {/* --- Main Content and Table Section --- */}
-        <div className="bg-white p-6 rounded-b-lg shadow">
-          <h2 className="text-2xl font-semibold mb-4 text-gray-800">All Quotes List</h2>
-          
-          <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
-            <div className="flex items-center mb-2 sm:mb-0 text-gray-600">
-              <span>Show</span>
-              <select 
-                value={entriesPerPage}
-                onChange={(e) => {
-                    setEntriesPerPage(Number(e.target.value));
-                    setCurrentPage(1);
-                }}
-                className="p-2 border border-gray-300 rounded-md mx-2 focus:ring-yellow-500 focus:border-yellow-500"
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-              </select>
-              <span>entries</span>
-            </div>
-            <div className="flex items-center text-gray-600">
-              <label htmlFor="search" className="mr-2">Search:</label>
-              <input
-                id="search"
-                type="text"
-                className="p-2 border border-gray-300 rounded-md focus:ring-yellow-500 focus:border-yellow-500"
-                value={searchTerm}
-                onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setCurrentPage(1);
-                }}
-              />
-            </div>
-          </div>
-          
-          {/* --- Quotes Table --- */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left text-gray-700">
-              <thead className="text-xs text-gray-800 uppercase" style={{ backgroundColor: '#eaddc0' }}>
-                <tr>
-                  <SortableHeader name="id">Sr.No</SortableHeader>
-                  <SortableHeader name="shippingMode">Shipping Mode</SortableHeader>
-                  <SortableHeader name="arrivalDate">Arrival Date</SortableHeader>
-                  <SortableHeader name="createdDate">Created Date</SortableHeader>
-                  <SortableHeader name="isApproved">Approval</SortableHeader>
-                  <th className="p-3">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentEntries.length > 0 ? (
-                  currentEntries.map((quote, index) => (
-                    <tr key={quote.id} className="bg-white border-b hover:bg-gray-50 align-middle">
-                      <td className="p-3">{quote.id}</td>
-                      <td className="p-3">{quote.shippingMode}</td>
-                      <td className="p-3">{formatDate(quote.arrivalDate)}</td>
-                      <td className="p-3">{formatDate(quote.createdDate)}</td>
-                      <td className="p-3">
-                        <input
-                            type="checkbox"
-                            className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                            checked={quote.isApproved}
-                            onChange={() => handleApprovalChange(quote.id)}
-                        />
-                      </td>
-                      <td className="p-3">
-                        <div className="flex space-x-2">
-                          <button className="p-2 bg-green-500 text-white rounded hover:bg-green-600">
-                            <FaPen size={12} />
-                          </button>
-                          <button className="p-2 bg-pink-500 text-white rounded hover:bg-pink-600">
-                            <FaEye size={12} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="6" className="text-center p-4 text-gray-500">No matching records found</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* --- Table Footer with Info and Pagination --- */}
-          <div className="flex flex-col sm:flex-row justify-between items-center mt-4 text-gray-600">
-            <div>
-              Showing {filteredAndSortedQuotes.length > 0 ? indexOfFirstEntry + 1 : 0} to {Math.min(indexOfLastEntry, filteredAndSortedQuotes.length)} of {filteredAndSortedQuotes.length} entries
-            </div>
-            <div className="flex items-center mt-2 sm:mt-0">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-1 border rounded-l-md bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Previous
-              </button>
-              
-              <span className="px-4 py-1 border-t border-b text-gray-800" style={{backgroundColor: '#eaddc0'}}>
-                {currentPage}
-              </span>
-
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages || totalPages === 0}
-                className="px-3 py-1 border rounded-r-md bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
-            </div>
-          </div>
+    <div className="bg-white p-6 rounded-lg shadow-sm">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-semibold text-gray-800">All Quotes</h2>
+        <div className="flex items-center space-x-4">
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
+            className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          >
+            <option value="">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+            <option value="running">Running</option>
+            <option value="closed">Closed</option>
+          </select>
         </div>
       </div>
+
+      {/* Controls */}
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center space-x-2 text-gray-600">
+          <span>Show</span>
+          <select 
+            value={itemsPerPage}
+            onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+            className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          >
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+          </select>
+          <span>entries</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <label htmlFor="search" className="text-gray-600">Search:</label>
+          <input 
+            id="search"
+            type="text" 
+            placeholder="Search quotes..."
+            value={searchTerm}
+            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+            className="border border-gray-300 rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          />
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="overflow-x-auto">
+        <table className="min-w-full bg-white">
+          <thead className="bg-[#e0c58a] text-gray-700">
+            <tr>
+              <SortableHeader sortKey="id">ID</SortableHeader>
+              <SortableHeader sortKey="user_name">User</SortableHeader>
+              <SortableHeader sortKey="product_description">Product</SortableHeader>
+              <SortableHeader sortKey="departure_country">From</SortableHeader>
+              <SortableHeader sortKey="arrival_country">To</SortableHeader>
+              <SortableHeader sortKey="shipping_mode">Mode</SortableHeader>
+              <SortableHeader sortKey="status">Status</SortableHeader>
+              <SortableHeader sortKey="created_at">Date</SortableHeader>
+              <th className="py-3 px-4 text-left font-semibold">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="text-gray-700">
+            {paginatedQuotes.length === 0 ? (
+              <tr>
+                <td colSpan="9" className="text-center py-8 text-gray-500">No quotes found</td>
+              </tr>
+            ) : (
+              paginatedQuotes.map((quote) => (
+                <tr key={quote.id} className="border-b border-gray-200 hover:bg-gray-50">
+                  <td className="py-3 px-4 font-medium">{quote.id}</td>
+                  <td className="py-3 px-4">
+                    <div>
+                      <div className="font-medium">{quote.user_name || 'Guest'}</div>
+                      <div className="text-sm text-gray-500">{quote.user_email || quote.contact_email}</div>
+                    </div>
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="max-w-xs truncate" title={quote.product_description}>
+                      {quote.product_description}
+                    </div>
+                  </td>
+                  <td className="py-3 px-4">{quote.departure_country}</td>
+                  <td className="py-3 px-4">{quote.arrival_country}</td>
+                  <td className="py-3 px-4 capitalize">{quote.shipping_mode}</td>
+                  <td className="py-3 px-4">{getStatusBadge(quote.status)}</td>
+                  <td className="py-3 px-4">
+                    {new Date(quote.created_at).toLocaleDateString()}
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="flex items-center space-x-2">
+                      <button 
+                        onClick={() => openStatusModal(quote)}
+                        className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-md transition duration-300"
+                        title="Update Status"
+                      >
+                        <FiEdit />
+                      </button>
+                      <button 
+                        className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-md transition duration-300"
+                        title="View Details"
+                      >
+                        <FiEye />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      <div className="flex justify-between items-center mt-4">
+        <div className="text-gray-600">
+          Showing {sortedQuotes.length > 0 ? startEntry : 0} to {endEntry} of {sortedQuotes.length} entries
+        </div>
+        <div className="flex items-center">
+          <button 
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-1 border border-gray-300 rounded-l-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          <span className="px-3 py-1 border-t border-b bg-[#e0c58a] text-gray-800 font-bold">
+            {currentPage}
+          </span>
+          <button 
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages || totalPages === 0}
+            className="px-3 py-1 border border-gray-300 rounded-r-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+
+      {/* Status Update Modal */}
+      {isModalOpen && selectedQuote && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+            <h3 className="text-xl font-semibold mb-4">Update Quote Status</h3>
+            <div className="mb-4">
+              <p className="text-gray-600 mb-2">Quote ID: {selectedQuote.id}</p>
+              <p className="text-gray-600 mb-4">Product: {selectedQuote.product_description}</p>
+              <label className="block text-gray-700 text-sm font-bold mb-2">
+                Status
+              </label>
+              <select
+                value={newStatus}
+                onChange={(e) => setNewStatus(e.target.value)}
+                className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              >
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+                <option value="running">Running</option>
+                <option value="closed">Closed</option>
+              </select>
+            </div>
+            <div className="flex justify-end space-x-4">
+              <button 
+                onClick={closeModal}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleStatusUpdate}
+                className="px-4 py-2 bg-[#CDA435] text-white rounded-md hover:bg-opacity-90"
+              >
+                Update Status
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+};
 
 export default QuotesList;

@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 const SendNotifications = () => {
-  // State to manage all form inputs
   const [formData, setFormData] = useState({
     userType: '',
     title: '',
     message: '',
   });
   const [imageFile, setImageFile] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  // General handler for text inputs and select
+  // General handler for text inputs
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prevState => ({
@@ -25,16 +26,44 @@ const SendNotifications = () => {
     }
   };
 
-  // Handler for form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const finalData = {
-      ...formData,
-      image: imageFile ? imageFile.name : null,
-    };
-    console.log('Sending Notification:', finalData);
-    alert('Notification data logged to console!');
-    // Here you would add your API call logic
+    setLoading(true);
+
+    // Create FormData object to send file + text
+    const data = new FormData();
+    data.append('userType', formData.userType);
+    data.append('title', formData.title);
+    data.append('message', formData.message);
+    
+    // Key 'imageUpload' must match the backend upload.single('imageUpload')
+    if (imageFile) {
+      data.append('imageUpload', imageFile); 
+    }
+
+    try {
+      const token = localStorage.getItem('token'); // Get Admin Token
+      
+      const response = await axios.post('/api/notifications/send', data, {
+        headers: {
+          'Content-Type': 'multipart/form-data', // Important for files
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      alert('Notification sent successfully!');
+      // Reset Form
+      setFormData({ userType: '', title: '', message: '' });
+      setImageFile(null);
+      // Reset file input visually
+      document.getElementById('imageUpload').value = ""; 
+
+    } catch (error) {
+      console.error(error);
+      alert('Failed to send notification');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -55,10 +84,12 @@ const SendNotifications = () => {
               name="userType"
               value={formData.userType}
               onChange={handleChange}
+              required
               className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-yellow-500 focus:border-yellow-500"
             >
               <option value="">Select user role</option>
-              <option value="all">All Users</option>
+              <option value="all">All</option>
+              <option value="users">Users</option>
               <option value="business_owners">Business Owners</option>
               <option value="company_owners">Company Owners</option>
             </select>
@@ -76,7 +107,8 @@ const SendNotifications = () => {
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
-                placeholder="title"
+                required
+                placeholder="Notification Title"
                 className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-yellow-500 focus:border-yellow-500"
               />
             </div>
@@ -99,7 +131,7 @@ const SendNotifications = () => {
           {/* Textarea */}
           <div>
             <label htmlFor="message" className="block text-sm font-medium text-gray-600 mb-1">
-              Textarea
+              Message
             </label>
             <textarea
               id="message"
@@ -107,6 +139,8 @@ const SendNotifications = () => {
               rows="8"
               value={formData.message}
               onChange={handleChange}
+              required
+              placeholder="Enter notification details..."
               className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-yellow-500 focus:border-yellow-500"
             ></textarea>
           </div>
@@ -115,9 +149,10 @@ const SendNotifications = () => {
           <div>
             <button
               type="submit"
-              className="px-6 py-2 bg-[#D9B95B] text-white font-semibold rounded-md hover:bg-[#c8a84a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D9B95B]"
+              disabled={loading}
+              className={`px-6 py-2 bg-[#D9B95B] text-white font-semibold rounded-md hover:bg-[#c8a84a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D9B95B] ${loading ? 'opacity-50' : ''}`}
             >
-              Send Notifications
+              {loading ? 'Sending...' : 'Send Notifications'}
             </button>
           </div>
         </form>

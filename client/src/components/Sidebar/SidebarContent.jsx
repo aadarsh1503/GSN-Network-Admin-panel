@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   FiHome, FiBox, FiBriefcase, FiUsers, FiMapPin, FiFileText, FiEdit, 
-  FiMail, FiImage, FiAnchor, FiShield, FiChevronDown, FiBell, FiSettings
+  FiMail, FiImage, FiAnchor, FiShield, FiChevronDown, FiBell, FiSettings, FiTag
 } from 'react-icons/fi';
 
 const SidebarContent = () => {
@@ -111,6 +111,7 @@ const SidebarContent = () => {
       ]
     },
     { name: 'General Settings', icon: <FiSettings />, path: 'general-settings' },
+    { name: 'Version Management', icon: <FiTag />, path: 'version-management' },
   ];
 
   const handleDropdownClick = (itemName) => {

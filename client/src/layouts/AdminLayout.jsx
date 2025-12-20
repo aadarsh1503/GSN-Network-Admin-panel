@@ -5,12 +5,14 @@ import {
   FiUser, FiHome, FiMessageSquare, FiLogOut 
 } from 'react-icons/fi';
 import Sidebar from '../components/Sidebar/Sidebar';
+import { useNotifications } from '../contexts/NotificationContext';
 
 // --- AdminHeader Component (Receives isFullscreen and toggleFullscreen) ---
 const AdminHeader = ({ toggleSidebar, toggleFullscreen, isFullscreen }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = React.useRef(null);
   const toggleDropdown = () => setIsDropdownOpen(prevState => !prevState);
+  const { unreadCount, messageUnreadCount } = useNotifications();
 
   React.useEffect(() => {
     const handleClickOutside = (event) => {
@@ -44,11 +46,19 @@ const AdminHeader = ({ toggleSidebar, toggleFullscreen, isFullscreen }) => {
         </button>
         <button className="relative text-gray-500 text-xl">
           <FiBell />
-          <span className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full"></span>
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          )}
         </button>
         <button className="relative text-gray-500 text-xl">
           <FiMail />
-          <span className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full"></span>
+          {messageUnreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+              {messageUnreadCount > 99 ? '99+' : messageUnreadCount}
+            </span>
+          )}
         </button>
         
         <div className="relative" ref={dropdownRef}>

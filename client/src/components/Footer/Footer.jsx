@@ -3,7 +3,8 @@
 import React from 'react';
 import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaFacebookF, FaTwitter, FaLinkedinIn, FaYoutube, FaInstagram, FaChevronUp } from 'react-icons/fa';
 import footerBgImage from "./Footer.png";
-import GSN from "./GSN.jpg"
+import GSN from "./GSN.jpg";
+import VersionDisplay from '../VersionDisplay/VersionDisplay';
 const Footer = () => {
   return (
     <footer className="relative bg-[#212121] text-gray-300 pt-20 overflow-hidden">
@@ -86,7 +87,11 @@ const Footer = () => {
       {/* --- LOWER FOOTER / COPYRIGHT SECTION --- */}
       {/* This div is now OUTSIDE the container, so it will be full-width */}
       <div className="relative mt-1 bg-[#171717] py-6 text-center text-gray-400">
-        <p>2025 Copyright © dsolutionstech.in</p>
+        <div className="flex items-center justify-center space-x-4">
+          <p>2025 Copyright © dsolutionstech.in</p>
+          <span>|</span>
+          <VersionDisplay />
+        </div>
       </div>
 
       {/* Scroll to top button (remains absolutely positioned to the footer) */}

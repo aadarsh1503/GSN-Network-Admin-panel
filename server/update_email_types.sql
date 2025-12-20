@@ -1,0 +1,2 @@
+-- Update email_notifications table to add new email types
+ALTER TABLE email_notifications MODIFY COLUMN type ENUM('quote_response','status_update','acceptance','rejection','user_acceptance','general') DEFAULT 'general';

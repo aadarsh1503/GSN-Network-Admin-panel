@@ -59,8 +59,8 @@ const TransactionHistory = () => {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
-      <div className="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-md">
+    <div className="p-4 sm:p-6  bg-gray-50 min-h-screen">
+      <div className="max-w-5xl mx-auto bg-white p-6 rounded-lg shadow-md">
         <h1 className="text-2xl font-bold text-gray-800 mb-6">Transaction History</h1>
 
         {/* Top Controls */}

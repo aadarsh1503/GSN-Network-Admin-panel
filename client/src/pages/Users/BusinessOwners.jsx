@@ -3,22 +3,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { FaFilter, FaPen, FaEye } from 'react-icons/fa';
 import { FaArrowUp, FaArrowDown } from 'react-icons/fa6';
-
-// --- Dummy Data ---
-// This data will be used to initialize the component's state.
-const initialBusinessUsers = [
-  { id: 1, name: 'bus4', email: 'pevab45900@tsderp.com', mobile: '+919876543210', onBlacklist: true, status: true },
-  { id: 2, name: 'demo', email: 'user@gmail.com', mobile: '9876542510', onBlacklist: false, status: true },
-  { id: 3, name: 'John Due', email: 'johndue@gmail.com', mobile: '+919898989898', onBlacklist: false, status: true },
-  { id: 4, name: 'Jane Smith', email: 'janesmith@gmail.com', mobile: '+919123456789', onBlacklist: false, status: true },
-];
+import axios from 'axios'; // Import Axios
 
 // --- Custom Toggle Switch Component ---
 const ToggleSwitch = ({ checked, onChange }) => {
   return (
     <label className="relative inline-flex items-center cursor-pointer">
       <input type="checkbox" checked={checked} onChange={onChange} className="sr-only peer" />
-      <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
+      <div className={`w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 ${checked ? 'peer-checked:bg-green-600' : ''}`}></div>
     </label>
   );
 };
@@ -26,38 +18,86 @@ const ToggleSwitch = ({ checked, onChange }) => {
 
 function BusinessOwners() {
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true); // Add loading state
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
   const [filters, setFilters] = useState({ status: '', blacklist: '' });
 
-  // --- Initialize State from Dummy Data ---
+  // --- Fetch Data from Backend ---
   useEffect(() => {
-    // REMOVED: All localStorage logic.
-    // The state is now initialized directly from the constant array.
-    setUsers(initialBusinessUsers);
+    const fetchBusinessUsers = async () => {
+      try {
+        const token = localStorage.getItem('token'); // Get Admin Token
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        };
+
+        // Call the new endpoint for Business users
+        const response = await axios.get('/api/user/business-owners', config);
+        setUsers(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching business users:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchBusinessUsers();
   }, []);
 
 
-  // --- Handlers for User Actions ---
-  const handleStatusChange = (userId) => {
+  // --- Handlers for User Actions (Connected to API) ---
+  
+  // 1. Handle Active/Inactive Status
+  const handleStatusChange = async (userId, currentStatus) => {
+    // Optimistic Update (Update UI immediately)
     const updatedUsers = users.map(user =>
-      user.id === userId ? { ...user, status: !user.status } : user
+      user.id === userId ? { ...user, status: !currentStatus } : user
     );
     setUsers(updatedUsers);
-    // REMOVED: localStorage.setItem call. Changes are only in state.
+
+    try {
+        const token = localStorage.getItem('token');
+        // We reuse the update endpoint since User IDs are unique
+        await axios.put(
+            `/api/user/business-status/${userId}`, 
+            { type: 'status', value: !currentStatus },
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+    } catch (error) {
+        console.error("Error updating status:", error);
+        alert("Failed to update status");
+        setUsers(users); // Revert on error
+    }
   };
 
-  const handleBlacklistToggle = (userId) => {
+  // 2. Handle Blacklist Status
+  const handleBlacklistToggle = async (userId, currentBlacklistStatus) => {
+    // Optimistic Update
     const updatedUsers = users.map(user =>
-      user.id === userId ? { ...user, onBlacklist: !user.onBlacklist } : user
+      user.id === userId ? { ...user, onBlacklist: !currentBlacklistStatus } : user
     );
     setUsers(updatedUsers);
-    // REMOVED: localStorage.setItem call. Changes are only in state.
+
+    try {
+        const token = localStorage.getItem('token');
+        await axios.put(
+            `/api/user/business-status/${userId}`, 
+            { type: 'blacklist', value: !currentBlacklistStatus },
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+    } catch (error) {
+        console.error("Error updating blacklist:", error);
+        alert("Failed to update blacklist");
+        setUsers(users); // Revert on error
+    }
   };
   
-  // --- Filtering and Sorting Logic (No changes needed here) ---
+  // --- Filtering and Sorting Logic ---
   const filteredAndSortedUsers = useMemo(() => {
     let sortableUsers = [...users];
 
@@ -80,10 +120,9 @@ function BusinessOwners() {
     // Apply Sorting
     if (sortConfig.key) {
       sortableUsers.sort((a, b) => {
-        // Handle boolean sorting properly
         if (typeof a[sortConfig.key] === 'boolean') {
              if (a[sortConfig.key] === b[sortConfig.key]) return 0;
-             const comparison = a[sortConfig.key] ? -1 : 1; // true comes first
+             const comparison = a[sortConfig.key] ? -1 : 1;
              return sortConfig.direction === 'ascending' ? comparison : -comparison;
         }
         
@@ -100,7 +139,7 @@ function BusinessOwners() {
     return sortableUsers;
   }, [users, searchTerm, sortConfig, filters]);
 
-  // --- Pagination Logic (No changes needed here) ---
+  // --- Pagination Logic ---
   const indexOfLastEntry = currentPage * entriesPerPage;
   const indexOfFirstEntry = indexOfLastEntry - entriesPerPage;
   const currentEntries = filteredAndSortedUsers.slice(indexOfFirstEntry, indexOfLastEntry);
@@ -131,7 +170,8 @@ function BusinessOwners() {
     );
   };
 
-  // ... Rest of the JSX (no changes needed)
+  if (loading) return <div className="p-10 text-center">Loading Business Owners...</div>;
+
   return (
     <div className="bg-gray-100 min-h-screen p-4 sm:p-6 lg:p-2">
       <div className="max-w-7xl mx-auto">
@@ -177,7 +217,7 @@ function BusinessOwners() {
                 value={entriesPerPage}
                 onChange={(e) => {
                     setEntriesPerPage(Number(e.target.value));
-                    setCurrentPage(1); // Reset to first page
+                    setCurrentPage(1); 
                 }}
                 className="p-2 border border-gray-300 rounded-md"
               >
@@ -197,7 +237,7 @@ function BusinessOwners() {
                 value={searchTerm}
                 onChange={(e) => {
                     setSearchTerm(e.target.value);
-                    setCurrentPage(1); // Reset to first page
+                    setCurrentPage(1); 
                 }}
               />
             </div>
@@ -226,10 +266,16 @@ function BusinessOwners() {
                       <td className="p-3">{user.email}</td>
                       <td className="p-3">{user.mobile}</td>
                       <td className="p-3">
-                        <ToggleSwitch checked={user.onBlacklist} onChange={() => handleBlacklistToggle(user.id)} />
+                        <ToggleSwitch 
+                            checked={user.onBlacklist} 
+                            onChange={() => handleBlacklistToggle(user.id, user.onBlacklist)} 
+                        />
                       </td>
                       <td className="p-3">
-                        <ToggleSwitch checked={user.status} onChange={() => handleStatusChange(user.id)} />
+                        <ToggleSwitch 
+                            checked={user.status} 
+                            onChange={() => handleStatusChange(user.id, user.status)} 
+                        />
                       </td>
                       <td className="p-3">
                         <div className="flex space-x-2">

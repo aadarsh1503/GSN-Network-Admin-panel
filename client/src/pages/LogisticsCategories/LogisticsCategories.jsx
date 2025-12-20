@@ -1,46 +1,161 @@
-import React, { useState, useMemo } from 'react';
-// Corrected the import to include the icons actually used (FiChevronUp, FiChevronDown)
-// and remove the incorrect ones (FaSort, etc.)
+import React, { useState, useMemo, useEffect } from 'react';
 import { FiPlus, FiEdit, FiTrash2, FiChevronUp, FiChevronDown } from 'react-icons/fi';
-
-// --- Dummy Data ---
-// This mimics fetching data from an API. We need 20 entries to match the screenshot.
-const initialCategories = [
-  { id: 1, name: 'Freight Forwarders' },
-  { id: 2, name: 'Third-Party Logistics Providers (3PLs)' },
-  { id: 3, name: 'Courier and Parcel Delivery Services' },
-  { id: 4, name: 'Warehousing and Distribution' },
-  { id: 5, name: 'Transportation Services' },
-  { id: 6, name: 'Supply Chain Management' },
-  { id: 7, name: 'Inventory Management' },
-  { id: 8, name: 'Cold Chain Logistics' },
-  { id: 9, name: 'Reverse Logistics' },
-  { id: 10, name: 'E-commerce Logistics' },
-  { id: 11, name: 'Air Cargo Services' },
-  { id: 12, name: 'Ocean Freight Services' },
-  { id: 13, name: 'Rail Freight' },
-  { id: 14, name: 'Road Transportation' },
-  { id: 15, name: 'Customs Brokerage' },
-  { id: 16, name: 'Last-Mile Delivery' },
-  { id: 17, name: 'Project Cargo' },
-  { id: 18, name: 'Intermodal Transportation' },
-  { id: 19, name: 'Logistics Consulting' },
-  { id: 20, name: 'Drone Delivery Services' },
-];
 
 const LogisticsCategories = () => {
   // --- State Management ---
-  const [categories, setCategories] = useState(initialCategories);
+  const [categories, setCategories] = useState([]);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
+  
+  // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [editingCategory, setEditingCategory] = useState(null); // New: Tracks item being edited
+
+  // API States
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // --- API Configuration ---
+  const API_URL = '/api/logistics-categories'; 
+  const getAuthHeader = () => {
+      const token = localStorage.getItem('token');
+      return { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+      };
+  };
+
+  // --- 1. Fetch Data ---
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+        setLoading(true);
+        const response = await fetch(API_URL, { headers: getAuthHeader() });
+        if (!response.ok) throw new Error('Failed to fetch categories');
+        const data = await response.json();
+        setCategories(data);
+        setError(null);
+    } catch (err) {
+        setError(err.message);
+    } finally {
+        setLoading(false);
+    }
+  };
+
+  // --- 2. Handle Modal Open (Add vs Edit) ---
+  const openAddModal = () => {
+    setEditingCategory(null); // Not editing
+    setNewCategoryName('');
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (category) => {
+    setEditingCategory(category); // Set the category we are editing
+    setNewCategoryName(category.name); // Fill the input
+    setIsModalOpen(true);
+  };
+
+  // --- 3. Save Handler (Decides Add or Update) ---
+  const handleSave = async () => {
+    if (newCategoryName.trim() === '') return;
+
+    if (editingCategory) {
+        await handleUpdateCategory();
+    } else {
+        await handleAddCategory();
+    }
+  };
+
+  // --- 4. API Actions ---
+  
+  // ADD
+  const handleAddCategory = async () => {
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: getAuthHeader(),
+            body: JSON.stringify({ name: newCategoryName }),
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert(data.message || 'Error adding category');
+            return;
+        }
+
+        setCategories([...categories, data]);
+        closeModal();
+        alert('Category added successfully!');
+    } catch (err) {
+        console.error(err);
+        alert('Failed to connect to server');
+    }
+  };
+
+  // UPDATE (New Function)
+  const handleUpdateCategory = async () => {
+    try {
+        const response = await fetch(`${API_URL}/${editingCategory.id}`, {
+            method: 'PUT',
+            headers: getAuthHeader(),
+            body: JSON.stringify({ name: newCategoryName }),
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert(data.message || 'Error updating category');
+            return;
+        }
+
+        // Update local state by replacing the old item with the updated one
+        const updatedCategories = categories.map(cat => 
+            cat.id === editingCategory.id ? data : cat
+        );
+        setCategories(updatedCategories);
+        closeModal();
+        alert('Category updated successfully!');
+    } catch (err) {
+        console.error(err);
+        alert('Failed to connect to server');
+    }
+  };
+
+  // DELETE
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this category?')) return;
+
+    try {
+        const response = await fetch(`${API_URL}/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeader(),
+        });
+
+        if (!response.ok) {
+            const data = await response.json();
+            alert(data.message || 'Error deleting category');
+            return;
+        }
+
+        setCategories(categories.filter(category => category.id !== id));
+    } catch (err) {
+        console.error(err);
+        alert('Failed to delete category');
+    }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingCategory(null);
+    setNewCategoryName('');
+  };
 
   // --- Client-Side Data Processing ---
-
-  // 1. Filter data based on search term
   const filteredCategories = useMemo(() => {
     if (!searchTerm) return categories;
     return categories.filter(category =>
@@ -48,7 +163,6 @@ const LogisticsCategories = () => {
     );
   }, [categories, searchTerm]);
 
-  // 2. Sort the filtered data
   const sortedCategories = useMemo(() => {
     let sortableItems = [...filteredCategories];
     if (sortConfig !== null) {
@@ -65,14 +179,11 @@ const LogisticsCategories = () => {
     return sortableItems;
   }, [filteredCategories, sortConfig]);
   
-  // 3. Paginate the sorted data
   const paginatedCategories = useMemo(() => {
     const firstPageIndex = (currentPage - 1) * itemsPerPage;
     const lastPageIndex = firstPageIndex + itemsPerPage;
     return sortedCategories.slice(firstPageIndex, lastPageIndex);
   }, [sortedCategories, currentPage, itemsPerPage]);
-
-  // --- Handlers ---
 
   const handleSort = (key) => {
     let direction = 'ascending';
@@ -80,23 +191,6 @@ const LogisticsCategories = () => {
       direction = 'descending';
     }
     setSortConfig({ key, direction });
-  };
-  
-  const handleAddCategory = () => {
-    if (newCategoryName.trim() === '') return;
-    const newCategory = {
-      id: categories.length > 0 ? Math.max(...categories.map(c => c.id)) + 1 : 1,
-      name: newCategoryName,
-    };
-    setCategories([...categories, newCategory]);
-    setNewCategoryName('');
-    setIsModalOpen(false);
-  };
-
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this category?')) {
-        setCategories(categories.filter(category => category.id !== id));
-    }
   };
 
   const totalPages = Math.ceil(sortedCategories.length / itemsPerPage);
@@ -110,23 +204,22 @@ const LogisticsCategories = () => {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold text-gray-800">Logistics Categories</h2>
         <button 
-          onClick={() => setIsModalOpen(true)}
+          onClick={openAddModal}
           className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md flex items-center transition duration-300"
         >
           <FiPlus className="mr-2" /> Add
         </button>
       </div>
 
-      {/* Controls: Entries per page and Search */}
+      {error && <div className="text-red-500 mb-4">{error}</div>}
+
+      {/* Controls */}
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center space-x-2 text-gray-600">
           <span>Show</span>
           <select 
             value={itemsPerPage}
-            onChange={(e) => {
-                setItemsPerPage(Number(e.target.value));
-                setCurrentPage(1); // Reset to first page
-            }}
+            onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
             className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-yellow-500"
           >
             <option value="10">10</option>
@@ -142,10 +235,7 @@ const LogisticsCategories = () => {
             type="text" 
             placeholder="Search..."
             value={searchTerm}
-            onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1); // Reset to first page
-            }}
+            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
             className="border border-gray-300 rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-yellow-500"
           />
         </div>
@@ -158,7 +248,7 @@ const LogisticsCategories = () => {
             <tr>
               <th className="py-3 px-4 text-left font-semibold cursor-pointer" onClick={() => handleSort('id')}>
                 <div className="flex items-center">
-                    Sr. No
+                    ID
                     {sortConfig.key === 'id' ? (sortConfig.direction === 'ascending' ? <FiChevronUp className="ml-1"/> : <FiChevronDown className="ml-1"/>) : null}
                 </div>
               </th>
@@ -172,27 +262,39 @@ const LogisticsCategories = () => {
             </tr>
           </thead>
           <tbody className="text-gray-700">
-            {paginatedCategories.map((category, index) => (
-              <tr key={category.id} className="border-b border-gray-200 hover:bg-gray-50">
-                <td className="py-3 px-4">{startEntry + index}</td>
-                <td className="py-3 px-4">{category.name}</td>
-                <td className="py-3 px-4">
-                  <div className="flex items-center space-x-2">
-                    <button className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-md transition duration-300">
-                      <FiEdit />
-                    </button>
-                    <button onClick={() => handleDelete(category.id)} className="bg-pink-500 hover:bg-pink-600 text-white p-2 rounded-md transition duration-300">
-                      <FiTrash2 />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {loading ? (
+                <tr><td colSpan="3" className="text-center py-4">Loading data...</td></tr>
+            ) : paginatedCategories.length === 0 ? (
+                <tr><td colSpan="3" className="text-center py-4">No categories found.</td></tr>
+            ) : (
+                paginatedCategories.map((category) => (
+                <tr key={category.id} className="border-b border-gray-200 hover:bg-gray-50">
+                    <td className="py-3 px-4">{category.id}</td>
+                    <td className="py-3 px-4">{category.name}</td>
+                    <td className="py-3 px-4">
+                    <div className="flex items-center space-x-2">
+                        <button 
+                          onClick={() => openEditModal(category)}
+                          className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-md transition duration-300"
+                        >
+                          <FiEdit />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(category.id)} 
+                          className="bg-pink-500 hover:bg-pink-600 text-white p-2 rounded-md transition duration-300"
+                        >
+                          <FiTrash2 />
+                        </button>
+                    </div>
+                    </td>
+                </tr>
+                ))
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* Footer and Pagination */}
+      {/* Footer */}
       <div className="flex justify-between items-center mt-4">
         <div className="text-gray-600">
           Showing {sortedCategories.length > 0 ? startEntry : 0} to {endEntry} of {sortedCategories.length} entries
@@ -205,7 +307,7 @@ const LogisticsCategories = () => {
           >
             Previous
           </button>
-          {[...Array(totalPages).keys()].map(number => (
+          {[...Array(totalPages).keys()].slice(Math.max(0, currentPage - 3), Math.min(totalPages, currentPage + 2)).map(number => (
             <button 
               key={number + 1}
               onClick={() => setCurrentPage(number + 1)}
@@ -224,11 +326,13 @@ const LogisticsCategories = () => {
         </div>
       </div>
 
-      {/* Add Category Modal */}
+      {/* Add/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
-            <h3 className="text-xl font-semibold mb-4">Add New Category</h3>
+            <h3 className="text-xl font-semibold mb-4">
+              {editingCategory ? 'Edit Category' : 'Add New Category'}
+            </h3>
             <input
               type="text"
               value={newCategoryName}
@@ -238,16 +342,16 @@ const LogisticsCategories = () => {
             />
             <div className="flex justify-end space-x-4">
               <button 
-                onClick={() => setIsModalOpen(false)}
+                onClick={closeModal}
                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
               >
                 Cancel
               </button>
               <button 
-                onClick={handleAddCategory}
+                onClick={handleSave}
                 className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
               >
-                Save Category
+                {editingCategory ? 'Update' : 'Save'}
               </button>
             </div>
           </div>

@@ -1,18 +1,33 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Outlet, useLocation } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+import { LoadingProvider } from "./contexts/LoadingContext";
+import { NotificationProvider } from "./contexts/NotificationContext";
+import { SubscriptionProvider } from "./contexts/SubscriptionContext";
 import "./App.css";
 
-// Public components
+// --- Layouts & Global Components ---
 import Navbar from "./components/Navbar/Navbar";
 import Footer from "./components/Footer/Footer";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AdminLayout from "./layouts/AdminLayout";
+import CompanyLayout from "./layouts/CompanyLayout";
+import UnauthorizedPage from "./pages/UnauthorizedPage";
+
+// --- Auth & Public Pages ---
 import Hero from "./components/Hero/Hero";
 import LoginPage from "./components/Login/Login";
-import AdminLayout from "./layouts/AdminLayout";
+import RegisterPage from "./components/Login/RegisterPage";
+import UserRegisterPage from "./components/Login/UserRegisterPage";
+
+// --- Admin Pages ---
 import Dashboard from "./pages/DashboardContent/DashboardContent";
 import LogisticsCategories from "./pages/LogisticsCategories/LogisticsCategories";
 import BusinessCategories from "./pages/BusinessCategories/BusinessCategories";
 import User from "./pages/Users/Users";
 import BusinessOwners from "./pages/Users/BusinessOwners";
 import CompanyOwners from "./pages/Users/CompanyOwners";
+import RegularUsers from "./pages/Users/RegularUsers";
 import QuotesList from "./pages/Quotes/QuotesList";
 import ApprovedQuotesList from "./pages/Quotes/ApprovedQuotesList";
 import RejectedQuotes from "./pages/Quotes/RejectedQuotes";
@@ -20,7 +35,6 @@ import RunningQuotesList from "./pages/Quotes/RunningQuotesList";
 import ClosedQuotesList from "./pages/Quotes/ClosedQuotesList";
 import AllCompanyQuotesList from "./pages/CompanyQuotes/AllCompanyQuotesList";
 import ApprovedCompanyQuotesList from "./pages/CompanyQuotes/ApprovedQuotesList";
-
 import RunningQuotesListCompany from "./pages/CompanyQuotes/RunningQuotesListCompany";
 import RejectedCompanyQuotesList from "./pages/CompanyQuotes/RejectedQuotesList";
 import ClosedCompanyQuote from "./pages/CompanyQuotes/ClosedCompanyQuote";
@@ -47,121 +61,214 @@ import GeneralSettings from "./pages/GeneralSettings/GeneralSettings";
 import SendNotifications from "./pages/Notifications/SendNotifications";
 import SendEmails from "./pages/Notifications/SendEmails";
 import UserProfile from "./pages/UserProfile/UserProfile";
+import ReportsPage from "./pages/Reports/ReportsPage";
+import VersionManagement from "./pages/VersionManagement/VersionManagement";
 
-// Admin components and layout
+// --- Company Pages ---
+import CompanyDashboard from "./companyPages/CompanyDashboard/CompanyDashboard";
+import MembersDirectory from "./companyPages/MembersDirectory/MembersDirectory";
+import QuotesPage from "./companyPages/QuotesPage/QuotesPage";
+import RequestQuote from "./companyPages/RequestQuote/RequestQuote";
+import CompanyProfileDetail from "./companyPages/CompanyProfileDetail/CompanyProfileDetail";
+import EditCompanyDetails from "./companyPages/EditCompanyDetails/EditCompanyDetails";
+import AddCompanyBranch from "./companyPages/CompanyBranch/AddCompanyBranch";
+import ManageCompanyBranch from "./companyPages/CompanyBranch/ManageCompanyBranch";
+import AddCompanyMember from "./companyPages/CompanyMembers/CompanyMembers";
+import ManageCompanyMember from "./companyPages/CompanyMembers/ManageCompanyMember";
+import PlansPage from "./companyPages/Plans/PlansPage";
+import MyCertificatePage from "./companyPages/MyCertificatePage/MyCertificatePage";
+import SubscriptionPage from "./pages/SubscriptionPage";
+import MemberQuotesPage from "./pages/MemberQuotesPage";
+import Invoices from "./companyPages/Invoices/Invoices";
+import TransactionHistorycompany from "./companyPages/TransactionHistory/TransactionHistorycompany";
+import ProfileViewers from "./companyPages/ProfileViewers/ProfileViewers";
+import SupportTicket from "./companyPages/Tickets/SupportTicket";
+import MyTickets from "./companyPages/Tickets/MyTickets";
+import Wishlist from "./companyPages/Wishlist/Wishlist";
+import IndividualQuotes from "./companyPages/IndividualQuotes/IndividualQuotes";
+import MyQuotes from "./companyPages/MyQuotes/MyQuotes";
+import MessagesPage from "./companyPages/MessagesPage/MessagesPage";
+import SuggestionCompany from "./companyPages/Suggestion/Suggestion";
+import NotificationsCompany from "./companyPages/NotificationsCompany/NotificationsCompany";
+import ChangePasswordPage from "./companyPages/ChangePasswordPage/ChangePasswordPage";
+import MyQuoteResponses from "./companyPages/MyQuoteResponses/MyQuoteResponses";
 
+// --- User Pages ---
+import UserLayout from "./layouts/UserLayout";
+import UserDashboard from "./pages/UserDashboard/UserDashboard";
+import UserQuotes from "./pages/UserQuotes/UserQuotes";
+import QuoteDetails from "./pages/UserQuotes/QuoteDetails";
+import UserMessages from "./pages/UserMessages/UserMessages";
+import UserNotifications from "./pages/UserNotifications/UserNotifications";
+
+// --- Components ---
+
+// 1. ScrollToTop Component
+// This component listens to route changes and scrolls the window to (0,0).
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
+
+// 2. Public Layout
+const PublicLayout = () => (
+  <>
+    <Navbar />
+    <Outlet />
+    <Footer />
+  </>
+);
 
 function App() {
   return (
-    <Router>
-      {/* The Routes component will handle rendering the correct layout */}
+    <LoadingProvider>
+      <NotificationProvider>
+        <SubscriptionProvider>
+          <Router>
+          {/* ScrollToTop must be inside Router to access useLocation */}
+          <ScrollToTop />
+          
+          {/* Global Toaster Configuration */}
+          <Toaster
+            position="top-center"
+            toastOptions={{
+              duration: 3000,
+            }}
+          />
+
       <Routes>
-        {/* --- PUBLIC ROUTES --- */}
-        {/* These routes will have the public Navbar and Footer */}
-        <Route path="/" element={
-          <>
-            <Navbar />
-            <Hero />
-            <Footer />
-          </>
-        } />
-        <Route path="/login" element={
-          <>
-            <Navbar />
-            <LoginPage />
-            <Footer />
-          </>
-        } />
-
-        {/* --- ADMIN ROUTES --- */}
-        {/* All routes starting with /admin will be rendered inside the AdminLayout */}
-        <Route path="/admin" element={<AdminLayout />}>
-        
-          {/* The index route for /admin will be the Dashboard */}
-          <Route index element={<Dashboard />} />
-          <Route path="logistics-categories" element={<LogisticsCategories />} /> 
-          <Route path="business-categories" element={<BusinessCategories />} /> 
-          <Route path="users" element={<User />} /> 
-          <Route path="business-Owners" element={<BusinessOwners />} /> 
-          <Route path="company-Owners" element={<CompanyOwners />} /> 
-          <Route path="quote-List" element={<QuotesList />} /> 
-          <Route path="approved-Quotes" element={<ApprovedQuotesList />} /> 
-          <Route path="rejected-Quotes" element={<RejectedQuotes />} /> 
-          <Route path="running-Quotes" element={<RunningQuotesList />} /> 
-          <Route path="closed-Quotes" element={<ClosedQuotesList />} /> 
-          <Route path="all-company-Quotes" element={<AllCompanyQuotesList />} /> 
-          <Route path="all-approved-Quotes" element={<ApprovedCompanyQuotesList />} /> 
-          <Route path="all-rejected-Quotes" element={<RejectedCompanyQuotesList />} /> 
-          <Route path="all-running-Quotes" element={<RunningQuotesListCompany />} /> 
-          <Route path="all-closed-Quotes" element={<ClosedCompanyQuote />} /> 
-          <Route path="create-Subscription" element={<CreateSubscriptionPlan />} /> 
-          <Route path="manage-Subscription" element={<ManageSubscription />} />
-          <Route path="transaction-History" element={<TransactionHistory />} /> 
-          <Route path="all-Ticket" element={<AllTicketsList />} /> 
-          <Route path="pending-Ticket" element={<PendingTickets />} /> 
-          <Route path="closed-Ticket" element={<ClosedTickets />} /> 
-          <Route path="answered-Ticket" element={<AnsweredTickets />} /> 
-          <Route path="policy" element={<PolicyEditor />} /> 
-          <Route path="terms" element={<TermsEditor />} /> 
-          <Route path="disclaimer" element={<DisclaimerEditor />} /> 
-          <Route path="dueDiligenceEditor" element={<DueDiligenceEditor />} /> 
-          <Route path="suggestion" element={<Suggestions />} /> 
-          <Route path="review-Reason" element={<ReviewReason />} /> 
-          <Route path="all-reviews" element={<Review />} /> 
-          <Route path="dispute-Reason" element={<DisputeReason />} /> 
-          <Route path="disputes" element={<Dispute />} /> 
-          <Route path="subscribers" element={<Subscribers />} /> 
-          <Route path="subscribers" element={<Subscribers />} /> 
-          <Route path="contactList" element={<ContactsList />} /> 
-          <Route path="BankDetail" element={<BankDetailEditor />} /> 
-          <Route path="general-settings" element={<GeneralSettings />} /> 
-          <Route path="send-notifications" element={<SendNotifications />} /> 
-          <Route path="send-emails" element={<SendEmails />} /> 
-          <Route path="user-Profile" element={<UserProfile />} /> 
-
-
-
-
-
-
-
-
-
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-          {/* You can add more admin pages like this */}
-          {/* e.g., <Route path="users" element={<AdminUsersPage />} /> */}
-          {/* e.g., <Route path="settings" element={<AdminSettingsPage />} /> */}
+        {/* ================= PUBLIC ROUTES ================= */}
+        <Route path="/" element={<PublicLayout />}>
+          <Route index element={<Hero />} />
+          <Route path="login" element={<LoginPage />} />
+          <Route path="register" element={<RegisterPage />} />
+          <Route path="user-register" element={<UserRegisterPage />} />
+          <Route path="quote" element={<RequestQuote />} />
+          <Route path="subscriptions" element={<SubscriptionPage />} />
+          <Route path="/company/freight-quotes" element={<QuotesPage />} />
         </Route>
 
+        <Route path="/unauthorized" element={<UnauthorizedPage />} />
+
+        {/* ================= ADMIN ROUTES ================= */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="logistics-categories" element={<LogisticsCategories />} />
+          <Route path="business-categories" element={<BusinessCategories />} />
+          <Route path="users" element={<User />} />
+          <Route path="business-Owners" element={<BusinessOwners />} />
+          <Route path="company-Owners" element={<CompanyOwners />} />
+          <Route path="regular-users" element={<RegularUsers />} />
+          <Route path="quote-List" element={<QuotesList />} />
+          <Route path="approved-Quotes" element={<ApprovedQuotesList />} />
+          <Route path="rejected-Quotes" element={<RejectedQuotes />} />
+          <Route path="running-Quotes" element={<RunningQuotesList />} />
+          <Route path="closed-Quotes" element={<ClosedQuotesList />} />
+          <Route path="all-company-Quotes" element={<AllCompanyQuotesList />} />
+          <Route path="all-approved-Quotes" element={<ApprovedCompanyQuotesList />} />
+          <Route path="all-rejected-Quotes" element={<RejectedCompanyQuotesList />} />
+          <Route path="all-running-Quotes" element={<RunningQuotesListCompany />} />
+          <Route path="all-closed-Quotes" element={<ClosedCompanyQuote />} />
+          <Route path="create-Subscription" element={<CreateSubscriptionPlan />} />
+          <Route path="manage-Subscription" element={<ManageSubscription />} />
+          <Route path="transaction-History" element={<TransactionHistory />} />
+          <Route path="all-Ticket" element={<AllTicketsList />} />
+          <Route path="pending-Ticket" element={<PendingTickets />} />
+          <Route path="closed-Ticket" element={<ClosedTickets />} />
+          <Route path="answered-Ticket" element={<AnsweredTickets />} />
+          <Route path="policy" element={<PolicyEditor />} />
+          <Route path="terms" element={<TermsEditor />} />
+          <Route path="disclaimer" element={<DisclaimerEditor />} />
+          <Route path="dueDiligenceEditor" element={<DueDiligenceEditor />} />
+          <Route path="suggestion" element={<Suggestions />} />
+          <Route path="review-Reason" element={<ReviewReason />} />
+          <Route path="all-reviews" element={<Review />} />
+          <Route path="dispute-Reason" element={<DisputeReason />} />
+          <Route path="disputes" element={<Dispute />} />
+          <Route path="subscribers" element={<Subscribers />} />
+          <Route path="contactList" element={<ContactsList />} />
+          <Route path="BankDetail" element={<BankDetailEditor />} />
+          <Route path="general-settings" element={<GeneralSettings />} />
+          <Route path="send-notifications" element={<SendNotifications />} />
+          <Route path="send-emails" element={<SendEmails />} />
+          <Route path="user-Profile" element={<UserProfile />} />
+          <Route path="reports" element={<ReportsPage />} />
+          <Route path="version-management" element={<VersionManagement />} />
+        </Route>
+
+        {/* ================= COMPANY ROUTES ================= */}
+        <Route
+          path="/company"
+          element={
+            <ProtectedRoute allowedRoles={["company"]}>
+              <CompanyLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<CompanyDashboard />} />
+          <Route path="dashboard" element={<CompanyDashboard />} />
+          <Route path="member-directory" element={<MembersDirectory />} />
+          <Route path="quote" element={<RequestQuote />} />
+          <Route path="freight-quotes" element={<QuotesPage />} />
+          <Route path="my-profile" element={<CompanyProfileDetail />} />
+          <Route path="messages" element={<MessagesPage />} />
+          <Route path="edit-Profile" element={<EditCompanyDetails />} />
+          <Route path="add-Branch" element={<AddCompanyBranch />} />
+          <Route path="manage-Branch" element={<ManageCompanyBranch />} />
+          <Route path="add-member" element={<AddCompanyMember />} />
+          <Route path="manage-member" element={<ManageCompanyMember />} />
+          <Route path="plans" element={<PlansPage />} />
+          <Route path="subscriptions" element={<SubscriptionPage />} />
+          <Route path="available-quotes" element={<MemberQuotesPage />} />
+          <Route path="profile-certificate" element={<MyCertificatePage />} />
+          <Route path="transaction-History-Company" element={<TransactionHistorycompany />} />
+          <Route path="invoices" element={<Invoices />} />
+          <Route path="profile-Viewers" element={<ProfileViewers />} />
+          <Route path="create-Ticket" element={<SupportTicket />} />
+          <Route path="my-Tickets" element={<MyTickets />} />
+          <Route path="wishlist" element={<Wishlist />} />
+          <Route path="individual-Quotes" element={<IndividualQuotes />} />
+          <Route path="my-Quotes" element={<MyQuotes />} />
+          <Route path="suggestions" element={<SuggestionCompany />} />
+          <Route path="notification-company" element={<NotificationsCompany />} />
+          <Route path="change-Password" element={<ChangePasswordPage />} />
+          <Route path="my-quote-responses" element={<MyQuoteResponses />} />
+        </Route>
+
+        {/* ================= USER ROUTES ================= */}
+        <Route
+          path="/user"
+          element={
+            <ProtectedRoute allowedRoles={["user"]}>
+              <UserLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<UserDashboard />} />
+          <Route path="dashboard" element={<UserDashboard />} />
+          <Route path="quotes" element={<UserQuotes />} />
+          <Route path="quotes/:quoteId" element={<QuoteDetails />} />
+          <Route path="messages" element={<UserMessages />} />
+          <Route path="notifications" element={<UserNotifications />} />
+          <Route path="profile" element={<UserProfile />} />
+        </Route>
       </Routes>
     </Router>
+        </SubscriptionProvider>
+      </NotificationProvider>
+    </LoadingProvider>
   );
 }
 

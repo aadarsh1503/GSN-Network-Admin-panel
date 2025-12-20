@@ -1,0 +1,69 @@
+// index.js
+
+import express from 'express';
+import dotenv from 'dotenv';
+import cors from 'cors'; // You will need CORS for your React app
+import companyRoutes from './routes/companyRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
+import logisticsCategoryRoutes from './routes/logisticsCategoryRoutes.js';
+import businessCategoryRoutes from './routes/businessCategoryRoutes.js';
+import quoteRoutes from './routes/quoteRoutes.js';
+import quoteResponseRoutes from './routes/quoteResponseRoutes.js';
+import messageRoutes from './routes/messageRoutes.js';
+import reviewRoutes from './routes/reviewRoutes.js';
+import ticketRoutes from './routes/ticketRoutes.js';
+import directoryRoutes from './routes/directoryRoutes.js';
+import dashboardRoutes from './routes/dashboardRoutes.js';
+import reportRoutes from './routes/reportRoutes.js';
+import wishlistRoutes from './routes/wishlistRoutes.js';
+import suggestionRoutes from './routes/suggestionRoutes.js';
+import subscriptionRoutes from './routes/subscriptionRoutes.js';
+import userQuoteRoutes from './routes/userQuoteRoutes.js';
+import userNotificationRoutes from './routes/userNotificationRoutes.js';
+import companyQuoteRoutes from './routes/companyQuoteRoutes.js';
+import versionRoutes from './routes/versionRoutes.js';
+import testRoutes from './routes/testRoutes.js';
+// ==========================================================
+// CONFIGURE DOTENV AT THE VERY TOP
+dotenv.config();
+// ==========================================================
+
+import userRoutes from './routes/userRoutes.js';
+
+// For debugging: check if the variable is loaded
+console.log('JWT Secret Loaded:', process.env.JWT_SECRET ? 'Yes' : 'No'); 
+
+const app = express();
+const PORT = process.env.PORT || 5001;
+
+// Middlewares
+app.use(cors()); // Enable CORS for all routes
+app.use(express.json()); // Middleware to parse JSON bodies
+
+// Mount the user routes
+app.use('/api/user', userRoutes);
+app.use('/api/user-quotes', userQuoteRoutes);
+app.use('/api/user-notifications', userNotificationRoutes);
+app.use('/api/company-quotes', companyQuoteRoutes);
+app.use('/api/company', companyRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/logistics-categories', logisticsCategoryRoutes);
+app.use('/api/business-categories', businessCategoryRoutes);
+app.use('/api/quotes', quoteRoutes);
+app.use('/api/quote-responses', quoteResponseRoutes);
+app.use('/api/messages', messageRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/tickets', ticketRoutes);
+app.use('/api/directory', directoryRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/suggestions', suggestionRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/version', versionRoutes);
+app.use('/api/test', testRoutes);
+
+// Start the server
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});

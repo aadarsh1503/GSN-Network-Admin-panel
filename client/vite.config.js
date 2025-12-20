@@ -10,4 +10,13 @@ export default defineConfig({
     sourcemap: true, 
     minify: 'esbuild',
   },
-})
+  server: {
+    proxy: {
+      '/api': {
+        target: '',
+        changeOrigin: true, // Needed for virtual hosted sites
+        secure: false,      // Set to false if your backend is not using HTTPS
+      },
+    },
+  },
+});

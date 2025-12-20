@@ -1,8 +1,8 @@
-import React from 'react';
-
+import React, { useState, useEffect } from 'react';
 import { FiBarChart2, FiBriefcase, FiDollarSign, FiBox, FiArchive, FiMoreVertical } from 'react-icons/fi';
 import StatsCard from '../StatsCard/StatsCard';
 import { FaCube } from 'react-icons/fa';
+import api from '../../utils/api';
 
 // A simple placeholder for the line chart
 const ProductFeedChart = () => (
@@ -56,16 +56,85 @@ const AccountRetentionChart = () => (
 
 
 const Dashboard = () => {
+  const [stats, setStats] = useState({
+    users: { total_users: 0, business_users: 0, company_users: 0 },
+    quotes: { total_quotes: 0 },
+    responses: { total_responses: 0 },
+    tickets: { total_tickets: 0 }
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchDashboardStats();
+  }, []);
+
+  const fetchDashboardStats = async () => {
+    try {
+      const data = await api.get('/dashboard/stats');
+      setStats(data);
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="text-center py-8">Loading dashboard...</div>;
+  }
+
   return (
     <div>
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-6 mb-6">
-        <div className="lg:col-span-1 xl:col-span-1"><StatsCard title="NO OF USER" value="10" icon={<FiBarChart2 className="text-yellow-600" />} iconBgColor="bg-yellow-100" /></div>
-        <div className="lg:col-span-1 xl:col-span-1"><StatsCard title="NO OF BUSINESS" value="3" icon={<FiBriefcase className="text-green-600" />} iconBgColor="bg-green-100" /></div>
-        <div className="lg:col-span-1 xl:col-span-1"><StatsCard title="NO OF LOGISTICS" value="3" icon={<FiDollarSign className="text-pink-600" />} iconBgColor="bg-pink-100" /></div>
-        <div className="lg:col-span-1 xl:col-span-1"><StatsCard title="NO OF QUOTES" value="13" icon={<FiBox className="text-orange-600" />} iconBgColor="bg-orange-100" /></div>
-        <div className="lg:col-span-1 xl:col-span-1"><StatsCard title="NO OF COMPANY QUOTES" value="1" icon={<FaCube className="text-cyan-600" />} iconBgColor="bg-cyan-100" /></div>
-        <div className="lg:col-span-1 xl:col-span-1"><StatsCard title="tbd" value="0" icon={<FiArchive className="text-purple-600" />} iconBgColor="bg-purple-100" /></div>
+        <div className="lg:col-span-1 xl:col-span-1">
+          <StatsCard 
+            title="TOTAL USERS" 
+            value={stats.users.total_users} 
+            icon={<FiBarChart2 className="text-yellow-600" />} 
+            iconBgColor="bg-yellow-100" 
+          />
+        </div>
+        <div className="lg:col-span-1 xl:col-span-1">
+          <StatsCard 
+            title="BUSINESS USERS" 
+            value={stats.users.business_users} 
+            icon={<FiBriefcase className="text-green-600" />} 
+            iconBgColor="bg-green-100" 
+          />
+        </div>
+        <div className="lg:col-span-1 xl:col-span-1">
+          <StatsCard 
+            title="COMPANY USERS" 
+            value={stats.users.company_users} 
+            icon={<FiDollarSign className="text-pink-600" />} 
+            iconBgColor="bg-pink-100" 
+          />
+        </div>
+        <div className="lg:col-span-1 xl:col-span-1">
+          <StatsCard 
+            title="TOTAL QUOTES" 
+            value={stats.quotes.total_quotes} 
+            icon={<FiBox className="text-orange-600" />} 
+            iconBgColor="bg-orange-100" 
+          />
+        </div>
+        <div className="lg:col-span-1 xl:col-span-1">
+          <StatsCard 
+            title="QUOTE RESPONSES" 
+            value={stats.responses.total_responses} 
+            icon={<FaCube className="text-cyan-600" />} 
+            iconBgColor="bg-cyan-100" 
+          />
+        </div>
+        <div className="lg:col-span-1 xl:col-span-1">
+          <StatsCard 
+            title="SUPPORT TICKETS" 
+            value={stats.tickets.total_tickets} 
+            icon={<FiArchive className="text-purple-600" />} 
+            iconBgColor="bg-purple-100" 
+          />
+        </div>
       </div>
       
       {/* Charts Section */}

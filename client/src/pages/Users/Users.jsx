@@ -3,21 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { FaFilter, FaPen, FaEye } from 'react-icons/fa';
 import { FaArrowUp, FaArrowDown } from 'react-icons/fa6';
-
-// --- Dummy Data ---
-// This data will be used to initialize the component's state.
-const initialUsers = [
-  { id: 1, name: 'bus4', email: 'pevab45900@tsderp.com', mobile: '+919876543210', onBlacklist: true, status: true },
-  { id: 2, name: 'demo', email: 'user@gmail.com', mobile: '9876542510', onBlacklist: false, status: true },
-  { id: 3, name: 'John Due', email: 'johndue@gmail.com', mobile: '+919898989898', onBlacklist: false, status: true },
-  { id: 4, name: 'test12', email: 'test12@gmail.com', mobile: '+915200000423', onBlacklist: false, status: true },
-  { id: 5, name: 'aditya', email: 'aditya@gmail.com', mobile: '+911231231231', onBlacklist: false, status: true },
-  { id: 6, name: 'user@gmail.com', email: 'user123@gmail.com', mobile: '+911231231231', onBlacklist: false, status: false },
-  { id: 7, name: 'test', email: 'test147@gmail.com', mobile: '+919959959955', onBlacklist: false, status: true },
-  { id: 8, name: 'test2', email: 'test2@gmail.com', mobile: '+919595959595', onBlacklist: false, status: true },
-  { id: 9, name: 'hetal', email: 'hesainfotech147@gmail.com', mobile: '+919664879427', onBlacklist: false, status: true },
-  { id: 10, name: 'santhosh', email: 'santhosh123gvs@gmail.com', mobile: '+97334565656', onBlacklist: false, status: true },
-];
+import api from '../../utils/api';
 
 // --- Custom Toggle Switch Component ---
 const ToggleSwitch = ({ checked, onChange }) => {
@@ -37,29 +23,78 @@ function User() {
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
   const [filters, setFilters] = useState({ status: '', blacklist: '' });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // --- Initialize State from Dummy Data ---
+  // --- Fetch Users from API ---
   useEffect(() => {
-    // REMOVED: All localStorage logic.
-    // The state is now initialized directly from the constant array.
-    setUsers(initialUsers);
+    fetchUsers();
   }, []);
 
-  // --- Handlers for User Actions ---
-  const handleStatusChange = (userId) => {
-    const updatedUsers = users.map(user =>
-      user.id === userId ? { ...user, status: !user.status } : user
-    );
-    setUsers(updatedUsers);
-    // REMOVED: localStorage.setItem call.
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/user/all');
+      
+      // Format the data to match expected structure
+      const formattedUsers = response.map(user => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        mobile: user.phone,
+        onBlacklist: user.onBlacklist,
+        status: user.status,
+        role: user.role,
+        created_at: user.created_at
+      }));
+      
+      setUsers(formattedUsers);
+      setError(null);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      setError('Failed to load users. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleBlacklistToggle = (userId) => {
-    const updatedUsers = users.map(user =>
-      user.id === userId ? { ...user, onBlacklist: !user.onBlacklist } : user
-    );
-    setUsers(updatedUsers);
-    // REMOVED: localStorage.setItem call.
+  // --- Handlers for User Actions ---
+  const handleStatusChange = async (userId) => {
+    try {
+      const user = users.find(u => u.id === userId);
+      await api.put(`/user/company-status/${userId}`, {
+        type: 'status',
+        value: !user.status
+      });
+      
+      // Update local state
+      const updatedUsers = users.map(user =>
+        user.id === userId ? { ...user, status: !user.status } : user
+      );
+      setUsers(updatedUsers);
+    } catch (error) {
+      console.error('Error updating user status:', error);
+      alert('Failed to update user status');
+    }
+  };
+
+  const handleBlacklistToggle = async (userId) => {
+    try {
+      const user = users.find(u => u.id === userId);
+      await api.put(`/user/company-status/${userId}`, {
+        type: 'blacklist',
+        value: !user.onBlacklist
+      });
+      
+      // Update local state
+      const updatedUsers = users.map(user =>
+        user.id === userId ? { ...user, onBlacklist: !user.onBlacklist } : user
+      );
+      setUsers(updatedUsers);
+    } catch (error) {
+      console.error('Error updating blacklist status:', error);
+      alert('Failed to update blacklist status');
+    }
   };
   
   // --- Filtering and Sorting Logic ---
@@ -136,6 +171,37 @@ function User() {
     );
   };
 
+  if (loading) {
+    return (
+      <div className="bg-gray-100 min-h-screen p-4 sm:p-6 lg:p-2">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-white p-6 rounded-lg shadow">
+            <div className="text-center py-8">Loading users...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-gray-100 min-h-screen p-4 sm:p-6 lg:p-2">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-white p-6 rounded-lg shadow">
+            <div className="text-center py-8 text-red-600">
+              {error}
+              <button 
+                onClick={fetchUsers}
+                className="ml-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gray-100 min-h-screen p-4 sm:p-6 lg:p-2">
