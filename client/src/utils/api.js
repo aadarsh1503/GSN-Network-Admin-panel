@@ -1,6 +1,6 @@
 // API utility with proper token handling and loading states
 
-const API_BASE_URL = 'https://gsn-network-admin-panel-1.onrender.com/';
+const API_BASE_URL = 'https://gsn-network-admin-panel-1.onrender.com';
 
 // Token management
 export const getToken = () => {
