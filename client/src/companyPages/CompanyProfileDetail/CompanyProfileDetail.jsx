@@ -246,8 +246,8 @@ const CompanyProfileDetail = () => {
         
         // Fetch company profile data
         const [companyProfile, userData] = await Promise.all([
-          api('/api/company/profile'),
-          api('/api/user/me')
+          api.get('/api/company/profile'),
+          api.get('/api/user/me')
         ]);
 
         // Transform API data to component format

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { api } from '../../utils/api';
 
 const AddCompanyMember = () => {
   const [branches, setBranches] = useState([]); // Store fetched branches here
@@ -23,16 +24,8 @@ const AddCompanyMember = () => {
   useEffect(() => {
     const fetchBranches = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await fetch('/api/company/branches', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setBranches(data);
-        }
+        const data = await api.get('/api/company/branches');
+        setBranches(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Error fetching branches:", error);
       }
@@ -61,31 +54,16 @@ const AddCompanyMember = () => {
     }
 
     try {
-        const token = localStorage.getItem('token');
-        const response = await fetch('/api/company/members', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(formData)
+        const data = await api.post('/api/company/members', formData);
+        alert('Member added successfully!');
+        // Reset form
+        setFormData({
+            branch: '', memberName: '', memberPhone: '', memberEmail: '', memberRole: '',
+            skype: '', facebook: '', twitter: '', instagram: '', whatsapp: '', linkedin: ''
         });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            alert('Member added successfully!');
-            // Reset form
-            setFormData({
-                branch: '', memberName: '', memberPhone: '', memberEmail: '', memberRole: '',
-                skype: '', facebook: '', twitter: '', instagram: '', whatsapp: '', linkedin: ''
-            });
-        } else {
-            alert(data.message || 'Error adding member');
-        }
     } catch (error) {
         console.error("Error:", error);
-        alert('Something went wrong. Please try again.');
+        alert(error.message || 'Something went wrong. Please try again.');
     } finally {
         setLoading(false);
     }
@@ -114,7 +92,7 @@ const AddCompanyMember = () => {
                 className={inputClasses}
             >
               <option value="">Select Branch</option>
-              {branches.length > 0 ? (
+              {Array.isArray(branches) && branches.length > 0 ? (
                 branches.map((branch) => (
                   <option key={branch.id} value={branch.id}>
                     {branch.branch_name} ({branch.city})
@@ -124,7 +102,7 @@ const AddCompanyMember = () => {
                 <option value="" disabled>No branches available</option>
               )}
             </select>
-            {branches.length === 0 && (
+            {Array.isArray(branches) && branches.length === 0 && (
                 <p className="text-xs text-red-500 mt-1">You need to add a Branch first.</p>
             )}
           </div>

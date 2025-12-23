@@ -28,7 +28,7 @@ const AllTicketsList = () => {
   const fetchTickets = async () => {
     try {
       setLoading(true);
-      const data = await api('/api/tickets/admin/all');
+      const data = await api.get('/api/tickets/admin/all');
       setTickets(data);
       setError(null);
     } catch (err) {
@@ -42,12 +42,9 @@ const AllTicketsList = () => {
     if (!selectedTicket || !newStatus) return;
 
     try {
-      await api(`/api/tickets/${selectedTicket.id}/status`, {
-        method: 'PUT',
-        body: JSON.stringify({ 
-          status: newStatus,
-          adminResponse: adminResponse || undefined
-        })
+      await api.put(`/api/tickets/${selectedTicket.id}/status`, { 
+        status: newStatus,
+        adminResponse: adminResponse || undefined
       });
 
       // Update local state

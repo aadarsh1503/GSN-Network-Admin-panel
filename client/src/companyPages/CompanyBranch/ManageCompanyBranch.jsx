@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { FaSort, FaPen, FaTrash, FaTimes } from 'react-icons/fa';
+import api from '../../utils/api';
 
 const ManageCompanyBranch = () => {
   const [branches, setBranches] = useState([]);
@@ -26,14 +27,11 @@ const ManageCompanyBranch = () => {
 
   const fetchBranches = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/company/branches', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await response.json();
-      if (response.ok) setBranches(data);
+      const data = await api.get('/api/company/branches');
+      setBranches(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching branches:', error);
+      setBranches([]);
     } finally {
       setLoading(false);
     }
@@ -43,18 +41,12 @@ const ManageCompanyBranch = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this branch?")) return;
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/company/branches/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (response.ok) {
-        setBranches(branches.filter(branch => branch.id !== id));
-        alert("Branch deleted successfully");
-      }
+      await api.delete(`/api/company/branches/${id}`);
+      setBranches(branches.filter(branch => branch.id !== id));
+      alert("Branch deleted successfully");
     } catch (error) {
       console.error("Error deleting:", error);
+      alert("Failed to delete branch");
     }
   };
 
@@ -91,37 +83,25 @@ const ManageCompanyBranch = () => {
   const handleUpdateSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/company/branches/${editingId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(editFormData)
-      });
-
-      if (response.ok) {
-        alert("Branch updated successfully");
-        setIsEditModalOpen(false);
-        
-        // Update local state to reflect changes immediately
-        setBranches(branches.map(b => b.id === editingId ? {
-            ...b,
-            branch_name: editFormData.branchName,
-            branch_phone: editFormData.branchPhone,
-            branch_email: editFormData.branchEmail,
-            country: editFormData.country,
-            state: editFormData.state,
-            city: editFormData.city,
-            address: editFormData.branchAddress,
-            // ... update other fields if needed for display
-        } : b));
-      } else {
-        alert("Failed to update branch");
-      }
+      await api.put(`/api/company/branches/${editingId}`, editFormData);
+      alert("Branch updated successfully");
+      setIsEditModalOpen(false);
+      
+      // Update local state to reflect changes immediately
+      setBranches(branches.map(b => b.id === editingId ? {
+          ...b,
+          branch_name: editFormData.branchName,
+          branch_phone: editFormData.branchPhone,
+          branch_email: editFormData.branchEmail,
+          country: editFormData.country,
+          state: editFormData.state,
+          city: editFormData.city,
+          address: editFormData.branchAddress,
+          // ... update other fields if needed for display
+      } : b));
     } catch (error) {
       console.error("Error updating:", error);
+      alert("Failed to update branch");
     }
   };
 

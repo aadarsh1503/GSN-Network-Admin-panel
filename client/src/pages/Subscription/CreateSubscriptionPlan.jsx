@@ -76,7 +76,7 @@ const CreateSubscriptionPlan = () => {
         .map(f => f.trim())
         .filter(f => f.length > 0);
 
-      await api.post('/subscriptions/admin/plans', {
+      await api.post('/api/subscriptions/admin/plans', {
         name: formData.name,
         description: formData.description,
         price: parseFloat(formData.price),

@@ -24,7 +24,7 @@ const RejectedQuotes = () => {
   const fetchRejectedQuotes = async () => {
     try {
       setLoading(true);
-      const data = await api('/api/quotes/status/rejected');
+      const data = await api.get('/api/quotes/status/rejected');
       setQuotes(data);
       setError(null);
     } catch (err) {
@@ -38,10 +38,7 @@ const RejectedQuotes = () => {
     if (!window.confirm('Are you sure you want to reactivate this quote?')) return;
 
     try {
-      await api(`/api/quotes/${quoteId}/status`, {
-        method: 'PUT',
-        body: JSON.stringify({ status: 'pending' })
-      });
+      await api.put(`/api/quotes/${quoteId}/status`, { status: 'pending' });
 
       // Remove from rejected list
       setQuotes(quotes.filter(quote => quote.id !== quoteId));

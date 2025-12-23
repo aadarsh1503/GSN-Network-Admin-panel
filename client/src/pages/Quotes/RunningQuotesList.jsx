@@ -20,7 +20,7 @@ const RunningQuotesList = () => {
   const fetchRunningQuotes = async () => {
     try {
       setLoading(true);
-      const data = await api('/api/quotes/status/running');
+      const data = await api.get('/api/quotes/status/running');
       setQuotes(data);
       setError(null);
     } catch (err) {
@@ -34,10 +34,7 @@ const RunningQuotesList = () => {
     if (!window.confirm('Are you sure you want to close this quote?')) return;
 
     try {
-      await api(`/api/quotes/${quoteId}/status`, {
-        method: 'PUT',
-        body: JSON.stringify({ status: 'closed' })
-      });
+      await api.put(`/api/quotes/${quoteId}/status`, { status: 'closed' });
 
       // Remove from running list
       setQuotes(quotes.filter(quote => quote.id !== quoteId));

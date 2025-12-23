@@ -16,7 +16,7 @@ const MyTickets = () => {
 
   const fetchMyTickets = async () => {
     try {
-      const data = await api('/api/tickets/my-tickets');
+      const data = await api.get('/api/tickets/my-tickets');
       setTickets(data);
     } catch (error) {
       console.error('Error fetching tickets:', error);

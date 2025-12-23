@@ -15,8 +15,8 @@ const PlansPage = () => {
   const fetchData = async () => {
     try {
       const [plansData, subData] = await Promise.all([
-        api('/api/subscriptions/plans'),
-        api('/api/subscriptions/my-subscription')
+        api.get('/api/subscriptions/plans'),
+        api.get('/api/subscriptions/my-subscription')
       ]);
       setPlans(plansData);
       setCurrentSubscription(subData);

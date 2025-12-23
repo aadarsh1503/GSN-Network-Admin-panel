@@ -1,16 +1,20 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Flag from 'react-world-flags';
 import { FiEye, FiMessageSquare } from 'react-icons/fi';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import useMarkAsRead from '../../hooks/useMarkAsRead';
+import LoadingSpinner, { InlineSpinner } from '../../components/LoadingSpinner/LoadingSpinner';
 
 const MyQuotes = () => {
+  const navigate = useNavigate();
   const [quotes, setQuotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedQuote, setSelectedQuote] = useState(null);
   const [responses, setResponses] = useState([]);
   const [loadingResponses, setLoadingResponses] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   // Mark quote-related notifications as read when this page is visited
   useMarkAsRead('quotes');
@@ -21,10 +25,11 @@ const MyQuotes = () => {
 
   const fetchMyQuotes = async () => {
     try {
-      const data = await api.get('/company-quotes/accepted-quotes');
-      setQuotes(data);
+      const data = await api.get('/api/company-quotes/accepted-quotes');
+      setQuotes(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching quotes:', error);
+      setQuotes([]);
     } finally {
       setLoading(false);
     }
@@ -33,11 +38,12 @@ const MyQuotes = () => {
   const fetchQuoteResponses = async (quoteId) => {
     setLoadingResponses(true);
     try {
-      const data = await api.get(`/quote-responses/quote/${quoteId}`);
-      setResponses(data);
+      const data = await api.get(`/api/company-quotes/quote/${quoteId}/responses`);
+      setResponses(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching responses:', error);
       toast.error('Failed to load responses');
+      setResponses([]);
     } finally {
       setLoadingResponses(false);
     }
@@ -48,24 +54,58 @@ const MyQuotes = () => {
     await fetchQuoteResponses(quote.id);
   };
 
-  const handleAcceptResponse = async (responseId) => {
+  const handleStatusChange = async (newStatus) => {
+    setUpdatingStatus(true);
     try {
-      await api.put(`/quote-responses/${responseId}/status`, { status: 'accepted' });
-      toast.success('Response accepted!');
-      fetchQuoteResponses(selectedQuote.id);
+      await api.put(`/api/company-quotes/quote/${selectedQuote.id}/status`, { status: newStatus });
+      toast.success('Quote status updated successfully!');
+      
+      // Update the selected quote immediately
+      setSelectedQuote({ ...selectedQuote, status: newStatus });
+      
+      // Update the quotes list immediately without refetching
+      setQuotes(prevQuotes => 
+        prevQuotes.map(quote => 
+          quote.id === selectedQuote.id 
+            ? { ...quote, status: newStatus }
+            : quote
+        )
+      );
     } catch (error) {
-      toast.error(error.message || 'Failed to accept response');
+      toast.error(error.message || 'Failed to update status');
+    } finally {
+      setUpdatingStatus(false);
     }
   };
 
-  const handleStatusChange = async (newStatus) => {
-    try {
-      await api.put(`/company-quotes/quote/${selectedQuote.id}/status`, { status: newStatus });
-      toast.success('Quote status updated successfully!');
-      setSelectedQuote({ ...selectedQuote, status: newStatus });
-      fetchMyQuotes(); // Refresh the quotes list
-    } catch (error) {
-      toast.error(error.message || 'Failed to update status');
+  const handleMessageCustomer = () => {
+    // Navigate to messages page with the customer's user ID
+    if (selectedQuote && selectedQuote.user_id) {
+      // Navigate to messages page and pass the customer info
+      navigate('/company/messages', {
+        state: {
+          openConversation: {
+            userId: selectedQuote.user_id,
+            userName: selectedQuote.user_name || 'Customer',
+            userEmail: selectedQuote.user_email
+          },
+          quoteId: selectedQuote.id
+        }
+      });
+    } else if (selectedQuote && selectedQuote.user_name) {
+      // Fallback: if no user_id but we have customer info, still navigate
+      navigate('/company/messages', {
+        state: {
+          customerInfo: {
+            name: selectedQuote.user_name,
+            email: selectedQuote.user_email,
+            phone: selectedQuote.user_phone
+          },
+          quoteId: selectedQuote.id
+        }
+      });
+    } else {
+      toast.error('Customer information not available for messaging');
     }
   };
 
@@ -95,7 +135,11 @@ const MyQuotes = () => {
   };
 
   if (loading) {
-    return <div className="text-center py-8">Loading quotes...</div>;
+    return (
+      <div className="bg-white p-6 md:p-8 rounded-lg shadow-md w-full">
+        <LoadingSpinner size="lg" text="Loading your quotes..." />
+      </div>
+    );
   }
 
   if (selectedQuote) {
@@ -146,15 +190,23 @@ const MyQuotes = () => {
             <div><strong>Mode:</strong> {selectedQuote.shipping_mode}</div>
             <div>
               <strong>Status:</strong> 
-              <select
-                value={selectedQuote.status}
-                onChange={(e) => handleStatusChange(e.target.value)}
-                className="ml-2 px-2 py-1 text-xs font-medium rounded border border-gray-300 focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
-              >
-                <option value="pending">Pending</option>
-                <option value="running">Running</option>
-                <option value="closed">Closed</option>
-              </select>
+              <div className="inline-flex items-center ml-2">
+                <select
+                  value={selectedQuote.status}
+                  onChange={(e) => handleStatusChange(e.target.value)}
+                  disabled={updatingStatus}
+                  className="px-2 py-1 text-xs font-medium rounded border border-gray-300 focus:ring-2 focus:ring-[#CDA435] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value="pending">Pending</option>
+                  <option value="running">Running</option>
+                  <option value="closed">Closed</option>
+                </select>
+                {updatingStatus && (
+                  <div className="ml-2">
+                    <InlineSpinner text="Updating..." />
+                  </div>
+                )}
+              </div>
             </div>
             <div><strong>Arrive by:</strong> {new Date(selectedQuote.arrival_date).toLocaleDateString()}</div>
             <div><strong>Your Price:</strong> ${selectedQuote.price}</div>
@@ -171,14 +223,14 @@ const MyQuotes = () => {
 
         {/* Responses */}
         <h3 className="text-xl font-bold text-gray-800 mb-4">
-          Responses ({responses.length})
+          All Responses ({responses.length})
         </h3>
 
         {loadingResponses ? (
-          <div className="text-center py-8 text-gray-500">Loading responses...</div>
+          <LoadingSpinner size="md" text="Loading responses..." />
         ) : responses.length === 0 ? (
           <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
-            No responses yet. Companies will respond to your quote soon.
+            No responses available for this quote.
           </div>
         ) : (
           <div className="space-y-4">
@@ -221,21 +273,26 @@ const MyQuotes = () => {
                 )}
 
                 <div className="flex gap-2">
-                  {response.status === 'pending' && (
-                    <button
-                      onClick={() => handleAcceptResponse(response.id)}
-                      className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm"
-                    >
-                      Accept Quote
-                    </button>
-                  )}
-                  {response.status === 'accepted' && (
+                  {response.user_response_status === 'accepted' && (
                     <span className="bg-green-100 text-green-800 px-4 py-2 rounded-lg text-sm">
-                      ✓ Accepted
+                      ✓ Accepted by Customer
                     </span>
                   )}
-                  <button className="border border-[#CDA435] text-[#CDA435] px-4 py-2 rounded-lg hover:bg-yellow-50 text-sm flex items-center gap-2">
-                    <FiMessageSquare /> Message
+                  {response.user_response_status === 'rejected' && (
+                    <span className="bg-red-100 text-red-800 px-4 py-2 rounded-lg text-sm">
+                      ✗ Rejected by Customer
+                    </span>
+                  )}
+                  {!response.user_response_status && (
+                    <span className="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-lg text-sm">
+                      ⏳ Pending Customer Response
+                    </span>
+                  )}
+                  <button 
+                    onClick={handleMessageCustomer}
+                    className="border border-[#CDA435] text-[#CDA435] px-4 py-2 rounded-lg hover:bg-yellow-50 text-sm flex items-center gap-2"
+                  >
+                    <FiMessageSquare /> Message Customer
                   </button>
                 </div>
               </div>

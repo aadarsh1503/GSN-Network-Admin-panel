@@ -44,13 +44,13 @@ const QuotesPage = () => {
   const fetchQuotes = async () => {
     try {
       // Fetch approved quotes that companies can respond to
-      const data = await api('/api/quotes/status/approved');
+      const data = await api.get('/api/quotes/status/approved');
       setQuotes(data);
     } catch (error) {
       console.error('Error fetching quotes:', error);
       // If not admin, try fetching all pending/approved quotes
       try {
-        const allData = await api('/api/quotes/all');
+        const allData = await api.get('/api/quotes/all');
         setQuotes(allData.filter(q => ['pending', 'approved'].includes(q.status)));
       } catch (err) {
         console.error('Error:', err);
@@ -94,12 +94,9 @@ const QuotesPage = () => {
 
     setSubmittingResponse(true);
     try {
-      await api('/api/quote-responses/submit', {
-        method: 'POST',
-        body: JSON.stringify({
-          quoteId: selectedQuote.id,
-          ...responseForm
-        })
+      await api.post('/api/quote-responses/submit', {
+        quoteId: selectedQuote.id,
+        ...responseForm
       });
 
       toast.success('Quote response submitted successfully!');

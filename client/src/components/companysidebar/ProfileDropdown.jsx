@@ -1,7 +1,7 @@
-// src/components/ProfileDropdown.js
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiHome, FiUser, FiLock, FiMessageSquare, FiGlobe, FiLogOut } from 'react-icons/fi';
+import api from '../../utils/api';
 
 const ProfileDropdown = ({ onClose }) => {
   const [user, setUser] = useState(null);
@@ -20,22 +20,9 @@ const ProfileDropdown = ({ onClose }) => {
   useEffect(() => {
     const fetchLogo = async () => {
       try {
-        const token = localStorage.getItem('token');
-        if (!token) return;
-
-        const response = await fetch('/api/company/profile', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json' // GET requests are fine with JSON header
-            }
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            if (data && data.logo) {
-                setLogo(data.logo);
-            }
+        const data = await api.get('/api/company/profile');
+        if (data && data.logo) {
+          setLogo(data.logo);
         }
       } catch (error) {
         console.error("Error fetching logo for dropdown:", error);

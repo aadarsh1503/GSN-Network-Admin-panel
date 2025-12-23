@@ -19,7 +19,7 @@ const ReportsPage = () => {
       if (dateRange.startDate) params.append('startDate', dateRange.startDate);
       if (dateRange.endDate) params.append('endDate', dateRange.endDate);
 
-      const data = await api(`/api/reports/${activeTab}?${params.toString()}`);
+      const data = await api.get(`/api/reports/${activeTab}?${params.toString()}`);
       setReportData(data);
     } catch (error) {
       console.error('Error fetching report:', error);

@@ -2,14 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { submitPendingQuote, hasPendingQuote } from '../../utils/pendingQuote';
 import toast from 'react-hot-toast';
-
-// EyeIcon component remains the same...
-const EyeIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-gray-500">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.432 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>
-);
+import { api } from '../../utils/api';
+import { Eye, EyeOff } from 'lucide-react';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
@@ -27,20 +21,7 @@ const LoginPage = () => {
         setError(''); // Clear previous errors
 
         try {
-            const response = await fetch('/api/user/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, password }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                // If response is not 2xx, throw an error to be caught by the catch block
-                throw new Error(data.message || 'Login failed');
-            }
+            const data = await api.post('/api/user/login', { email, password });
 
             // --- SUCCESSFUL LOGIN ---
             console.log('Login successful:', data);
@@ -126,15 +107,15 @@ const LoginPage = () => {
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="Enter Your Password"
                                     required
-                                    className="w-full px-4 py-3 bg-stone-100 rounded-md focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+                                    className="w-full px-4 py-3 pr-12 bg-stone-100 rounded-md focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
                                     aria-label="Toggle password visibility"
                                 >
-                                    <EyeIcon />
+                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                 </button>
                             </div>
                         </div>

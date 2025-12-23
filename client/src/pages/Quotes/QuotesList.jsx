@@ -26,7 +26,7 @@ const QuotesList = () => {
   const fetchQuotes = async () => {
     try {
       setLoading(true);
-      const data = await api('/api/quotes/all');
+      const data = await api.get('/api/quotes/all');
       setQuotes(data);
       setError(null);
     } catch (err) {
@@ -40,10 +40,7 @@ const QuotesList = () => {
     if (!selectedQuote || !newStatus) return;
 
     try {
-      await api(`/api/quotes/${selectedQuote.id}/status`, {
-        method: 'PUT',
-        body: JSON.stringify({ status: newStatus })
-      });
+      await api.put(`/api/quotes/${selectedQuote.id}/status`, { status: newStatus });
 
       // Update local state
       setQuotes(quotes.map(quote => 

@@ -224,14 +224,14 @@ const Navbar = () => {
                     <FaTachometerAlt className="mr-3 text-gray-400" />
                     Dashboard
                   </a>
-                  <a
+                  {/* <a
                     href="#"
                     className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                     onClick={() => setIsUserDropdownOpen(false)}
                   >
                     <FaUserCircle className="mr-3 text-gray-400" />
                     Profile
-                  </a>
+                  </a> */}
                   <hr className="my-1" />
                   <button
                     onClick={handleLogout}

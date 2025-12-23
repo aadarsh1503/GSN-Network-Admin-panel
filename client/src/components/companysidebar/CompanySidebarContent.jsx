@@ -13,7 +13,7 @@ import CompanyQuoteRestrictionModal from '../Modal/CompanyQuoteRestrictionModal'
 const menuItems = [
     { name: 'Dashboard', icon: <FiGrid />, path: '/company/dashboard' },
     { name: 'Member Directory', icon: <FiUsers />, path: '/company/member-directory' },
-    { name: 'Quotes', icon: <FiFileText />, path: '/company/freight-quotes' },
+    // { name: 'Quotes', icon: <FiFileText />, path: '/company/freight-quotes' },
     { name: 'Request Quote', icon: <FiPlusCircle />, path: '/quote' },
     { name: 'My Profile', icon: <FiUser />, path: '/company/my-profile' },
     { name: 'Edit Company Details', icon: <FiEdit />, path: '/company/edit-Profile' },
@@ -33,7 +33,7 @@ const menuItems = [
         { name: 'Manage Members', path: '/company/manage-member' },
       ],
     },
-    { name: 'Plans', icon: <FiClipboard />, path: '/company/plans' },
+    // { name: 'Plans', icon: <FiClipboard />, path: '/company/plans' },
     { name: 'Subscriptions', icon: <FiCreditCard />, path: '/company/subscriptions' },
     { name: 'Available Quotes', icon: <FiSearch />, path: '/company/available-quotes' },
     { name: 'My Certificate', icon: <FiAward />, path: '/company/profile-certificate' },

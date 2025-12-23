@@ -30,7 +30,7 @@ const UserMessages = () => {
   const fetchConversations = async () => {
     setLoading(true);
     try {
-      const data = await api.get('/messages/conversations');
+      const data = await api.get('/api/messages/conversations');
       setConversations(data || []);
     } catch (error) {
       console.error('Error fetching conversations:', error);
@@ -43,7 +43,7 @@ const UserMessages = () => {
 
   const fetchUnreadCount = async () => {
     try {
-      const data = await api.get('/messages/unread-count');
+      const data = await api.get('/api/messages/unread-count');
       setUnreadCount(data.unreadCount);
     } catch (error) {
       console.error('Error fetching unread count:', error);
@@ -52,10 +52,11 @@ const UserMessages = () => {
 
   const fetchConversation = async (userId) => {
     try {
-      const data = await api.get(`/messages/conversation/${userId}`);
-      setConversationMessages(data);
+      const data = await api.get(`/api/messages/conversation/${userId}`);
+      setConversationMessages(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching conversation:', error);
+      setConversationMessages([]);
       toast.error('Failed to fetch conversation');
     }
   };
@@ -72,7 +73,7 @@ const UserMessages = () => {
     // Mark unread messages as read
     if (conversation.unread_count > 0) {
       try {
-        await api.put(`/messages/conversation/${conversation.other_user_id}/read`);
+        await api.put(`/api/messages/conversation/${conversation.other_user_id}/read`);
         fetchUnreadCount();
         fetchConversations();
       } catch (error) {
@@ -87,7 +88,7 @@ const UserMessages = () => {
 
     setSendingMessage(true);
     try {
-      await api.post('/messages/send', {
+      await api.post('/api/messages/send', {
         receiverId: selectedConversation.userId,
         subject: null,
         message: newMessage,
@@ -137,7 +138,14 @@ const UserMessages = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="flex flex-col items-center gap-3">
+          <div className="relative">
+            <div className="h-12 w-12 border-4 border-gray-200 rounded-full animate-spin">
+              <div className="h-12 w-12 border-4 border-transparent border-t-[#CDA435] rounded-full animate-spin"></div>
+            </div>
+          </div>
+          <p className="text-gray-600 font-medium">Loading messages...</p>
+        </div>
       </div>
     );
   }
@@ -199,8 +207,8 @@ const UserMessages = () => {
                       key={conv.other_user_id}
                       onClick={() => handleSelectConversation(conv)}
                       className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
-                        isSelected ? 'bg-blue-50 border-blue-200' : ''
-                      } ${conv.unread_count > 0 ? 'bg-blue-25' : ''}`}
+                        isSelected ? 'bg-yellow-50 border-yellow-200' : ''
+                      } ${conv.unread_count > 0 ? 'bg-yellow-25' : ''}`}
                     >
                       <div className="flex items-start">
                         {conv.other_user_logo ? (
@@ -220,7 +228,7 @@ const UserMessages = () => {
                                 {formatDate(conv.last_message_time)}
                               </span>
                               {conv.unread_count > 0 && (
-                                <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full min-w-[20px] text-center">
+                                <span className="bg-[#CDA435] text-white text-xs px-2 py-0.5 rounded-full min-w-[20px] text-center">
                                   {conv.unread_count}
                                 </span>
                               )}
@@ -267,7 +275,7 @@ const UserMessages = () => {
 
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-                  {conversationMessages.map((msg) => {
+                  {Array.isArray(conversationMessages) && conversationMessages.length > 0 ? conversationMessages.map((msg) => {
                     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
                     const isOwn = msg.sender_id === currentUser.id;
                     const isSystem = isSystemMessage(msg);
@@ -278,15 +286,15 @@ const UserMessages = () => {
                         <div key={msg.id} className="flex justify-center">
                           <div className={`max-w-[80%] rounded-lg p-3 shadow-sm border-l-4 ${
                             systemType === 'response' ? 'bg-green-50 border-green-500' :
-                            systemType === 'status' ? 'bg-blue-50 border-blue-500' :
+                            systemType === 'status' ? 'bg-yellow-50 border-yellow-500' :
                             'bg-yellow-50 border-yellow-500'
                           }`}>
                             <div className="flex items-center gap-2 mb-2">
                               {systemType === 'response' && <FaCheck className="text-green-600" />}
-                              {systemType === 'status' && <FaClock className="text-blue-600" />}
+                              {systemType === 'status' && <FaClock className="text-[#CDA435]" />}
                               <p className={`text-xs font-medium ${
                                 systemType === 'response' ? 'text-green-700' :
-                                systemType === 'status' ? 'text-blue-700' :
+                                systemType === 'status' ? 'text-yellow-700' :
                                 'text-yellow-700'
                               }`}>
                                 {msg.subject}
@@ -303,15 +311,20 @@ const UserMessages = () => {
                     
                     return (
                       <div key={msg.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[70%] ${isOwn ? 'bg-blue-600 text-white' : 'bg-white'} rounded-lg p-3 shadow-sm`}>
+                        <div className={`max-w-[70%] ${isOwn ? 'bg-[#CDA435] text-white' : 'bg-white'} rounded-lg p-3 shadow-sm`}>
                           <p className="text-sm">{msg.message}</p>
-                          <p className={`text-xs mt-1 ${isOwn ? 'text-blue-100' : 'text-gray-400'}`}>
+                          <p className={`text-xs mt-1 ${isOwn ? 'text-yellow-100' : 'text-gray-400'}`}>
                             {formatDate(msg.created_at)}
                           </p>
                         </div>
                       </div>
                     );
-                  })}
+                  }) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>No messages yet</p>
+                      <p className="text-sm">Start a conversation below</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Message Input */}
@@ -327,7 +340,7 @@ const UserMessages = () => {
                     <button
                       type="submit"
                       disabled={sendingMessage || !newMessage.trim()}
-                      className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="bg-[#CDA435] text-white px-6 py-3 rounded-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {sendingMessage ? (
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>

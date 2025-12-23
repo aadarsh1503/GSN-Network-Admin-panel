@@ -6,8 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import ProfileDropdown from './ProfileDropdown';
 import { useNotifications } from '../../contexts/NotificationContext';
 import CompanyQuoteRestrictionModal from '../Modal/CompanyQuoteRestrictionModal';
-// We use raw fetch here to ensure it works without path issues to your utils folder
-// but we follow the same logic as your api wrapper
+import api from '../../utils/api';
 
 const CompanyHeader = ({ onMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -37,23 +36,10 @@ const CompanyHeader = ({ onMenuClick }) => {
   useEffect(() => {
     const fetchCompanyLogo = async () => {
       try {
-        const token = localStorage.getItem('token'); // Ensure you have the token saved
-        
-        // Using the same endpoint as your EditCompanyDetails code
-        const response = await fetch('/api/company/profile', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            // Check if logo exists in the response
-            if (data && data.logo) {
-                setCompanyLogo(data.logo);
-            }
+        const data = await api.get('/api/company/profile');
+        // Check if logo exists in the response
+        if (data && data.logo) {
+          setCompanyLogo(data.logo);
         }
       } catch (error) {
         console.error("Error fetching company logo:", error);
@@ -121,7 +107,7 @@ const CompanyHeader = ({ onMenuClick }) => {
       {/* Center */}
       <div className="header-center hidden lg:flex items-center gap-4">
         <a href="/company/member-directory" className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">Member Directory</a>
-        <a href="/company/freight-quotes" className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">Quotes</a>
+        {/* <a href="/company/freight-quotes" className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">Quotes</a> */}
         <button 
           onClick={handleQuoteRequestClick}
           className="px-5 py-2 text-sm font-medium text-white bg-amber-500 border border-amber-500 rounded-lg hover:bg-amber-600 transition-colors"

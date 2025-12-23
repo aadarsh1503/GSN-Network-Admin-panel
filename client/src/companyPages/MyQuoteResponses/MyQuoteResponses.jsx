@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FaEye, FaEdit, FaCheck, FaTimes, FaClock, FaUser } from 'react-icons/fa';
 import toast from 'react-hot-toast';
+import { api } from '../../utils/api';
 
 const MyQuoteResponses = () => {
   const [responses, setResponses] = useState([]);
@@ -13,20 +14,8 @@ const MyQuoteResponses = () => {
 
   const fetchMyResponses = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/company-quotes/my-responses', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setResponses(data);
-      } else {
-        toast.error('Failed to fetch responses');
-      }
+      const data = await api.get('/api/company-quotes/my-responses');
+      setResponses(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching responses:', error);
       toast.error('Failed to fetch responses');
@@ -40,26 +29,12 @@ const MyQuoteResponses = () => {
     
     setUpdatingStatus(responseId);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/company-quotes/response/${responseId}/status`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ status: newStatus })
-      });
-
-      if (response.ok) {
-        toast.success('Response status updated successfully');
-        fetchMyResponses(); // Refresh the responses
-      } else {
-        const errorData = await response.json();
-        toast.error(errorData.message || 'Failed to update status');
-      }
+      await api.put(`/api/company-quotes/response/${responseId}/status`, { status: newStatus });
+      toast.success('Response status updated successfully');
+      fetchMyResponses(); // Refresh the responses
     } catch (error) {
       console.error('Error updating status:', error);
-      toast.error('Failed to update status');
+      toast.error(error.message || 'Failed to update status');
     } finally {
       setUpdatingStatus(null);
     }
@@ -111,7 +86,7 @@ const MyQuoteResponses = () => {
 
       {/* Responses List */}
       <div className="bg-white rounded-lg shadow">
-        {responses.length === 0 ? (
+        {Array.isArray(responses) && responses.length === 0 ? (
           <div className="text-center py-12">
             <FaEye className="mx-auto text-gray-400 mb-4" size={48} />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No responses yet</h3>
@@ -143,7 +118,7 @@ const MyQuoteResponses = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {responses.map((response) => (
+                {Array.isArray(responses) && responses.map((response) => (
                   <tr key={response.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div className="text-sm">

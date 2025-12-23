@@ -20,7 +20,7 @@ const ApprovedQuotesList = () => {
   const fetchApprovedQuotes = async () => {
     try {
       setLoading(true);
-      const data = await api('/api/quotes/status/approved');
+      const data = await api.get('/api/quotes/status/approved');
       setQuotes(data);
       setError(null);
     } catch (err) {

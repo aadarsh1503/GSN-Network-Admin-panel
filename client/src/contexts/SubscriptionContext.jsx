@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { api } from '../utils/api';
 
 const SubscriptionContext = createContext();
 
@@ -21,17 +22,8 @@ export const SubscriptionProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch('/api/subscriptions/my-subscription', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setSubscription(data);
-      }
+      const data = await api.get('/api/subscriptions/my-subscription');
+      setSubscription(data);
     } catch (error) {
       console.error('Error fetching subscription:', error);
     }
@@ -40,11 +32,8 @@ export const SubscriptionProvider = ({ children }) => {
   // Fetch available plans
   const fetchPlans = async () => {
     try {
-      const response = await fetch('/api/subscriptions/plans');
-      if (response.ok) {
-        const data = await response.json();
-        setPlans(data);
-      }
+      const data = await api.get('/api/subscriptions/plans');
+      setPlans(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching plans:', error);
     } finally {
@@ -55,26 +44,12 @@ export const SubscriptionProvider = ({ children }) => {
   // Activate subscription
   const activateSubscription = async (planId) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/subscriptions/activate', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ planId })
-      });
-
-      if (response.ok) {
-        await fetchSubscription(); // Refresh subscription data
-        return { success: true };
-      } else {
-        const error = await response.json();
-        return { success: false, error: error.message };
-      }
+      await api.post('/api/subscriptions/activate', { planId });
+      await fetchSubscription(); // Refresh subscription data
+      return { success: true };
     } catch (error) {
       console.error('Error activating subscription:', error);
-      return { success: false, error: 'Network error' };
+      return { success: false, error: error.message || 'Network error' };
     }
   };
 

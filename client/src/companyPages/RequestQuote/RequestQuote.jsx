@@ -163,7 +163,7 @@ const RequestQuote = () => {
     // User is logged in and is a regular user, submit the quote
     setLoading(true);
     try {
-      const response = await api.post('/quotes/submit', formData);
+      const response = await api.post('/api/quotes/submit', formData);
 
       toast.success('Quote request submitted successfully!');
       

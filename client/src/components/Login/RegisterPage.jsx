@@ -1,12 +1,13 @@
-import React, { useState, useEffect, Fragment } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Listbox, Transition } from '@headlessui/react';
 import PhoneInput from 'react-phone-input-2';
 import toast from 'react-hot-toast';
 import 'react-phone-input-2/lib/style.css';
+import { api } from '../../utils/api';
 
 // Importing icons for a better UI
-import { User, Phone, Mail, Lock, Building, ChevronDown, Check, Loader2 } from 'lucide-react';
+import { User, Phone, Mail, Lock, Building, ChevronDown, Check, Loader2, Eye, EyeOff } from 'lucide-react';
 
 const RegisterPage = () => {
     const navigate = useNavigate();
@@ -28,6 +29,8 @@ const RegisterPage = () => {
     const [countries, setCountries] = useState([]);
     const [loading, setLoading] = useState(false);
     const [initialCountry, setInitialCountry] = useState('us');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     useEffect(() => {
         const fetchUserCountry = async () => {
@@ -102,16 +105,10 @@ const RegisterPage = () => {
 
         setLoading(true);
         try {
-            const response = await fetch('/api/user/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ...formData,
-                    role: formData.role.toLowerCase(),
-                }),
+            const data = await api.post('/api/user/register', {
+                ...formData,
+                role: formData.role.toLowerCase(),
             });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message || 'Registration failed.');
 
             // --- SUCCESS FLOW: Show message and redirect to login ---
             if (data.accountStatus === 'pending_approval') {
@@ -197,8 +194,30 @@ const RegisterPage = () => {
                             placeholder="Select a Country"
                         />
 
-                        <InputWithIcon id="password" name="password" type="password" value={formData.password} onChange={handleChange} placeholder="Create a Password" required icon={<Lock className="w-5 h-5 text-gray-400" />} />
-                        <InputWithIcon id="confirmPassword" name="confirmPassword" type="password" value={formData.confirmPassword} onChange={handleChange} placeholder="Confirm Password" required icon={<Lock className="w-5 h-5 text-gray-400" />} />
+                        <InputWithIcon 
+                            id="password" 
+                            name="password" 
+                            type={showPassword ? 'text' : 'password'}
+                            value={formData.password} 
+                            onChange={handleChange} 
+                            placeholder="Create a Password" 
+                            required 
+                            icon={<Lock className="w-5 h-5 text-gray-400" />}
+                            showPassword={showPassword}
+                            togglePassword={() => setShowPassword(!showPassword)}
+                        />
+                        <InputWithIcon 
+                            id="confirmPassword" 
+                            name="confirmPassword" 
+                            type={showConfirmPassword ? 'text' : 'password'}
+                            value={formData.confirmPassword} 
+                            onChange={handleChange} 
+                            placeholder="Confirm Password" 
+                            required 
+                            icon={<Lock className="w-5 h-5 text-gray-400" />}
+                            showPassword={showConfirmPassword}
+                            togglePassword={() => setShowConfirmPassword(!showConfirmPassword)}
+                        />
                         
                         <div className="md:col-span-2">
                              <InputWithIcon id="referralCode" name="referralCode" type="text" value={formData.referralCode} onChange={handleChange} placeholder="Enter Referral Code (Optional)" icon={<Building className="w-5 h-5 text-gray-400" />} />
@@ -238,7 +257,7 @@ const RegisterPage = () => {
 };
 
 // --- Helper components ---
-const InputWithIcon = ({ id, name, type = 'text', value, onChange, placeholder, required = false, icon }) => (
+const InputWithIcon = ({ id, name, type = 'text', value, onChange, placeholder, required = false, icon, showPassword, togglePassword }) => (
     <div>
         <label htmlFor={id} className="block text-gray-700 text-sm font-medium mb-2">
             {placeholder.replace('Enter Your ', '').replace('Create a ', '').replace(' (Optional)', '')} {required && '*'}
@@ -250,8 +269,18 @@ const InputWithIcon = ({ id, name, type = 'text', value, onChange, placeholder, 
             <input
                 type={type} id={id} name={name} value={value} onChange={onChange}
                 placeholder={placeholder} required={required}
-                className="w-full pl-10 pr-4 py-3 bg-stone-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#CDA435] border-transparent transition"
+                className="w-full pl-10 pr-12 py-3 bg-stone-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#CDA435] border-transparent transition"
             />
+            {(type === 'password' || (type === 'text' && togglePassword)) && (
+                <button
+                    type="button"
+                    onClick={togglePassword}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                    aria-label="Toggle password visibility"
+                >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+            )}
         </div>
     </div>
 );

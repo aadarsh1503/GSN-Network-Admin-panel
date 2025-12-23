@@ -27,13 +27,10 @@ const CompanyProfile = ({ member, onClose }) => {
 
     setSendingMessage(true);
     try {
-      await api('/api/messages/send', {
-        method: 'POST',
-        body: JSON.stringify({
-          receiverId: company.id,
-          subject: messageData.subject,
-          message: messageData.message
-        })
+      await api.post('/api/messages/send', {
+        receiverId: company.id,
+        subject: messageData.subject,
+        message: messageData.message
       });
       toast.success('Message sent successfully!');
       setMessageData({ subject: '', message: '' });
@@ -47,10 +44,7 @@ const CompanyProfile = ({ member, onClose }) => {
 
   const handleAddToWishlist = async () => {
     try {
-      await api('/api/wishlist/add', {
-        method: 'POST',
-        body: JSON.stringify({ companyId: company.id })
-      });
+      await api.post('/api/wishlist/add', { companyId: company.id });
       toast.success('Added to wishlist!');
     } catch (error) {
       toast.error(error.message || 'Failed to add to wishlist');

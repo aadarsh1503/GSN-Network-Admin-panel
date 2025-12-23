@@ -30,10 +30,7 @@ const SupportTicket = () => {
 
     setLoading(true);
     try {
-      const response = await api('/api/tickets/create', {
-        method: 'POST',
-        body: JSON.stringify(formData)
-      });
+      const response = await api.post('/api/tickets/create', formData);
 
       toast.success(`Ticket created successfully! Ticket #: ${response.ticketNumber}`);
       setFormData({

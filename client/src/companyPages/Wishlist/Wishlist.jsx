@@ -14,7 +14,7 @@ const Wishlist = () => {
 
   const fetchWishlist = async () => {
     try {
-      const data = await api('/api/wishlist');
+      const data = await api.get('/api/wishlist');
       setWishlistItems(data);
     } catch (error) {
       console.error('Error fetching wishlist:', error);
@@ -25,7 +25,7 @@ const Wishlist = () => {
 
   const handleRemove = async (companyId) => {
     try {
-      await api(`/api/wishlist/${companyId}`, { method: 'DELETE' });
+      await api.delete(`/api/wishlist/${companyId}`);
       setWishlistItems(wishlistItems.filter(item => item.company_id !== companyId));
       toast.success('Removed from wishlist');
     } catch (error) {

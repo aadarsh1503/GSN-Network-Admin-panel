@@ -31,7 +31,7 @@ const MembershipDirectory = () => {
 
   const fetchFilters = async () => {
     try {
-      const data = await api('/api/directory/filters');
+      const data = await api.get('/api/directory/filters');
       setFilters(data);
     } catch (err) {
       console.error('Error fetching filters:', err);
@@ -50,7 +50,7 @@ const MembershipDirectory = () => {
         ...(selectedState && { state: selectedState })
       });
 
-      const data = await api(`/api/directory/companies?${params}`);
+      const data = await api.get(`/api/directory/companies?${params}`);
       setCompanies(data.companies);
       setTotalPages(data.pagination.totalPages);
       setError(null);
@@ -268,8 +268,12 @@ const MembershipDirectory = () => {
         {/* Results */}
         {loading ? (
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#CDA435]"></div>
-            <p className="mt-2 text-gray-600">Loading companies...</p>
+            <div className="relative inline-block">
+              <div className="h-8 w-8 border-4 border-gray-200 rounded-full animate-spin">
+                <div className="h-8 w-8 border-4 border-transparent border-t-[#CDA435] rounded-full animate-spin"></div>
+              </div>
+            </div>
+            <p className="mt-3 text-gray-600 font-medium">Loading companies...</p>
           </div>
         ) : error ? (
           <div className="text-center py-12">

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FaPlus, FaCheck, FaClock, FaEdit } from 'react-icons/fa';
 import toast from 'react-hot-toast';
+import { api } from '../../utils/api';
 
 const VersionManagement = () => {
   const [versions, setVersions] = useState([]);
@@ -17,20 +18,8 @@ const VersionManagement = () => {
 
   const fetchVersions = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/version/all', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setVersions(data);
-      } else {
-        toast.error('Failed to fetch versions');
-      }
+      const data = await api.get('/api/version/all');
+      setVersions(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching versions:', error);
       toast.error('Error fetching versions');
@@ -48,52 +37,25 @@ const VersionManagement = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/version/create', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(newVersion)
-      });
-
-      if (response.ok) {
-        toast.success('Version created successfully');
-        setNewVersion({ version_number: '', description: '' });
-        setShowCreateForm(false);
-        fetchVersions();
-      } else {
-        const error = await response.json();
-        toast.error(error.message || 'Failed to create version');
-      }
+      await api.post('/api/version/create', newVersion);
+      toast.success('Version created successfully');
+      setNewVersion({ version_number: '', description: '' });
+      setShowCreateForm(false);
+      fetchVersions();
     } catch (error) {
       console.error('Error creating version:', error);
-      toast.error('Error creating version');
+      toast.error(error.message || 'Error creating version');
     }
   };
 
   const handleSetCurrent = async (versionId) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/version/set-current/${versionId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        toast.success('Current version updated successfully');
-        fetchVersions();
-      } else {
-        const error = await response.json();
-        toast.error(error.message || 'Failed to update current version');
-      }
+      await api.put(`/api/version/set-current/${versionId}`);
+      toast.success('Current version updated successfully');
+      fetchVersions();
     } catch (error) {
       console.error('Error updating current version:', error);
-      toast.error('Error updating current version');
+      toast.error(error.message || 'Error updating current version');
     }
   };
 

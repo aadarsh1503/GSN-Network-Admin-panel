@@ -12,6 +12,7 @@ import {
   FaShippingFast
 } from 'react-icons/fa';
 import toast from 'react-hot-toast';
+import { api } from '../../utils/api';
 
 const QuoteDetails = () => {
   const { quoteId } = useParams();
@@ -27,19 +28,9 @@ const QuoteDetails = () => {
 
   const fetchQuoteDetails = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/user-quotes/my-quotes', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const quotes = await response.json();
-        const currentQuote = quotes.find(q => q.id === parseInt(quoteId));
-        setQuote(currentQuote);
-      }
+      const quotes = await api.get('/api/user-quotes/my-quotes');
+      const currentQuote = Array.isArray(quotes) ? quotes.find(q => q.id === parseInt(quoteId)) : null;
+      setQuote(currentQuote);
     } catch (error) {
       console.error('Error fetching quote details:', error);
       toast.error('Failed to fetch quote details');
@@ -48,20 +39,8 @@ const QuoteDetails = () => {
 
   const fetchQuoteResponses = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/user-quotes/${quoteId}/responses`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setResponses(data);
-      } else {
-        toast.error('Failed to fetch quote responses');
-      }
+      const data = await api.get(`/api/user-quotes/${quoteId}/responses`);
+      setResponses(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching quote responses:', error);
       toast.error('Failed to fetch quote responses');
@@ -77,31 +56,18 @@ const QuoteDetails = () => {
 
     setActionLoading(responseId);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/user-quotes/accept-response', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          quoteId: parseInt(quoteId),
-          quoteResponseId: responseId,
-          companyId: companyId
-        })
+      await api.post('/api/user-quotes/accept-response', {
+        quoteId: parseInt(quoteId),
+        quoteResponseId: responseId,
+        companyId: companyId
       });
 
-      if (response.ok) {
-        toast.success('Quote response accepted successfully! The company has been notified.');
-        fetchQuoteResponses();
-        fetchQuoteDetails();
-      } else {
-        const errorData = await response.json();
-        toast.error(errorData.message || 'Failed to accept quote response');
-      }
+      toast.success('Quote response accepted successfully! The company has been notified.');
+      fetchQuoteResponses();
+      fetchQuoteDetails();
     } catch (error) {
       console.error('Error accepting quote response:', error);
-      toast.error('Failed to accept quote response');
+      toast.error(error.message || 'Failed to accept quote response');
     } finally {
       setActionLoading(null);
     }
@@ -114,30 +80,17 @@ const QuoteDetails = () => {
 
     setActionLoading(responseId);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/user-quotes/reject-response', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          quoteId: parseInt(quoteId),
-          quoteResponseId: responseId,
-          companyId: companyId
-        })
+      await api.post('/api/user-quotes/reject-response', {
+        quoteId: parseInt(quoteId),
+        quoteResponseId: responseId,
+        companyId: companyId
       });
 
-      if (response.ok) {
-        toast.success('Quote response rejected. The company has been notified.');
-        fetchQuoteResponses();
-      } else {
-        const errorData = await response.json();
-        toast.error(errorData.message || 'Failed to reject quote response');
-      }
+      toast.success('Quote response rejected. The company has been notified.');
+      fetchQuoteResponses();
     } catch (error) {
       console.error('Error rejecting quote response:', error);
-      toast.error('Failed to reject quote response');
+      toast.error(error.message || 'Failed to reject quote response');
     } finally {
       setActionLoading(null);
     }
@@ -160,12 +113,19 @@ const QuoteDetails = () => {
     });
   };
 
-  const hasAcceptedResponse = responses.some(response => response.user_response_status === 'accepted');
+  const hasAcceptedResponse = Array.isArray(responses) ? responses.some(response => response.user_response_status === 'accepted') : false;
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="flex flex-col items-center gap-3">
+          <div className="relative">
+            <div className="h-12 w-12 border-4 border-gray-200 rounded-full animate-spin">
+              <div className="h-12 w-12 border-4 border-transparent border-t-[#CDA435] rounded-full animate-spin"></div>
+            </div>
+          </div>
+          <p className="text-gray-600 font-medium">Loading quote details...</p>
+        </div>
       </div>
     );
   }
@@ -174,7 +134,7 @@ const QuoteDetails = () => {
     return (
       <div className="text-center py-12">
         <h3 className="text-lg font-medium text-gray-900 mb-2">Quote not found</h3>
-        <Link to="/user/quotes" className="text-blue-600 hover:text-blue-700">
+        <Link to="/user/quotes" className="text-[#CDA435] hover:text-yellow-600">
           Back to Quotes
         </Link>
       </div>
@@ -188,7 +148,7 @@ const QuoteDetails = () => {
         <div className="flex items-center justify-between mb-4">
           <Link
             to="/user/quotes"
-            className="flex items-center text-blue-600 hover:text-blue-700"
+            className="flex items-center text-[#CDA435] hover:text-yellow-600"
           >
             <FaArrowLeft className="mr-2" />
             Back to Quotes
@@ -246,7 +206,7 @@ const QuoteDetails = () => {
           Quote Responses ({responses.length})
         </h2>
 
-        {responses.length === 0 ? (
+        {Array.isArray(responses) && responses.length === 0 ? (
           <div className="text-center py-8">
             <FaShippingFast className="mx-auto text-gray-400 mb-4" size={48} />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No responses yet</h3>
@@ -254,13 +214,13 @@ const QuoteDetails = () => {
           </div>
         ) : (
           <div className="space-y-6">
-            {responses.map((response) => (
+            {Array.isArray(responses) && responses.map((response) => (
               <div key={response.id} className="border rounded-lg p-6">
                 {/* Company Header */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                      <FaBuilding className="text-blue-600" />
+                    <div className="w-12 h-12 bg-yellow-50 rounded-full flex items-center justify-center">
+                      <FaBuilding className="text-[#CDA435]" />
                     </div>
                     <div className="ml-4">
                       <h3 className="font-semibold text-gray-900">{response.company_name}</h3>
@@ -297,7 +257,7 @@ const QuoteDetails = () => {
                   </div>
                   
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="flex items-center text-blue-600 mb-2">
+                    <div className="flex items-center text-[#CDA435] mb-2">
                       <FaClock className="mr-2" />
                       <span className="font-medium">Transit Time</span>
                     </div>

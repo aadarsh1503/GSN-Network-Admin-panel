@@ -70,7 +70,7 @@ const Dashboard = () => {
 
   const fetchDashboardStats = async () => {
     try {
-      const data = await api.get('/dashboard/stats');
+      const data = await api.get('/api/dashboard/stats');
       setStats(data);
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);

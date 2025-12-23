@@ -70,10 +70,11 @@ const NotificationTable = () => {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const response = await api('/api/notifications/my-notifications');
-        setNotifications(response);
+        const response = await api.get('/api/notifications/my-notifications');
+        setNotifications(Array.isArray(response) ? response : []);
       } catch (error) {
         console.error("Error loading notifications", error);
+        setNotifications([]);
       } finally {
         setLoading(false);
       }
@@ -284,8 +285,8 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       const [statsData, subData] = await Promise.all([
-        api('/api/dashboard/company-stats'),
-        api('/api/subscriptions/my-subscription')
+        api.get('/api/dashboard/company-stats'),
+        api.get('/api/subscriptions/my-subscription')
       ]);
       setStats(statsData);
       setSubscription(subData);

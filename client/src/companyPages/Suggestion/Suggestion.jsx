@@ -19,7 +19,7 @@ const SuggestionCompany = () => {
 
   const fetchMySuggestions = async () => {
     try {
-      const data = await api('/api/suggestions/my-suggestions');
+      const data = await api.get('/api/suggestions/my-suggestions');
       setSuggestions(data);
     } catch (error) {
       console.error('Error fetching suggestions:', error);
@@ -42,10 +42,7 @@ const SuggestionCompany = () => {
 
     setLoading(true);
     try {
-      await api('/api/suggestions/submit', {
-        method: 'POST',
-        body: JSON.stringify(formData)
-      });
+      await api.post('/api/suggestions/submit', formData);
 
       toast.success('Suggestion submitted successfully!');
       setFormData({ subject: '', category: 'general', message: '' });

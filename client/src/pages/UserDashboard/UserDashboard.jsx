@@ -12,6 +12,7 @@ import {
 } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { hasPendingQuote, submitPendingQuote, clearPendingQuote } from '../../utils/pendingQuote';
+import { api } from '../../utils/api';
 
 const UserDashboard = () => {
   const [stats, setStats] = useState({
@@ -32,32 +33,21 @@ const UserDashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const token = localStorage.getItem('token');
-      
       // Fetch dashboard stats
-      const statsResponse = await fetch('/api/user-quotes/dashboard-stats', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (statsResponse.ok) {
-        const statsData = await statsResponse.json();
+      try {
+        const statsData = await api.get('/api/user-quotes/dashboard-stats');
         setStats(statsData);
+      } catch (error) {
+        console.error('Error fetching stats:', error);
       }
 
       // Fetch recent quotes
-      const quotesResponse = await fetch('/api/user-quotes/my-quotes', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (quotesResponse.ok) {
-        const quotesData = await quotesResponse.json();
-        setRecentQuotes(quotesData.slice(0, 5)); // Show only 5 recent quotes
+      try {
+        const quotesData = await api.get('/api/user-quotes/my-quotes');
+        const quotesArray = Array.isArray(quotesData) ? quotesData : [];
+        setRecentQuotes(quotesArray.slice(0, 5)); // Show only 5 recent quotes
+      } catch (error) {
+        console.error('Error fetching quotes:', error);
       }
 
     } catch (error) {
@@ -95,7 +85,7 @@ const UserDashboard = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'pending': return 'text-yellow-600 bg-yellow-100';
-      case 'running': return 'text-blue-600 bg-blue-100';
+      case 'running': return 'text-[#CDA435] bg-yellow-50';
       case 'closed': return 'text-green-600 bg-green-100';
       case 'rejected': return 'text-red-600 bg-red-100';
       default: return 'text-gray-600 bg-gray-100';
@@ -113,7 +103,14 @@ const UserDashboard = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="flex flex-col items-center gap-3">
+          <div className="relative">
+            <div className="h-12 w-12 border-4 border-gray-200 rounded-full animate-spin">
+              <div className="h-12 w-12 border-4 border-transparent border-t-[#CDA435] rounded-full animate-spin"></div>
+            </div>
+          </div>
+          <p className="text-gray-600 font-medium">Loading dashboard...</p>
+        </div>
       </div>
     );
   }
@@ -146,7 +143,11 @@ const UserDashboard = () => {
                 >
                   {submittingPendingQuote ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      <div className="relative mr-2">
+                        <div className="h-4 w-4 border-2 border-gray-200 rounded-full animate-spin">
+                          <div className="h-4 w-4 border-2 border-transparent border-t-white rounded-full animate-spin"></div>
+                        </div>
+                      </div>
                       Submitting...
                     </>
                   ) : (
@@ -173,7 +174,7 @@ const UserDashboard = () => {
         {/* Total Quotes */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
-            <div className="p-3 rounded-full bg-blue-100 text-blue-600">
+            <div className="p-3 rounded-full bg-yellow-50 text-[#CDA435]">
               <FaQuoteLeft size={24} />
             </div>
             <div className="ml-4">
@@ -199,7 +200,7 @@ const UserDashboard = () => {
         {/* Running Quotes */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
-            <div className="p-3 rounded-full bg-blue-100 text-blue-600">
+            <div className="p-3 rounded-full bg-yellow-50 text-[#CDA435]">
               <FaShippingFast size={24} />
             </div>
             <div className="ml-4">
@@ -231,10 +232,10 @@ const UserDashboard = () => {
           <div className="space-y-3">
             <Link
               to="/quote"
-              className="flex items-center p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors duration-200"
+              className="flex items-center p-3 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition-colors duration-200"
             >
-              <FaQuoteLeft className="text-blue-600 mr-3" />
-              <span className="text-blue-700 font-medium">Request New Quote</span>
+              <FaQuoteLeft className="text-[#CDA435] mr-3" />
+              <span className="text-yellow-700 font-medium">Request New Quote</span>
             </Link>
             
             <Link
@@ -275,7 +276,7 @@ const UserDashboard = () => {
             <h3 className="text-lg font-semibold text-gray-900">Recent Quotes</h3>
             <Link
               to="/user/quotes"
-              className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+              className="text-[#CDA435] hover:text-yellow-600 text-sm font-medium"
             >
               View All
             </Link>
@@ -287,14 +288,14 @@ const UserDashboard = () => {
               <p className="text-gray-500">No quotes yet</p>
               <Link
                 to="/quote"
-                className="inline-block mt-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200"
+                className="inline-block mt-2 bg-[#CDA435] text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition-colors duration-200"
               >
                 Request Your First Quote
               </Link>
             </div>
           ) : (
             <div className="space-y-3">
-              {recentQuotes.map((quote) => (
+              {Array.isArray(recentQuotes) && recentQuotes.map((quote) => (
                 <div key={quote.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors duration-200">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">

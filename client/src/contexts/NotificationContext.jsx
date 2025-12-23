@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
+import { api } from '../utils/api';
 
 const NotificationContext = createContext();
 
@@ -23,17 +24,8 @@ export const NotificationProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch('/api/notifications/unread-count', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setUnreadCount(data.count || 0);
-      }
+      const data = await api.get('/api/notifications/unread-count');
+      setUnreadCount(data.count || 0);
     } catch (error) {
       console.error('Error fetching unread count:', error);
     }
@@ -45,17 +37,8 @@ export const NotificationProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch('/api/messages/unread-count', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setMessageUnreadCount(data.count || 0);
-      }
+      const data = await api.get('/api/messages/unread-count');
+      setMessageUnreadCount(data.count || 0);
     } catch (error) {
       console.error('Error fetching message unread count:', error);
     }
@@ -67,32 +50,24 @@ export const NotificationProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch('/api/notifications/my-notifications', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+      const data = await api.get('/api/notifications/my-notifications');
+      const notificationsArray = Array.isArray(data) ? data : [];
+      setNotifications(notificationsArray);
+      
+      // Check for new notifications since last check
+      const newNotifications = notificationsArray.filter(notif => {
+        const notifTime = new Date(notif.created_at).getTime();
+        return notifTime > lastChecked;
+      });
+
+      // Show toast for new quote-related notifications
+      newNotifications.forEach(notif => {
+        if (notif.title.includes('Quote Accepted') || notif.title.includes('Quote Not Selected')) {
+          showQuoteNotificationToast(notif);
         }
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setNotifications(data);
-        
-        // Check for new notifications since last check
-        const newNotifications = data.filter(notif => {
-          const notifTime = new Date(notif.created_at).getTime();
-          return notifTime > lastChecked;
-        });
-
-        // Show toast for new quote-related notifications
-        newNotifications.forEach(notif => {
-          if (notif.title.includes('Quote Accepted') || notif.title.includes('Quote Not Selected')) {
-            showQuoteNotificationToast(notif);
-          }
-        });
-
-        setLastChecked(Date.now());
-      }
+      setLastChecked(Date.now());
     } catch (error) {
       console.error('Error fetching notifications:', error);
     }
@@ -201,19 +176,9 @@ export const NotificationProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch('/api/notifications/mark-read', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ pageType })
-      });
-
-      if (response.ok) {
-        // Refresh the unread count after marking as read
-        await fetchUnreadCount();
-      }
+      await api.post('/api/notifications/mark-read', { pageType });
+      // Refresh the unread count after marking as read
+      await fetchUnreadCount();
     } catch (error) {
       console.error('Error marking notifications as read:', error);
     }

@@ -20,7 +20,7 @@ const ClosedQuotesList = () => {
   const fetchClosedQuotes = async () => {
     try {
       setLoading(true);
-      const data = await api('/api/quotes/status/closed');
+      const data = await api.get('/api/quotes/status/closed');
       setQuotes(data);
       setError(null);
     } catch (err) {

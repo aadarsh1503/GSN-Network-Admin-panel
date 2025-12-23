@@ -91,7 +91,7 @@ const MembersDirectory = () => {
 
   const fetchFilters = async () => {
     try {
-      const data = await api('/api/directory/filters');
+      const data = await api.get('/api/directory/filters');
       setFilters(data);
     } catch (error) {
       console.error('Error fetching filters:', error);
@@ -108,7 +108,7 @@ const MembersDirectory = () => {
       params.append('page', pagination.currentPage);
       params.append('limit', 12);
 
-      const data = await api(`/api/directory/companies?${params.toString()}`);
+      const data = await api.get(`/api/directory/companies?${params.toString()}`);
       setCompanies(data.companies);
       setPagination(data.pagination);
     } catch (error) {
@@ -120,7 +120,7 @@ const MembersDirectory = () => {
 
   const handleViewProfile = async (member) => {
     try {
-      const data = await api(`/api/directory/company/${member.id}`);
+      const data = await api.get(`/api/directory/company/${member.id}`);
       setSelectedMember(data);
       setCurrentView('profile');
     } catch (error) {
@@ -130,10 +130,7 @@ const MembersDirectory = () => {
 
   const handleAddToWishlist = async (companyId) => {
     try {
-      await api('/api/wishlist/add', {
-        method: 'POST',
-        body: JSON.stringify({ companyId })
-      });
+      await api.post('/api/wishlist/add', { companyId });
       toast.success('Added to wishlist!');
     } catch (error) {
       toast.error(error.message || 'Failed to add to wishlist');

@@ -40,12 +40,9 @@ const ChangePasswordPage = () => {
 
     setLoading(true);
     try {
-      await api('/api/user/change-password', {
-        method: 'PUT',
-        body: JSON.stringify({
-          currentPassword: formData.currentPassword,
-          newPassword: formData.newPassword
-        })
+      await api.put('/api/user/change-password', {
+        currentPassword: formData.currentPassword,
+        newPassword: formData.newPassword
       });
 
       toast.success('Password changed successfully!');

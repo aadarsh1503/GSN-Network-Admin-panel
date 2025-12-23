@@ -105,7 +105,7 @@ const ManageSubscription = () => {
 
   const fetchPlans = async () => {
     try {
-      const data = await api.get('/subscriptions/admin/plans');
+      const data = await api.get('/api/subscriptions/admin/plans');
       setPlans(data);
     } catch (error) {
       console.error('Error fetching plans:', error);
@@ -124,7 +124,7 @@ const ManageSubscription = () => {
 
   const handleToggle = async (plan) => {
     try {
-      await api.put(`/subscriptions/admin/plans/${plan.id}`, {
+      await api.put(`/api/subscriptions/admin/plans/${plan.id}`, {
         ...plan,
         isActive: !plan.is_active
       });
@@ -140,7 +140,7 @@ const ManageSubscription = () => {
     
     // For now, just deactivate instead of delete
     try {
-      await api.put(`/subscriptions/admin/plans/${plan.id}`, {
+      await api.put(`/api/subscriptions/admin/plans/${plan.id}`, {
         ...plan,
         isActive: false
       });
@@ -158,7 +158,7 @@ const ManageSubscription = () => {
         .map(f => f.trim())
         .filter(f => f.length > 0);
 
-      await api.put(`/subscriptions/admin/plans/${editingPlan.id}`, {
+      await api.put(`/api/subscriptions/admin/plans/${editingPlan.id}`, {
         name: editingPlan.name,
         description: editingPlan.description,
         price: parseFloat(editingPlan.price),

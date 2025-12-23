@@ -339,8 +339,8 @@ const EditCompanyDetails = () => {
                 
                 // Then fetch company and user data
                 const [companyData, userData] = await Promise.all([
-                    api('/api/company/profile'),
-                    api('/api/user/me')
+                    api.get('/api/company/profile'),
+                    api.get('/api/user/me')
                 ]);
 
                 companyData.services = companyData.services && typeof companyData.services === 'string'

@@ -5,9 +5,10 @@ import PhoneInput from 'react-phone-input-2';
 import toast from 'react-hot-toast';
 import 'react-phone-input-2/lib/style.css';
 import { submitPendingQuote, hasPendingQuote } from '../../utils/pendingQuote';
+import { api } from '../../utils/api';
 
 // Importing icons for a better UI
-import { User, Phone, Mail, Lock, Globe, ChevronDown, Check, Loader2 } from 'lucide-react';
+import { User, Phone, Mail, Lock, Globe, ChevronDown, Check, Loader2, Eye, EyeOff } from 'lucide-react';
 
 const UserRegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -22,6 +23,8 @@ const UserRegisterPage = () => {
   const [countries, setCountries] = useState([]);
   const [loading, setLoading] = useState(false);
   const [initialCountry, setInitialCountry] = useState('us');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -104,78 +107,69 @@ const UserRegisterPage = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/user/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          password: formData.password,
-          role: 'user', // Specifically register as 'user' role
-          country: formData.country
-        })
+      const data = await api.post('/api/user/register', {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        role: 'user', // Specifically register as 'user' role
+        country: formData.country
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        if (data.accountStatus === 'active') {
-          // Account created and active - user can login immediately
-          toast.success(data.message || 'Registration successful! You can now login to your account.');
-          
-          // Check if there's a pending quote to submit after login
-          if (hasPendingQuote()) {
-            toast.info('Please login to submit your quote request.');
-          }
-          
-          // Navigate to login page
-          setTimeout(() => {
-            navigate('/login', { 
-              state: { 
-                from,
-                email: formData.email,
-                message: 'Registration successful! Please login with your credentials.'
-              }
-            });
-          }, 2000);
-        } else if (data.accountStatus === 'pending_approval') {
-          // Account created but needs admin approval
-          toast.success(data.message || 'Account created! Your account is pending admin approval.');
-          
-          // Clear any pending quote data since user can't login yet
-          localStorage.removeItem('pendingQuote');
-          
-          // Navigate to login page after a short delay
-          setTimeout(() => {
-            navigate('/login');
-          }, 3000);
-        } else if (data.token) {
-          // Fallback: Account created and token provided (legacy flow)
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('user', JSON.stringify(data.user));
-          
-          toast.success('Registration successful! Welcome to GSN.');
-          
-          // Check if there's a pending quote to submit
-          if (hasPendingQuote()) {
-            const quoteResult = await submitPendingQuote();
-            if (quoteResult.success) {
-              toast.success('Your quote request has been submitted!');
-            }
-          }
-          
-          // Redirect to intended destination
-          navigate(from, { replace: true });
+      if (data.accountStatus === 'active') {
+        // Account created and active - user can login immediately
+        toast.success(data.message || 'Registration successful! You can now login to your account.');
+        
+        // Check if there's a pending quote to submit after login
+        if (hasPendingQuote()) {
+          toast('Please login to submit your quote request.', {
+            icon: 'ℹ️',
+            duration: 4000,
+          });
         }
-      } else {
-        toast.error(data.message || 'Registration failed');
+        
+        // Navigate to login page
+        setTimeout(() => {
+          navigate('/login', { 
+            state: { 
+              from,
+              email: formData.email,
+              message: 'Registration successful! Please login with your credentials.'
+            }
+          });
+        }, 2000);
+      } else if (data.accountStatus === 'pending_approval') {
+        // Account created but needs admin approval
+        toast.success(data.message || 'Account created! Your account is pending admin approval.');
+        
+        // Clear any pending quote data since user can't login yet
+        localStorage.removeItem('pendingQuote');
+        
+        // Navigate to login page after a short delay
+        setTimeout(() => {
+          navigate('/login');
+        }, 3000);
+      } else if (data.token) {
+        // Fallback: Account created and token provided (legacy flow)
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        
+        toast.success('Registration successful! Welcome to GSN.');
+        
+        // Check if there's a pending quote to submit
+        if (hasPendingQuote()) {
+          const quoteResult = await submitPendingQuote();
+          if (quoteResult.success) {
+            toast.success('Your quote request has been submitted!');
+          }
+        }
+        
+        // Redirect to intended destination
+        navigate(from, { replace: true });
       }
     } catch (error) {
       console.error('Registration error:', error);
-      toast.error('Registration failed. Please try again.');
+      toast.error(error.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -260,23 +254,27 @@ const UserRegisterPage = () => {
             <InputWithIcon 
               id="password" 
               name="password" 
-              type="password" 
+              type={showPassword ? 'text' : 'password'}
               value={formData.password} 
               onChange={handleChange} 
               placeholder="Create a Password" 
               required 
-              icon={<Lock className="w-5 h-5 text-gray-400" />} 
+              icon={<Lock className="w-5 h-5 text-gray-400" />}
+              showPassword={showPassword}
+              togglePassword={() => setShowPassword(!showPassword)}
             />
             
             <InputWithIcon 
               id="confirmPassword" 
               name="confirmPassword" 
-              type="password" 
+              type={showConfirmPassword ? 'text' : 'password'}
               value={formData.confirmPassword} 
               onChange={handleChange} 
               placeholder="Confirm Password" 
               required 
-              icon={<Lock className="w-5 h-5 text-gray-400" />} 
+              icon={<Lock className="w-5 h-5 text-gray-400" />}
+              showPassword={showConfirmPassword}
+              togglePassword={() => setShowConfirmPassword(!showConfirmPassword)}
             />
             
             <div className="md:col-span-2 flex items-center">
@@ -326,7 +324,7 @@ const UserRegisterPage = () => {
 };
 
 // --- Helper components ---
-const InputWithIcon = ({ id, name, type = 'text', value, onChange, placeholder, required = false, icon }) => (
+const InputWithIcon = ({ id, name, type = 'text', value, onChange, placeholder, required = false, icon, showPassword, togglePassword }) => (
   <div>
     <label htmlFor={id} className="block text-gray-700 text-sm font-medium mb-2">
       {placeholder.replace('Enter Your ', '').replace('Create a ', '').replace(' (Optional)', '')} {required && '*'}
@@ -343,8 +341,18 @@ const InputWithIcon = ({ id, name, type = 'text', value, onChange, placeholder, 
         onChange={onChange}
         placeholder={placeholder} 
         required={required}
-        className="w-full pl-10 pr-4 py-3 bg-stone-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#CDA435] border-transparent transition"
+        className="w-full pl-10 pr-12 py-3 bg-stone-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#CDA435] border-transparent transition"
       />
+      {(type === 'password' || (type === 'text' && togglePassword)) && (
+        <button
+          type="button"
+          onClick={togglePassword}
+          className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+          aria-label="Toggle password visibility"
+        >
+          {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+        </button>
+      )}
     </div>
   </div>
 );

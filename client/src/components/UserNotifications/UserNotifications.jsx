@@ -47,7 +47,7 @@ const UserNotifications = () => {
 
   const fetchNotifications = async () => {
     try {
-      const data = await api.get('/user-notifications');
+      const data = await api.get('/api/user-notifications');
       setNotifications(data || []);
     } catch (error) {
       console.error('Error fetching notifications:', error);
@@ -64,7 +64,7 @@ const UserNotifications = () => {
 
   const fetchUnreadCount = async () => {
     try {
-      const data = await api.get('/user-notifications/unread-count');
+      const data = await api.get('/api/user-notifications/unread-count');
       setUnreadCount(data.unreadCount || 0);
     } catch (error) {
       console.error('Error fetching unread count:', error);
@@ -110,7 +110,7 @@ const UserNotifications = () => {
 
   const markAsRead = async (notificationId) => {
     try {
-      await api.put(`/user-notifications/${notificationId}/read`);
+      await api.put(`/api/user-notifications/${notificationId}/read`);
       setNotifications(notifications.map(n => 
         n.id === notificationId ? { ...n, is_read: true } : n
       ));

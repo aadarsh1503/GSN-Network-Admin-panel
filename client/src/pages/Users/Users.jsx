@@ -34,7 +34,7 @@ function User() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/user/all');
+      const response = await api.get('/api/user/all');
       
       // Format the data to match expected structure
       const formattedUsers = response.map(user => ({
@@ -62,7 +62,7 @@ function User() {
   const handleStatusChange = async (userId) => {
     try {
       const user = users.find(u => u.id === userId);
-      await api.put(`/user/company-status/${userId}`, {
+      await api.put(`/api/user/company-status/${userId}`, {
         type: 'status',
         value: !user.status
       });
@@ -81,7 +81,7 @@ function User() {
   const handleBlacklistToggle = async (userId) => {
     try {
       const user = users.find(u => u.id === userId);
-      await api.put(`/user/company-status/${userId}`, {
+      await api.put(`/api/user/company-status/${userId}`, {
         type: 'blacklist',
         value: !user.onBlacklist
       });
@@ -192,7 +192,7 @@ function User() {
               {error}
               <button 
                 onClick={fetchUsers}
-                className="ml-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                className="ml-4 px-4 py-2 bg-[#CDA435] text-white rounded hover:bg-yellow-600"
               >
                 Retry
               </button>

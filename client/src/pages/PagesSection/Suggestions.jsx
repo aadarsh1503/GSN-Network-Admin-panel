@@ -31,7 +31,7 @@ const Suggestions = () => {
 
   const fetchSuggestions = async () => {
     try {
-      const data = await api('/api/suggestions/all');
+      const data = await api.get('/api/suggestions/all');
       setSuggestions(data);
     } catch (error) {
       console.error('Error fetching suggestions:', error);
@@ -49,10 +49,7 @@ const Suggestions = () => {
 
   const handleSubmitResponse = async () => {
     try {
-      await api(`/api/suggestions/${selectedSuggestion.id}/status`, {
-        method: 'PUT',
-        body: JSON.stringify({ status: newStatus, adminResponse })
-      });
+      await api.put(`/api/suggestions/${selectedSuggestion.id}/status`, { status: newStatus, adminResponse });
 
       toast.success('Suggestion updated successfully');
       setIsModalOpen(false);

@@ -28,9 +28,10 @@ const SubscriptionPage = () => {
   const fetchPlans = async () => {
     try {
       const data = await subscriptionAPI.getPlans();
-      setPlans(data);
+      setPlans(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching plans:', error);
+      setPlans([]);
     }
   };
 
@@ -55,8 +56,15 @@ const SubscriptionPage = () => {
     try {
       setActivating(planId);
       
-      const data = await subscriptionAPI.activateSubscription(planId);
-      alert(`Subscription activated successfully! Plan: ${data.planName}`);
+      // For now, we'll use 'manual' as default payment method
+      // In the future, this can be expanded to include actual payment gateway integration
+      const data = await subscriptionAPI.activateSubscription(planId, 'manual');
+      alert(`Subscription activated successfully! 
+      
+Plan: ${data.planName}
+Invoice: ${data.invoiceNumber}
+      
+Check your Invoices section for the detailed invoice.`);
       await fetchCurrentSubscription(); // Refresh current subscription
     } catch (error) {
       console.error('Error activating subscription:', error);
@@ -127,82 +135,89 @@ const SubscriptionPage = () => {
 
         {/* Subscription Plans */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {plans.map((plan) => (
-            <div
-              key={plan.id}
-              className={`relative bg-white rounded-lg shadow-lg border-2 ${getPlanColor(plan.name)} 
-                         transform hover:scale-105 transition-transform duration-200`}
-            >
-              {/* Popular Badge */}
-              {plan.name.toLowerCase() === 'professional' && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-[#CDA435] text-white px-4 py-1 rounded-full text-sm font-semibold">
-                    Most Popular
-                  </span>
-                </div>
-              )}
-
-              <div className="p-6">
-                {/* Plan Header */}
-                <div className="text-center mb-6">
-                  <div className="flex justify-center mb-3">
-                    {getPlanIcon(plan.name)}
+          {plans && plans.length > 0 ? (
+            plans.map((plan) => (
+              <div
+                key={plan.id}
+                className={`relative bg-white rounded-lg shadow-lg border-2 ${getPlanColor(plan.name)} 
+                           transform hover:scale-105 transition-transform duration-200`}
+              >
+                {/* Popular Badge */}
+                {plan.name.toLowerCase() === 'professional' && (
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                    <span className="bg-[#CDA435] text-white px-4 py-1 rounded-full text-sm font-semibold">
+                      Most Popular
+                    </span>
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900">{plan.name}</h3>
-                  <p className="text-gray-600 mt-2">{plan.description}</p>
-                </div>
+                )}
 
-                {/* Price */}
-                <div className="text-center mb-6">
-                  <div className="text-4xl font-bold text-gray-900">
-                    ${plan.price}
-                    <span className="text-lg font-normal text-gray-600">/month</span>
+                <div className="p-6">
+                  {/* Plan Header */}
+                  <div className="text-center mb-6">
+                    <div className="flex justify-center mb-3">
+                      {getPlanIcon(plan.name)}
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900">{plan.name}</h3>
+                    <p className="text-gray-600 mt-2">{plan.description}</p>
                   </div>
-                </div>
 
-                {/* Features */}
-                <div className="mb-6">
-                  <ul className="space-y-3">
-                    {plan.features.map((feature, index) => (
-                      <li key={index} className="flex items-center">
-                        <FaCheck className="text-green-500 mr-3 flex-shrink-0" />
-                        <span className="text-gray-700">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                  {/* Price */}
+                  <div className="text-center mb-6">
+                    <div className="text-4xl font-bold text-gray-900">
+                      ${plan.price}
+                      <span className="text-lg font-normal text-gray-600">/month</span>
+                    </div>
+                  </div>
 
-                {/* Limits */}
-                <div className="mb-6 text-sm text-gray-600">
-                  <p>Monthly Responses: {plan.max_responses === -1 ? 'Unlimited' : plan.max_responses}</p>
-                  <p>Directory Listing: {plan.directory_listing ? 'Yes' : 'No'}</p>
-                  <p>Priority Support: {plan.priority_support ? 'Yes' : 'No'}</p>
-                </div>
+                  {/* Features */}
+                  <div className="mb-6">
+                    <ul className="space-y-3">
+                      {plan.features.map((feature, index) => (
+                        <li key={index} className="flex items-center">
+                          <FaCheck className="text-green-500 mr-3 flex-shrink-0" />
+                          <span className="text-gray-700">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
 
-                {/* Action Button */}
-                <button
-                  onClick={() => activateSubscription(plan.id)}
-                  disabled={activating === plan.id || 
-                           (currentSubscription && currentSubscription.plan_name === plan.name)}
-                  className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors
-                    ${currentSubscription && currentSubscription.plan_name === plan.name
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : activating === plan.id
-                      ? 'bg-gray-400 text-white cursor-not-allowed'
-                      : 'bg-[#CDA435] text-white hover:bg-yellow-600'
-                    }`}
-                >
-                  {activating === plan.id ? (
-                    <InlineLoader size="small" message="Activating..." />
-                  ) : currentSubscription && currentSubscription.plan_name === plan.name ? (
-                    'Current Plan'
-                  ) : (
-                    'Activate Plan'
-                  )}
-                </button>
+                  {/* Limits */}
+                  <div className="mb-6 text-sm text-gray-600">
+                    <p>Monthly Responses: {plan.max_responses === -1 ? 'Unlimited' : plan.max_responses}</p>
+                    <p>Directory Listing: {plan.directory_listing ? 'Yes' : 'No'}</p>
+                    <p>Priority Support: {plan.priority_support ? 'Yes' : 'No'}</p>
+                  </div>
+
+                  {/* Action Button */}
+                  <button
+                    onClick={() => activateSubscription(plan.id)}
+                    disabled={activating === plan.id || 
+                             (currentSubscription && currentSubscription.plan_name === plan.name)}
+                    className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors
+                      ${currentSubscription && currentSubscription.plan_name === plan.name
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : activating === plan.id
+                        ? 'bg-gray-400 text-white cursor-not-allowed'
+                        : 'bg-[#CDA435] text-white hover:bg-yellow-600'
+                      }`}
+                  >
+                    {activating === plan.id ? (
+                      <InlineLoader size="small" message="Activating..." />
+                    ) : currentSubscription && currentSubscription.plan_name === plan.name ? (
+                      'Current Plan'
+                    ) : (
+                      'Activate Plan'
+                    )}
+                  </button>
+                </div>
               </div>
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12">
+              <p className="text-gray-500 text-lg">No subscription plans available at the moment</p>
+              <p className="text-gray-400 mt-2">Please check back later</p>
             </div>
-          ))}
+          )}
         </div>
 
         {/* Info Section */}

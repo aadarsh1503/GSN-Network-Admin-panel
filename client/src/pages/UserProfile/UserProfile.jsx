@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FaUser, FaEnvelope, FaPhone, FaGlobe, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
 import toast from 'react-hot-toast';
+import { api } from '../../utils/api';
 
 const UserProfile = () => {
   const [user, setUser] = useState(null);
@@ -20,26 +21,14 @@ const UserProfile = () => {
 
   const fetchUserProfile = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/user/me', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+      const data = await api.get('/api/user/me');
+      setUser(data);
+      setFormData({
+        name: data.user || data.name || '',
+        email: data.email || '',
+        phone: data.phone_number || data.phone || '',
+        country: data.country || ''
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data);
-        setFormData({
-          name: data.user || data.name || '',
-          email: data.email || '',
-          phone: data.phone_number || data.phone || '',
-          country: data.country || ''
-        });
-      } else {
-        toast.error('Failed to fetch profile');
-      }
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast.error('Failed to fetch profile');
@@ -58,23 +47,10 @@ const UserProfile = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/user/update-profile', {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (response.ok) {
-        toast.success('Profile updated successfully');
-        setEditing(false);
-        fetchUserProfile(); // Refresh profile data
-      } else {
-        toast.error('Failed to update profile');
-      }
+      await api.put('/api/user/update-profile', formData);
+      toast.success('Profile updated successfully');
+      setEditing(false);
+      fetchUserProfile(); // Refresh profile data
     } catch (error) {
       console.error('Error updating profile:', error);
       toast.error('Failed to update profile');
@@ -97,7 +73,14 @@ const UserProfile = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="flex flex-col items-center gap-3">
+          <div className="relative">
+            <div className="h-12 w-12 border-4 border-gray-200 rounded-full animate-spin">
+              <div className="h-12 w-12 border-4 border-transparent border-t-[#CDA435] rounded-full animate-spin"></div>
+            </div>
+          </div>
+          <p className="text-gray-600 font-medium">Loading profile...</p>
+        </div>
       </div>
     );
   }
@@ -114,7 +97,7 @@ const UserProfile = () => {
           {!editing && (
             <button
               onClick={() => setEditing(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200 flex items-center"
+              className="bg-[#CDA435] text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition-colors duration-200 flex items-center"
             >
               <FaEdit className="mr-2" />
               Edit Profile
@@ -126,8 +109,8 @@ const UserProfile = () => {
       {/* Profile Information */}
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center mb-6">
-          <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
-            <FaUser className="text-blue-600 text-2xl" />
+          <div className="w-20 h-20 bg-yellow-50 rounded-full flex items-center justify-center">
+            <FaUser className="text-[#CDA435] text-2xl" />
           </div>
           <div className="ml-6">
             <h2 className="text-xl font-semibold text-gray-900">
@@ -239,11 +222,15 @@ const UserProfile = () => {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center"
+              className="px-4 py-2 bg-[#CDA435] text-white rounded-md hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center"
             >
               {saving ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  <div className="relative mr-2">
+                    <div className="h-4 w-4 border-2 border-gray-200 rounded-full animate-spin">
+                      <div className="h-4 w-4 border-2 border-transparent border-t-white rounded-full animate-spin"></div>
+                    </div>
+                  </div>
                   Saving...
                 </>
               ) : (

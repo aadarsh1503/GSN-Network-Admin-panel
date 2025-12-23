@@ -73,7 +73,7 @@ const UserLayout = () => {
       } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
         
         {/* Logo */}
-        <div className="flex items-center justify-between h-16 px-6 bg-blue-600">
+        <div className="flex items-center justify-between h-16 px-6 bg-[#CDA435]">
           <Link to="/user/dashboard" className="text-white text-xl font-bold">
             GSN User Panel
           </Link>
@@ -88,7 +88,7 @@ const UserLayout = () => {
         {/* User Info */}
         <div className="p-6 border-b">
           <div className="flex items-center">
-            <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
+            <div className="w-10 h-10 bg-[#CDA435] rounded-full flex items-center justify-center text-white font-semibold">
               {user?.name?.charAt(0)?.toUpperCase() || 'U'}
             </div>
             <div className="ml-3">
@@ -108,8 +108,8 @@ const UserLayout = () => {
                 to={item.path}
                 className={`flex items-center justify-between px-6 py-3 text-sm font-medium transition-colors duration-200 ${
                   isActiveRoute(item.path)
-                    ? 'text-blue-600 bg-blue-50 border-r-2 border-blue-600'
-                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+                    ? 'text-yellow-600 bg-yellow-50 border-r-2 border-yellow-600'
+                    : 'text-gray-600 hover:text-yellow-600 hover:bg-yellow-50'
                 }`}
                 onClick={() => setSidebarOpen(false)}
               >
@@ -151,7 +151,7 @@ const UserLayout = () => {
           <div className="flex items-center justify-between h-16 px-6">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="text-gray-600 hover:text-gray-900 lg:hidden"
+              className="text-gray-600 hover:text-yellow-600 lg:hidden"
             >
               <FaBars size={20} />
             </button>

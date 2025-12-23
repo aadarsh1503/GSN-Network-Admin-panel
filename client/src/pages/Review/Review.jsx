@@ -25,7 +25,7 @@ const Review = () => {
   const fetchReviews = async () => {
     try {
       setLoading(true);
-      const data = await api('/api/reviews/all');
+      const data = await api.get('/api/reviews/all');
       setReviews(data);
       setError(null);
     } catch (err) {
@@ -37,10 +37,7 @@ const Review = () => {
 
   const handleReviewStatus = async (reviewId, status) => {
     try {
-      await api(`/api/reviews/${reviewId}/status`, {
-        method: 'PUT',
-        body: JSON.stringify({ status })
-      });
+      await api.put(`/api/reviews/${reviewId}/status`, { status });
 
       // Update local state
       setReviews(reviews.map(review => 

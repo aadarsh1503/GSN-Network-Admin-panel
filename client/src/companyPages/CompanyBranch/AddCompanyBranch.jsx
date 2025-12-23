@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { api } from '../../utils/api';
 
 const AddCompanyBranch = () => {
   const [loading, setLoading] = useState(false);
@@ -36,34 +37,17 @@ const AddCompanyBranch = () => {
     setLoading(true);
 
     try {
-      // Assuming you store your JWT token in localStorage as 'token'
-      const token = localStorage.getItem('token'); 
-
-      const response = await fetch('/api/company/branches', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(formData)
+      await api.post('/api/company/branches', formData);
+      alert('Branch added successfully!');
+      // Reset form
+      setFormData({
+          branchName: '', branchPhone: '', branchEmail: '', country: '', state: '', city: '',
+          branchAddress: '', skype: '', facebook: '', twitter: '', instagram: '',
+          whatsapp: '', linkedin: '', mapLocation: '', website: '', telephone: ''
       });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        alert('Branch added successfully!');
-        // Reset form
-        setFormData({
-            branchName: '', branchPhone: '', branchEmail: '', country: '', state: '', city: '',
-            branchAddress: '', skype: '', facebook: '', twitter: '', instagram: '',
-            whatsapp: '', linkedin: '', mapLocation: '', website: '', telephone: ''
-        });
-      } else {
-        alert(data.message || 'Error adding branch');
-      }
     } catch (error) {
       console.error("Error:", error);
-      alert('Something went wrong. Please try again.');
+      alert(error.message || 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }

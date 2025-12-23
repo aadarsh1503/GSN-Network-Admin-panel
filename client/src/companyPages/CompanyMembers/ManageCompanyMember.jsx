@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaSort, FaPen, FaTrash, FaTimes } from 'react-icons/fa';
+import api from '../../utils/api';
 
 const ManageCompanyMember = () => {
   const [members, setMembers] = useState([]);
@@ -23,21 +24,18 @@ const ManageCompanyMember = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const headers = { 'Authorization': `Bearer ${token}` };
-
         // Fetch Members
-        const membersRes = await fetch('/api/company/members', { headers });
-        const membersData = await membersRes.json();
-
+        const membersData = await api.get('/api/company/members');
+        
         // Fetch Branches (for the edit dropdown)
-        const branchesRes = await fetch('/api/company/branches', { headers });
-        const branchesData = await branchesRes.json();
+        const branchesData = await api.get('/api/company/branches');
 
-        if (membersRes.ok) setMembers(membersData);
-        if (branchesRes.ok) setBranches(branchesData);
+        setMembers(Array.isArray(membersData) ? membersData : []);
+        setBranches(Array.isArray(branchesData) ? branchesData : []);
       } catch (error) {
         console.error("Error fetching data:", error);
+        setMembers([]);
+        setBranches([]);
       } finally {
         setLoading(false);
       }
@@ -49,17 +47,12 @@ const ManageCompanyMember = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this member?")) return;
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/company/members/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        setMembers(members.filter(member => member.id !== id));
-        alert("Member deleted successfully");
-      }
+      await api.delete(`/api/company/members/${id}`);
+      setMembers(members.filter(member => member.id !== id));
+      alert("Member deleted successfully");
     } catch (error) {
       console.error("Error deleting:", error);
+      alert("Failed to delete member");
     }
   };
 
@@ -92,39 +85,27 @@ const ManageCompanyMember = () => {
   const handleUpdateSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/company/members/${editingId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(editFormData)
-      });
+      await api.put(`/api/company/members/${editingId}`, editFormData);
+      alert("Member updated successfully");
+      setIsEditModalOpen(false);
+      // Refresh the list locally to show updates immediately
+      // We find the branch name from the branches array to update the UI correctly
+      const selectedBranch = branches.find(b => b.id == editFormData.branch);
+      
+      setMembers(members.map(m => m.id === editingId ? {
+          ...m,
+          branch_id: editFormData.branch,
+          branch_name: selectedBranch ? selectedBranch.branch_name : 'Unknown', // Update branch name for display
+          member_name: editFormData.memberName,
+          member_phone: editFormData.memberPhone,
+          member_email: editFormData.memberEmail,
+          member_role: editFormData.memberRole,
+          // ... update other fields if you display them
+      } : m));
 
-      if (response.ok) {
-        alert("Member updated successfully");
-        setIsEditModalOpen(false);
-        // Refresh the list locally to show updates immediately
-        // We find the branch name from the branches array to update the UI correctly
-        const selectedBranch = branches.find(b => b.id == editFormData.branch);
-        
-        setMembers(members.map(m => m.id === editingId ? {
-            ...m,
-            branch_id: editFormData.branch,
-            branch_name: selectedBranch ? selectedBranch.branch_name : 'Unknown', // Update branch name for display
-            member_name: editFormData.memberName,
-            member_phone: editFormData.memberPhone,
-            member_email: editFormData.memberEmail,
-            member_role: editFormData.memberRole,
-            // ... update other fields if you display them
-        } : m));
-
-      } else {
-        alert("Failed to update member");
-      }
     } catch (error) {
       console.error("Error updating:", error);
+      alert("Failed to update member");
     }
   };
 

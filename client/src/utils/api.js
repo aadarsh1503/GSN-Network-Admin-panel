@@ -1,6 +1,6 @@
 // API utility with proper token handling and loading states
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = 'https://gsn-network-admin-panel-1.onrender.com/';
 
 // Token management
 export const getToken = () => {
@@ -120,24 +120,24 @@ export const api = {
 
 // Subscription API methods
 export const subscriptionAPI = {
-  getPlans: () => api.get('/subscriptions/plans'),
-  getMySubscription: () => api.get('/subscriptions/my-subscription'),
-  activateSubscription: (planId) => api.post('/subscriptions/activate', { planId }),
+  getPlans: () => api.get('/api/subscriptions/plans'),
+  getMySubscription: () => api.get('/api/subscriptions/my-subscription'),
+  activateSubscription: (planId, paymentMethod = 'manual') => api.post('/api/subscriptions/activate', { planId, paymentMethod }),
 };
 
 // Quotes API methods
 export const quotesAPI = {
-  getAvailableQuotes: () => api.get('/quotes/available'),
-  getMyQuotes: () => api.get('/quotes/my-quotes'),
-  getAllQuotes: () => api.get('/quotes/all'),
-  submitQuote: (quoteData) => api.post('/quotes/submit', quoteData),
+  getAvailableQuotes: () => api.get('/api/quotes/available'),
+  getMyQuotes: () => api.get('/api/quotes/my-quotes'),
+  getAllQuotes: () => api.get('/api/quotes/all'),
+  submitQuote: (quoteData) => api.post('/api/quotes/submit', quoteData),
 };
 
 // User API methods
 export const userAPI = {
-  login: (credentials) => api.post('/user/login', credentials),
-  register: (userData) => api.post('/user/register', userData),
-  getProfile: () => api.get('/user/profile'),
+  login: (credentials) => api.post('/api/user/login', credentials),
+  register: (userData) => api.post('/api/user/register', userData),
+  getProfile: () => api.get('/api/user/profile'),
 };
 
 export default api;

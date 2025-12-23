@@ -51,7 +51,7 @@ const MemberQuotesPage = () => {
       }
 
       const data = await quotesAPI.getAvailableQuotes();
-      setQuotes(data.quotes);
+      setQuotes(data.quotes || []);
       setSubscription(data.subscription);
       setHasActiveSubscription(data.hasActiveSubscription);
       setCanRespond(data.canRespond);
@@ -123,7 +123,7 @@ const MemberQuotesPage = () => {
 
     setSubmittingResponse(true);
     try {
-      await api.post('/quote-responses/submit', {
+      await api.post('/api/quote-responses/submit', {
         quoteId: selectedQuote.id,
         price: parseFloat(responseForm.price),
         transitTime: responseForm.transitTime,
@@ -238,7 +238,7 @@ const MemberQuotesPage = () => {
         </div>
 
         {/* Quotes Grid */}
-        {quotes.length === 0 ? (
+        {!quotes || quotes.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">No quotes available at the moment</p>
             <p className="text-gray-400 mt-2">Check back later for new opportunities</p>

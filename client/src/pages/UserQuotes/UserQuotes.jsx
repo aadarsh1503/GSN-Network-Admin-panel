@@ -8,6 +8,7 @@ import {
   FaQuoteLeft
 } from 'react-icons/fa';
 import toast from 'react-hot-toast';
+import { api } from '../../utils/api';
 
 const UserQuotes = () => {
   const [quotes, setQuotes] = useState([]);
@@ -27,20 +28,8 @@ const UserQuotes = () => {
 
   const fetchQuotes = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/user-quotes/my-quotes', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setQuotes(data);
-      } else {
-        toast.error('Failed to fetch quotes');
-      }
+      const data = await api.get('/api/user-quotes/my-quotes');
+      setQuotes(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching quotes:', error);
       toast.error('Failed to fetch quotes');
@@ -50,7 +39,7 @@ const UserQuotes = () => {
   };
 
   const filterQuotes = () => {
-    let filtered = quotes;
+    let filtered = Array.isArray(quotes) ? quotes : [];
 
     // Filter by status
     if (statusFilter !== 'all') {
@@ -60,9 +49,9 @@ const UserQuotes = () => {
     // Filter by search term
     if (searchTerm) {
       filtered = filtered.filter(quote =>
-        quote.product_description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        quote.departure_country.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        quote.arrival_country.toLowerCase().includes(searchTerm.toLowerCase())
+        quote.product_description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        quote.departure_country?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        quote.arrival_country?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -73,7 +62,7 @@ const UserQuotes = () => {
     switch (status) {
       case 'pending': return 'text-yellow-600 bg-yellow-100';
       case 'approved': return 'text-green-600 bg-green-100';
-      case 'running': return 'text-blue-600 bg-blue-100';
+      case 'running': return 'text-[#CDA435] bg-yellow-50';
       case 'closed': return 'text-gray-600 bg-gray-100';
       case 'rejected': return 'text-red-600 bg-red-100';
       default: return 'text-gray-600 bg-gray-100';
@@ -93,7 +82,14 @@ const UserQuotes = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="flex flex-col items-center gap-3">
+          <div className="relative">
+            <div className="h-12 w-12 border-4 border-gray-200 rounded-full animate-spin">
+              <div className="h-12 w-12 border-4 border-transparent border-t-[#CDA435] rounded-full animate-spin"></div>
+            </div>
+          </div>
+          <p className="text-gray-600 font-medium">Loading quotes...</p>
+        </div>
       </div>
     );
   }
@@ -109,7 +105,7 @@ const UserQuotes = () => {
           </div>
           <Link
             to="/quote"
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200 flex items-center"
+            className="bg-[#CDA435] text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition-colors duration-200 flex items-center"
           >
             <FaPlus className="mr-2" />
             New Quote
@@ -128,7 +124,7 @@ const UserQuotes = () => {
               placeholder="Search quotes..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
             />
           </div>
 
@@ -138,7 +134,7 @@ const UserQuotes = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#CDA435] focus:border-transparent appearance-none"
             >
               <option value="all">All Status</option>
               <option value="pending">Pending</option>
@@ -166,7 +162,7 @@ const UserQuotes = () => {
             {quotes.length === 0 && (
               <Link
                 to="/quote"
-                className="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200"
+                className="inline-block bg-[#CDA435] text-white px-6 py-2 rounded-md hover:bg-yellow-600 transition-colors duration-200"
               >
                 Submit Your First Quote
               </Link>
@@ -234,7 +230,7 @@ const UserQuotes = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <Link
                         to={`/user/quotes/${quote.id}`}
-                        className="text-blue-600 hover:text-blue-900 flex items-center"
+                        className="text-[#CDA435] hover:text-yellow-600 flex items-center"
                       >
                         <FaEye className="mr-1" />
                         View

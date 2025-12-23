@@ -1,4 +1,4 @@
-import './FuturisticLoader.css';
+import React from 'react';
 
 const FuturisticLoader = ({ message = "Loading...", size = "medium" }) => {
   const sizeClasses = {
@@ -8,58 +8,40 @@ const FuturisticLoader = ({ message = "Loading...", size = "medium" }) => {
   };
 
   return (
-    <div className="futuristic-loader-container">
-      <div className="futuristic-loader-backdrop">
-        <div className="futuristic-loader-content">
-          {/* Main Loader Animation */}
-          <div className={`futuristic-loader ${sizeClasses[size]}`}>
-            {/* Outer Ring */}
-            <div className="loader-ring loader-ring-1">
-              <div className="ring-segment"></div>
-              <div className="ring-segment"></div>
-              <div className="ring-segment"></div>
-              <div className="ring-segment"></div>
-            </div>
-            
-            {/* Middle Ring */}
-            <div className="loader-ring loader-ring-2">
-              <div className="ring-segment"></div>
-              <div className="ring-segment"></div>
-              <div className="ring-segment"></div>
-            </div>
-            
-            {/* Inner Core */}
-            <div className="loader-core">
-              <div className="core-pulse"></div>
-              <div className="core-glow"></div>
-            </div>
-            
-            {/* Floating Particles */}
-            <div className="particle particle-1"></div>
-            <div className="particle particle-2"></div>
-            <div className="particle particle-3"></div>
-            <div className="particle particle-4"></div>
-            <div className="particle particle-5"></div>
-            <div className="particle particle-6"></div>
+    <div className="fixed inset-0 bg-white bg-opacity-95 flex items-center justify-center z-50 backdrop-blur-sm">
+      <div className="flex flex-col items-center gap-6 p-8">
+        {/* Professional Spinner with Website Colors */}
+        <div className="relative">
+          <div className={`${sizeClasses[size]} border-4 border-gray-200 rounded-full animate-spin`}>
+            <div className={`${sizeClasses[size]} border-4 border-transparent border-t-[#CDA435] border-r-[#CDA435] rounded-full animate-spin`}></div>
           </div>
           
-          {/* Loading Text */}
-          <div className="loader-text">
-            <span className="text-glow">{message}</span>
-            <div className="text-dots">
-              <span className="dot dot-1">.</span>
-              <span className="dot dot-2">.</span>
-              <span className="dot dot-3">.</span>
+          {/* Inner rotating ring */}
+          <div className="absolute inset-2">
+            <div className="w-full h-full border-2 border-gray-100 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}>
+              <div className="w-full h-full border-2 border-transparent border-b-[#CDA435] rounded-full"></div>
             </div>
           </div>
           
-          {/* Progress Bar */}
-          <div className="progress-container">
-            <div className="progress-bar">
-              <div className="progress-fill"></div>
-              <div className="progress-glow"></div>
-            </div>
+          {/* Center dot */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-3 h-3 bg-[#CDA435] rounded-full animate-pulse"></div>
           </div>
+        </div>
+        
+        {/* Loading Text */}
+        <div className="text-center">
+          <p className="text-lg font-semibold text-gray-800 mb-2">{message}</p>
+          <div className="flex items-center justify-center gap-1">
+            <div className="w-2 h-2 bg-[#CDA435] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+            <div className="w-2 h-2 bg-[#CDA435] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+            <div className="w-2 h-2 bg-[#CDA435] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+          </div>
+        </div>
+        
+        {/* Progress Bar */}
+        <div className="w-64 h-1 bg-gray-200 rounded-full overflow-hidden">
+          <div className="h-full bg-gradient-to-r from-[#CDA435] to-yellow-500 rounded-full animate-pulse"></div>
         </div>
       </div>
     </div>

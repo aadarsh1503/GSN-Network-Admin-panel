@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { 
   FiMessageSquare, FiRefreshCw, FiSearch, FiSend, FiInbox, FiMail,
   FiUser, FiClock, FiChevronLeft
@@ -9,6 +10,7 @@ import toast from 'react-hot-toast';
 import useMarkAsRead from '../../hooks/useMarkAsRead';
 
 const MessagesPage = () => {
+  const location = useLocation();
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedConversation, setSelectedConversation] = useState(null);
@@ -26,11 +28,41 @@ const MessagesPage = () => {
     fetchUnreadCount();
   }, []);
 
+  // Handle navigation from other pages (like MyQuotes)
+  useEffect(() => {
+    if (location.state?.openConversation && conversations.length > 0) {
+      const { userId, userName, userEmail } = location.state.openConversation;
+      
+      // Try to find existing conversation
+      const existingConversation = conversations.find(conv => conv.other_user_id === userId);
+      
+      if (existingConversation) {
+        // Open existing conversation
+        handleSelectConversation(existingConversation);
+      } else {
+        // Create new conversation object
+        setSelectedConversation({
+          userId: userId,
+          userName: userName || 'Customer',
+          logo: null
+        });
+        
+        // Try to fetch conversation (might be empty for new conversation)
+        fetchConversation(userId);
+        
+        toast.success(`Opening conversation with ${userName || 'Customer'}`);
+      }
+      
+      // Clear the navigation state to prevent re-triggering
+      window.history.replaceState({}, document.title);
+    }
+  }, [conversations, location.state]);
+
   const fetchConversations = async () => {
     setLoading(true);
     try {
-      const data = await api.get('/messages/conversations');
-      setConversations(data || []);
+      const data = await api.get('/api/messages/conversations');
+      setConversations(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching conversations:', error);
       toast.error('Failed to fetch conversations');
@@ -42,7 +74,7 @@ const MessagesPage = () => {
 
   const fetchUnreadCount = async () => {
     try {
-      const data = await api.get('/messages/unread-count');
+      const data = await api.get('/api/messages/unread-count');
       setUnreadCount(data.unreadCount);
     } catch (error) {
       console.error('Error fetching unread count:', error);
@@ -51,10 +83,11 @@ const MessagesPage = () => {
 
   const fetchConversation = async (userId) => {
     try {
-      const data = await api.get(`/messages/conversation/${userId}`);
-      setConversationMessages(data);
+      const data = await api.get(`/api/messages/conversation/${userId}`);
+      setConversationMessages(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching conversation:', error);
+      setConversationMessages([]);
       toast.error('Failed to fetch conversation');
     }
   };
@@ -71,7 +104,7 @@ const MessagesPage = () => {
     // Mark unread messages as read
     if (conversation.unread_count > 0) {
       try {
-        await api.put(`/messages/conversation/${conversation.other_user_id}/read`);
+        await api.put(`/api/messages/conversation/${conversation.other_user_id}/read`);
         fetchUnreadCount();
         fetchConversations();
       } catch (error) {
@@ -86,7 +119,7 @@ const MessagesPage = () => {
 
     setSendingMessage(true);
     try {
-      await api.post('/messages/send', {
+      await api.post('/api/messages/send', {
         receiverId: selectedConversation.userId,
         subject: null, // No subject for direct messages
         message: newMessage,
@@ -103,10 +136,10 @@ const MessagesPage = () => {
     }
   };
 
-  const filteredConversations = conversations.filter(conv => {
+  const filteredConversations = Array.isArray(conversations) ? conversations.filter(conv => {
     return conv.other_user_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
            conv.last_message?.toLowerCase().includes(searchTerm.toLowerCase());
-  });
+  }) : [];
 
   const isSystemMessage = (message) => {
     return message.subject && (
@@ -271,7 +304,7 @@ const MessagesPage = () => {
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-              {conversationMessages.map((msg) => {
+              {Array.isArray(conversationMessages) && conversationMessages.map((msg) => {
                 const isOwn = msg.sender_id === currentUser.id;
                 const isSystem = isSystemMessage(msg);
                 const systemType = getSystemMessageType(msg);
