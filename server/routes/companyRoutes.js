@@ -6,8 +6,8 @@ import {
     addCompanyBranch,
     getCompanyBranches,
     deleteCompanyBranch,
-    addCompanyMember,   // Import this
-    getCompanyMembers,   // Import this
+    addCompanyMember,
+    getCompanyMembers,
     deleteCompanyMember,
     updateCompanyMember,
     updateCompanyBranch
@@ -15,35 +15,30 @@ import {
 import { protect } from '../middleware/authMiddleware.js';
 import { upload } from '../config/cloudinary.js'; 
 
-// Existing Profile Routes
+// Profile Routes
 router.route('/profile')
     .get(protect, getCompanyProfile)
-    .put(protect, upload.single('logo'), updateCompanyProfile);
+    .put(protect, upload.fields([
+        { name: 'logo', maxCount: 1 },
+        { name: 'incharge_image', maxCount: 1 }
+    ]), updateCompanyProfile);
 
-// Existing Branch Routes
+// Branch Routes
 router.route('/branches')
     .post(protect, addCompanyBranch)
     .get(protect, getCompanyBranches);
 
 router.route('/branches/:id')
-    .delete(protect, deleteCompanyBranch);
+    .delete(protect, deleteCompanyBranch)
+    .put(protect, updateCompanyBranch);
 
-// --- NEW MEMBER ROUTES ---
+// Member Routes
 router.route('/members')
-    .post(protect, addCompanyMember)  // Add Member
-    .get(protect, getCompanyMembers); // Get Members List
-    router.route('/members')
     .post(protect, addCompanyMember)
     .get(protect, getCompanyMembers);
 
-router.route('/members/:id') // <--- New Route for Deleting Members
-    .delete(protect, deleteCompanyMember);
-    router.route('/members/:id')
+router.route('/members/:id')
     .delete(protect, deleteCompanyMember)
-    .put(protect, updateCompanyMember); // <--- Add PUT route
-
-    router.route('/branches/:id')
-    .delete(protect, deleteCompanyBranch)
-    .put(protect, updateCompanyBranch);
+    .put(protect, updateCompanyMember);
 
 export default router;

@@ -1,5 +1,15 @@
 import { useState, useEffect } from 'react';
 import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  LineChart, Line, PieChart, Pie, Cell, AreaChart, Area
+} from 'recharts';
+import { 
+  BarChart3, Clipboard, Package, DollarSign, Users, Package2, 
+  Copy, Facebook, Twitter, Linkedin, Youtube, Instagram, Phone,
+  Clock, ChevronUp, ChevronDown, Star, MessageSquare, Activity,
+  TrendingUp, ArrowUpRight, ArrowDownRight, Eye, Zap, Target, Award, Bell
+} from 'lucide-react';
+import { 
   FiBarChart2, FiClipboard, FiBox, FiDollarSign, FiUsers, FiPackage, 
   FiCopy, FiFacebook, FiTwitter, FiLinkedin, FiYoutube, FiInstagram, FiPhone,
   FiClock, FiChevronUp, FiChevronDown, FiStar, FiMessageSquare
@@ -8,21 +18,159 @@ import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import { useNotifications } from '../../contexts/NotificationContext';
 
-const StatCard = ({ title, value, icon, iconBgColor }) => (
-  <div className="bg-white p-4 rounded-lg shadow-md flex justify-between items-center">
-    <div>
-      <p className="text-xs text-gray-500 uppercase">{title}</p>
-      <p className="text-2xl font-bold text-gray-800">{value}</p>
-    </div>
-    <div className={`text-white p-3 rounded-full ${iconBgColor}`}>
-      {icon}
-    </div>
-  </div>
-);
+// Website color palette matching the Admin Dashboard
+const COLORS = {
+  primary: '#eab308', // yellow-500
+  secondary: '#f59e0b', // amber-500
+  success: '#10b981', // emerald-500
+  warning: '#f59e0b', // amber-500
+  danger: '#ef4444', // red-500
+  info: '#06b6d4', // cyan-500
+  gradient: ['#eab308', '#f59e0b', '#06b6d4', '#10b981', '#ef4444', '#8b5cf6']
+};
 
-const ReferralCard = ({ subscription }) => {
+// Enhanced Metric Card Component matching Admin Dashboard design
+const MetricCard = ({ 
+  title, 
+  value, 
+  previousValue, 
+  icon: Icon, 
+  color = 'yellow',
+  prefix = '',
+  suffix = '',
+  animate = true,
+  onClick = null
+}) => {
+  const [displayValue, setDisplayValue] = useState(0);
+  
+  useEffect(() => {
+    if (!animate) {
+      setDisplayValue(value);
+      return;
+    }
+    
+    let startTime;
+    const duration = 2000;
+    const startValue = 0;
+    
+    const animateValue = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+      setDisplayValue(Math.floor(easeOutQuart * (value - startValue) + startValue));
+      
+      if (progress < 1) {
+        requestAnimationFrame(animateValue);
+      }
+    };
+    
+    requestAnimationFrame(animateValue);
+  }, [value, animate]);
+
+  const calculateTrend = () => {
+    if (!previousValue || previousValue === 0) return null;
+    const change = ((value - previousValue) / previousValue) * 100;
+    return {
+      percentage: Math.abs(change).toFixed(1),
+      isPositive: change > 0,
+      isNeutral: change === 0
+    };
+  };
+
+  const trend = calculateTrend();
+  
+  const colorClasses = {
+    yellow: {
+      bg: 'bg-white border-l-4 border-yellow-500',
+      icon: 'bg-yellow-100 text-yellow-600',
+      trend: 'text-yellow-600'
+    },
+    green: {
+      bg: 'bg-white border-l-4 border-green-500',
+      icon: 'bg-green-100 text-green-600',
+      trend: 'text-green-600'
+    },
+    blue: {
+      bg: 'bg-white border-l-4 border-blue-500',
+      icon: 'bg-blue-100 text-blue-600',
+      trend: 'text-blue-600'
+    },
+    orange: {
+      bg: 'bg-white border-l-4 border-orange-500',
+      icon: 'bg-orange-100 text-orange-600',
+      trend: 'text-orange-600'
+    },
+    red: {
+      bg: 'bg-white border-l-4 border-red-500',
+      icon: 'bg-red-100 text-red-600',
+      trend: 'text-red-600'
+    },
+    purple: {
+      bg: 'bg-white border-l-4 border-purple-500',
+      icon: 'bg-purple-100 text-purple-600',
+      trend: 'text-purple-600'
+    }
+  };
+
+  const colors = colorClasses[color] || colorClasses.yellow;
+
+  return (
+    <div 
+      className={`relative overflow-hidden rounded-xl ${colors.bg} p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group ${onClick ? 'cursor-pointer' : ''}`}
+      onClick={onClick}
+    >
+      {/* Background decorations */}
+      <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-white bg-opacity-10 group-hover:bg-opacity-20 transition-all duration-300"></div>
+      <div className="absolute bottom-0 left-0 -mb-4 -ml-4 h-16 w-16 rounded-full bg-white bg-opacity-5 group-hover:bg-opacity-10 transition-all duration-300"></div>
+      
+      <div className="relative z-10">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div className={`p-3 rounded-xl ${colors.icon} bg-opacity-20 backdrop-blur-sm group-hover:bg-opacity-30 transition-all duration-300`}>
+            <Icon className="h-6 w-6" />
+          </div>
+          
+          {trend && !trend.isNeutral && (
+            <div className={`flex items-center space-x-1 text-sm ${colors.trend}`}>
+              {trend.isPositive ? (
+                <ArrowUpRight className="h-4 w-4" />
+              ) : (
+                <ArrowDownRight className="h-4 w-4" />
+              )}
+              <span>{trend.percentage}%</span>
+            </div>
+          )}
+        </div>
+        
+        {/* Content */}
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">
+            {title}
+          </p>
+          <p className="text-3xl font-bold text-gray-800">
+            {prefix}
+            {displayValue.toLocaleString()}
+            {suffix}
+          </p>
+          {trend && (
+            <p className="text-xs text-gray-500">
+              {trend.isPositive ? 'Increased' : 'Decreased'} from last period
+            </p>
+          )}
+        </div>
+      </div>
+      
+      {/* Hover effect overlay */}
+      <div className="absolute inset-0 bg-white bg-opacity-0 group-hover:bg-opacity-5 transition-all duration-300"></div>
+    </div>
+  );
+};
+
+const ReferralCard = ({ subscription, userProfile }) => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const referralCode = `GSN${user.id}${Date.now().toString().slice(-4)}`;
+  // Use the permanent referral code from database, fallback to generated one if not available
+  const referralCode = userProfile?.referral_code || `GSN${user.id}${String(user.id).padStart(4, '0')}`;
 
   const copyReferralCode = () => {
     navigator.clipboard.writeText(referralCode);
@@ -30,32 +178,74 @@ const ReferralCard = ({ subscription }) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md h-full flex flex-col justify-between">
+    <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 h-full flex flex-col justify-between">
       <div>
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-bold text-gray-800">Referral & Social</h3>
+          <Copy className="h-5 w-5 text-gray-400" />
+        </div>
+        
         <div 
-          className="flex items-center text-gray-700 mb-6 cursor-pointer hover:text-[#CDA435]"
+          className="flex items-center p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl cursor-pointer hover:from-yellow-100 hover:to-orange-100 transition-all duration-200 border border-yellow-200 hover:border-yellow-300 group mb-6"
           onClick={copyReferralCode}
         >
-          <FiCopy className="mr-3" size={20} />
-          <span className="font-semibold">Your Referral Code: {referralCode}</span>
+          <div className="p-2 bg-yellow-100 rounded-lg mr-4 group-hover:bg-yellow-200 transition-colors">
+            <Copy className="text-yellow-600 h-5 w-5" />
+          </div>
+          <div>
+            <span className="text-yellow-700 font-semibold block">Your Referral Code</span>
+            <span className="text-yellow-600 text-sm">{referralCode}</span>
+          </div>
         </div>
+        
         <div className="text-center">
-          <h3 className="text-xl font-bold text-gray-800">Follow Us</h3>
-          <p className="text-sm text-gray-500 my-3">
-            Reach Out, We're Here for You: Connect, Inquire, Share – Your Feedback Matters!
+          <h4 className="text-lg font-semibold text-gray-800 mb-2">Follow Us</h4>
+          <p className="text-sm text-gray-500 mb-4">
+            Connect with us on social media for updates and support
           </p>
-          <div className="flex justify-center space-x-4 my-4 text-gray-600">
-            <a href="#" className="hover:text-blue-600"><FiFacebook size={20}/></a>
-            <a href="#" className="hover:text-sky-500"><FiTwitter size={20}/></a>
-            <a href="#" className="hover:text-blue-700"><FiLinkedin size={20}/></a>
-            <a href="#" className="hover:text-red-600"><FiYoutube size={20}/></a>
-            <a href="#" className="hover:text-pink-500"><FiInstagram size={20}/></a>
+         <div className="grid grid-cols-4 gap-3 mb-6 justify-items-center">
+            <a 
+              href={userProfile?.facebook && userProfile.facebook !== '#' ? userProfile.facebook : "#"} 
+              className={`p-3 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 ${(!userProfile?.facebook || userProfile.facebook === '#') ? 'opacity-50 cursor-not-allowed' : ''}`}
+              target={userProfile?.facebook && userProfile.facebook !== '#' ? "_blank" : "_self"}
+              rel="noopener noreferrer"
+            >
+              <Facebook className="h-5 w-5 text-blue-600" />
+            </a>
+            <a 
+              href={userProfile?.twitter && userProfile.twitter !== '#' ? userProfile.twitter : "#"} 
+              className={`p-3 rounded-xl border border-gray-200 hover:border-sky-300 hover:bg-sky-50 transition-all duration-200 ${(!userProfile?.twitter || userProfile.twitter === '#') ? 'opacity-50 cursor-not-allowed' : ''}`}
+              target={userProfile?.twitter && userProfile.twitter !== '#' ? "_blank" : "_self"}
+              rel="noopener noreferrer"
+            >
+              <Twitter className="h-5 w-5 text-sky-500" />
+            </a>
+            <a 
+              href={userProfile?.linkedin && userProfile.linkedin !== '#' ? userProfile.linkedin : "#"} 
+              className={`p-3 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 ${(!userProfile?.linkedin || userProfile.linkedin === '#') ? 'opacity-50 cursor-not-allowed' : ''}`}
+              target={userProfile?.linkedin && userProfile.linkedin !== '#' ? "_blank" : "_self"}
+              rel="noopener noreferrer"
+            >
+              <Linkedin className="h-5 w-5 text-blue-700" />
+            </a>
+
+            <a 
+              href={userProfile?.instagram && userProfile.instagram !== '#' ? userProfile.instagram : "#"} 
+              className={`p-3 rounded-xl border border-gray-200 hover:border-pink-300 hover:bg-pink-50 transition-all duration-200 ${(!userProfile?.instagram || userProfile.instagram === '#') ? 'opacity-50 cursor-not-allowed' : ''}`}
+              target={userProfile?.instagram && userProfile.instagram !== '#' ? "_blank" : "_self"}
+              rel="noopener noreferrer"
+            >
+              <Instagram className="h-5 w-5 text-pink-500" />
+            </a>
           </div>
         </div>
       </div>
-      <a href="/company/create-Ticket" className="w-full flex items-center justify-center bg-green-500 text-white font-bold py-2 px-4 rounded-md hover:bg-green-600 transition-colors">
-        <FiPhone className="mr-2" />
-        Contact Us
+      <a 
+        href="/company/create-Ticket" 
+        className="w-full flex items-center justify-center bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-xl transition-colors shadow-md hover:shadow-lg"
+      >
+        <Phone className="mr-2 h-4 w-4" />
+        Contact Support
       </a>
     </div>
   );
@@ -99,20 +289,29 @@ const NotificationTable = () => {
   const displayData = filteredData.slice(0, entries);
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md mt-6">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">Notifications</h2>
+    <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h3 className="text-xl font-bold text-gray-800">Recent Notifications</h3>
+          <p className="text-gray-600">Stay updated with the latest activities</p>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Bell className="h-5 w-5 text-gray-400" />
+          <span className="text-sm text-gray-500">{notifications.length} total</span>
+        </div>
+      </div>
       
-      <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
         <div className="flex items-center text-sm text-gray-600">
           <span>Show</span>
           <select 
             value={entries} 
             onChange={(e) => setEntries(Number(e.target.value))}
-            className="mx-2 border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-[#DDC277]"
+            className="mx-2 border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
           >
+            <option value="5">5</option>
             <option value="10">10</option>
             <option value="25">25</option>
-            <option value="50">50</option>
           </select>
           <span>entries</span>
         </div>
@@ -123,50 +322,74 @@ const NotificationTable = () => {
             type="text" 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="border border-gray-300 rounded-md p-1.5 focus:outline-none focus:ring-2 focus:ring-[#DDC277] w-full md:w-64" 
+            className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 w-full md:w-64" 
+            placeholder="Search notifications..."
           />
         </div>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-[#DDC277]">
+        <table className="w-full">
+          <thead className="bg-gray-50">
             <tr>
-              <th className="p-3 text-left text-sm font-semibold text-gray-600">Sr.No</th>
-              <th className="p-3 text-left text-sm font-semibold text-gray-600">Image</th>
-              <th className="p-3 text-left text-sm font-semibold text-gray-600">Title</th>
-              <th className="p-3 text-left text-sm font-semibold text-gray-600">Date</th>
-              <th className="p-3 text-left text-sm font-semibold text-gray-600">Message</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-l-lg">Sr.No</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-r-lg">Message</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="bg-white divide-y divide-gray-200">
             {loading ? (
               <tr>
-                <td colSpan="5" className="p-6 text-center text-gray-500">Loading notifications...</td>
+                <td colSpan="5" className="p-8 text-center">
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-4 border-yellow-200 border-t-yellow-500"></div>
+                    <span className="ml-3 text-gray-500">Loading notifications...</span>
+                  </div>
+                </td>
               </tr>
             ) : displayData.length === 0 ? (
               <tr>
-                <td colSpan="5" className="p-6 text-center text-gray-500">No notifications found.</td>
+                <td colSpan="5" className="p-8 text-center">
+                  <div className="flex flex-col items-center">
+                    <Bell className="h-12 w-12 text-gray-300 mb-3" />
+                    <p className="text-gray-500 text-lg">No notifications found</p>
+                    <p className="text-gray-400 text-sm">Check back later for updates</p>
+                  </div>
+                </td>
               </tr>
             ) : (
               displayData.map((item, index) => (
                 <tr key={item.id || index} className="hover:bg-gray-50 transition-colors">
-                  <td className="p-3 align-top">{index + 1}</td>
-                  <td className="p-3 align-top">
+                  <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {index + 1}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
                     {item.image ? (
-                      <img src={item.image} alt={item.title} className="h-12 w-auto object-contain border rounded-md p-1 bg-white" />
+                      <img 
+                        src={item.image} 
+                        alt={item.title} 
+                        className="h-10 w-10 object-cover rounded-lg border border-gray-200" 
+                      />
                     ) : (
-                      <span className="text-xs text-gray-400 italic">No Img</span>
+                      <div className="h-10 w-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <Bell className="h-5 w-5 text-gray-400" />
+                      </div>
                     )}
                   </td>
-                  <td className="p-3 align-top font-medium text-gray-700">{item.title}</td>
-                  <td className="p-3 align-top whitespace-nowrap">
-                    <div className="flex items-center text-gray-500">
-                      <FiClock className="mr-2"/>
+                  <td className="px-4 py-4">
+                    <div className="text-sm font-medium text-gray-900">{item.title}</div>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <div className="flex items-center text-sm text-gray-500">
+                      <Clock className="mr-2 h-4 w-4" />
                       {formatDate(item.created_at)}
                     </div>
                   </td>
-                  <td className="p-3 align-top text-gray-600">{item.message}</td>
+                  <td className="px-4 py-4">
+                    <div className="text-sm text-gray-600 max-w-xs truncate">{item.message}</div>
+                  </td>
                 </tr>
               ))
             )}
@@ -174,21 +397,32 @@ const NotificationTable = () => {
         </table>
       </div>
 
-      <div className="flex justify-between items-center mt-4 text-sm text-gray-600">
-        <div>Showing 1 to {Math.min(entries, filteredData.length)} of {filteredData.length} entries</div>
-        <div className="flex space-x-1">
-          <button disabled className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50">Previous</button>
-          <button className="px-3 py-1 border rounded bg-[#DDC277] text-white">1</button>
-          <button className="px-3 py-1 border rounded hover:bg-gray-100">Next</button>
+      <div className="flex justify-between items-center mt-6 text-sm text-gray-600">
+        <div>
+          Showing {Math.min(entries, filteredData.length)} of {filteredData.length} entries
+        </div>
+        <div className="flex space-x-2">
+          <button 
+            disabled 
+            className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          <button className="px-3 py-2 border border-yellow-500 bg-yellow-500 text-white rounded-lg">
+            1
+          </button>
+          <button className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-100">
+            Next
+          </button>
         </div>
       </div>
     </div>
   );
 };
-
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [subscription, setSubscription] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const { notifications, fetchNotifications } = useNotifications();
 
@@ -284,12 +518,14 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const [statsData, subData] = await Promise.all([
+      const [statsData, subData, profileData] = await Promise.all([
         api.get('/api/dashboard/company-stats'),
-        api.get('/api/subscriptions/my-subscription')
+        api.get('/api/subscriptions/my-subscription'),
+        api.get('/api/company/profile')
       ]);
       setStats(statsData);
       setSubscription(subData);
+      setUserProfile(profileData);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -298,76 +534,135 @@ const Dashboard = () => {
   };
 
   if (loading) {
-    return <div className="text-center py-8">Loading dashboard...</div>;
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-20 w-20 border-4 border-yellow-200 border-t-yellow-500 mx-auto mb-4"></div>
+            <div className="absolute inset-0 rounded-full h-20 w-20 border-4 border-orange-200 border-t-orange-500 animate-spin mx-auto" style={{ animationDirection: 'reverse', animationDuration: '3s' }}></div>
+          </div>
+          <p className="text-2xl font-bold text-gray-800 mb-2">Loading Dashboard...</p>
+          <p className="text-gray-600">Preparing your analytics</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
-      <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            <StatCard 
-              title="Unread Messages" 
-              value={stats?.messages?.unread_messages || 0} 
-              icon={<FiMessageSquare size={20}/>} 
-              iconBgColor="bg-[#DDC277]" 
-            />
-            <StatCard 
-              title="Quote Responses" 
-              value={stats?.responses?.total_responses || 0} 
-              icon={<FiClipboard size={20}/>} 
-              iconBgColor="bg-green-500" 
-            />
-            <StatCard 
-              title="Accepted Quotes" 
-              value={stats?.responses?.accepted_responses || 0} 
-              icon={<FiDollarSign size={20}/>} 
-              iconBgColor="bg-pink-500" 
-            />
-            <StatCard 
-              title="Your Active Plan" 
-              value={subscription?.plan_name || 'Guest'} 
-              icon={<FiBox size={20}/>} 
-              iconBgColor="bg-orange-500" 
-            />
-            <StatCard 
-              title="Total Reviews" 
-              value={stats?.reviews?.total_reviews || 0} 
-              icon={<FiStar size={20}/>} 
-              iconBgColor="bg-cyan-500" 
-            />
-            <StatCard 
-              title="Available Quotes" 
-              value={stats?.availableQuotes || 0} 
-              icon={<FiPackage size={20}/>} 
-              iconBgColor="bg-purple-500" 
-            />
-            <StatCard 
-              title="Branches" 
-              value={stats?.branches || 0} 
-              icon={<FiUsers size={20}/>} 
-              iconBgColor="bg-blue-500" 
-            />
-            <StatCard 
-              title="Team Members" 
-              value={stats?.members || 0} 
-              icon={<FiBarChart2 size={20}/>} 
-              iconBgColor="bg-indigo-500" 
-            />
-            <StatCard 
-              title="Avg Rating" 
-              value={stats?.reviews?.average_rating || 'N/A'} 
-              icon={<FiStar size={20}/>} 
-              iconBgColor="bg-yellow-500" 
-            />
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto space-y-8">
+        
+        {/* Header */}
+        <div className="text-center mb-12">
+          <div className="flex items-center justify-between mb-4">
+            <div></div>
+            <h1 className="text-5xl relative left-10 font-bold text-gray-800">
+              Company Dashboard
+            </h1>
+            <button
+              onClick={() => {
+                fetchDashboardData();
+              }}
+              className="flex items-center space-x-2 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors"
+              title="Refresh Data"
+            >
+              <Activity className="h-4 w-4" />
+              <span>Refresh</span>
+            </button>
           </div>
-
-          <div className="lg:col-span-1">
-            <ReferralCard subscription={subscription} />
+          <p className="text-gray-600 text-xl">Manage your business operations and track performance</p>
+          <div className="flex items-center justify-center mt-4 space-x-4 text-sm text-gray-500">
+            <div className="flex items-center space-x-1">
+              <Clock className="h-4 w-4" />
+              <span>Last updated: {new Date().toLocaleTimeString()}</span>
+            </div>
+            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+            <span>Live Data</span>
           </div>
         </div>
 
-        <NotificationTable />
+        {/* Enhanced Stats Cards with Admin Dashboard Design */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <MetricCard
+            title="Unread Messages"
+            value={stats?.messages?.unread_messages || 0}
+            previousValue={Math.max(0, (stats?.messages?.unread_messages || 0) - 1)}
+            icon={MessageSquare}
+            color="yellow"
+            onClick={() => window.location.href = '/company/messages'}
+          />
+          <MetricCard
+            title="Quote Responses"
+            value={stats?.responses?.total_responses || 0}
+            previousValue={Math.max(0, (stats?.responses?.total_responses || 0) - 1)}
+            icon={Clipboard}
+            color="green"
+          />
+          <MetricCard
+            title="Accepted Quotes"
+            value={stats?.responses?.accepted_responses || 0}
+            previousValue={Math.max(0, (stats?.responses?.accepted_responses || 0) - 1)}
+            icon={DollarSign}
+            color="blue"
+          />
+          <MetricCard
+            title="Active Plan"
+            value={subscription?.plan_name || 'Guest'}
+            icon={Package}
+            color="orange"
+            animate={false}
+          />
+        </div>
+
+        {/* Secondary Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          <MetricCard
+            title="Total Reviews"
+            value={stats?.reviews?.total_reviews || 0}
+            previousValue={Math.max(0, (stats?.reviews?.total_reviews || 0) - 1)}
+            icon={Star}
+            color="purple"
+          />
+          <MetricCard
+            title="Available Quotes"
+            value={stats?.availableQuotes || 0}
+            previousValue={Math.max(0, (stats?.availableQuotes || 0) - 1)}
+            icon={Package2}
+            color="blue"
+          />
+          <MetricCard
+            title="Branches"
+            value={stats?.branches || 0}
+            previousValue={Math.max(0, (stats?.branches || 0) - 1)}
+            icon={Users}
+            color="green"
+          />
+          <MetricCard
+            title="Team Members"
+            value={stats?.members || 0}
+            previousValue={Math.max(0, (stats?.members || 0) - 1)}
+            icon={BarChart3}
+            color="red"
+          />
+          <MetricCard
+            title="Avg Rating"
+            value={stats?.reviews?.average_rating || 'N/A'}
+            icon={Award}
+            color="yellow"
+            animate={false}
+          />
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          <div className="lg:col-span-3">
+            <NotificationTable />
+          </div>
+
+          <div className="lg:col-span-1">
+            <ReferralCard subscription={subscription} userProfile={userProfile} />
+          </div>
+        </div>
       </div>
     </div>
   );

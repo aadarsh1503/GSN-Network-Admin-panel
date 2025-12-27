@@ -3,7 +3,7 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   FiGrid, FiUsers, FiFileText, FiPlusCircle, FiUser, FiEdit, FiGitBranch,
   FiUserPlus, FiClipboard, FiAward, FiRepeat, FiFile, FiEye,
-  FiHeart, FiMessageSquare, FiMail, FiThumbsUp, FiBell, FiChevronDown, FiCreditCard, FiSearch
+  FiHeart, FiMessageSquare, FiMail, FiThumbsUp, FiBell, FiChevronDown, FiCreditCard, FiSearch, FiShield, FiHelpCircle
 } from 'react-icons/fi';
 import UserCard from './UserCard';
 import { useNotifications } from '../../contexts/NotificationContext';
@@ -47,11 +47,13 @@ const menuItems = [
         ],
       },
     { name: 'Wishlist', icon: <FiHeart />, path: '/company/wishlist' },
-    { name: 'Individual User Quotes', icon: <FiMessageSquare />, path: '/company/individual-Quotes' },
+    // { name: 'Individual User Quotes', icon: <FiMessageSquare />, path: '/company/individual-Quotes' },
     { name: 'My Quotes', icon: <FiFileText />, path: '/company/my-Quotes' },
     { name: 'Messages', icon: <FiMail />, path: '/company/messages' },
-    { name: 'Suggestion', icon: <FiThumbsUp />, path: '/company/suggestions' },
+    { name: 'Disputes', icon: <FiShield />, path: '/company/disputes' },
+    // { name: 'Suggestion', icon: <FiThumbsUp />, path: '/company/suggestions' },
     { name: 'Notifications', icon: <FiBell />, path: '/company/notification-company' },
+    { name: 'Help', icon: <FiHelpCircle />, path: '/company/help' },
 ];
 
 const CompanySidebarContent = () => {

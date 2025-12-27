@@ -4,8 +4,14 @@ import {
   FiMenu, FiMaximize2, FiMinimize2, FiBell, FiMail, FiChevronDown,
   FiUser, FiHome, FiMessageSquare, FiLogOut 
 } from 'react-icons/fi';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import '../styles/adminNotifications.css';
 import Sidebar from '../components/Sidebar/Sidebar';
 import { useNotifications } from '../contexts/NotificationContext';
+import { AdminNotificationProvider, useAdminNotifications } from '../contexts/AdminNotificationContext';
+import LogoutConfirmationModal from '../components/Modal/LogoutConfirmationModal';
+import { useLogoutModal } from '../hooks/useLogoutModal';
 
 // --- AdminHeader Component (Receives isFullscreen and toggleFullscreen) ---
 const AdminHeader = ({ toggleSidebar, toggleFullscreen, isFullscreen }) => {
@@ -13,6 +19,7 @@ const AdminHeader = ({ toggleSidebar, toggleFullscreen, isFullscreen }) => {
   const dropdownRef = React.useRef(null);
   const toggleDropdown = () => setIsDropdownOpen(prevState => !prevState);
   const { unreadCount, messageUnreadCount } = useNotifications();
+  const { isLogoutModalOpen, openLogoutModal, closeLogoutModal } = useLogoutModal();
 
   React.useEffect(() => {
     const handleClickOutside = (event) => {
@@ -31,6 +38,12 @@ const AdminHeader = ({ toggleSidebar, toggleFullscreen, isFullscreen }) => {
   // --- MODIFICATION: New function to handle link clicks ---
   const handleLinkClick = () => {
     setIsDropdownOpen(false);
+  };
+
+  const handleLogoutClick = (e) => {
+    e.preventDefault();
+    setIsDropdownOpen(false);
+    openLogoutModal();
   };
 
   return (
@@ -82,28 +95,39 @@ const AdminHeader = ({ toggleSidebar, toggleFullscreen, isFullscreen }) => {
                 <h3 className="font-bold text-gray-800">admin</h3>
                 <p className="text-sm text-gray-500">admin@gmail.com</p>
             </div>
-            {/* --- MODIFICATION: Added onClick handler to the container of the links --- */}
             <div className="p-4 space-y-1" onClick={handleLinkClick}>
                 <Link to="/admin/user-Profile" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"><FiUser className="mr-3" /> Profile</Link>
                 <Link to="/" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"><FiHome className="mr-3" /> Website</Link>
                 <Link to="/messages" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"><FiMessageSquare className="mr-3" /> Message</Link>
             </div>
-            <a href='/login' onClick={handleLinkClick}>
-              <div className="p-4 border-t">
-                  <button className="flex items-center cursor-pointer w-full px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"><FiLogOut className="mr-3" /> Logout</button>
-              </div>
-            </a>
+            <div className="p-4 border-t">
+                <button 
+                  onClick={handleLogoutClick}
+                  className="flex items-center cursor-pointer w-full px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                >
+                  <FiLogOut className="mr-3" /> Logout
+                </button>
+            </div>
           </div>
         </div>
       </div>
+      
+      {/* Logout Confirmation Modal */}
+      <LogoutConfirmationModal
+        isOpen={isLogoutModalOpen}
+        onClose={closeLogoutModal}
+        userRole="admin"
+        userName="admin"
+      />
     </div>
   );
 };
 
-// --- THIS IS THE MAIN MODIFIED AdminLayout COMPONENT ---
-const AdminLayout = () => {
+// --- AdminContent Component that uses admin notifications ---
+const AdminContent = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const { checkNewRegistrationsOnMount } = useAdminNotifications();
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -131,6 +155,11 @@ const AdminLayout = () => {
     };
   }, []);
 
+  // Check for new registrations only once on component mount (admin login)
+  useEffect(() => {
+    checkNewRegistrationsOnMount();
+  }, [checkNewRegistrationsOnMount]);
+
   return (
     <div className="flex bg-slate-50 min-h-screen">
       <Sidebar isSidebarOpen={isSidebarOpen} />
@@ -143,7 +172,35 @@ const AdminLayout = () => {
         />
         <Outlet />
       </main>
+      
+      {/* Toast Container for Admin Notifications */}
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={true}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss={false}
+        draggable
+        pauseOnHover={false}
+        theme="light"
+        className="admin-toast-container"
+        toastClassName="admin-toast"
+        bodyClassName="admin-toast-body"
+        progressClassName="admin-toast-progress"
+        limit={5}
+      />
     </div>
+  );
+};
+
+// --- THIS IS THE MAIN MODIFIED AdminLayout COMPONENT ---
+const AdminLayout = () => {
+  return (
+    <AdminNotificationProvider>
+      <AdminContent />
+    </AdminNotificationProvider>
   );
 };
 

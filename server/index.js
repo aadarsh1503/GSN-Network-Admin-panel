@@ -4,6 +4,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors'; // You will need CORS for your React app
 import companyRoutes from './routes/companyRoutes.js';
+import invoiceRoutes from './routes/invoiceRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import logisticsCategoryRoutes from './routes/logisticsCategoryRoutes.js';
 import businessCategoryRoutes from './routes/businessCategoryRoutes.js';
@@ -23,6 +24,11 @@ import userNotificationRoutes from './routes/userNotificationRoutes.js';
 import companyQuoteRoutes from './routes/companyQuoteRoutes.js';
 import versionRoutes from './routes/versionRoutes.js';
 import testRoutes from './routes/testRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+import adminPanelRoutes from './routes/adminPanelRoutes.js';
+import disputeRoutes from './routes/disputeRoutes.js';
+import emailRoutes from './routes/emailRoutes.js';
+import generalSettingsRoutes from './routes/generalSettingsRoutes.js';
 // ==========================================================
 // CONFIGURE DOTENV AT THE VERY TOP
 dotenv.config();
@@ -39,6 +45,7 @@ const PORT = process.env.PORT || 5001;
 // Middlewares
 app.use(cors()); // Enable CORS for all routes
 app.use(express.json()); // Middleware to parse JSON bodies
+app.use('/uploads', express.static('uploads')); // Serve uploaded files
 
 // Mount the user routes
 app.use('/api/user', userRoutes);
@@ -46,6 +53,7 @@ app.use('/api/user-quotes', userQuoteRoutes);
 app.use('/api/user-notifications', userNotificationRoutes);
 app.use('/api/company-quotes', companyQuoteRoutes);
 app.use('/api/company', companyRoutes);
+app.use('/api/company/invoices', invoiceRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/logistics-categories', logisticsCategoryRoutes);
 app.use('/api/business-categories', businessCategoryRoutes);
@@ -60,8 +68,13 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/suggestions', suggestionRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/disputes', disputeRoutes);
 app.use('/api/version', versionRoutes);
 app.use('/api/test', testRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/admin-panel', adminPanelRoutes);
+app.use('/api/admin', emailRoutes);
+app.use('/api/general-settings', generalSettingsRoutes);
 
 // Start the server
 app.listen(PORT, () => {

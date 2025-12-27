@@ -14,9 +14,9 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
-        folder: 'notifications', // Changed folder name to keep it organized
+        folder: 'company-uploads', // Changed folder name to be more generic
         allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
-        transformation: [{ width: 800, height: 600, crop: 'limit' }] // Adjusted for notification images
+        transformation: [{ width: 800, height: 600, crop: 'limit' }] // Adjusted for company images
     },
 });
 

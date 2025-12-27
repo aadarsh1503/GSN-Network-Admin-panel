@@ -18,6 +18,8 @@ const QuotesList = () => {
   const [selectedQuote, setSelectedQuote] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newStatus, setNewStatus] = useState('');
+  const [viewingQuote, setViewingQuote] = useState(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
   useEffect(() => {
     fetchQuotes();
@@ -67,6 +69,16 @@ const QuotesList = () => {
     setIsModalOpen(false);
     setSelectedQuote(null);
     setNewStatus('');
+  };
+
+  const openViewModal = (quote) => {
+    setViewingQuote(quote);
+    setIsViewModalOpen(true);
+  };
+
+  const closeViewModal = () => {
+    setIsViewModalOpen(false);
+    setViewingQuote(null);
   };
 
   // Data processing
@@ -256,6 +268,7 @@ const QuotesList = () => {
                         <FiEdit />
                       </button>
                       <button 
+                        onClick={() => openViewModal(quote)}
                         className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-md transition duration-300"
                         title="View Details"
                       >
@@ -332,6 +345,119 @@ const QuotesList = () => {
               >
                 Update Status
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Details Modal */}
+      {isViewModalOpen && viewingQuote && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-semibold">Quote Details #{viewingQuote.id}</h3>
+                <button 
+                  onClick={closeViewModal}
+                  className="text-gray-400 hover:text-gray-600 text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* User Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-lg mb-3 text-gray-800">User Information</h4>
+                  <div className="space-y-2">
+                    <p><span className="font-medium">Name:</span> {viewingQuote.user_name || 'Guest'}</p>
+                    <p><span className="font-medium">Email:</span> {viewingQuote.user_email || viewingQuote.contact_email}</p>
+                    <p><span className="font-medium">Phone:</span> {viewingQuote.contact_phone || 'N/A'}</p>
+                  </div>
+                </div>
+
+                {/* Quote Status */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-lg mb-3 text-gray-800">Quote Status</h4>
+                  <div className="space-y-2">
+                    <p><span className="font-medium">Status:</span> {getStatusBadge(viewingQuote.status)}</p>
+                    <p><span className="font-medium">Created:</span> {new Date(viewingQuote.created_at).toLocaleDateString()}</p>
+                    <p><span className="font-medium">Updated:</span> {new Date(viewingQuote.updated_at).toLocaleDateString()}</p>
+                  </div>
+                </div>
+
+                {/* Shipment Details */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-lg mb-3 text-gray-800">Shipment Details</h4>
+                  <div className="space-y-2">
+                    <p><span className="font-medium">Mode:</span> {viewingQuote.shipping_mode}</p>
+                    <p><span className="font-medium">From:</span> {viewingQuote.departure_country}, {viewingQuote.departure_city}</p>
+                    <p><span className="font-medium">To:</span> {viewingQuote.arrival_country}, {viewingQuote.arrival_city}</p>
+                    <p><span className="font-medium">Arrival Date:</span> {viewingQuote.arrival_date}</p>
+                  </div>
+                </div>
+
+                {/* Product Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-lg mb-3 text-gray-800">Product Information</h4>
+                  <div className="space-y-2">
+                    <p><span className="font-medium">Product:</span> {viewingQuote.product_description}</p>
+                    <p><span className="font-medium">Weight:</span> {viewingQuote.weight} kg</p>
+                    <p><span className="font-medium">Quantity:</span> {viewingQuote.quantity}</p>
+                    <p><span className="font-medium">Packing:</span> {viewingQuote.packing}</p>
+                  </div>
+                </div>
+
+                {/* Dimensions */}
+                {(viewingQuote.length || viewingQuote.width || viewingQuote.height) && (
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="font-semibold text-lg mb-3 text-gray-800">Dimensions</h4>
+                    <div className="space-y-2">
+                      <p><span className="font-medium">Length:</span> {viewingQuote.length} {viewingQuote.dimension_unit}</p>
+                      <p><span className="font-medium">Width:</span> {viewingQuote.width} {viewingQuote.dimension_unit}</p>
+                      <p><span className="font-medium">Height:</span> {viewingQuote.height} {viewingQuote.dimension_unit}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Additional Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-lg mb-3 text-gray-800">Additional Information</h4>
+                  <div className="space-y-2">
+                    <p><span className="font-medium">Stackable:</span> {viewingQuote.is_stackable ? 'Yes' : 'No'}</p>
+                    <p><span className="font-medium">Hazardous:</span> {viewingQuote.is_hazardous ? 'Yes' : 'No'}</p>
+                    <p><span className="font-medium">Insurance:</span> {viewingQuote.has_insurance ? 'Yes' : 'No'}</p>
+                    <p><span className="font-medium">Incoterms:</span> {viewingQuote.incoterms || 'N/A'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notes */}
+              {viewingQuote.notes && (
+                <div className="mt-6 bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-lg mb-3 text-gray-800">Additional Notes</h4>
+                  <p className="text-gray-700">{viewingQuote.notes}</p>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex justify-end space-x-4 mt-6 pt-4 border-t">
+                <button 
+                  onClick={() => {
+                    closeViewModal();
+                    openStatusModal(viewingQuote);
+                  }}
+                  className="px-4 py-2 bg-[#CDA435] text-white rounded-md hover:bg-opacity-90"
+                >
+                  Update Status
+                </button>
+                <button 
+                  onClick={closeViewModal}
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>

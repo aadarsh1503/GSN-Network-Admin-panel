@@ -89,10 +89,50 @@ const sendStatusUpdateNotificationToUser = async (userId, quoteId, status) => {
     }
 };
 
+// Send dispute status update notification to user
+const sendDisputeStatusUpdateNotificationToUser = async (userId, disputeId, status, companyName) => {
+    try {
+        const title = 'Dispute Status Update';
+        const message = `Your dispute #${disputeId} against ${companyName} has been updated to: ${status.charAt(0).toUpperCase() + status.slice(1)}`;
+        
+        // Create user-specific notification (not general)
+        const notificationId = await createNotification('user_specific', title, message, null, 'users');
+        
+        // Create user-specific notification record
+        await createUserNotification(userId, notificationId);
+        
+        console.log(`Dispute status update notification sent to user ${userId} for dispute ${disputeId}`);
+    } catch (error) {
+        console.error('Error sending dispute status update notification:', error);
+        throw error;
+    }
+};
+
+// Send dispute response notification to user
+const sendDisputeResponseNotificationToUser = async (userId, disputeId, companyName) => {
+    try {
+        const title = 'New Dispute Response';
+        const message = `${companyName} has responded to your dispute #${disputeId}. Please check your dispute details for more information.`;
+        
+        // Create user-specific notification (not general)
+        const notificationId = await createNotification('user_specific', title, message, null, 'users');
+        
+        // Create user-specific notification record
+        await createUserNotification(userId, notificationId);
+        
+        console.log(`Dispute response notification sent to user ${userId} for dispute ${disputeId}`);
+    } catch (error) {
+        console.error('Error sending dispute response notification:', error);
+        throw error;
+    }
+};
+
 export {
     createNotification,
     createUserNotification,
     sendQuoteAcceptanceNotificationToCompany,
     sendQuoteRejectionNotificationToCompany,
-    sendStatusUpdateNotificationToUser
+    sendStatusUpdateNotificationToUser,
+    sendDisputeStatusUpdateNotificationToUser,
+    sendDisputeResponseNotificationToUser
 };

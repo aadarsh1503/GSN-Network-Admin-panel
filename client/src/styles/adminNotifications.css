@@ -1,0 +1,146 @@
+/* Admin Notification Styles - Website Theme Colors */
+.admin-toast-container {
+  z-index: 9999 !important;
+}
+
+.admin-toast {
+  background: linear-gradient(135deg, #CDA435 0%, #B8941F 100%) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(205, 164, 53, 0.3) !important;
+  border: 1px solid rgba(205, 164, 53, 0.2) !important;
+  backdrop-filter: blur(10px);
+  margin-bottom: 8px !important;
+  min-height: 80px !important;
+  color: #1a1a1a !important;
+  /* Ensure toast doesn't interfere with auto-close */
+  pointer-events: auto !important;
+}
+
+.admin-toast-body {
+  color: #1a1a1a !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  padding: 16px !important;
+  font-weight: 500 !important;
+}
+
+/* Override any conflicting toast text colors */
+.admin-toast .Toastify__toast-body {
+  color: #1a1a1a !important;
+}
+
+.admin-toast .Toastify__toast-body div {
+  color: #1a1a1a !important;
+}
+
+/* Global toast text color override for admin area */
+.Toastify__toast--success .Toastify__toast-body,
+.Toastify__toast--error .Toastify__toast-body,
+.Toastify__toast--info .Toastify__toast-body,
+.Toastify__toast--warning .Toastify__toast-body,
+.Toastify__toast--default .Toastify__toast-body {
+  color: #1a1a1a !important;
+}
+
+/* Additional specificity for admin toast text */
+.admin-toast-container .Toastify__toast .Toastify__toast-body,
+.admin-toast-container .Toastify__toast .Toastify__toast-body div,
+.admin-toast-container .admin-toast .Toastify__toast-body,
+.admin-toast-container .admin-toast .Toastify__toast-body div {
+  color: #1a1a1a !important;
+  font-weight: 500 !important;
+}
+
+/* Ensure all text elements within toasts are dark */
+.admin-toast-container * {
+  color: #1a1a1a !important;
+}
+
+/* Ensure close button is visible */
+.admin-toast .Toastify__close-button {
+  color: #1a1a1a !important;
+  opacity: 0.7;
+}
+
+.admin-toast .Toastify__close-button:hover {
+  opacity: 1;
+}
+
+.admin-toast-progress {
+  background: linear-gradient(90deg, #1a1a1a, #333333) !important;
+  height: 4px !important;
+}
+
+/* Ensure progress bar is always visible and animating */
+.admin-toast .Toastify__progress-bar {
+  background: linear-gradient(90deg, #1a1a1a, #333333) !important;
+  height: 4px !important;
+}
+
+/* Force progress bar animation */
+.admin-toast .Toastify__progress-bar--animated {
+  animation: Toastify__trackProgress linear !important;
+}
+
+.admin-notification-toast {
+  background: linear-gradient(135deg, #CDA435 0%, #B8941F 100%);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(205, 164, 53, 0.4);
+  border: 1px solid rgba(205, 164, 53, 0.3);
+}
+
+.admin-notification-body {
+  color: #1a1a1a !important;
+  font-weight: 600;
+}
+
+.admin-notification-progress {
+  background: linear-gradient(90deg, #1a1a1a, #333333);
+  height: 4px;
+  border-radius: 0 0 12px 12px;
+}
+
+/* Animation for new notifications */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.admin-toast {
+  animation: slideInRight 0.3s ease-out;
+}
+
+/* Hover effects - Removed to prevent auto-close interference */
+.admin-toast:hover {
+  /* Removed hover effects that might interfere with auto-close */
+}
+
+/* Multiple toast stacking */
+.admin-toast-container .Toastify__toast:nth-child(1) {
+  z-index: 9999;
+}
+
+.admin-toast-container .Toastify__toast:nth-child(2) {
+  z-index: 9998;
+  transform: translateY(-4px) scale(0.98);
+}
+
+.admin-toast-container .Toastify__toast:nth-child(3) {
+  z-index: 9997;
+  transform: translateY(-8px) scale(0.96);
+}
+
+.admin-toast-container .Toastify__toast:nth-child(4) {
+  z-index: 9996;
+  transform: translateY(-12px) scale(0.94);
+}
+
+.admin-toast-container .Toastify__toast:nth-child(5) {
+  z-index: 9995;
+  transform: translateY(-16px) scale(0.92);
+}

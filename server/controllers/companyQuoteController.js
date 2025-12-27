@@ -205,7 +205,7 @@ const getAcceptedQuotes = async (req, res) => {
             SELECT q.*, 
                    qr.price, qr.transit_time, qr.created_at as response_date,
                    uqs.accepted_at, uqs.status as user_response_status,
-                   u.name as user_name, u.email as user_email, u.phone as user_phone,
+                   u.id as user_id, u.name as user_name, u.email as user_email, u.phone as user_phone,
                    COUNT(qr2.id) as total_responses
             FROM quotes q
             JOIN quote_responses qr ON q.id = qr.quote_id
@@ -226,9 +226,86 @@ const getAcceptedQuotes = async (req, res) => {
     }
 };
 
+// @desc    Get all responses for a quote where company has been accepted
+// @route   GET /api/company-quotes/quote/:quoteId/responses
+// @access  Private/Company
+const getQuoteResponsesForCompany = async (req, res) => {
+    const { quoteId } = req.params;
+    const companyId = req.user.id;
+
+    try {
+        // Verify the company has an accepted response for this quote
+        const [acceptedResponse] = await db.execute(`
+            SELECT qr.id
+            FROM quote_responses qr
+            JOIN user_quote_status uqs ON (qr.id = uqs.quote_response_id AND uqs.status = 'accepted')
+            WHERE qr.quote_id = ? AND qr.company_id = ?
+        `, [quoteId, companyId]);
+
+        if (acceptedResponse.length === 0) {
+            return res.status(403).json({ message: 'Access denied. You do not have an accepted response for this quote.' });
+        }
+
+        // Get all responses for this quote
+        const sql = `
+            SELECT qr.*, u.name as company_name, u.email as company_email, u.logo as company_logo,
+                   uqs.status as user_response_status, uqs.accepted_at
+            FROM quote_responses qr
+            JOIN users u ON qr.company_id = u.id
+            LEFT JOIN user_quote_status uqs ON qr.id = uqs.quote_response_id
+            WHERE qr.quote_id = ?
+            ORDER BY qr.price ASC
+        `;
+
+        const [rows] = await db.execute(sql, [quoteId]);
+        res.status(200).json(rows);
+
+    } catch (error) {
+        console.error('Error fetching quote responses for company:', error);
+        res.status(500).json({ message: 'Server error fetching quote responses' });
+    }
+};
+
+// @desc    Get company transaction history
+// @route   GET /api/company/transactions
+// @access  Private/Company
+const getCompanyTransactions = async (req, res) => {
+    const companyId = req.user.id;
+
+    try {
+        const sql = `
+            SELECT 
+                us.id,
+                us.created_at as transaction_date,
+                us.amount_paid,
+                us.payment_status,
+                us.payment_method,
+                us.start_date,
+                us.end_date,
+                mp.name as plan_name,
+                mp.description as plan_description,
+                u.name as company_name
+            FROM user_subscriptions us
+            JOIN membership_plans mp ON us.plan_id = mp.id
+            JOIN users u ON us.user_id = u.id
+            WHERE us.user_id = ?
+            ORDER BY us.created_at DESC
+        `;
+
+        const [rows] = await db.execute(sql, [companyId]);
+        res.status(200).json(rows);
+
+    } catch (error) {
+        console.error('Error fetching company transactions:', error);
+        res.status(500).json({ message: 'Server error fetching transactions' });
+    }
+};
+
 export {
     getMyQuoteResponses,
     updateResponseStatus,
     updateQuoteStatus,
-    getAcceptedQuotes
+    getAcceptedQuotes,
+    getQuoteResponsesForCompany,
+    getCompanyTransactions
 };

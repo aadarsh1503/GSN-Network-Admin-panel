@@ -88,7 +88,7 @@ const Footer = () => {
       {/* This div is now OUTSIDE the container, so it will be full-width */}
       <div className="relative mt-1 bg-[#171717] py-6 text-center text-gray-400">
         <div className="flex items-center justify-center space-x-4">
-          <p>2025 Copyright © dsolutionstech.in</p>
+          <p>2025 Copyright © GSN</p>
           <span>|</span>
           <VersionDisplay />
         </div>

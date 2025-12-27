@@ -22,12 +22,12 @@ const UserProfile = () => {
   const fetchUserProfile = async () => {
     try {
       const data = await api.get('/api/user/me');
-      setUser(data);
+      setUser(data.user); // The API returns { user: {...} }
       setFormData({
-        name: data.user || data.name || '',
-        email: data.email || '',
-        phone: data.phone_number || data.phone || '',
-        country: data.country || ''
+        name: data.user?.name || '',
+        email: data.user?.email || '',
+        phone: data.user?.phone || '',
+        country: data.user?.country || ''
       });
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -63,9 +63,9 @@ const UserProfile = () => {
     setEditing(false);
     // Reset form data to original values
     setFormData({
-      name: user?.user || user?.name || '',
+      name: user?.name || '',
       email: user?.email || '',
-      phone: user?.phone_number || user?.phone || '',
+      phone: user?.phone || '',
       country: user?.country || ''
     });
   };
@@ -114,7 +114,7 @@ const UserProfile = () => {
           </div>
           <div className="ml-6">
             <h2 className="text-xl font-semibold text-gray-900">
-              {user?.user || user?.name || 'User'}
+              {user?.name || 'User'}
             </h2>
             <p className="text-gray-600">{user?.email}</p>
             <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full mt-1">
@@ -140,7 +140,7 @@ const UserProfile = () => {
               />
             ) : (
               <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-md">
-                {user?.user || user?.name || 'Not provided'}
+                {user?.name || 'Not provided'}
               </p>
             )}
           </div>
@@ -182,7 +182,7 @@ const UserProfile = () => {
               />
             ) : (
               <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-md">
-                {user?.phone_number || user?.phone || 'Not provided'}
+                {user?.phone || 'Not provided'}
               </p>
             )}
           </div>

@@ -5,7 +5,9 @@ import {
     getMyQuoteResponses,
     updateResponseStatus,
     updateQuoteStatus,
-    getAcceptedQuotes
+    getAcceptedQuotes,
+    getQuoteResponsesForCompany,
+    getCompanyTransactions
 } from '../controllers/companyQuoteController.js';
 
 const router = express.Router();
@@ -17,6 +19,8 @@ router.use(authorize('company'));
 // Company quote management routes
 router.get('/my-responses', getMyQuoteResponses);
 router.get('/accepted-quotes', getAcceptedQuotes);
+router.get('/quote/:quoteId/responses', getQuoteResponsesForCompany);
+router.get('/transactions', getCompanyTransactions);
 router.put('/response/:responseId/status', updateResponseStatus);
 router.put('/quote/:quoteId/status', updateQuoteStatus);
 

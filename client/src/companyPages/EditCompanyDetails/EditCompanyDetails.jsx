@@ -492,14 +492,18 @@ const EditCompanyDetails = () => {
             Object.keys(formData).forEach(key => {
                 if (key === 'services') {
                     dataToSend.append('services', JSON.stringify(formData.services || []));
-                } else if (key !== 'logo' && formData[key] !== null && formData[key] !== undefined) {
+                } else if (key !== 'logo' && key !== 'incharge_image' && key !== 'incharge_image_file' && formData[key] !== null && formData[key] !== undefined) {
                     dataToSend.append(key, formData[key]);
                 }
             });
 
-            // 2. Append File (if selected)
+            // 2. Append Files (if selected)
             if (logoFile) {
                 dataToSend.append('logo', logoFile);
+            }
+            
+            if (formData.incharge_image_file) {
+                dataToSend.append('incharge_image', formData.incharge_image_file);
             }
 
             // 3. Get Token (Adjust 'token' key if you save it differently in localStorage)
@@ -522,9 +526,13 @@ const EditCompanyDetails = () => {
                 throw new Error(result.message || 'Update failed');
             }
             
-            // Update local state with new logo
+            // Update local state with new logo and incharge image
             if (result.logo) {
                 setFormData(prev => ({ ...prev, logo: result.logo }));
+            }
+            
+            if (result.incharge_image) {
+                setFormData(prev => ({ ...prev, incharge_image: result.incharge_image }));
             }
             
             setSuccess('Profile updated successfully!');
@@ -680,6 +688,55 @@ const EditCompanyDetails = () => {
                                     onChange={handleChange}
                                 />
                             </div>
+                            
+                            {/* Incharge Image Upload */}
+                            <div className="mt-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Incharge Photo</label>
+                                <div className="flex items-center space-x-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                    <div className="shrink-0">
+                                        <div className="h-20 w-20 rounded-full overflow-hidden bg-white border-2 border-yellow-500 relative flex items-center justify-center group shadow-sm">
+                                            {formData.incharge_image ? (
+                                                <img src={formData.incharge_image} alt="Incharge" className="h-full w-full object-cover" />
+                                            ) : (
+                                                <svg className="h-10 w-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                </svg>
+                                            )}
+                                            <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer" onClick={() => document.getElementById('incharge-image-upload').click()}>
+                                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <input
+                                            type="file"
+                                            id="incharge-image-upload"
+                                            name="incharge_image"
+                                            accept="image/*"
+                                            onChange={(e) => {
+                                                const file = e.target.files[0];
+                                                if (file) {
+                                                    setFormData(prev => ({ ...prev, incharge_image: URL.createObjectURL(file) }));
+                                                    // Store the file for upload
+                                                    setFormData(prev => ({ ...prev, incharge_image_file: file }));
+                                                }
+                                            }}
+                                            className="hidden"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => document.getElementById('incharge-image-upload').click()}
+                                            className="py-2 px-4 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-colors"
+                                        >
+                                            Upload Incharge Photo
+                                        </button>
+                                        <p className="mt-2 text-xs text-gray-500">Recommended: Square JPG, PNG or WEBP. Max 5MB.</p>
+                                    </div>
+                                </div>
+                            </div>
                         </section>
 
                         {/* Location Information Section */}
@@ -820,14 +877,27 @@ const EditCompanyDetails = () => {
                         <section>
                             <SectionHeader title="Additional Information" />
                             <div className="space-y-6">
-                                <TextareaField 
-                                    label="Map Location (Embed URL)" 
-                                    name="map_location" 
-                                    value={formData.map_location} 
-                                    onChange={handleChange} 
-                                    rows={4}
-                                    placeholder="Paste your Google Maps embed URL here"
-                                />
+                                <div>
+                                    <label htmlFor="map_location" className="block text-sm font-medium text-gray-700 mb-1">
+                                        Google Maps Location (Embed URL)
+                                    </label>
+                                    <textarea
+                                        id="map_location"
+                                        name="map_location"
+                                        rows={4}
+                                        value={formData.map_location || ''}
+                                        onChange={handleChange}
+                                        placeholder="Paste your Google Maps embed URL here (e.g., https://www.google.com/maps/embed?pb=...)"
+                                        className="w-full p-3 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200 resize-vertical"
+                                    ></textarea>
+                                    <p className="mt-2 text-sm text-gray-500">
+                                        <strong>How to get Google Maps embed URL:</strong><br />
+                                        1. Go to Google Maps and search for your location<br />
+                                        2. Click "Share" → "Embed a map"<br />
+                                        3. Copy the entire URL from the src attribute of the iframe code<br />
+                                        4. Paste it here
+                                    </p>
+                                </div>
                                 
                                 <div>
                                     <SectionHeader title="About Company" />

@@ -1,9 +1,10 @@
 // src/components/BusinessOwners.jsx
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { FaFilter, FaPen, FaEye } from 'react-icons/fa';
+import { FaPen, FaEye, FaTimes, FaSave } from 'react-icons/fa';
 import { FaArrowUp, FaArrowDown } from 'react-icons/fa6';
-import axios from 'axios'; // Import Axios
+import { api } from '../../utils/api';
+import { adminToast } from '../../utils/adminToast';
 
 // --- Custom Toggle Switch Component ---
 const ToggleSwitch = ({ checked, onChange }) => {
@@ -24,21 +25,16 @@ function BusinessOwners() {
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
   const [filters, setFilters] = useState({ status: '', blacklist: '' });
+  const [editingUser, setEditingUser] = useState(null);
+  const [editForm, setEditForm] = useState({});
+  const [viewingUser, setViewingUser] = useState(null);
 
   // --- Fetch Data from Backend ---
   useEffect(() => {
     const fetchBusinessUsers = async () => {
       try {
-        const token = localStorage.getItem('token'); // Get Admin Token
-        const config = {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        };
-
-        // Call the new endpoint for Business users
-        const response = await axios.get('/api/user/business-owners', config);
-        setUsers(response.data);
+        const response = await api.get('/api/user/business-owners');
+        setUsers(response);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching business users:", error);
@@ -61,16 +57,14 @@ function BusinessOwners() {
     setUsers(updatedUsers);
 
     try {
-        const token = localStorage.getItem('token');
-        // We reuse the update endpoint since User IDs are unique
-        await axios.put(
-            `/api/user/business-status/${userId}`, 
-            { type: 'status', value: !currentStatus },
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await api.put(`/api/user/business-status/${userId}`, { 
+          type: 'status', 
+          value: !currentStatus 
+        });
+        adminToast.success(`User ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
     } catch (error) {
         console.error("Error updating status:", error);
-        alert("Failed to update status");
+        adminToast.error("Failed to update status");
         setUsers(users); // Revert on error
     }
   };
@@ -84,16 +78,94 @@ function BusinessOwners() {
     setUsers(updatedUsers);
 
     try {
-        const token = localStorage.getItem('token');
-        await axios.put(
-            `/api/user/business-status/${userId}`, 
-            { type: 'blacklist', value: !currentBlacklistStatus },
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await api.put(`/api/user/business-status/${userId}`, { 
+          type: 'blacklist', 
+          value: !currentBlacklistStatus 
+        });
+        adminToast.success(`User ${!currentBlacklistStatus ? 'added to' : 'removed from'} blacklist`);
     } catch (error) {
         console.error("Error updating blacklist:", error);
-        alert("Failed to update blacklist");
+        adminToast.error("Failed to update blacklist");
         setUsers(users); // Revert on error
+    }
+  };
+
+  // 3. Handle Edit User
+  const handleEditUser = (user) => {
+    setEditingUser(user.id);
+    setEditForm({
+      name: user.name,
+      email: user.email,
+      mobile: user.mobile,
+      category: user.category || '',
+      country: user.country || '',
+      state: user.state || '',
+      city: user.city || ''
+    });
+  };
+
+  // 4. Handle Save Edit
+  const handleSaveEdit = async () => {
+    try {
+      // Use the admin update API
+      await api.put(`/api/user/update-profile/${editingUser}`, {
+        name: editForm.name,
+        email: editForm.email,
+        mobile: editForm.mobile,
+        category: editForm.category,
+        country: editForm.country,
+        state: editForm.state,
+        city: editForm.city
+      });
+      
+      // Update local state
+      setUsers(users.map(user => 
+        user.id === editingUser 
+          ? { 
+              ...user, 
+              name: editForm.name,
+              email: editForm.email,
+              mobile: editForm.mobile
+            }
+          : user
+      ));
+      
+      setEditingUser(null);
+      setEditForm({});
+      adminToast.success('Business profile updated successfully');
+    } catch (error) {
+      console.error("Error updating business:", error);
+      adminToast.error(error.message || "Failed to update business profile");
+    }
+  };
+
+  // 5. Handle Cancel Edit
+  const handleCancelEdit = () => {
+    setEditingUser(null);
+    setEditForm({});
+  };
+
+  // 6. Handle View User Details
+  const handleViewUser = async (user) => {
+    try {
+      // For business users, we'll use the user profile API with proper error handling
+      let userDetails;
+      try {
+        // Try the admin user profile API first
+        userDetails = await api.get(`/api/user/profile/${user.id}`);
+      } catch (error) {
+        // If that fails, try to get basic user info from the current data
+        console.warn("Admin API failed, using current user data:", error);
+        userDetails = {
+          ...user,
+          phone: user.mobile,
+          created_at: new Date().toISOString() // Fallback
+        };
+      }
+      setViewingUser(userDetails);
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+      adminToast.error("Failed to fetch user details");
     }
   };
   
@@ -279,10 +351,18 @@ function BusinessOwners() {
                       </td>
                       <td className="p-3">
                         <div className="flex space-x-2">
-                          <button className="p-2 bg-green-500 text-white rounded hover:bg-green-600">
+                          <button 
+                            onClick={() => handleEditUser(user)}
+                            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                            title="Edit User"
+                          >
                             <FaPen />
                           </button>
-                          <button className="p-2 bg-pink-500 text-white rounded hover:bg-pink-600">
+                          <button 
+                            onClick={() => handleViewUser(user)}
+                            className="p-2 bg-pink-500 text-white rounded hover:bg-pink-600"
+                            title="View Details"
+                          >
                             <FaEye />
                           </button>
                         </div>
@@ -327,6 +407,193 @@ function BusinessOwners() {
           </div>
         </div>
       </div>
+
+      {/* User Details Modal */}
+      {viewingUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold">Business Owner Details</h3>
+              <button 
+                onClick={() => setViewingUser(null)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <FaTimes size={20} />
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <p className="p-2 bg-gray-50 rounded border">{viewingUser.name}</p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <p className="p-2 bg-gray-50 rounded border">{viewingUser.email}</p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mobile</label>
+                <p className="p-2 bg-gray-50 rounded border">{viewingUser.phone || viewingUser.mobile}</p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                <p className="p-2 bg-gray-50 rounded border capitalize">{viewingUser.role}</p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <p className="p-2 bg-gray-50 rounded border">{viewingUser.category || 'N/A'}</p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                <p className="p-2 bg-gray-50 rounded border">{viewingUser.country || 'N/A'}</p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <p className={`p-2 rounded border ${viewingUser.status ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                  {viewingUser.status ? 'Active' : 'Inactive'}
+                </p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Blacklisted</label>
+                <p className={`p-2 rounded border ${viewingUser.is_blacklisted ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
+                  {viewingUser.is_blacklisted ? 'Yes' : 'No'}
+                </p>
+              </div>
+              
+              {viewingUser.created_at && (
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Registration Date</label>
+                  <p className="p-2 bg-gray-50 rounded border">
+                    {new Date(viewingUser.created_at).toLocaleString()}
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            <div className="mt-6 flex justify-end">
+              <button 
+                onClick={() => setViewingUser(null)}
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit User Modal */}
+      {editingUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold">Edit Business Owner</h3>
+              <button 
+                onClick={handleCancelEdit}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <FaTimes size={20} />
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Business Name *</label>
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                <input
+                  type="email"
+                  value={editForm.email}
+                  onChange={(e) => setEditForm({...editForm, email: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mobile</label>
+                <input
+                  type="text"
+                  value={editForm.mobile}
+                  onChange={(e) => setEditForm({...editForm, mobile: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <input
+                  type="text"
+                  value={editForm.category}
+                  onChange={(e) => setEditForm({...editForm, category: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                <input
+                  type="text"
+                  value={editForm.country}
+                  onChange={(e) => setEditForm({...editForm, country: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                <input
+                  type="text"
+                  value={editForm.state}
+                  onChange={(e) => setEditForm({...editForm, state: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                <input
+                  type="text"
+                  value={editForm.city}
+                  onChange={(e) => setEditForm({...editForm, city: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                />
+              </div>
+            </div>
+            
+            <div className="mt-6 flex justify-end space-x-3">
+              <button 
+                onClick={handleCancelEdit}
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleSaveEdit}
+                className="px-4 py-2 bg-[#CDA435] text-white rounded hover:bg-[#B8941F]"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

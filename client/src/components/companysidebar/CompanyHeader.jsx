@@ -6,6 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import ProfileDropdown from './ProfileDropdown';
 import { useNotifications } from '../../contexts/NotificationContext';
 import CompanyQuoteRestrictionModal from '../Modal/CompanyQuoteRestrictionModal';
+import LogoutConfirmationModal from '../Modal/LogoutConfirmationModal';
+import { useLogoutModal } from '../../hooks/useLogoutModal';
 import api from '../../utils/api';
 
 const CompanyHeader = ({ onMenuClick }) => {
@@ -14,6 +16,7 @@ const CompanyHeader = ({ onMenuClick }) => {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const { unreadCount, messageUnreadCount } = useNotifications();
+  const { isLogoutModalOpen, openLogoutModal, closeLogoutModal } = useLogoutModal();
 
   // State for user and logo
   const [user, setUser] = useState(null);
@@ -64,6 +67,11 @@ const CompanyHeader = ({ onMenuClick }) => {
 
   const closeDropdown = () => {
     setIsDropdownOpen(false);
+  };
+
+  const handleLogout = () => {
+    setIsDropdownOpen(false);
+    openLogoutModal();
   };
 
   const handleQuoteRequestClick = (e) => {
@@ -161,7 +169,7 @@ const CompanyHeader = ({ onMenuClick }) => {
             </div>
           </button>
 
-          {isDropdownOpen && <ProfileDropdown onClose={closeDropdown} />}
+          {isDropdownOpen && <ProfileDropdown onClose={closeDropdown} onLogout={handleLogout} />}
         </div>
       </div>
 
@@ -169,6 +177,14 @@ const CompanyHeader = ({ onMenuClick }) => {
       <CompanyQuoteRestrictionModal
         isOpen={showRestrictionModal}
         onClose={handleModalClose}
+      />
+      
+      {/* Logout Confirmation Modal */}
+      <LogoutConfirmationModal
+        isOpen={isLogoutModalOpen}
+        onClose={closeLogoutModal}
+        userRole="company"
+        userName={user?.name || 'Member'}
       />
     </header>
   );

@@ -257,7 +257,7 @@ const RequestQuote = () => {
                       onChange={handleInputChange}
                       className="w-full p-3 bg-gray-100 border-transparent rounded-md focus:border-yellow-500 focus:ring-yellow-500" 
                     />
-                    <FiCalendar className="absolute right-3 top-10 text-gray-400"/>
+                    {/* <FiCalendar className="absolute right-3 top-10 text-gray-400"/> */}
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-6">

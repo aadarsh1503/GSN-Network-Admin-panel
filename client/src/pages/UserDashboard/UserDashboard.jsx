@@ -1,6 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  LineChart, Line, PieChart, Pie, Cell, AreaChart, Area
+} from 'recharts';
+import { 
+  FileText, MessageSquare, Bell, CheckCircle, Clock, 
+  TrendingUp, ArrowUpRight, ArrowDownRight, Activity,
+  Package, Zap, Target, Award, Eye, Calendar
+} from 'lucide-react';
+import { 
   FaQuoteLeft, 
   FaComments, 
   FaBell, 
@@ -13,6 +22,219 @@ import {
 import toast from 'react-hot-toast';
 import { hasPendingQuote, submitPendingQuote, clearPendingQuote } from '../../utils/pendingQuote';
 import { api } from '../../utils/api';
+
+// Website color palette matching the Admin Dashboard
+const COLORS = {
+  primary: '#eab308', // yellow-500
+  secondary: '#f59e0b', // amber-500
+  success: '#10b981', // emerald-500
+  warning: '#f59e0b', // amber-500
+  danger: '#ef4444', // red-500
+  info: '#06b6d4', // cyan-500
+  gradient: ['#eab308', '#f59e0b', '#06b6d4', '#10b981', '#ef4444', '#8b5cf6']
+};
+
+// Enhanced Metric Card Component matching Admin Dashboard design
+const MetricCard = ({ 
+  title, 
+  value, 
+  previousValue, 
+  icon: Icon, 
+  color = 'yellow',
+  prefix = '',
+  suffix = '',
+  animate = true,
+  onClick = null,
+  trend = null
+}) => {
+  const [displayValue, setDisplayValue] = useState(0);
+  
+  useEffect(() => {
+    if (!animate) {
+      setDisplayValue(value);
+      return;
+    }
+    
+    let startTime;
+    const duration = 2000;
+    const startValue = 0;
+    
+    const animateValue = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+      setDisplayValue(Math.floor(easeOutQuart * (value - startValue) + startValue));
+      
+      if (progress < 1) {
+        requestAnimationFrame(animateValue);
+      }
+    };
+    
+    requestAnimationFrame(animateValue);
+  }, [value, animate]);
+
+  const calculateTrend = () => {
+    if (!previousValue || previousValue === 0) return null;
+    const change = ((value - previousValue) / previousValue) * 100;
+    return {
+      percentage: Math.abs(change).toFixed(1),
+      isPositive: change > 0,
+      isNeutral: change === 0
+    };
+  };
+
+  const trendData = trend || calculateTrend();
+  
+  const colorClasses = {
+    yellow: {
+      bg: 'bg-white border-l-4 border-yellow-500',
+      icon: 'bg-yellow-100 text-yellow-600',
+      trend: 'text-yellow-600'
+    },
+    green: {
+      bg: 'bg-white border-l-4 border-green-500',
+      icon: 'bg-green-100 text-green-600',
+      trend: 'text-green-600'
+    },
+    blue: {
+      bg: 'bg-white border-l-4 border-blue-500',
+      icon: 'bg-blue-100 text-blue-600',
+      trend: 'text-blue-600'
+    },
+    orange: {
+      bg: 'bg-white border-l-4 border-orange-500',
+      icon: 'bg-orange-100 text-orange-600',
+      trend: 'text-orange-600'
+    },
+    red: {
+      bg: 'bg-white border-l-4 border-red-500',
+      icon: 'bg-red-100 text-red-600',
+      trend: 'text-red-600'
+    },
+    purple: {
+      bg: 'bg-white border-l-4 border-purple-500',
+      icon: 'bg-purple-100 text-purple-600',
+      trend: 'text-purple-600'
+    }
+  };
+
+  const colors = colorClasses[color] || colorClasses.yellow;
+
+  return (
+    <div 
+      className={`relative overflow-hidden rounded-xl ${colors.bg} p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group ${onClick ? 'cursor-pointer' : ''}`}
+      onClick={onClick}
+    >
+      {/* Background decorations */}
+      <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-white bg-opacity-10 group-hover:bg-opacity-20 transition-all duration-300"></div>
+      <div className="absolute bottom-0 left-0 -mb-4 -ml-4 h-16 w-16 rounded-full bg-white bg-opacity-5 group-hover:bg-opacity-10 transition-all duration-300"></div>
+      
+      <div className="relative z-10">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div className={`p-3 rounded-xl ${colors.icon} bg-opacity-20 backdrop-blur-sm group-hover:bg-opacity-30 transition-all duration-300`}>
+            <Icon className="h-6 w-6" />
+          </div>
+          
+          {trendData && !trendData.isNeutral && (
+            <div className={`flex items-center space-x-1 text-sm ${colors.trend}`}>
+              {trendData.isPositive ? (
+                <ArrowUpRight className="h-4 w-4" />
+              ) : (
+                <ArrowDownRight className="h-4 w-4" />
+              )}
+              <span>{trendData.percentage}%</span>
+            </div>
+          )}
+        </div>
+        
+        {/* Content */}
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">
+            {title}
+          </p>
+          <p className="text-3xl font-bold text-gray-800">
+            {prefix}
+            {displayValue.toLocaleString()}
+            {suffix}
+          </p>
+          {trendData && (
+            <p className="text-xs text-gray-500">
+              {trendData.isPositive ? 'Increased' : 'Decreased'} from last period
+            </p>
+          )}
+        </div>
+      </div>
+      
+      {/* Hover effect overlay */}
+      <div className="absolute inset-0 bg-white bg-opacity-0 group-hover:bg-opacity-5 transition-all duration-300"></div>
+    </div>
+  );
+};
+
+// Enhanced Recent Activity Component
+const RecentQuotesChart = ({ quotes }) => {
+  if (!quotes || quotes.length === 0) {
+    return (
+      <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300">
+        <h3 className="text-xl font-bold text-gray-800 mb-6">Quote Activity</h3>
+        <div className="text-center py-8">
+          <FileText className="mx-auto text-gray-400 mb-4" size={48} />
+          <p className="text-gray-500 mb-4">No quotes yet</p>
+          <Link
+            to="/quote"
+            className="inline-flex items-center px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-lg transition-colors"
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            Request Your First Quote
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Process data for chart
+  const chartData = quotes.slice(0, 7).map((quote, index) => ({
+    name: `Quote ${index + 1}`,
+    responses: quote.response_count || 0,
+    status: quote.status
+  }));
+
+  return (
+    <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h3 className="text-xl font-bold text-gray-800">Quote Activity</h3>
+          <p className="text-gray-600">Recent quote responses</p>
+        </div>
+        <Link
+          to="/user/quotes"
+          className="text-yellow-600 hover:text-yellow-700 font-medium text-sm flex items-center"
+        >
+          View All <ArrowUpRight className="ml-1 h-4 w-4" />
+        </Link>
+      </div>
+      
+      <ResponsiveContainer width="100%" height={200}>
+        <BarChart data={chartData}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <XAxis dataKey="name" stroke="#666" />
+          <YAxis stroke="#666" />
+          <Tooltip 
+            contentStyle={{ 
+              backgroundColor: 'white', 
+              border: 'none', 
+              borderRadius: '12px', 
+              boxShadow: '0 10px 40px rgba(0,0,0,0.1)' 
+            }} 
+          />
+          <Bar dataKey="responses" fill={COLORS.primary} radius={[4, 4, 0, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
 
 const UserDashboard = () => {
   const [stats, setStats] = useState({
@@ -102,226 +324,290 @@ const UserDashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="flex flex-col items-center gap-3">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
           <div className="relative">
-            <div className="h-12 w-12 border-4 border-gray-200 rounded-full animate-spin">
-              <div className="h-12 w-12 border-4 border-transparent border-t-[#CDA435] rounded-full animate-spin"></div>
-            </div>
+            <div className="animate-spin rounded-full h-20 w-20 border-4 border-yellow-200 border-t-yellow-500 mx-auto mb-4"></div>
+            <div className="absolute inset-0 rounded-full h-20 w-20 border-4 border-orange-200 border-t-orange-500 animate-spin mx-auto" style={{ animationDirection: 'reverse', animationDuration: '3s' }}></div>
           </div>
-          <p className="text-gray-600 font-medium">Loading dashboard...</p>
+          <p className="text-2xl font-bold text-gray-800 mb-2">Loading Dashboard...</p>
+          <p className="text-gray-600">Preparing your analytics</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Welcome Header */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Dashboard</h1>
-        <p className="text-gray-600">Welcome to your quote management dashboard</p>
-      </div>
-
-      {/* Pending Quote Alert */}
-      {showPendingQuote && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-          <div className="flex items-start">
-            <FaExclamationTriangle className="text-yellow-600 mt-1 mr-3" size={20} />
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold text-yellow-800 mb-2">
-                You have a pending quote request!
-              </h3>
-              <p className="text-yellow-700 mb-4">
-                You filled out a quote form before logging in. Would you like to submit it now?
-              </p>
-              <div className="flex space-x-3">
-                <button
-                  onClick={handleSubmitPendingQuote}
-                  disabled={submittingPendingQuote}
-                  className="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-                >
-                  {submittingPendingQuote ? (
-                    <>
-                      <div className="relative mr-2">
-                        <div className="h-4 w-4 border-2 border-gray-200 rounded-full animate-spin">
-                          <div className="h-4 w-4 border-2 border-transparent border-t-white rounded-full animate-spin"></div>
-                        </div>
-                      </div>
-                      Submitting...
-                    </>
-                  ) : (
-                    <>
-                      <FaQuoteLeft className="mr-2" />
-                      Submit Quote
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={handleDismissPendingQuote}
-                  className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
-                >
-                  Dismiss
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Total Quotes */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-3 rounded-full bg-yellow-50 text-[#CDA435]">
-              <FaQuoteLeft size={24} />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Quotes</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.quotes.total_quotes}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Pending Quotes */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-3 rounded-full bg-yellow-100 text-yellow-600">
-              <FaClock size={24} />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Pending</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.quotes.pending_quotes}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Running Quotes */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-3 rounded-full bg-yellow-50 text-[#CDA435]">
-              <FaShippingFast size={24} />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Running</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.quotes.running_quotes}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Completed Quotes */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-3 rounded-full bg-green-100 text-green-600">
-              <FaCheckCircle size={24} />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Completed</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.quotes.completed_quotes}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Actions & Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Quick Actions */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-          <div className="space-y-3">
-            <Link
-              to="/quote"
-              className="flex items-center p-3 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition-colors duration-200"
-            >
-              <FaQuoteLeft className="text-[#CDA435] mr-3" />
-              <span className="text-yellow-700 font-medium">Request New Quote</span>
-            </Link>
-            
-            <Link
-              to="/user/messages"
-              className="flex items-center p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-            >
-              <FaComments className="text-gray-600 mr-3" />
-              <div className="flex-1">
-                <span className="text-gray-700 font-medium">Messages</span>
-                {stats.messages.unread_messages > 0 && (
-                  <span className="ml-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                    {stats.messages.unread_messages}
-                  </span>
-                )}
-              </div>
-            </Link>
-
-            <Link
-              to="/user/notifications"
-              className="flex items-center p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-            >
-              <FaBell className="text-gray-600 mr-3" />
-              <div className="flex-1">
-                <span className="text-gray-700 font-medium">Notifications</span>
-                {stats.notifications.unread_notifications > 0 && (
-                  <span className="ml-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                    {stats.notifications.unread_notifications}
-                  </span>
-                )}
-              </div>
-            </Link>
-          </div>
-        </div>
-
-        {/* Recent Quotes */}
-        <div className="lg:col-span-2 bg-white rounded-lg shadow p-6">
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto space-y-8">
+        
+        {/* Header */}
+        <div className="text-center mb-12">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Recent Quotes</h3>
+            <div></div>
+            <h1 className="text-5xl relative left-10 font-bold text-gray-800">
+              User Dashboard
+            </h1>
+            <button
+              onClick={fetchDashboardData}
+              className="flex items-center space-x-2 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors"
+              title="Refresh Data"
+            >
+              <Activity className="h-4 w-4" />
+              <span>Refresh</span>
+            </button>
+          </div>
+          <p className="text-gray-600 text-xl">Manage your quotes and track responses</p>
+          <div className="flex items-center justify-center mt-4 space-x-4 text-sm text-gray-500">
+            <div className="flex items-center space-x-1">
+              <Clock className="h-4 w-4" />
+              <span>Last updated: {new Date().toLocaleTimeString()}</span>
+            </div>
+            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+            <span>Live Data</span>
+          </div>
+        </div>
+
+        {/* Pending Quote Alert */}
+        {showPendingQuote && (
+          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-6 shadow-lg">
+            <div className="flex items-start">
+              <div className="p-2 bg-yellow-100 rounded-lg mr-4">
+                <FaExclamationTriangle className="text-yellow-600" size={24} />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-yellow-800 mb-2">
+                  You have a pending quote request!
+                </h3>
+                <p className="text-yellow-700 mb-4">
+                  You filled out a quote form before logging in. Would you like to submit it now?
+                </p>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={handleSubmitPendingQuote}
+                    disabled={submittingPendingQuote}
+                    className="bg-yellow-600 text-white px-6 py-3 rounded-lg hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center font-medium shadow-md hover:shadow-lg transition-all duration-200"
+                  >
+                    {submittingPendingQuote ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        <FaQuoteLeft className="mr-2" />
+                        Submit Quote
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={handleDismissPendingQuote}
+                    className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 font-medium shadow-md hover:shadow-lg transition-all duration-200"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Enhanced Stats Cards with Admin Dashboard Design */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <MetricCard
+            title="Total Quotes"
+            value={stats.quotes.total_quotes}
+            previousValue={Math.max(0, stats.quotes.total_quotes - 1)}
+            icon={FileText}
+            color="yellow"
+            onClick={() => window.location.href = '/user/quotes'}
+          />
+          <MetricCard
+            title="Pending Quotes"
+            value={stats.quotes.pending_quotes}
+            previousValue={Math.max(0, stats.quotes.pending_quotes - 1)}
+            icon={Clock}
+            color="orange"
+          />
+          <MetricCard
+            title="Running Quotes"
+            value={stats.quotes.running_quotes}
+            previousValue={Math.max(0, stats.quotes.running_quotes - 1)}
+            icon={Activity}
+            color="blue"
+          />
+          <MetricCard
+            title="Completed"
+            value={stats.quotes.completed_quotes}
+            previousValue={Math.max(0, stats.quotes.completed_quotes - 1)}
+            icon={CheckCircle}
+            color="green"
+          />
+        </div>
+
+        {/* Secondary Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <MetricCard
+            title="Total Responses"
+            value={stats.responses.total_responses}
+            previousValue={Math.max(0, stats.responses.total_responses - 1)}
+            icon={MessageSquare}
+            color="purple"
+          />
+          <MetricCard
+            title="Unread Messages"
+            value={stats.messages.unread_messages}
+            previousValue={Math.max(0, stats.messages.unread_messages - 1)}
+            icon={Bell}
+            color="red"
+            onClick={() => window.location.href = '/user/messages'}
+          />
+          <MetricCard
+            title="Notifications"
+            value={stats.notifications.unread_notifications}
+            previousValue={Math.max(0, stats.notifications.unread_notifications - 1)}
+            icon={Bell}
+            color="blue"
+            onClick={() => window.location.href = '/user/notifications'}
+          />
+        </div>
+
+        {/* Charts and Activity Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Quote Activity Chart */}
+          <div className="lg:col-span-2">
+            <RecentQuotesChart quotes={recentQuotes} />
+          </div>
+
+          {/* Quick Actions */}
+          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-800">Quick Actions</h3>
+              <Zap className="h-5 w-5 text-yellow-600" />
+            </div>
+            
+            <div className="space-y-4">
+              <Link
+                to="/quote"
+                className="flex items-center p-4 bg-gradient-to-r from-yellow-50 to-orange-50 hover:from-yellow-100 hover:to-orange-100 rounded-xl transition-all duration-200 border border-yellow-200 hover:border-yellow-300 group"
+              >
+                <div className="p-2 bg-yellow-100 rounded-lg mr-4 group-hover:bg-yellow-200 transition-colors">
+                  <FileText className="text-yellow-600 h-5 w-5" />
+                </div>
+                <div>
+                  <span className="text-yellow-700 font-semibold block">Request New Quote</span>
+                  <span className="text-yellow-600 text-sm">Get quotes from logistics companies</span>
+                </div>
+              </Link>
+              
+              <Link
+                to="/user/messages"
+                className="flex items-center p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-all duration-200 border border-gray-200 hover:border-gray-300 group"
+              >
+                <div className="p-2 bg-gray-100 rounded-lg mr-4 group-hover:bg-gray-200 transition-colors">
+                  <MessageSquare className="text-gray-600 h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <span className="text-gray-700 font-semibold block">Messages</span>
+                  <span className="text-gray-600 text-sm">View conversations</span>
+                  {stats.messages.unread_messages > 0 && (
+                    <span className="ml-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                      {stats.messages.unread_messages}
+                    </span>
+                  )}
+                </div>
+              </Link>
+
+              <Link
+                to="/user/notifications"
+                className="flex items-center p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-all duration-200 border border-gray-200 hover:border-gray-300 group"
+              >
+                <div className="p-2 bg-gray-100 rounded-lg mr-4 group-hover:bg-gray-200 transition-colors">
+                  <Bell className="text-gray-600 h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <span className="text-gray-700 font-semibold block">Notifications</span>
+                  <span className="text-gray-600 text-sm">Check updates</span>
+                  {stats.notifications.unread_notifications > 0 && (
+                    <span className="ml-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                      {stats.notifications.unread_notifications}
+                    </span>
+                  )}
+                </div>
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Quotes Table */}
+        <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-xl font-bold text-gray-800">Recent Quotes</h3>
+              <p className="text-gray-600">Your latest quote requests and their status</p>
+            </div>
             <Link
               to="/user/quotes"
-              className="text-[#CDA435] hover:text-yellow-600 text-sm font-medium"
+              className="flex items-center text-yellow-600 hover:text-yellow-700 font-medium"
             >
-              View All
+              View All <ArrowUpRight className="ml-1 h-4 w-4" />
             </Link>
           </div>
 
           {recentQuotes.length === 0 ? (
-            <div className="text-center py-8">
-              <FaQuoteLeft className="mx-auto text-gray-400 mb-4" size={48} />
-              <p className="text-gray-500">No quotes yet</p>
+            <div className="text-center py-12">
+              <div className="bg-gray-100 rounded-full p-6 w-24 h-24 mx-auto mb-4 flex items-center justify-center">
+                <FileText className="text-gray-400 h-12 w-12" />
+              </div>
+              <p className="text-gray-500 text-lg mb-4">No quotes yet</p>
               <Link
                 to="/quote"
-                className="inline-block mt-2 bg-[#CDA435] text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition-colors duration-200"
+                className="inline-flex items-center px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-lg transition-colors shadow-md hover:shadow-lg"
               >
+                <FileText className="mr-2 h-4 w-4" />
                 Request Your First Quote
               </Link>
             </div>
           ) : (
-            <div className="space-y-3">
-              {Array.isArray(recentQuotes) && recentQuotes.map((quote) => (
-                <div key={quote.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors duration-200">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-900">
-                        {quote.departure_country} → {quote.arrival_country}
-                      </h4>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {quote.product_description.substring(0, 60)}...
-                      </p>
-                      <div className="flex items-center mt-2 space-x-4">
-                        <span className="text-xs text-gray-500">
-                          Created: {formatDate(quote.created_at)}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Route</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responses</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {recentQuotes.map((quote) => (
+                    <tr key={quote.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div className="font-medium text-gray-900">
+                          {quote.departure_country} → {quote.arrival_country}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="text-sm text-gray-900 max-w-xs truncate">
+                          {quote.product_description}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(quote.status)}`}>
+                          {quote.status.charAt(0).toUpperCase() + quote.status.slice(1)}
                         </span>
-                        <span className="text-xs text-gray-500">
-                          Responses: {quote.response_count}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="ml-4">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(quote.status)}`}>
-                        {quote.status.charAt(0).toUpperCase() + quote.status.slice(1)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {quote.response_count || 0}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {formatDate(quote.created_at)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>

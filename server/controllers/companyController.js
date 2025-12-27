@@ -28,7 +28,7 @@ const updateCompanyProfile = async (req, res) => {
     const userId = req.user.id;
     
     // 1. Handle Data from FormData
-    // When using multer, text fields are in req.body, file is in req.file
+    // When using multer, text fields are in req.body, files are in req.files
     const {
         owner_name, owner_phone, incharge_name, incharge_phone,
         skype, website, facebook, twitter, instagram, linkedin,
@@ -38,16 +38,29 @@ const updateCompanyProfile = async (req, res) => {
     } = req.body;
 
     try {
-        // 2. Handle Logo Upload
+        // 2. Convert undefined values to null for MySQL compatibility
+        const sanitizeValue = (value) => value === undefined ? null : value;
+
+        // 3. Handle File Uploads
         let logoUrl = null;
+        let inchargeImageUrl = null;
         
-        // If a file was uploaded successfully to Cloudinary via middleware
-        if (req.file && req.file.path) {
+        // If files were uploaded successfully to Cloudinary via middleware
+        if (req.files) {
+            if (req.files.logo && req.files.logo[0] && req.files.logo[0].path) {
+                logoUrl = req.files.logo[0].path;
+            }
+            if (req.files.incharge_image && req.files.incharge_image[0] && req.files.incharge_image[0].path) {
+                inchargeImageUrl = req.files.incharge_image[0].path;
+            }
+        }
+        // Fallback for single file upload (if using single file middleware)
+        else if (req.file && req.file.path) {
             logoUrl = req.file.path;
         }
 
-        // 3. Construct SQL Query
-        // We check if logoUrl exists to decide whether to update the logo column
+        // 4. Construct SQL Query
+        // We check if files exist to decide whether to update the respective columns
         let sql;
         let values;
 
@@ -59,8 +72,26 @@ const updateCompanyProfile = async (req, res) => {
             servicesString = JSON.stringify(services || []);
         }
 
-        if (logoUrl) {
-            // Update WITH logo
+        if (logoUrl && inchargeImageUrl) {
+            // Update WITH both logo and incharge image
+            sql = `
+                UPDATE users SET
+                    owner_name = ?, owner_phone = ?, incharge_name = ?, incharge_phone = ?,
+                    skype = ?, website = ?, facebook = ?, twitter = ?, instagram = ?, linkedin = ?,
+                    category = ?, country = ?, state = ?, city = ?, name = ?,
+                    services = ?, map_location = ?, company_address = ?, about_company = ?, 
+                    logo = ?, incharge_image = ?
+                WHERE id = ?
+            `;
+            values = [
+                sanitizeValue(owner_name), sanitizeValue(owner_phone), sanitizeValue(incharge_name), sanitizeValue(incharge_phone),
+                sanitizeValue(skype), sanitizeValue(website), sanitizeValue(facebook), sanitizeValue(twitter), sanitizeValue(instagram), sanitizeValue(linkedin),
+                sanitizeValue(category), sanitizeValue(country), sanitizeValue(state), sanitizeValue(city), sanitizeValue(name),
+                sanitizeValue(servicesString), sanitizeValue(map_location), sanitizeValue(company_address), sanitizeValue(about_company), 
+                logoUrl, inchargeImageUrl, userId
+            ];
+        } else if (logoUrl) {
+            // Update WITH logo only
             sql = `
                 UPDATE users SET
                     owner_name = ?, owner_phone = ?, incharge_name = ?, incharge_phone = ?,
@@ -71,14 +102,32 @@ const updateCompanyProfile = async (req, res) => {
                 WHERE id = ?
             `;
             values = [
-                owner_name, owner_phone, incharge_name, incharge_phone,
-                skype, website, facebook, twitter, instagram, linkedin,
-                category, country, state, city, name,
-                servicesString, map_location, company_address, about_company, 
+                sanitizeValue(owner_name), sanitizeValue(owner_phone), sanitizeValue(incharge_name), sanitizeValue(incharge_phone),
+                sanitizeValue(skype), sanitizeValue(website), sanitizeValue(facebook), sanitizeValue(twitter), sanitizeValue(instagram), sanitizeValue(linkedin),
+                sanitizeValue(category), sanitizeValue(country), sanitizeValue(state), sanitizeValue(city), sanitizeValue(name),
+                sanitizeValue(servicesString), sanitizeValue(map_location), sanitizeValue(company_address), sanitizeValue(about_company), 
                 logoUrl, userId
             ];
+        } else if (inchargeImageUrl) {
+            // Update WITH incharge image only
+            sql = `
+                UPDATE users SET
+                    owner_name = ?, owner_phone = ?, incharge_name = ?, incharge_phone = ?,
+                    skype = ?, website = ?, facebook = ?, twitter = ?, instagram = ?, linkedin = ?,
+                    category = ?, country = ?, state = ?, city = ?, name = ?,
+                    services = ?, map_location = ?, company_address = ?, about_company = ?, 
+                    incharge_image = ?
+                WHERE id = ?
+            `;
+            values = [
+                sanitizeValue(owner_name), sanitizeValue(owner_phone), sanitizeValue(incharge_name), sanitizeValue(incharge_phone),
+                sanitizeValue(skype), sanitizeValue(website), sanitizeValue(facebook), sanitizeValue(twitter), sanitizeValue(instagram), sanitizeValue(linkedin),
+                sanitizeValue(category), sanitizeValue(country), sanitizeValue(state), sanitizeValue(city), sanitizeValue(name),
+                sanitizeValue(servicesString), sanitizeValue(map_location), sanitizeValue(company_address), sanitizeValue(about_company), 
+                inchargeImageUrl, userId
+            ];
         } else {
-            // Update WITHOUT changing logo
+            // Update WITHOUT changing any images
             sql = `
                 UPDATE users SET
                     owner_name = ?, owner_phone = ?, incharge_name = ?, incharge_phone = ?,
@@ -88,20 +137,21 @@ const updateCompanyProfile = async (req, res) => {
                 WHERE id = ?
             `;
             values = [
-                owner_name, owner_phone, incharge_name, incharge_phone,
-                skype, website, facebook, twitter, instagram, linkedin,
-                category, country, state, city, name,
-                servicesString, map_location, company_address, about_company,
+                sanitizeValue(owner_name), sanitizeValue(owner_phone), sanitizeValue(incharge_name), sanitizeValue(incharge_phone),
+                sanitizeValue(skype), sanitizeValue(website), sanitizeValue(facebook), sanitizeValue(twitter), sanitizeValue(instagram), sanitizeValue(linkedin),
+                sanitizeValue(category), sanitizeValue(country), sanitizeValue(state), sanitizeValue(city), sanitizeValue(name),
+                sanitizeValue(servicesString), sanitizeValue(map_location), sanitizeValue(company_address), sanitizeValue(about_company),
                 userId
             ];
         }
         
         await db.execute(sql, values);
 
-        // Return the new logo URL so frontend can update immediately
+        // Return the new URLs so frontend can update immediately
         res.status(200).json({ 
             message: 'Profile updated successfully', 
-            logo: logoUrl 
+            logo: logoUrl,
+            incharge_image: inchargeImageUrl
         });
 
     } catch (error) {
@@ -124,6 +174,9 @@ const addCompanyBranch = async (req, res) => {
     }
 
     try {
+        // Convert undefined values to null for MySQL compatibility
+        const sanitizeValue = (value) => value === undefined ? null : value;
+
         const sql = `
             INSERT INTO company_branches (
                 company_id, branch_name, branch_phone, branch_email, 
@@ -134,10 +187,10 @@ const addCompanyBranch = async (req, res) => {
         `;
 
         const values = [
-            companyId, branchName, branchPhone, branchEmail,
-            country, state, city, branchAddress,
-            skype, facebook, twitter, instagram,
-            whatsapp, linkedin, mapLocation, website, telephone
+            companyId, sanitizeValue(branchName), sanitizeValue(branchPhone), sanitizeValue(branchEmail),
+            sanitizeValue(country), sanitizeValue(state), sanitizeValue(city), sanitizeValue(branchAddress),
+            sanitizeValue(skype), sanitizeValue(facebook), sanitizeValue(twitter), sanitizeValue(instagram),
+            sanitizeValue(whatsapp), sanitizeValue(linkedin), sanitizeValue(mapLocation), sanitizeValue(website), sanitizeValue(telephone)
         ];
 
         await db.execute(sql, values);
@@ -198,6 +251,9 @@ const addCompanyMember = async (req, res) => {
     }
 
     try {
+        // Convert undefined values to null for MySQL compatibility
+        const sanitizeValue = (value) => value === undefined ? null : value;
+
         const sql = `
             INSERT INTO company_members (
                 company_id, branch_id, member_name, member_phone, member_email, member_role,
@@ -206,8 +262,8 @@ const addCompanyMember = async (req, res) => {
         `;
 
         const values = [
-            companyId, branch, memberName, memberPhone, memberEmail, memberRole,
-            skype, facebook, twitter, instagram, whatsapp, linkedin
+            companyId, sanitizeValue(branch), sanitizeValue(memberName), sanitizeValue(memberPhone), sanitizeValue(memberEmail), sanitizeValue(memberRole),
+            sanitizeValue(skype), sanitizeValue(facebook), sanitizeValue(twitter), sanitizeValue(instagram), sanitizeValue(whatsapp), sanitizeValue(linkedin)
         ];
 
         await db.execute(sql, values);
@@ -270,6 +326,9 @@ const updateCompanyMember = async (req, res) => {
     } = req.body;
 
     try {
+        // Convert undefined values to null for MySQL compatibility
+        const sanitizeValue = (value) => value === undefined ? null : value;
+
         const sql = `
             UPDATE company_members SET 
                 branch_id = ?, member_name = ?, member_phone = ?, member_email = ?, member_role = ?,
@@ -278,8 +337,8 @@ const updateCompanyMember = async (req, res) => {
         `;
 
         const values = [
-            branch, memberName, memberPhone, memberEmail, memberRole,
-            skype, facebook, twitter, instagram, whatsapp, linkedin,
+            sanitizeValue(branch), sanitizeValue(memberName), sanitizeValue(memberPhone), sanitizeValue(memberEmail), sanitizeValue(memberRole),
+            sanitizeValue(skype), sanitizeValue(facebook), sanitizeValue(twitter), sanitizeValue(instagram), sanitizeValue(whatsapp), sanitizeValue(linkedin),
             memberId, companyId
         ];
 
@@ -308,6 +367,9 @@ const updateCompanyBranch = async (req, res) => {
     } = req.body;
 
     try {
+        // Convert undefined values to null for MySQL compatibility
+        const sanitizeValue = (value) => value === undefined ? null : value;
+
         const sql = `
             UPDATE company_branches SET 
                 branch_name = ?, branch_phone = ?, branch_email = ?, 
@@ -318,10 +380,10 @@ const updateCompanyBranch = async (req, res) => {
         `;
 
         const values = [
-            branchName, branchPhone, branchEmail, country,
-            state, city, branchAddress, skype, facebook,
-            twitter, instagram, whatsapp, linkedin,
-            mapLocation, website, telephone,
+            sanitizeValue(branchName), sanitizeValue(branchPhone), sanitizeValue(branchEmail), sanitizeValue(country),
+            sanitizeValue(state), sanitizeValue(city), sanitizeValue(branchAddress), sanitizeValue(skype), sanitizeValue(facebook),
+            sanitizeValue(twitter), sanitizeValue(instagram), sanitizeValue(whatsapp), sanitizeValue(linkedin),
+            sanitizeValue(mapLocation), sanitizeValue(website), sanitizeValue(telephone),
             branchId, companyId
         ];
 

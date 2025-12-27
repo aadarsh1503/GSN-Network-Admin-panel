@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { FaSearch, FaUser, FaPlus, FaBars, FaTimes, FaChevronDown, FaSignOutAlt, FaTachometerAlt, FaUserCircle } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import GSN from "./GSN.jpg"
+import LogoutConfirmationModal from '../Modal/LogoutConfirmationModal';
+import { useLogoutModal } from '../../hooks/useLogoutModal';
 const Navbar = () => {
   // State for the mobile menu
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -18,6 +20,7 @@ const Navbar = () => {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+  const { isLogoutModalOpen, openLogoutModal, closeLogoutModal } = useLogoutModal();
 
   // Effect to check user authentication
   useEffect(() => {
@@ -162,11 +165,9 @@ const Navbar = () => {
 
   // Handle logout
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
     setIsUserDropdownOpen(false);
-    navigate('/');
+    setIsMobileMenuOpen(false);
+    openLogoutModal();
   };
 
   const navClasses = `
@@ -328,6 +329,14 @@ const Navbar = () => {
           </nav>
         </div>
       )}
+      
+      {/* Logout Confirmation Modal */}
+      <LogoutConfirmationModal
+        isOpen={isLogoutModalOpen}
+        onClose={closeLogoutModal}
+        userRole={user?.role || 'user'}
+        userName={user?.name || 'User'}
+      />
     </header>
   );
 };

@@ -1,10 +1,10 @@
 // src/components/BusinessOwners.jsx
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { FaFilter, FaPen, FaEye } from 'react-icons/fa';
+import { FaPen, FaEye, FaTimes, FaSave } from 'react-icons/fa';
 import { FaArrowUp, FaArrowDown } from 'react-icons/fa6';
-// Ensure you have axios installed: npm install axios
-import axios from 'axios'; 
+import { api } from '../../utils/api';
+import { adminToast } from '../../utils/adminToast'; 
 
 // Custom Toggle Switch Component
 const ToggleSwitch = ({ checked, onChange }) => {
@@ -24,26 +24,22 @@ function CompanyOwners() {
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
   const [filters, setFilters] = useState({ status: '', blacklist: '' });
+  const [editingUser, setEditingUser] = useState(null);
+  const [editForm, setEditForm] = useState({});
+  const [viewingUser, setViewingUser] = useState(null);
 
   // 1. Fetch Data from API on Component Mount
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
-        const token = localStorage.getItem('token'); // Assuming you store JWT here
-        const config = {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        };
-
-        const response = await axios.get('/api/user/companies', config);
-        setUsers(response.data);
+        const response = await api.get('/api/user/companies');
+        setUsers(response);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching companies:", error);
         setLoading(false);
         // Optional: Add alert for unauthorized access
-        if(error.response && error.response.status === 401) {
+        if(error.message?.includes('Authentication failed')) {
             alert("Unauthorized. Please login as Admin.");
         }
       }
@@ -62,15 +58,14 @@ function CompanyOwners() {
     setUsers(updatedUsers);
 
     try {
-        const token = localStorage.getItem('token');
-        await axios.put(
-            `/api/user/company-status/${userId}`, 
-            { type: 'status', value: !currentStatus },
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await api.put(`/api/user/company-status/${userId}`, { 
+          type: 'status', 
+          value: !currentStatus 
+        });
+        adminToast.success(`User ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
     } catch (error) {
         console.error("Error updating status:", error);
-        alert("Failed to update status");
+        adminToast.error("Failed to update status");
         // Revert changes if API fails
         setUsers(users); 
     }
@@ -85,17 +80,124 @@ function CompanyOwners() {
     setUsers(updatedUsers);
 
     try {
-        const token = localStorage.getItem('token');
-        await axios.put(
-            `/api/user/company-status/${userId}`, 
-            { type: 'blacklist', value: !currentBlacklistStatus },
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await api.put(`/api/user/company-status/${userId}`, { 
+          type: 'blacklist', 
+          value: !currentBlacklistStatus 
+        });
+        adminToast.success(`User ${!currentBlacklistStatus ? 'added to' : 'removed from'} blacklist`);
     } catch (error) {
         console.error("Error updating blacklist:", error);
-        alert("Failed to update blacklist status");
+        adminToast.error("Failed to update blacklist status");
         // Revert changes if API fails
         setUsers(users);
+    }
+  };
+
+  // 4. Handle Edit User
+const handleEditUser = async (user) => {
+  setLoading(true); // Optional: show a small loader
+  try {
+    // We fetch the full profile data for this specific user
+    const details = await api.get(`/api/user/company-profile/${user.id}`);
+    
+    setEditingUser(user.id);
+    
+    // Populate the form with data from the API response
+    setEditForm({
+      name: details.name || '',
+      email: details.email || '',
+      mobile: details.mobile || details.phone || '', // Check both possible field names
+      category: details.category || '',
+      country: details.country || '',
+      state: details.state || '',
+      city: details.city || '',
+      owner_name: details.owner_name || '',
+      owner_phone: details.owner_phone || '',
+      incharge_name: details.incharge_name || '',
+      incharge_phone: details.incharge_phone || '',
+      website: details.website || '',
+      skype: details.skype || '',
+      facebook: details.facebook || '',
+      twitter: details.twitter || '',
+      instagram: details.instagram || '',
+      linkedin: details.linkedin || '',
+      services: details.services || '',
+      map_location: details.map_location || '',
+      company_address: details.company_address || '',
+      about_company: details.about_company || ''
+    });
+  } catch (error) {
+    console.error("Error fetching user details for edit:", error);
+    adminToast.error("Failed to load user details");
+  } finally {
+    setLoading(false);
+  }
+};
+
+  // 5. Handle Save Edit
+  const handleSaveEdit = async () => {
+    try {
+      // Use the new comprehensive admin company API
+      await api.put(`/api/user/company-profile/${editingUser}`, {
+        name: editForm.name,
+        email: editForm.email,
+        phone: editForm.mobile,
+        category: editForm.category,
+        country: editForm.country,
+        state: editForm.state,
+        city: editForm.city,
+        owner_name: editForm.owner_name,
+        owner_phone: editForm.owner_phone,
+        incharge_name: editForm.incharge_name,
+        incharge_phone: editForm.incharge_phone,
+        website: editForm.website,
+        skype: editForm.skype,
+        facebook: editForm.facebook,
+        twitter: editForm.twitter,
+        instagram: editForm.instagram,
+        linkedin: editForm.linkedin,
+        services: editForm.services,
+        map_location: editForm.map_location,
+        company_address: editForm.company_address,
+        about_company: editForm.about_company
+      });
+      
+      // Update local state with the new data
+      setUsers(users.map(user => 
+        user.id === editingUser 
+          ? { 
+              ...user, 
+              name: editForm.name,
+              email: editForm.email,
+              mobile: editForm.mobile
+            }
+          : user
+      ));
+      
+      setEditingUser(null);
+      setEditForm({});
+      adminToast.success('Company profile updated successfully');
+    } catch (error) {
+      console.error("Error updating company:", error);
+      adminToast.error(error.message || "Failed to update company profile");
+    }
+  };
+
+  // 6. Handle Cancel Edit
+  const handleCancelEdit = () => {
+    setEditingUser(null);
+    setEditForm({});
+  };
+
+  // 7. Handle View User Details
+  const handleViewUser = async (user) => {
+    try {
+      // Use the comprehensive admin company API for full details
+      const userDetails = await api.get(`/api/user/company-profile/${user.id}`);
+      setViewingUser(userDetails);
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+      adminToast.error("Failed to fetch user details");
     }
   };
   
@@ -208,7 +310,11 @@ function CompanyOwners() {
 
         {/* --- Main Content and Table Section --- */}
         <div className="bg-white p-6 rounded-b-lg shadow">
-          <h2 className="text-2xl font-semibold mb-4">Company Owners</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-semibold">Company Owners</h2>
+            {/* Temporary Test Button - Remove after testing */}
+            
+          </div>
           
           <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
             <div className="flex items-center mb-2 sm:mb-0">
@@ -279,10 +385,19 @@ function CompanyOwners() {
                       </td>
                       <td className="p-3">
                         <div className="flex space-x-2">
-                          <button className="p-2 bg-green-500 text-white rounded hover:bg-green-600">
-                            <FaPen />
-                          </button>
-                          <button className="p-2 bg-pink-500 text-white rounded hover:bg-pink-600">
+                        <button 
+  onClick={() => handleEditUser(user)}
+  className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400"
+  title="Edit User"
+  disabled={loading} // Prevent double clicks
+>
+  <FaPen />
+</button>
+                          <button 
+                            onClick={() => handleViewUser(user)}
+                            className="p-2 bg-pink-500 text-white rounded hover:bg-pink-600"
+                            title="View Details"
+                          >
                             <FaEye />
                           </button>
                         </div>
@@ -327,6 +442,494 @@ function CompanyOwners() {
           </div>
         </div>
       </div>
+
+      {/* User Details Modal */}
+      {viewingUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold">Company Profile Details</h3>
+              <button 
+                onClick={() => setViewingUser(null)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <FaTimes size={20} />
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Basic Information */}
+              <div className="md:col-span-2">
+                <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">Basic Information</h4>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+                <p className="p-2 bg-gray-50 rounded border">{viewingUser.name}</p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <p className="p-2 bg-gray-50 rounded border">{viewingUser.email}</p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mobile</label>
+                <p className="p-2 bg-gray-50 rounded border">{viewingUser.phone || viewingUser.mobile}</p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <p className="p-2 bg-gray-50 rounded border">{viewingUser.category || 'N/A'}</p>
+              </div>
+
+              {/* Location Information */}
+              <div className="md:col-span-2 mt-4">
+                <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">Location Information</h4>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                <p className="p-2 bg-gray-50 rounded border">{viewingUser.country || 'N/A'}</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                <p className="p-2 bg-gray-50 rounded border">{viewingUser.state || 'N/A'}</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                <p className="p-2 bg-gray-50 rounded border">{viewingUser.city || 'N/A'}</p>
+              </div>
+
+              {viewingUser.company_address && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                  <p className="p-2 bg-gray-50 rounded border">{viewingUser.company_address}</p>
+                </div>
+              )}
+
+              {/* Contact Information */}
+              <div className="md:col-span-2 mt-4">
+                <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">Contact Information</h4>
+              </div>
+
+              {viewingUser.owner_name && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Owner Name</label>
+                  <p className="p-2 bg-gray-50 rounded border">{viewingUser.owner_name}</p>
+                </div>
+              )}
+
+              {viewingUser.owner_phone && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Owner Phone</label>
+                  <p className="p-2 bg-gray-50 rounded border">{viewingUser.owner_phone}</p>
+                </div>
+              )}
+
+              {viewingUser.incharge_name && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Incharge Name</label>
+                  <p className="p-2 bg-gray-50 rounded border">{viewingUser.incharge_name}</p>
+                </div>
+              )}
+
+              {viewingUser.incharge_phone && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Incharge Phone</label>
+                  <p className="p-2 bg-gray-50 rounded border">{viewingUser.incharge_phone}</p>
+                </div>
+              )}
+
+              {/* Online Presence */}
+              <div className="md:col-span-2 mt-4">
+                <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">Online Presence</h4>
+              </div>
+
+              {viewingUser.website && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                  <p className="p-2 bg-gray-50 rounded border">
+                    <a href={viewingUser.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                      {viewingUser.website}
+                    </a>
+                  </p>
+                </div>
+              )}
+
+              {viewingUser.skype && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Skype</label>
+                  <p className="p-2 bg-gray-50 rounded border">{viewingUser.skype}</p>
+                </div>
+              )}
+
+              {viewingUser.facebook && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Facebook</label>
+                  <p className="p-2 bg-gray-50 rounded border">
+                    <a href={viewingUser.facebook} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                      {viewingUser.facebook}
+                    </a>
+                  </p>
+                </div>
+              )}
+
+              {viewingUser.linkedin && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn</label>
+                  <p className="p-2 bg-gray-50 rounded border">
+                    <a href={viewingUser.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                      {viewingUser.linkedin}
+                    </a>
+                  </p>
+                </div>
+              )}
+
+              {/* Status Information */}
+              <div className="md:col-span-2 mt-4">
+                <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">Status Information</h4>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <p className={`p-2 rounded border ${viewingUser.status ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                  {viewingUser.status ? 'Active' : 'Inactive'}
+                </p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Blacklisted</label>
+                <p className={`p-2 rounded border ${viewingUser.is_blacklisted ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
+                  {viewingUser.is_blacklisted ? 'Yes' : 'No'}
+                </p>
+              </div>
+              
+              {viewingUser.created_at && (
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Registration Date</label>
+                  <p className="p-2 bg-gray-50 rounded border">
+                    {new Date(viewingUser.created_at).toLocaleString()}
+                  </p>
+                </div>
+              )}
+
+              {/* Additional Information */}
+              {(viewingUser.services || viewingUser.about_company) && (
+                <>
+                  <div className="md:col-span-2 mt-4">
+                    <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">Additional Information</h4>
+                  </div>
+
+                  {viewingUser.services && (
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Services</label>
+                      <p className="p-2 bg-gray-50 rounded border">{viewingUser.services}</p>
+                    </div>
+                  )}
+
+                  {viewingUser.about_company && (
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">About Company</label>
+                      <p className="p-2 bg-gray-50 rounded border">{viewingUser.about_company}</p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+            
+            <div className="mt-6 flex justify-end">
+              <button 
+                onClick={() => setViewingUser(null)}
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit User Modal */}
+      {editingUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-6xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold">Edit Company Profile</h3>
+              <button 
+                onClick={handleCancelEdit}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <FaTimes size={20} />
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Basic Information */}
+              <div className="md:col-span-3">
+                <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">Basic Information</h4>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Company Name *</label>
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                <input
+                  type="email"
+                  value={editForm.email}
+                  onChange={(e) => setEditForm({...editForm, email: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mobile</label>
+                <input
+                  type="text"
+                  value={editForm.mobile}
+                  onChange={(e) => setEditForm({...editForm, mobile: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <input
+                  type="text"
+                  value={editForm.category}
+                  onChange={(e) => setEditForm({...editForm, category: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                />
+              </div>
+
+              {/* Location Information */}
+              <div className="md:col-span-3 mt-4">
+                <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">Location Information</h4>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                <input
+                  type="text"
+                  value={editForm.country}
+                  onChange={(e) => setEditForm({...editForm, country: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                <input
+                  type="text"
+                  value={editForm.state}
+                  onChange={(e) => setEditForm({...editForm, state: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                <input
+                  type="text"
+                  value={editForm.city}
+                  onChange={(e) => setEditForm({...editForm, city: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Company Address</label>
+                <textarea
+                  value={editForm.company_address}
+                  onChange={(e) => setEditForm({...editForm, company_address: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  rows="2"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Map Location</label>
+                <input
+                  type="text"
+                  value={editForm.map_location}
+                  onChange={(e) => setEditForm({...editForm, map_location: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  placeholder="Google Maps URL or coordinates"
+                />
+              </div>
+
+              {/* Contact Information */}
+              <div className="md:col-span-3 mt-4">
+                <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">Contact Information</h4>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Owner Name</label>
+                <input
+                  type="text"
+                  value={editForm.owner_name}
+                  onChange={(e) => setEditForm({...editForm, owner_name: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Owner Phone</label>
+                <input
+                  type="text"
+                  value={editForm.owner_phone}
+                  onChange={(e) => setEditForm({...editForm, owner_phone: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Incharge Name</label>
+                <input
+                  type="text"
+                  value={editForm.incharge_name}
+                  onChange={(e) => setEditForm({...editForm, incharge_name: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Incharge Phone</label>
+                <input
+                  type="text"
+                  value={editForm.incharge_phone}
+                  onChange={(e) => setEditForm({...editForm, incharge_phone: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                />
+              </div>
+
+              {/* Online Presence */}
+              <div className="md:col-span-3 mt-4">
+                <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">Online Presence</h4>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                <input
+                  type="url"
+                  value={editForm.website}
+                  onChange={(e) => setEditForm({...editForm, website: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  placeholder="https://example.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Skype</label>
+                <input
+                  type="text"
+                  value={editForm.skype}
+                  onChange={(e) => setEditForm({...editForm, skype: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Facebook</label>
+                <input
+                  type="url"
+                  value={editForm.facebook}
+                  onChange={(e) => setEditForm({...editForm, facebook: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  placeholder="https://facebook.com/company"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Twitter</label>
+                <input
+                  type="url"
+                  value={editForm.twitter}
+                  onChange={(e) => setEditForm({...editForm, twitter: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  placeholder="https://twitter.com/company"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Instagram</label>
+                <input
+                  type="url"
+                  value={editForm.instagram}
+                  onChange={(e) => setEditForm({...editForm, instagram: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  placeholder="https://instagram.com/company"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn</label>
+                <input
+                  type="url"
+                  value={editForm.linkedin}
+                  onChange={(e) => setEditForm({...editForm, linkedin: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  placeholder="https://linkedin.com/company/company"
+                />
+              </div>
+
+              {/* Additional Information */}
+              <div className="md:col-span-3 mt-4">
+                <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">Additional Information</h4>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Services</label>
+                <textarea
+                  value={editForm.services}
+                  onChange={(e) => setEditForm({...editForm, services: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  rows="3"
+                  placeholder="Describe the services offered by the company"
+                />
+              </div>
+
+              <div className="md:col-span-3">
+                <label className="block text-sm font-medium text-gray-700 mb-1">About Company</label>
+                <textarea
+                  value={editForm.about_company}
+                  onChange={(e) => setEditForm({...editForm, about_company: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  rows="4"
+                  placeholder="Brief description about the company"
+                />
+              </div>
+            </div>
+            
+            <div className="mt-6 flex justify-end space-x-3">
+              <button 
+                onClick={handleCancelEdit}
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleSaveEdit}
+                className="px-4 py-2 bg-[#CDA435] text-white rounded hover:bg-[#B8941F]"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -15,6 +15,15 @@ const LoginPage = () => {
 
     // Get redirect path from location state
     const from = location.state?.from || null;
+    const registrationMessage = location.state?.message;
+    const prefilledEmail = location.state?.email;
+
+    // Pre-fill email if coming from registration
+    React.useEffect(() => {
+        if (prefilledEmail) {
+            setEmail(prefilledEmail);
+        }
+    }, [prefilledEmail]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -79,6 +88,13 @@ const LoginPage = () => {
                 <div className="bg-white p-8 md:p-12 rounded-lg shadow-md max-w-lg mx-auto -mt-40 relative z-20">
                     <h2 className="text-2xl font-bold text-gray-800 mb-2">Welcome Back!</h2>
                     <div className="w-16 h-1 bg-[#CDA435] mb-8"></div>
+                    
+                    {/* Display registration success message if it exists */}
+                    {registrationMessage && (
+                        <div className="bg-green-100 text-green-700 p-3 rounded-md mb-4">
+                            {registrationMessage}
+                        </div>
+                    )}
                     
                     {/* Display error message if it exists */}
                     {error && <p className="bg-red-100 text-red-700 p-3 rounded-md mb-4">{error}</p>}

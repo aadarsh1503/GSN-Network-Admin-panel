@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FiHome, FiUser, FiLock, FiMessageSquare, FiGlobe, FiLogOut } from 'react-icons/fi';
 import api from '../../utils/api';
 
-const ProfileDropdown = ({ onClose }) => {
+const ProfileDropdown = ({ onClose, onLogout }) => {
   const [user, setUser] = useState(null);
   const [logo, setLogo] = useState(null); // State for logo
   const navigate = useNavigate();
@@ -34,12 +34,12 @@ const ProfileDropdown = ({ onClose }) => {
 
   const handleLogout = (e) => {
     e.preventDefault();
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
     if (onClose) {
       onClose();
     }
-    navigate('/login');
+    if (onLogout) {
+      onLogout();
+    }
   };
 
   const menuItems = [
@@ -47,7 +47,7 @@ const ProfileDropdown = ({ onClose }) => {
     { icon: <FiUser />, text: 'My profile', link: '/company/my-profile' },
     { icon: <FiLock />, text: 'Change Password', link: '/company/change-password' },
     { icon: <FiMessageSquare />, text: 'Message', link: '/company/messages' },
-    { icon: <FiGlobe />, text: 'Website', href: '/', external: false }
+    // { icon: <FiGlobe />, text: 'Website', href: '/', external: false }
   ];
 
   const handleClick = () => {
@@ -120,14 +120,13 @@ const ProfileDropdown = ({ onClose }) => {
 
         {/* Logout */}
         <div className="px-2 py-2">
-          <a
-            href="/login"
+          <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 rounded-md hover:bg-gray-100 cursor-pointer"
+            className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 rounded-md hover:bg-gray-100 cursor-pointer w-full text-left"
           >
             <FiLogOut className="text-gray-500" />
             Logout
-          </a>
+          </button>
         </div>
 
       </div>

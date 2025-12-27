@@ -15,10 +15,10 @@ const getMembershipDirectory = async (req, res) => {
             SELECT u.id, u.name, u.email, u.phone, u.logo, u.about_company,
                    u.category, u.country, u.state, u.city, u.services,
                    u.website, u.facebook, u.twitter, u.instagram, u.linkedin,
-                   AVG(r.rating) as average_rating,
+                   COALESCE(AVG(r.rating), 0) as average_rating,
                    COUNT(r.id) as total_reviews
             FROM users u
-            LEFT JOIN reviews r ON u.id = r.company_id AND r.status = 'approved'
+            LEFT JOIN reviews r ON (u.id = r.company_id AND r.status = 'approved')
             WHERE u.role = 'company' AND u.status = 1 AND u.is_blacklisted = 0
         `;
 
@@ -57,10 +57,11 @@ const getMembershipDirectory = async (req, res) => {
 
         sql += ` GROUP BY u.id ORDER BY average_rating DESC, total_reviews DESC`;
 
-        // Add pagination
+        // Add pagination (using direct values instead of parameters to avoid MySQL prepared statement issues)
         const offset = (page - 1) * limit;
-        sql += ` LIMIT ? OFFSET ?`;
-        queryParams.push(parseInt(limit), parseInt(offset));
+        const safeLimit = parseInt(limit);
+        const safeOffset = parseInt(offset);
+        sql += ` LIMIT ${safeLimit} OFFSET ${safeOffset}`;
 
         const [rows] = await db.execute(sql, queryParams);
 
@@ -101,11 +102,21 @@ const getMembershipDirectory = async (req, res) => {
         const totalCompanies = countRows[0].total;
 
         // Parse services JSON for each company
-        const companies = rows.map(company => ({
-            ...company,
-            services: company.services ? JSON.parse(company.services) : [],
-            average_rating: company.average_rating ? Math.round(company.average_rating * 10) / 10 : 0
-        }));
+        const companies = rows.map(company => {
+            let services = [];
+            try {
+                services = company.services ? JSON.parse(company.services) : [];
+            } catch (e) {
+                // If JSON parsing fails, treat as plain text and convert to array
+                services = company.services ? [company.services] : [];
+            }
+            
+            return {
+                ...company,
+                services,
+                average_rating: company.average_rating ? Math.round(company.average_rating * 10) / 10 : 0
+            };
+        });
 
         res.status(200).json({
             companies,
@@ -175,7 +186,13 @@ const getCompanyProfile = async (req, res) => {
         res.status(200).json({
             company: {
                 ...company,
-                services: company.services ? JSON.parse(company.services) : [],
+                services: (() => {
+                    try {
+                        return company.services ? JSON.parse(company.services) : [];
+                    } catch (e) {
+                        return company.services ? [company.services] : [];
+                    }
+                })(),
                 average_rating: company.average_rating ? Math.round(company.average_rating * 10) / 10 : 0
             },
             branches,

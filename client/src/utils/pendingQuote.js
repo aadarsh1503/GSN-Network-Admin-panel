@@ -13,7 +13,7 @@ export const submitPendingQuote = async () => {
     const quoteData = JSON.parse(pendingQuoteData);
     
     // Submit the quote
-    const response = await api.post('/quotes/submit', quoteData);
+    const response = await api.post('/api/quotes/submit', quoteData);
     
     // Clear the pending quote from localStorage
     localStorage.removeItem('pendingQuote');

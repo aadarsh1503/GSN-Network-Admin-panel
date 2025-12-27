@@ -1,5 +1,6 @@
 // controllers/subscriptionController.js
 import db from '../config/db.js';
+import { createInvoice } from './invoiceController.js';
 
 // @desc    Get all membership plans
 // @route   GET /api/subscriptions/plans
@@ -152,7 +153,7 @@ const getAllPlans = async (req, res) => {
 // @access  Private
 const activateSubscription = async (req, res) => {
     const userId = req.user.id;
-    const { planId } = req.body;
+    const { planId, paymentMethod = 'manual' } = req.body; // Default to manual for now
 
     if (!planId) {
         return res.status(400).json({ message: 'Plan ID is required' });
@@ -185,11 +186,11 @@ const activateSubscription = async (req, res) => {
         const endDate = new Date();
         endDate.setMonth(endDate.getMonth() + plan.duration_months);
 
-        // Create subscription
+        // Create subscription with payment method
         const subscriptionSql = `
             INSERT INTO user_subscriptions 
-            (user_id, plan_id, start_date, end_date, status, payment_status, amount_paid)
-            VALUES (?, ?, ?, ?, 'active', 'paid', ?)
+            (user_id, plan_id, start_date, end_date, status, payment_status, payment_method, amount_paid)
+            VALUES (?, ?, ?, ?, 'active', 'paid', ?, ?)
         `;
 
         const [result] = await db.execute(subscriptionSql, [
@@ -197,14 +198,21 @@ const activateSubscription = async (req, res) => {
             planId, 
             startDate.toISOString().split('T')[0], 
             endDate.toISOString().split('T')[0],
+            paymentMethod,
             plan.price
         ]);
+
+        // Create invoice for this subscription
+        const invoiceResult = await createInvoice(result.insertId, plan.price, 0);
 
         res.status(201).json({
             message: 'Subscription activated successfully',
             subscriptionId: result.insertId,
             planName: plan.name,
-            endDate: endDate.toISOString().split('T')[0]
+            endDate: endDate.toISOString().split('T')[0],
+            transactionId: result.insertId,
+            invoiceNumber: invoiceResult.invoiceNumber,
+            invoiceId: invoiceResult.invoiceId
         });
 
     } catch (error) {

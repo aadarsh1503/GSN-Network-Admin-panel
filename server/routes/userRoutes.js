@@ -8,12 +8,17 @@ import {
     registerUser,
     getAdminData,
     getUserProfile,
+    getUserProfileById,
+    updateUserProfileById,
+    getCompanyProfileByIdAdmin,
+    updateCompanyProfileByIdAdmin,
     getCompanies,
     toggleCompanyStatus,
     getBusinessUsers,
     getRegularUsers,
     changePassword,
-    getAllUsers
+    getAllUsers,
+    updateUserProfile
 } from '../controllers/userController.js';
 
 // Public Routes
@@ -22,6 +27,7 @@ router.post('/register', registerUser);
 
 // Protected Routes
 router.get('/me', protect, getUserProfile);
+router.put('/update-profile', protect, updateUserProfile);
 router.get('/admin-data', protect, authorize('admin'), getAdminData);
 
 // --- NEW ROUTES FOR USER MANAGEMENT ---
@@ -38,5 +44,13 @@ router.put('/change-password', protect, changePassword);
 
 // Get all users (admin)
 router.get('/all', protect, authorize('admin'), getAllUsers);
+
+// Admin routes for user management
+router.get('/profile/:id', protect, authorize('admin'), getUserProfileById);
+router.put('/update-profile/:id', protect, authorize('admin'), updateUserProfileById);
+
+// Admin routes for company management (comprehensive)
+router.get('/company-profile/:id', protect, authorize('admin'), getCompanyProfileByIdAdmin);
+router.put('/company-profile/:id', protect, authorize('admin'), updateCompanyProfileByIdAdmin);
 
 export default router;

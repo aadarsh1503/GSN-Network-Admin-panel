@@ -53,7 +53,7 @@ import Suggestions from "./pages/PagesSection/Suggestions";
 import ReviewReason from "./pages/Review/ReviewReason";
 import Review from "./pages/Review/Review";
 import DisputeReason from "./pages/Dispute/DisputeReason";
-import Dispute from "./pages/Dispute/Dispute";
+import AdminDisputes from "./pages/Admin/AdminDisputes";
 import Subscribers from "./pages/Subscribers/Subscribers";
 import ContactsList from "./pages/ContactsList/ContactsList";
 import BankDetailEditor from "./pages/BankDetailEditor/BankDetailEditor";
@@ -63,6 +63,9 @@ import SendEmails from "./pages/Notifications/SendEmails";
 import UserProfile from "./pages/UserProfile/UserProfile";
 import ReportsPage from "./pages/Reports/ReportsPage";
 import VersionManagement from "./pages/VersionManagement/VersionManagement";
+import AdminSubscriptions from "./pages/Admin/AdminSubscriptions";
+import AdminQuotes from "./pages/Admin/AdminQuotes";
+import AdminTransactions from "./pages/Admin/AdminTransactions";
 
 // --- Company Pages ---
 import CompanyDashboard from "./companyPages/CompanyDashboard/CompanyDashboard";
@@ -100,6 +103,10 @@ import UserQuotes from "./pages/UserQuotes/UserQuotes";
 import QuoteDetails from "./pages/UserQuotes/QuoteDetails";
 import UserMessages from "./pages/UserMessages/UserMessages";
 import UserNotifications from "./pages/UserNotifications/UserNotifications";
+import UserDisputes from "./pages/UserDisputes/UserDisputes";
+import CompanyDisputes from "./companyPages/Disputes/CompanyDisputes";
+import UserHelp from "./pages/Help/UserHelp";
+import CompanyHelp from "./pages/Help/CompanyHelp";
 
 // --- Components ---
 
@@ -196,7 +203,7 @@ function App() {
           <Route path="review-Reason" element={<ReviewReason />} />
           <Route path="all-reviews" element={<Review />} />
           <Route path="dispute-Reason" element={<DisputeReason />} />
-          <Route path="disputes" element={<Dispute />} />
+          <Route path="disputes" element={<AdminDisputes />} />
           <Route path="subscribers" element={<Subscribers />} />
           <Route path="contactList" element={<ContactsList />} />
           <Route path="BankDetail" element={<BankDetailEditor />} />
@@ -206,6 +213,9 @@ function App() {
           <Route path="user-Profile" element={<UserProfile />} />
           <Route path="reports" element={<ReportsPage />} />
           <Route path="version-management" element={<VersionManagement />} />
+          <Route path="subscriptions-management" element={<AdminSubscriptions />} />
+          <Route path="quotes-management" element={<AdminQuotes />} />
+          <Route path="transactions-management" element={<AdminTransactions />} />
         </Route>
 
         {/* ================= COMPANY ROUTES ================= */}
@@ -243,8 +253,10 @@ function App() {
           <Route path="my-Quotes" element={<MyQuotes />} />
           <Route path="suggestions" element={<SuggestionCompany />} />
           <Route path="notification-company" element={<NotificationsCompany />} />
+          <Route path="disputes" element={<CompanyDisputes />} />
           <Route path="change-Password" element={<ChangePasswordPage />} />
           <Route path="my-quote-responses" element={<MyQuoteResponses />} />
+          <Route path="help" element={<CompanyHelp />} />
         </Route>
 
         {/* ================= USER ROUTES ================= */}
@@ -262,7 +274,9 @@ function App() {
           <Route path="quotes/:quoteId" element={<QuoteDetails />} />
           <Route path="messages" element={<UserMessages />} />
           <Route path="notifications" element={<UserNotifications />} />
+          <Route path="disputes" element={<UserDisputes />} />
           <Route path="profile" element={<UserProfile />} />
+          <Route path="help" element={<UserHelp />} />
         </Route>
       </Routes>
     </Router>

@@ -244,10 +244,11 @@ const CompanyProfileDetail = () => {
       try {
         setLoading(true);
         
-        // Fetch company profile data
-        const [companyProfile, userData] = await Promise.all([
+        // Fetch company profile data and subscription status
+        const [companyProfile, userData, subscriptionData] = await Promise.all([
           api.get('/api/company/profile'),
-          api.get('/api/user/me')
+          api.get('/api/user/me'),
+          api.get('/api/subscriptions/my-subscription')
         ]);
 
         // Transform API data to component format
@@ -257,13 +258,15 @@ const CompanyProfileDetail = () => {
           website: companyProfile.website || '#',
           location: `${companyProfile.country || ''}${companyProfile.state ? `, ${companyProfile.state}` : ''}${companyProfile.city ? `, ${companyProfile.city}` : ''}`,
           country: companyProfile.country || '',
-          isGuest: !companyProfile.premium_member, // Adjust based on your membership logic
+          isGuest: subscriptionData.is_guest || false, // Use actual subscription status
+          subscriptionPlan: subscriptionData.plan_name || 'Guest Member', // Show actual plan name
           about: companyProfile.about_company || 'No company description available.',
+          mapLocation: companyProfile.map_location || null, // Add map location
           contactPerson: {
             name: companyProfile.incharge_name || companyProfile.owner_name || 'Contact Person',
             role: companyProfile.incharge_name ? 'Incharge' : 'Owner',
             phone: companyProfile.incharge_phone || companyProfile.owner_phone || 'Phone not available',
-            avatarUrl: companyProfile.logo_url || 'https://i.imgur.com/sCEw22l.png',
+            avatarUrl: companyProfile.incharge_image || companyProfile.logo || 'https://i.imgur.com/sCEw22l.png', // Use incharge image first, then logo, then default
           },
           services: Array.isArray(companyProfile.services) 
             ? companyProfile.services 
@@ -371,11 +374,9 @@ const CompanyProfileDetail = () => {
             </div>
             {/* Right Part: Member Tag and Socials */}
             <div className="flex flex-col items-start md:items-end gap-4">
-              {companyData.isGuest && (
-                <div className="bg-[#C9A959] text-white text-sm font-bold py-2 px-6 rounded-md shadow-sm">
-                  Guest Member
-                </div>
-              )}
+              <div className="bg-[#C9A959] text-white text-sm font-bold py-2 px-6 rounded-md shadow-sm">
+                {companyData.subscriptionPlan}
+              </div>
               <div className="flex space-x-2">
                 <a href={companyData.socialLinks.facebook} className="h-10 w-10 flex items-center justify-center border border-gray-300 rounded-md text-gray-600 hover:bg-gray-100 transition-colors duration-200">
                   <FaFacebookF />
@@ -419,6 +420,28 @@ const CompanyProfileDetail = () => {
                       label={service} 
                     />
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* Google Maps Location Card */}
+            {companyData.mapLocation && (
+              <div className="bg-white p-8 rounded-lg shadow-md">
+                <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                  <FiMapPin className="mr-3 text-yellow-600" />
+                  Our Location
+                </h3>
+                <div className="w-full h-96 rounded-lg overflow-hidden border border-gray-200">
+                  <iframe
+                    src={companyData.mapLocation}
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    allowFullScreen=""
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Company Location"
+                  ></iframe>
                 </div>
               </div>
             )}

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   FiHome, FiBox, FiBriefcase, FiUsers, FiMapPin, FiFileText, FiEdit, 
-  FiMail, FiImage, FiAnchor, FiShield, FiChevronDown, FiBell, FiSettings, FiTag
+  FiMail, FiImage, FiAnchor, FiShield, FiChevronDown, FiBell, FiSettings, FiTag, FiDollarSign, FiActivity
 } from 'react-icons/fi';
 
 const SidebarContent = () => {
@@ -55,13 +55,22 @@ const SidebarContent = () => {
       ]
     },
     { 
-      name: 'Deposits', 
-      icon: <FiEdit />,
+      name: 'Transaction-History', 
+      icon: <FiActivity />,
       subItems: [
-        { name: 'Transaction History', path: 'transaction-History' },
-       
+        { name: 'Subscriptions', path: 'subscriptions-management' },
+        { name: 'Quotes Management', path: 'quotes-management' },
+        { name: 'Transactions', path: 'transactions-management' },
       ]
     },
+    // { 
+    //   name: 'Deposits', 
+    //   icon: <FiEdit />,
+    //   subItems: [
+    //     { name: 'Transaction History', path: 'transaction-History' },
+       
+    //   ]
+    // },
     { 
       name: 'Support Ticket', 
       icon: <FiMail />,
@@ -80,17 +89,17 @@ const SidebarContent = () => {
         { name: 'Terms And Conditions', path: 'terms' },
         { name: 'Disclaimer', path: 'disclaimer' },
         { name: 'Due Diligence', path: 'dueDiligenceEditor' },
-        { name: 'Suggestions', path: 'suggestion' },
+        // { name: 'Suggestions', path: 'suggestion' },
       ]
     },
-    { 
-      name: 'Review', 
-      icon: <FiAnchor />,
-      subItems: [
-        { name: 'Review Reason', path: 'review-Reason' },
-        { name: 'All Review', path: 'all-reviews' },
-      ]
-    },
+    // { 
+    //   name: 'Review', 
+    //   icon: <FiAnchor />,
+    //   subItems: [
+    //     { name: 'Review Reason', path: 'review-Reason' },
+    //     { name: 'All Review', path: 'all-reviews' },
+    //   ]
+    // },
     { 
       name: 'Dispute', 
       icon: <FiShield />,

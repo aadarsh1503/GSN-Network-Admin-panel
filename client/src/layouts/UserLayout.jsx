@@ -8,9 +8,13 @@ import {
   FaUser, 
   FaSignOutAlt,
   FaBars,
-  FaTimes
+  FaTimes,
+  FaExclamationTriangle,
+  FaQuestionCircle
 } from 'react-icons/fa';
 import { useNotifications } from '../contexts/NotificationContext';
+import LogoutConfirmationModal from '../components/Modal/LogoutConfirmationModal';
+import { useLogoutModal } from '../hooks/useLogoutModal';
 
 const UserLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -18,6 +22,7 @@ const UserLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { unreadCount, messageUnreadCount } = useNotifications();
+  const { isLogoutModalOpen, openLogoutModal, closeLogoutModal } = useLogoutModal();
 
   useEffect(() => {
     // Get user info from localStorage
@@ -28,9 +33,7 @@ const UserLayout = () => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/login');
+    openLogoutModal();
   };
 
   const menuItems = [
@@ -55,9 +58,19 @@ const UserLayout = () => {
       label: 'Notifications'
     },
     {
+      path: '/user/disputes',
+      icon: FaExclamationTriangle,
+      label: 'Disputes'
+    },
+    {
       path: '/user/profile',
       icon: FaUser,
       label: 'Profile'
+    },
+    {
+      path: '/user/help',
+      icon: FaQuestionCircle,
+      label: 'Help'
     }
   ];
 
@@ -175,6 +188,14 @@ const UserLayout = () => {
           onClick={() => setSidebarOpen(false)}
         />
       )}
+      
+      {/* Logout Confirmation Modal */}
+      <LogoutConfirmationModal
+        isOpen={isLogoutModalOpen}
+        onClose={closeLogoutModal}
+        userRole="user"
+        userName={user?.name || 'User'}
+      />
     </div>
   );
 };

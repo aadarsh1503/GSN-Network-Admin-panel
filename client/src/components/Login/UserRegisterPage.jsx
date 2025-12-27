@@ -35,10 +35,20 @@ const UserRegisterPage = () => {
   useEffect(() => {
     const fetchUserCountry = async () => {
       try {
-        const response = await fetch('https://ipinfo.io/json?token=6b3f765fe8dfe5');
+        const response = await fetch('https://ipapi.co/json/');
         if (!response.ok) throw new Error('Failed to fetch IP info.');
         const data = await response.json();
-        setInitialCountry(data.country.toLowerCase());
+        
+        // Set phone input country code
+        setInitialCountry(data.country_code.toLowerCase());
+        
+        // Auto-select country in dropdown
+        if (data.country_name) {
+          setFormData(prevState => ({
+            ...prevState,
+            country: data.country_name
+          }));
+        }
       } catch (err) {
         console.error("Could not fetch user's country:", err);
         setInitialCountry('us');
@@ -117,27 +127,63 @@ const UserRegisterPage = () => {
       });
 
       if (data.accountStatus === 'active') {
-        // Account created and active - user can login immediately
-        toast.success(data.message || 'Registration successful! You can now login to your account.');
+        // Account created and active
+        toast.success(data.message || 'Registration successful! Welcome to GSN.');
         
-        // Check if there's a pending quote to submit after login
-        if (hasPendingQuote()) {
-          toast('Please login to submit your quote request.', {
-            icon: 'ℹ️',
-            duration: 4000,
-          });
-        }
-        
-        // Navigate to login page
-        setTimeout(() => {
-          navigate('/login', { 
-            state: { 
-              from,
-              email: formData.email,
-              message: 'Registration successful! Please login with your credentials.'
+        if (data.token) {
+          // Token provided - user is automatically logged in
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          
+          // Check if there's a pending quote to submit
+          if (hasPendingQuote()) {
+            const quoteResult = await submitPendingQuote();
+            if (quoteResult.success) {
+              toast.success('Your quote request has been submitted!');
             }
-          });
-        }, 2000);
+          }
+          
+          // Redirect to intended destination
+          navigate(from, { replace: true });
+        } else {
+          // No token provided - attempt manual login
+          try {
+            const loginData = await api.post('/api/user/login', {
+              email: formData.email,
+              password: formData.password
+            });
+            
+            // Store authentication data
+            localStorage.setItem('token', loginData.token);
+            localStorage.setItem('user', JSON.stringify(loginData.user));
+            
+            // Check if there's a pending quote to submit
+            if (hasPendingQuote()) {
+              const quoteResult = await submitPendingQuote();
+              if (quoteResult.success) {
+                toast.success('Your quote request has been submitted!');
+              }
+            }
+            
+            // Redirect to intended destination
+            navigate(from, { replace: true });
+            
+          } catch (loginError) {
+            console.error('Auto-login failed:', loginError);
+            toast.error('Registration successful, but auto-login failed. Please login manually.');
+            
+            // Fallback to login page
+            setTimeout(() => {
+              navigate('/login', { 
+                state: { 
+                  from,
+                  email: formData.email,
+                  message: 'Registration successful! Please login with your credentials.'
+                }
+              });
+            }, 2000);
+          }
+        }
       } else if (data.accountStatus === 'pending_approval') {
         // Account created but needs admin approval
         toast.success(data.message || 'Account created! Your account is pending admin approval.');

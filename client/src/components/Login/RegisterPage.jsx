@@ -35,10 +35,20 @@ const RegisterPage = () => {
     useEffect(() => {
         const fetchUserCountry = async () => {
             try {
-                const response = await fetch('https://ipinfo.io/json?token=6b3f765fe8dfe5');
+                const response = await fetch('https://ipapi.co/json/');
                 if (!response.ok) throw new Error('Failed to fetch IP info.');
                 const data = await response.json();
-                setInitialCountry(data.country.toLowerCase());
+                
+                // Set phone input country code
+                setInitialCountry(data.country_code.toLowerCase());
+                
+                // Auto-select country in dropdown
+                if (data.country_name) {
+                    setFormData(prevState => ({
+                        ...prevState,
+                        country: data.country_name
+                    }));
+                }
             } catch (err) {
                 console.error("Could not fetch user's country:", err);
                 setInitialCountry('us');

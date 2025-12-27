@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FaUser, FaEnvelope, FaPhone, FaToggleOn, FaToggleOff, FaBan } from 'react-icons/fa';
-import toast from 'react-hot-toast';
+import { adminToast } from '../../utils/adminToast';
 import { api } from '../../utils/api';
 
 const RegularUsers = () => {
@@ -23,7 +23,7 @@ const RegularUsers = () => {
       setUsers(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching users:', error);
-      toast.error('Failed to fetch users');
+      adminToast.error('Failed to fetch users');
     } finally {
       setLoading(false);
     }
@@ -44,11 +44,11 @@ const RegularUsers = () => {
         type: type,
         value: !currentStatus
       });
-      toast.success(`User ${type} updated successfully`);
+      adminToast.success(`User ${type} updated successfully`);
       fetchUsers(); // Refresh the list
     } catch (error) {
       console.error(`Error updating user ${type}:`, error);
-      toast.error(`Failed to update user ${type}`);
+      adminToast.error(`Failed to update user ${type}`);
     }
   };
 
