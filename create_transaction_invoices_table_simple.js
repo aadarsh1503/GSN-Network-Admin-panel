@@ -2,6 +2,10 @@
 // Run this script to create the transaction_invoices table
 
 import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 async function createTable() {
     let connection;
@@ -9,10 +13,10 @@ async function createTable() {
     try {
         // Create connection using the same credentials as your server
         connection = await mysql.createConnection({
-            host: '92.112.181.224',
-            user: 'gsnuser',
-            password: 'sCp@/2I1D3w',
-            database: 'GSN'
+            host: process.env.DB_HOST,
+            user: process.env.DB_USER,
+            password: process.env.DB_PASSWORD,
+            database: process.env.DB_NAME
         });
         
         console.log('✅ Connected to database');

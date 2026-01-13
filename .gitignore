@@ -1,0 +1,145 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Environment variables
+.env
+*/.env
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Build outputs
+dist/
+build/
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ========================================
+# TEST FILES AND DEBUGGING SCRIPTS
+# ========================================
+
+# All test, debug, and check files (223+ files)
+test_*.js
+test_*.html
+test_*.cjs
+debug_*.js
+debug_*.html
+debug_*.cjs
+check_*.js
+check_*.html
+check_*.cjs
+check_*.sql
+verify_*.js
+simulate_*.js
+investigate_*.js
+comprehensive_*.js
+direct_*.js
+final_*.js
+force_*.js
+run_*.js
+setup_*.js
+apply_*.js
+create_*.js
+add_*.js
+update_*.js
+remove_*.js
+cleanup_*.js
+fix_*.js
+populate_*.js
+insert_*.js
+analyze_*.js
+monitor_*.js
+
+# Specific server debugging files
+server/test_*.js
+server/test_*.cjs
+server/debug_*.js
+server/debug_*.cjs
+server/check_*.js
+server/check_*.cjs
+server/check_*.sql
+server/verify_*.js
+server/simulate_*.js
+server/investigate_*.js
+server/comprehensive_*.js
+server/direct_*.js
+server/final_*.js
+server/force_*.js
+server/run_*.js
+server/setup_*.js
+server/apply_*.js
+server/create_*.js
+server/add_*.js
+server/update_*.js
+server/remove_*.js
+server/cleanup_*.js
+server/fix_*.js
+server/populate_*.js
+server/insert_*.js
+server/hashPassword.js
+server/set_admin_password.js
+
+# SQL migration and setup files (keep only in development)
+server/*.sql
+*.sql
+server/database_*.sql
+server/SAFE_MODE_*.sql
+server/SIMPLE_*.sql
+
+# HTML test files in root
+test_*.html
+debug_*.html
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# OS generated files
+Thumbs.db
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# IDE files
+*.swp
+*.swo
+*~
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Upload directories (if they contain sensitive data)
+server/uploads/
+uploads/
+
+# ========================================
+# KEEP THESE (ACTUAL TESTS)
+# ========================================
+# Exclude actual unit tests from being ignored
+!**/*.test.js
+!**/*.spec.js
+!**/tests/**
+!**/test/**

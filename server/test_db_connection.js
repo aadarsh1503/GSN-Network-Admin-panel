@@ -46,14 +46,14 @@ const testCurrentCredentials = async () => {
         console.log('Error:', error.message);
         console.log('Error Code:', error.code);
         
-        // Test with old credentials
-        console.log('\n📋 Testing with old credentials (sCp@/2I1D3w)...');
+        // Test with alternative credentials
+        console.log('\n📋 Testing with alternative credentials...');
         
         try {
-            const oldPool = mysql.createPool({
+            const altPool = mysql.createPool({
                 host: process.env.DB_HOST,
                 user: process.env.DB_USER,
-                password: 'sCp@/2I1D3w', // Old password
+                password: process.env.DB_PASSWORD_ALT || process.env.DB_PASSWORD, // Alternative password
                 database: process.env.DB_NAME,
                 waitForConnections: true,
                 connectionLimit: 1,
@@ -61,12 +61,12 @@ const testCurrentCredentials = async () => {
                 connectTimeout: 10000
             });
 
-            const oldConnection = await oldPool.getConnection();
-            console.log('✅ Connection successful with OLD credentials!');
-            console.log('🔧 Issue: Password in .env file needs to be updated back to: sCp@/2I1D3w');
+            const altConnection = await altPool.getConnection();
+            console.log('✅ Connection successful with alternative credentials!');
+            console.log('🔧 Issue: Password in .env file may need to be updated');
             
-            oldConnection.release();
-            await oldPool.end();
+            altConnection.release();
+            await altPool.end();
             
         } catch (oldError) {
             console.log('❌ Connection also failed with old credentials');
@@ -106,9 +106,9 @@ const runTests = async () => {
     console.log('\n📊 DIAGNOSIS:');
     console.log('-'.repeat(30));
     
-    if (process.env.DB_PASSWORD === 'sCp@/2I1D3wnow') {
-        console.log('❌ Issue found: Password in .env has extra "now" at the end');
-        console.log('🔧 Fix: Change DB_PASSWORD from "sCp@/2I1D3wnow" to "sCp@/2I1D3w"');
+    if (process.env.DB_PASSWORD && process.env.DB_PASSWORD.includes('now')) {
+        console.log('❌ Issue found: Password in .env may have extra characters');
+        console.log('🔧 Fix: Check DB_PASSWORD in .env file for any extra characters');
     } else if (!process.env.DB_PASSWORD) {
         console.log('❌ Issue found: DB_PASSWORD not set in .env file');
     } else {

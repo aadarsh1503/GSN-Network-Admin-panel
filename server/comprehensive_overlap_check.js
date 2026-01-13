@@ -1,11 +1,15 @@
 // Comprehensive check to verify if there's really an overlap issue
 import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 const db = mysql.createPool({
-  host: '92.112.181.224',
-  user: 'gsnuser',
-  password: 'sCp@/2I1D3w',
-  database: 'GSN',
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0

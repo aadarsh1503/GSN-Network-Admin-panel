@@ -8,3 +8,42 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# ========================================
+# TEST FILES AND DEBUGGING SCRIPTS
+# ========================================
+
+# Test and debug files
+test_*.js
+debug_*.js
+check_*.js
+check_*.cjs
+verify_*.js
+simulate_*.js
+investigate_*.js
+comprehensive_*.js
+direct_*.js
+final_*.js
+force_*.js
+run_*.js
+setup_*.js
+apply_*.js
+create_*.js
+add_*.js
+update_*.js
+remove_*.js
+cleanup_*.js
+fix_*.js
+populate_*.js
+insert_*.js
+hashPassword.js
+set_admin_password.js
+
+# SQL files (development only)
+*.sql
+database_*.sql
+SAFE_MODE_*.sql
+SIMPLE_*.sql
+
+# Upload directory
+uploads/
