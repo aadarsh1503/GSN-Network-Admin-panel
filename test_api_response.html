@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API Response</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6">Directory API Test</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-bold mb-4">Test Directory API</h2>
+                <button id="testDirectory" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Test /api/directory/companies
+                </button>
+                <div id="directoryResult" class="mt-4 p-4 bg-gray-50 rounded text-sm overflow-auto max-h-96"></div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-bold mb-4">Test Company Profile API</h2>
+                <button id="testProfile" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    Test /api/directory/company/10
+                </button>
+                <div id="profileResult" class="mt-4 p-4 bg-gray-50 rounded text-sm overflow-auto max-h-96"></div>
+            </div>
+        </div>
+        
+        <div class="mt-8 bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-bold mb-4">Visual Test</h2>
+            <div id="visualTest" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '';
+        
+        async function testAPI(endpoint, resultElementId) {
+            const resultElement = document.getElementById(resultElementId);
+            resultElement.innerHTML = 'Loading...';
+            
+            try {
+                const response = await fetch(API_BASE + endpoint);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultElement.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                    return data;
+                } else {
+                    resultElement.innerHTML = `<div class="text-red-600">Error: ${data.message || 'Unknown error'}</div>`;
+                    return null;
+                }
+            } catch (error) {
+                resultElement.innerHTML = `<div class="text-red-600">Network Error: ${error.message}</div>`;
+                return null;
+            }
+        }
+        
+        function createCompanyCard(company) {
+            const card = document.createElement('div');
+            card.className = 'bg-white border rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow';
+            
+            const flagUrl = getCountryFlag(company.country);
+            const servicesHtml = company.services && company.services.length > 0 
+                ? company.services.slice(0, 3).map(service => `<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">${service}</span>`).join(' ')
+                : '<span class="text-gray-500 text-xs">No services listed</span>';
+            
+            card.innerHTML = `
+                <div class="relative h-32 bg-gradient-to-br from-yellow-400 to-yellow-600">
+                    <div class="w-full h-full flex items-center justify-center">
+                        <span class="text-4xl text-white font-bold">${company.name?.charAt(0) || '?'}</span>
+                    </div>
+                    ${company.is_premium ? '<div class="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded text-xs font-bold">⭐ PREMIUM</div>' : ''}
+                </div>
+                <div class="p-4">
+                    <h3 class="font-bold text-lg text-gray-800 mb-2">${company.name}</h3>
+                    <p class="text-gray-500 text-sm mb-2">${company.category}</p>
+                    
+                    <div class="flex items-center text-gray-600 text-sm mb-2">
+                        <img src="${flagUrl}" alt="${company.country} flag" class="w-4 h-3 mr-2" onerror="this.style.display='none'">
+                        <span>${company.city ? company.city + ', ' : ''}${company.country}</span>
+                    </div>
+                    
+                    ${company.email ? `<div class="text-gray-600 text-sm mb-2">📧 ${company.email}</div>` : ''}
+                    ${company.phone ? `<div class="text-gray-600 text-sm mb-2">📞 ${company.phone}</div>` : ''}
+                    
+                    <div class="mb-3">
+                        <div class="text-xs text-gray-500 mb-1">Services:</div>
+                        <div class="flex flex-wrap gap-1">${servicesHtml}</div>
+                    </div>
+                    
+                    ${company.average_rating > 0 ? `
+                        <div class="flex items-center text-yellow-500 text-sm mb-3">
+                            <span class="mr-1">⭐</span>
+                            <span>${company.average_rating} (${company.total_reviews} reviews)</span>
+                        </div>
+                    ` : ''}
+                    
+                    ${company.plan_name ? `<div class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">${company.plan_name} Plan</div>` : ''}
+                </div>
+            `;
+            
+            return card;
+        }
+        
+        function getCountryFlag(country) {
+            const countryFlags = {
+                'India': 'IN',
+                'Australia': 'AU', 
+                'USA': 'US',
+                'United States': 'US',
+                'UK': 'GB',
+                'United Kingdom': 'GB',
+                'Canada': 'CA',
+                'Germany': 'DE',
+                'France': 'FR'
+            };
+            
+            const countryCode = countryFlags[country];
+            return countryCode ? `https://flagcdn.com/24x18/${countryCode.toLowerCase()}.png` : '';
+        }
+        
+        document.getElementById('testDirectory').addEventListener('click', async () => {
+            const data = await testAPI('/api/directory/companies?limit=3', 'directoryResult');
+            
+            if (data && data.companies) {
+                const visualTest = document.getElementById('visualTest');
+                visualTest.innerHTML = '';
+                
+                data.companies.forEach(company => {
+                    const card = createCompanyCard(company);
+                    visualTest.appendChild(card);
+                });
+            }
+        });
+        
+        document.getElementById('testProfile').addEventListener('click', () => {
+            testAPI('/api/directory/company/10', 'profileResult');
+        });
+    </script>
+</body>
+</html>

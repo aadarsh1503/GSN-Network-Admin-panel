@@ -32,6 +32,7 @@ import generalSettingsRoutes from './routes/generalSettingsRoutes.js';
 import bankDetailsRoutes from './routes/bankDetailsRoutes.js';
 import realTimeNotificationRoutes from './routes/realTimeNotificationRoutes.js';
 import businessRoutes from './routes/businessRoutes.js';
+import businessDirectoryRoutes from './routes/businessDirectoryRoutes.js';
 import businessQuoteRoutes from './routes/businessQuoteRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
@@ -86,6 +87,8 @@ app.use('/api/general-settings', generalSettingsRoutes);
 app.use('/api/bank-details', bankDetailsRoutes);
 app.use('/api/notifications', realTimeNotificationRoutes);
 app.use('/api/business', businessRoutes);
+app.use('/api/business-directory', businessDirectoryRoutes);
+app.use('/api', businessRoutes); // Mount business directory routes at /api level for public access
 app.use('/api/business-quotes', businessQuoteRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/payments', paymentRoutes);

@@ -46,7 +46,7 @@ const Footer = () => {
             <h3 className="text-xl text-white font-semibold">Information</h3>
             <div className="w-16 h-1 bg-[#CDA435] mt-2 mb-6"></div>
             <ul className="space-y-3">
-              <li><a href="#" className="hover:text-[#CDA435] transition-colors">Become Member</a></li>
+              <li><a href="/register" className="hover:text-[#CDA435] transition-colors">Become Member</a></li>
               <li><a href="#" className="hover:text-[#CDA435] transition-colors">FAQ</a></li>
               <li><a href="#" className="hover:text-[#CDA435] transition-colors">About us</a></li>
               <li><a href="#" className="hover:text-[#CDA435] transition-colors">Privacy Policy</a></li>
@@ -60,11 +60,11 @@ const Footer = () => {
             <h3 className="text-xl text-white font-semibold">Main</h3>
             <div className="w-16 h-1 bg-[#CDA435] mt-2 mb-6"></div>
             <ul className="space-y-3">
-              <li><a href="#" className="hover:text-[#CDA435] transition-colors">Member Directory</a></li>
+              <li><a href="/company-directory" className="hover:text-[#CDA435] transition-colors">Member Directory</a></li>
               <li><a href="#" className="hover:text-[#CDA435] transition-colors">Quotes</a></li>
               <li><a href="#" className="hover:text-[#CDA435] transition-colors">Blacklist Directory</a></li>
               <li><a href="#" className="hover:text-[#CDA435] transition-colors">Register Today</a></li>
-              <li><a href="#" className="hover:text-[#CDA435] transition-colors">Login</a></li>
+              <li><a href="/login" className="hover:text-[#CDA435] transition-colors">Login</a></li>
               <li><a href="#" className="hover:text-[#CDA435] transition-colors">Due Delight</a></li>
             </ul>
           </div>

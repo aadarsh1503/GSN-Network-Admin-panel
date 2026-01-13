@@ -16,9 +16,13 @@ const getMembershipDirectory = async (req, res) => {
                    u.category, u.country, u.state, u.city, u.services,
                    u.website, u.facebook, u.twitter, u.instagram, u.linkedin,
                    COALESCE(AVG(r.rating), 0) as average_rating,
-                   COUNT(r.id) as total_reviews
+                   COUNT(r.id) as total_reviews,
+                   MAX(CASE WHEN us.status = 'active' THEN 1 ELSE 0 END) as has_subscription,
+                   MAX(mp.name) as plan_name
             FROM users u
             LEFT JOIN reviews r ON (u.id = r.company_id AND r.status = 'approved')
+            LEFT JOIN user_subscriptions us ON (u.id = us.user_id AND us.status = 'active')
+            LEFT JOIN membership_plans mp ON us.plan_id = mp.id
             WHERE u.role = 'company' AND u.status = 1 AND u.is_blacklisted = 0
         `;
 
@@ -55,7 +59,8 @@ const getMembershipDirectory = async (req, res) => {
             queryParams.push(`%${serviceType}%`);
         }
 
-        sql += ` GROUP BY u.id ORDER BY average_rating DESC, total_reviews DESC`;
+        // Group by user and order by subscription status first, then rating
+        sql += ` GROUP BY u.id ORDER BY has_subscription DESC, average_rating DESC, total_reviews DESC`;
 
         // Add pagination (using direct values instead of parameters to avoid MySQL prepared statement issues)
         const offset = (page - 1) * limit;
@@ -69,6 +74,7 @@ const getMembershipDirectory = async (req, res) => {
         let countSql = `
             SELECT COUNT(DISTINCT u.id) as total
             FROM users u
+            LEFT JOIN user_subscriptions us ON (u.id = us.user_id AND us.status = 'active')
             WHERE u.role = 'company' AND u.status = 1 AND u.is_blacklisted = 0
         `;
 
@@ -101,20 +107,40 @@ const getMembershipDirectory = async (req, res) => {
         const [countRows] = await db.execute(countSql, countParams);
         const totalCompanies = countRows[0].total;
 
-        // Parse services JSON for each company
+        // Parse services for each company
         const companies = rows.map(company => {
             let services = [];
-            try {
-                services = company.services ? JSON.parse(company.services) : [];
-            } catch (e) {
-                // If JSON parsing fails, treat as plain text and convert to array
-                services = company.services ? [company.services] : [];
+            
+            if (company.services) {
+                // Check if services is already an array (MySQL auto-parsed JSON)
+                if (Array.isArray(company.services)) {
+                    services = company.services;
+                } else {
+                    // Handle string format
+                    let servicesString = company.services;
+                    if (Buffer.isBuffer(company.services)) {
+                        servicesString = company.services.toString('utf8');
+                    }
+                    
+                    try {
+                        // First try to parse as JSON
+                        services = JSON.parse(servicesString);
+                    } catch (e) {
+                        // If JSON parsing fails, split by comma
+                        if (typeof servicesString === 'string') {
+                            services = servicesString.split(',').map(s => s.trim()).filter(s => s);
+                        } else {
+                            services = [];
+                        }
+                    }
+                }
             }
             
             return {
                 ...company,
                 services,
-                average_rating: company.average_rating ? Math.round(company.average_rating * 10) / 10 : 0
+                average_rating: company.average_rating ? Math.round(company.average_rating * 10) / 10 : 0,
+                is_premium: company.has_subscription === 1
             };
         });
 
@@ -142,13 +168,18 @@ const getCompanyProfile = async (req, res) => {
     const { id } = req.params;
 
     try {
-        // Get company details
+        // Get company details with subscription info
         const [companyRows] = await db.execute(`
             SELECT u.*, 
-                   AVG(r.rating) as average_rating,
-                   COUNT(r.id) as total_reviews
+                   COALESCE(AVG(r.rating), 0) as average_rating,
+                   COUNT(r.id) as total_reviews,
+                   MAX(CASE WHEN us.status = 'active' THEN 1 ELSE 0 END) as has_subscription,
+                   MAX(mp.name) as plan_name,
+                   MAX(us.created_at) as subscription_date
             FROM users u
             LEFT JOIN reviews r ON u.id = r.company_id AND r.status = 'approved'
+            LEFT JOIN user_subscriptions us ON (u.id = us.user_id AND us.status = 'active')
+            LEFT JOIN membership_plans mp ON us.plan_id = mp.id
             WHERE u.id = ? AND u.role = 'company' AND u.status = 1 AND u.is_blacklisted = 0
             GROUP BY u.id
         `, [id]);
@@ -187,13 +218,32 @@ const getCompanyProfile = async (req, res) => {
             company: {
                 ...company,
                 services: (() => {
+                    if (!company.services) return [];
+                    
+                    // Check if services is already an array (MySQL auto-parsed JSON)
+                    if (Array.isArray(company.services)) {
+                        return company.services;
+                    }
+                    
+                    // Handle string format
+                    let servicesString = company.services;
+                    if (Buffer.isBuffer(company.services)) {
+                        servicesString = company.services.toString('utf8');
+                    }
+                    
                     try {
-                        return company.services ? JSON.parse(company.services) : [];
+                        // First try to parse as JSON
+                        return JSON.parse(servicesString);
                     } catch (e) {
-                        return company.services ? [company.services] : [];
+                        // If JSON parsing fails, split by comma
+                        if (typeof servicesString === 'string') {
+                            return servicesString.split(',').map(s => s.trim()).filter(s => s);
+                        }
+                        return [];
                     }
                 })(),
-                average_rating: company.average_rating ? Math.round(company.average_rating * 10) / 10 : 0
+                average_rating: company.average_rating ? Math.round(company.average_rating * 10) / 10 : 0,
+                is_premium: company.has_subscription === 1
             },
             branches,
             members,

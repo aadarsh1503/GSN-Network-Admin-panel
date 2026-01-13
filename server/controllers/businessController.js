@@ -1294,6 +1294,163 @@ const getBusinessTransactionInvoiceById = async (req, res) => {
     }
 };
 
+// @desc    Get business directory filters
+// @route   GET /api/business-directory/filters
+// @access  Public
+const getBusinessDirectoryFilters = async (req, res) => {
+    try {
+        // Get unique categories from business users
+        const [categoryRows] = await db.execute(`
+            SELECT DISTINCT category 
+            FROM users 
+            WHERE role = 'business' AND category IS NOT NULL AND category != ''
+            ORDER BY category
+        `);
+
+        // Get unique countries from business users
+        const [countryRows] = await db.execute(`
+            SELECT DISTINCT country 
+            FROM users 
+            WHERE role = 'business' AND country IS NOT NULL AND country != ''
+            ORDER BY country
+        `);
+
+        // Parse categories (they might be comma-separated)
+        const categories = new Set();
+        categoryRows.forEach(row => {
+            if (row.category) {
+                const cats = row.category.split(',').map(c => c.trim()).filter(c => c);
+                cats.forEach(cat => categories.add(cat));
+            }
+        });
+
+        const countries = countryRows.map(row => row.country);
+
+        res.status(200).json({
+            categories: Array.from(categories).sort(),
+            countries: countries
+        });
+    } catch (error) {
+        console.error('Error fetching business directory filters:', error);
+        res.status(500).json({ message: 'Server error fetching filters' });
+    }
+};
+
+// @desc    Get businesses for directory
+// @route   GET /api/business-directory/businesses
+// @access  Public
+const getBusinessDirectoryBusinesses = async (req, res) => {
+    const { 
+        category, 
+        country, 
+        search, 
+        page = 1, 
+        limit = 12 
+    } = req.query;
+
+    try {
+        let whereClause = `WHERE role = 'business'`;
+        let queryParams = [];
+
+        // Add category filter
+        if (category) {
+            whereClause += ` AND (category LIKE ? OR category LIKE ? OR category LIKE ?)`;
+            queryParams.push(`%${category}%`, `${category},%`, `%,${category}`);
+        }
+
+        // Add country filter
+        if (country) {
+            whereClause += ` AND country = ?`;
+            queryParams.push(country);
+        }
+
+        // Add search filter
+        if (search) {
+            whereClause += ` AND (name LIKE ? OR about_company LIKE ? OR category LIKE ?)`;
+            queryParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
+        }
+
+        // Calculate pagination
+        const offset = (parseInt(page) - 1) * parseInt(limit);
+
+        // Get total count
+        const countSql = `SELECT COUNT(*) as total FROM users ${whereClause}`;
+        const [countResult] = await db.execute(countSql, queryParams);
+        const totalBusinesses = countResult[0].total;
+
+        // Get businesses - use string interpolation for LIMIT and OFFSET to avoid MySQL parameter issues
+        const sql = `
+            SELECT 
+                id, name, email, category, country, state, city,
+                about_company, logo, website, created_at
+            FROM users 
+            ${whereClause}
+            ORDER BY created_at DESC
+            LIMIT ${parseInt(limit)} OFFSET ${offset}
+        `;
+
+        const [businesses] = await db.execute(sql, queryParams);
+
+        // Calculate pagination info
+        const totalPages = Math.ceil(totalBusinesses / parseInt(limit));
+        const currentPage = parseInt(page);
+
+        res.status(200).json({
+            businesses,
+            pagination: {
+                currentPage,
+                totalPages,
+                totalBusinesses,
+                hasNext: currentPage < totalPages,
+                hasPrev: currentPage > 1
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching business directory businesses:', error);
+        res.status(500).json({ message: 'Server error fetching businesses' });
+    }
+};
+
+// @desc    Get single business for directory
+// @route   GET /api/business-directory/business/:id
+// @access  Public
+const getBusinessDirectoryBusiness = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const sql = `
+            SELECT 
+                id, name, email, category, country, state, city,
+                about_company, logo, website, facebook, twitter, 
+                linkedin, instagram, services, created_at
+            FROM users 
+            WHERE id = ? AND role = 'business'
+        `;
+
+        const [rows] = await db.execute(sql, [id]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'Business not found' });
+        }
+
+        const business = rows[0];
+
+        // Parse services if it's a JSON string
+        if (business.services && typeof business.services === 'string') {
+            try {
+                business.services = JSON.parse(business.services);
+            } catch (e) {
+                business.services = [];
+            }
+        }
+
+        res.status(200).json({ business });
+    } catch (error) {
+        console.error('Error fetching business details:', error);
+        res.status(500).json({ message: 'Server error fetching business details' });
+    }
+};
+
 export {
     getBusinessProfile,
     updateBusinessProfile,
@@ -1319,5 +1476,8 @@ export {
     getBusinessTickets,
     getBusinessCompanies,
     getBusinessTransactionInvoices,
-    getBusinessTransactionInvoiceById
+    getBusinessTransactionInvoiceById,
+    getBusinessDirectoryFilters,
+    getBusinessDirectoryBusinesses,
+    getBusinessDirectoryBusiness
 };

@@ -136,6 +136,8 @@ import BusinessProfile from "./pages/BusinessProfile/BusinessProfile";
 import BusinessHelp from "./pages/BusinessHelp/BusinessHelp";
 import BusinessInvoices from "./pages/BusinessInvoices/BusinessInvoices";
 import BusinessTickets from "./pages/BusinessTickets/BusinessTickets";
+import BusinessDirectoryPage from "./pages/BusinessDirectory/BusinessDirectoryPage";
+import CompanyDirectoryPage from "./pages/CompanyDirectory/CompanyDirectoryPage";
 
 // --- Components ---
 
@@ -205,6 +207,8 @@ function App() {
           <Route path="quote" element={<RequestQuote />} />
           <Route path="subscriptions" element={<SubscriptionPage />} />
           <Route path="/company/freight-quotes" element={<QuotesPage />} />
+          <Route path="business-directory" element={<BusinessDirectoryPage />} />
+          <Route path="company-directory" element={<CompanyDirectoryPage />} />
         </Route>
 
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
