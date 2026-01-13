@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Force Notification Count to Zero Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #CDA435;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #B8941F;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            background: #f0f0f0;
+            font-family: monospace;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .big-button {
+            background: #28a745;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 10px;
+        }
+        .big-button:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Force Notification Count to Zero</h1>
+    <p>This test forces the business layout notification count to 0 immediately.</p>
+
+    <div class="test-section">
+        <h2>Quick Fix</h2>
+        <p>Click this button to immediately force the notification count to 0 in the business layout sidebar.</p>
+        
+        <button class="big-button" onclick="forceNotificationCountToZero()">🔥 FORCE COUNT TO ZERO NOW</button>
+        
+        <div id="quickResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Current State</h2>
+        <p>Check what the current notification count is before and after forcing it to zero.</p>
+        
+        <button class="test-button" onclick="checkCurrentCount()">Check Current Count</button>
+        <button class="test-button" onclick="simulateBusinessNotificationsVisit()">Simulate Page Visit</button>
+        
+        <div id="testResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Navigation</h2>
+        <p>Go to the business notifications page to test the fix.</p>
+        
+        <button class="test-button" onclick="goToBusinessNotifications()">Go to Business Notifications</button>
+        
+        <div id="navResult" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = `result ${type}`;
+            element.innerHTML = message;
+        }
+
+        async function makeAPICall(url, method = 'GET', body = null) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
+            const options = {
+                method,
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            };
+
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+
+            const response = await fetch(url, options);
+            const data = await response.json();
+            
+            return {
+                status: response.status,
+                ok: response.ok,
+                data: data
+            };
+        }
+
+        async function forceNotificationCountToZero() {
+            try {
+                showResult('quickResult', '🔄 Forcing notification count to zero...', 'info');
+
+                // Step 1: Check current count
+                const beforeResult = await makeAPICall('/api/user-notifications/unread-count');
+                const countBefore = beforeResult.data.unreadCount || beforeResult.data.count || 0;
+
+                // Step 2: Try multiple methods to force count to zero
+                const methods = [];
+
+                // Method 1: Use context mark as read
+                try {
+                    await makeAPICall('/api/notifications/mark-read', 'POST', { pageType: 'notifications' });
+                    methods.push('✅ Context mark-as-read: SUCCESS');
+                } catch (e) {
+                    methods.push('❌ Context mark-as-read: FAILED - ' + e.message);
+                }
+
+                // Method 2: Mark all notifications individually
+                try {
+                    const notificationsResult = await makeAPICall('/api/user-notifications');
+                    if (Array.isArray(notificationsResult.data)) {
+                        const unreadNotifications = notificationsResult.data.filter(n => !n.is_read);
+                        for (const notification of unreadNotifications) {
+                            try {
+                                await makeAPICall(`/api/user-notifications/${notification.id}/read`, 'PUT');
+                            } catch (e) {
+                                console.error(`Failed to mark notification ${notification.id}:`, e);
+                            }
+                        }
+                        methods.push(`✅ Individual marking: SUCCESS (${unreadNotifications.length} notifications)`);
+                    }
+                } catch (e) {
+                    methods.push('❌ Individual marking: FAILED - ' + e.message);
+                }
+
+                // Step 3: Check final count
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+                const afterResult = await makeAPICall('/api/user-notifications/unread-count');
+                const countAfter = afterResult.data.unreadCount || afterResult.data.count || 0;
+
+                showResult('quickResult', 
+                    `🔧 Force Zero Results:\n\n` +
+                    `Count before: ${countBefore}\n` +
+                    `Methods used:\n${methods.join('\n')}\n\n` +
+                    `Count after: ${countAfter}\n\n` +
+                    `${countAfter === 0 ? '🎉 SUCCESS! Count is now 0!' : '⚠️ Count is still: ' + countAfter}\n\n` +
+                    `${countAfter === 0 ? 'The business layout sidebar should now show 0 notifications.' : 'You may need to refresh the page or check for other issues.'}`, 
+                    countAfter === 0 ? 'success' : 'error');
+
+            } catch (error) {
+                showResult('quickResult', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkCurrentCount() {
+            try {
+                const result = await makeAPICall('/api/user-notifications/unread-count');
+                const count = result.data.unreadCount || result.data.count || 0;
+                
+                showResult('testResult', 
+                    `📊 Current Notification Count: ${count}\n\n` +
+                    `${count === 0 ? '✅ Count is already 0!' : '⚠️ Count is not 0 - this is why the sidebar shows ' + count}\n\n` +
+                    `Raw API response:\n${JSON.stringify(result.data, null, 2)}`, 
+                    count === 0 ? 'success' : 'info');
+
+            } catch (error) {
+                showResult('testResult', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function simulateBusinessNotificationsVisit() {
+            try {
+                showResult('testResult', '🔄 Simulating business notifications page visit...', 'info');
+
+                // This simulates what the BusinessNotifications component does
+                const steps = [];
+
+                // Step 1: Get current count
+                const beforeResult = await makeAPICall('/api/user-notifications/unread-count');
+                const countBefore = beforeResult.data.unreadCount || beforeResult.data.count || 0;
+                steps.push(`1. Initial count: ${countBefore}`);
+
+                // Step 2: Fetch notifications
+                const notificationsResult = await makeAPICall('/api/user-notifications');
+                const notifications = Array.isArray(notificationsResult.data) ? notificationsResult.data : [];
+                const unreadCount = notifications.filter(n => !n.is_read).length;
+                steps.push(`2. Fetched ${notifications.length} notifications (${unreadCount} unread)`);
+
+                // Step 3: Force mark as read using context method
+                await makeAPICall('/api/notifications/mark-read', 'POST', { pageType: 'notifications' });
+                steps.push(`3. Used context mark-as-read method`);
+
+                // Step 4: Mark individual notifications
+                for (const notification of notifications.filter(n => !n.is_read)) {
+                    try {
+                        await makeAPICall(`/api/user-notifications/${notification.id}/read`, 'PUT');
+                    } catch (e) {
+                        console.error(`Failed to mark ${notification.id}:`, e);
+                    }
+                }
+                steps.push(`4. Marked ${unreadCount} notifications individually`);
+
+                // Step 5: Check final count
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                const afterResult = await makeAPICall('/api/user-notifications/unread-count');
+                const countAfter = afterResult.data.unreadCount || afterResult.data.count || 0;
+                steps.push(`5. Final count: ${countAfter}`);
+
+                showResult('testResult', 
+                    `📋 Simulation Results:\n\n${steps.join('\n')}\n\n` +
+                    `${countAfter === 0 ? '🎉 Simulation successful! The business notifications page should work correctly.' : '❌ Simulation failed - count is still ' + countAfter}`, 
+                    countAfter === 0 ? 'success' : 'error');
+
+            } catch (error) {
+                showResult('testResult', `❌ Simulation Error: ${error.message}`, 'error');
+            }
+        }
+
+        function goToBusinessNotifications() {
+            const targetUrl = '/business/notifications';
+            
+            showResult('navResult', 
+                `🚀 Navigation to Business Notifications\n\n` +
+                `Target URL: ${targetUrl}\n\n` +
+                `Expected behavior:\n` +
+                `1. Page loads\n` +
+                `2. Notification count immediately forced to 0\n` +
+                `3. All notifications marked as read\n` +
+                `4. Sidebar count updates to 0\n\n` +
+                `Click the link below to test:\n` +
+                `<a href="${targetUrl}" style="color: #007bff; text-decoration: underline;">Go to Business Notifications Page</a>`, 
+                'info');
+        }
+
+        // Auto-run current count check on page load
+        window.onload = function() {
+            console.log('🔧 Force Notification Count to Zero Test Page Loaded');
+            checkCurrentCount();
+        };
+    </script>
+</body>
+</html>

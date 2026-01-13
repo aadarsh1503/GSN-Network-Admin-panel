@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Current Auth State Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .info { background-color: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-danger { background-color: #dc3545; color: white; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Current Authentication State Debug</h1>
+    
+    <div class="result info">
+        <h3>Instructions</h3>
+        <p>1. Open this page in the same browser where you're having the issue</p>
+        <p>2. Make sure you're logged in to your application</p>
+        <p>3. Click the buttons below to debug the authentication state</p>
+    </div>
+    
+    <div class="result">
+        <button class="btn-primary" onclick="checkCurrentState()">🔍 Check Current Auth State</button>
+        <button class="btn-success" onclick="testApiCall()">🧪 Test API Call</button>
+        <button class="btn-primary" onclick="testWithManualToken()">🔧 Test with Manual Token</button>
+        <button class="btn-danger" onclick="clearAndReload()">🔄 Clear Auth & Reload</button>
+    </div>
+    
+    <div id="results"></div>
+
+    <script>
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = message;
+            results.appendChild(div);
+        }
+
+        function checkCurrentState() {
+            addResult('<h3>🔍 Checking Current Authentication State</h3>');
+            
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            addResult(`<h4>LocalStorage Contents:</h4>
+                <p><strong>Token exists:</strong> ${token ? '✅ YES' : '❌ NO'}</p>
+                <p><strong>User data exists:</strong> ${user ? '✅ YES' : '❌ NO'}</p>
+            `, token && user ? 'success' : 'error');
+            
+            if (token) {
+                addResult(`<p><strong>Token (first 50 chars):</strong> ${token.substring(0, 50)}...</p>`, 'info');
+                
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    const currentTime = Date.now() / 1000;
+                    const isExpired = payload.exp < currentTime;
+                    
+                    addResult(`<h4>Token Details:</h4>
+                        <pre>User ID: ${payload.id}
+Email: ${payload.email}
+Role: ${payload.role}
+Issued: ${new Date(payload.iat * 1000).toLocaleString()}
+Expires: ${new Date(payload.exp * 1000).toLocaleString()}
+Current Time: ${new Date().toLocaleString()}
+Is Expired: ${isExpired ? '❌ YES' : '✅ NO'}
+Time until expiry: ${isExpired ? 'EXPIRED' : Math.round((payload.exp - currentTime) / 3600) + ' hours'}</pre>`, 
+                        isExpired ? 'error' : 'success');
+                        
+                } catch (error) {
+                    addResult(`❌ Error parsing token: ${error.message}`, 'error');
+                }
+            }
+            
+            if (user) {
+                try {
+                    const userData = JSON.parse(user);
+                    addResult(`<h4>User Data:</h4>
+                        <pre>${JSON.stringify(userData, null, 2)}</pre>`, 'info');
+                } catch (error) {
+                    addResult(`❌ Error parsing user data: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        async function testApiCall() {
+            addResult('<h3>🧪 Testing API Call to /api/quotes/available</h3>');
+            
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                addResult('❌ No token found - cannot test API call', 'error');
+                return;
+            }
+            
+            addResult(`📤 Making request with token: ${token.substring(0, 30)}...`, 'info');
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/quotes/available', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                });
+                
+                addResult(`📊 Response Status: ${response.status} ${response.statusText}`, 
+                    response.ok ? 'success' : 'error');
+                
+                const responseHeaders = {};
+                response.headers.forEach((value, key) => {
+                    responseHeaders[key] = value;
+                });
+                addResult(`<h4>Response Headers:</h4><pre>${JSON.stringify(responseHeaders, null, 2)}</pre>`, 'info');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult(`✅ API call successful! Received ${data.quotes?.length || 0} quotes`, 'success');
+                    addResult(`<h4>Response Data:</h4><pre>${JSON.stringify(data, null, 2).substring(0, 500)}...</pre>`, 'info');
+                } else {
+                    const errorText = await response.text();
+                    addResult(`❌ API call failed: ${errorText}`, 'error');
+                }
+                
+            } catch (error) {
+                addResult(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testWithManualToken() {
+            addResult('<h3>🔧 Testing with Fresh Token</h3>');
+            
+            // Try to get a fresh token by logging in
+            const testCredentials = {
+                email: 'aadarshchauhan35@gmail.com',
+                password: 'password123'
+            };
+            
+            try {
+                addResult('📤 Attempting login to get fresh token...', 'info');
+                
+                const loginResponse = await fetch('http://localhost:5000/api/user/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testCredentials)
+                });
+                
+                if (loginResponse.ok) {
+                    const loginData = await loginResponse.json();
+                    addResult('✅ Login successful, got fresh token', 'success');
+                    
+                    // Test API call with fresh token
+                    const apiResponse = await fetch('http://localhost:5000/api/quotes/available', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${loginData.token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    addResult(`📊 API call with fresh token: ${apiResponse.status}`, 
+                        apiResponse.ok ? 'success' : 'error');
+                    
+                    if (apiResponse.ok) {
+                        const apiData = await apiResponse.json();
+                        addResult(`✅ Fresh token works! Got ${apiData.quotes?.length || 0} quotes`, 'success');
+                        
+                        // Update localStorage with fresh token
+                        localStorage.setItem('token', loginData.token);
+                        localStorage.setItem('user', JSON.stringify(loginData.user));
+                        addResult('✅ Updated localStorage with fresh token', 'success');
+                    } else {
+                        const errorText = await apiResponse.text();
+                        addResult(`❌ Fresh token failed: ${errorText}`, 'error');
+                    }
+                    
+                } else {
+                    const errorData = await loginResponse.json();
+                    addResult(`❌ Login failed: ${errorData.message}`, 'error');
+                }
+                
+            } catch (error) {
+                addResult(`❌ Error during fresh token test: ${error.message}`, 'error');
+            }
+        }
+
+        function clearAndReload() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            addResult('🗑️ Cleared authentication data', 'warning');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        }
+
+        // Auto-check on page load
+        window.onload = function() {
+            addResult('🚀 Debug page loaded. Click "Check Current Auth State" to begin.', 'info');
+        };
+    </script>
+</body>
+</html>

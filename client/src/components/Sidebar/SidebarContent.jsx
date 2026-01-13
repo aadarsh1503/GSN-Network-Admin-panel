@@ -1,126 +1,159 @@
 // src/components/Sidebar/SidebarContent.jsx
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
-  FiHome, FiBox, FiBriefcase, FiUsers, FiMapPin, FiFileText, FiEdit, 
-  FiMail, FiImage, FiAnchor, FiShield, FiChevronDown, FiBell, FiSettings, FiTag, FiDollarSign, FiActivity
+  FiHome, FiBox, FiBriefcase, FiUsers, 
+  FiMail, FiShield, FiChevronDown, FiSettings, FiTag, FiDollarSign,
+  FiTrendingUp, FiBarChart, FiCreditCard, FiHeadphones
 } from 'react-icons/fi';
 
 const SidebarContent = () => {
   const location = useLocation();
   const [openDropdown, setOpenDropdown] = useState(null);
 
+  // Reorganized menu items by priority with futuristic grouping
   const menuItems = [
-    { name: 'Dashboard', icon: <FiHome />, path: '' },
-    { name: 'Logistics Category', icon: <FiBox />, path: 'logistics-categories' },
-    { name: 'Business Category', icon: <FiBriefcase />, path: 'business-categories' },
+    // Core Management (Highest Priority)
     { 
-      name: 'Users', 
+      name: 'Dashboard', 
+      icon: <FiHome />, 
+      path: '',
+      priority: 'high',
+      description: 'Overview & Analytics'
+    },
+    
+    // User Management (High Priority)
+    { 
+      name: 'Users Management', 
       icon: <FiUsers />,
+      priority: 'high',
+      description: 'Manage all users',
       subItems: [
-        { name: 'User', path: 'users' },
-        { name: 'Business Owners', path: 'business-Owners' },
-        { name: 'Company Owners', path: 'company-Owners' },
+        { name: 'Users', path: 'users', icon: '👤' },
+        { name: 'Business Owners', path: 'business-Owners', icon: '🏢' },
+        { name: 'Company Owners', path: 'company-Owners', icon: '🏭' },
       ]
     },
+
+    // Business Operations (High Priority)
     { 
-      name: 'Quotes', 
-      icon: <FiMapPin />,
-      subItems: [
-        { name: 'All Quotes', path: 'quote-List' },
-        { name: 'Approved Quotes', path: 'approved-Quotes' },
-        { name: 'Rejected Quotes', path: 'rejected-Quotes' },
-        { name: 'Running Quotes', path: 'running-Quotes' },
-        { name: 'Closed Quotes', path: 'closed-Quotes' },
-      ]
-    },
-    { 
-      name: 'Company Quotes', 
+      name: 'Quote Management', 
       icon: <FiBriefcase />,
+      priority: 'high',
+      description: 'Company quotes & deals',
       subItems: [
-        { name: 'All Quotes', path: 'all-company-Quotes' },
-        { name: 'Approved Quotes', path: 'all-approved-Quotes' },
-        { name: 'Rejected Quotes', path: 'all-rejected-Quotes' },
-        { name: 'Running Quotes', path: 'all-running-Quotes' },
-        { name: 'Closed Quotes', path: 'all-closed-Quotes' },
+        { name: 'All Quotes', path: 'all-company-Quotes', icon: '📋' },
+        { name: 'Approved Quotes', path: 'all-approved-Quotes', icon: '✅' },
+        { name: 'Running Quotes', path: 'all-running-Quotes', icon: '🔄' },
+        { name: 'Rejected Quotes', path: 'all-rejected-Quotes', icon: '❌' },
+        { name: 'Closed Quotes', path: 'all-closed-Quotes', icon: '🔒' },
       ]
     },
+
+    // Financial Management (High Priority)
     { 
-      name: 'Subscription', 
-      icon: <FiFileText />,
+      name: 'Financial Hub', 
+      icon: <FiDollarSign />,
+      priority: 'high',
+      description: 'Money & transactions',
       subItems: [
-        { name: 'Create Subscription', path: 'create-Subscription' },
-        { name: 'Manage Subscription', path: 'manage-subscription' },
+        { name: 'Transactions with Users', path: 'transactions-management', icon: '💳' },
+        { name: 'All Invoices', path: 'invoices-management', icon: '🧾' },
+        { name: 'Bank Details', path: 'bank-details', icon: '🏦' },
+        // { name: 'Subscriptions', path: 'subscriptions-management', icon: '📊' },
       ]
     },
-    { 
-      name: 'Transaction-History', 
-      icon: <FiActivity />,
-      subItems: [
-        { name: 'Subscriptions', path: 'subscriptions-management' },
-        { name: 'Quotes Management', path: 'quotes-management' },
-        { name: 'Transactions', path: 'transactions-management' },
-      ]
+ { 
+      name: 'Subscriber Payment Review', 
+      icon: <FiBarChart />, 
+      path: 'subscribers',
+      priority: 'low',
+      description: 'Data insights'
     },
-    // { 
-    //   name: 'Deposits', 
-    //   icon: <FiEdit />,
-    //   subItems: [
-    //     { name: 'Transaction History', path: 'transaction-History' },
-       
-    //   ]
-    // },
+    // Communication (Medium Priority)
     { 
-      name: 'Support Ticket', 
+      name: 'Communications', 
       icon: <FiMail />,
+      priority: 'medium',
+      description: 'Messages & notifications',
       subItems: [
-        { name: 'All Ticket', path: 'all-Ticket' },
-        { name: 'Pending Ticket', path: 'pending-Ticket' },
-        { name: 'Closed Ticket', path: 'closed-Ticket' },
-        { name: 'Answered Ticket', path: 'answered-Ticket' },
+        { name: 'Messages', path: 'messages', icon: '💬' },
+        { name: 'View Notifications', path: 'notifications', icon: '🔔' },
+        { name: 'Send Notifications', path: 'send-notifications', icon: '📤' },
+        { name: 'Send Emails', path: 'send-emails', icon: '📧' },
       ]
     },
+
+    // Support System (Medium Priority)
     { 
-      name: 'Pages', 
-      icon: <FiImage />,
+      name: 'Support Center', 
+      icon: <FiHeadphones />,
+      priority: 'medium',
+      description: 'Customer support',
       subItems: [
-        { name: 'Privacy Policy', path: 'policy' },
-        { name: 'Terms And Conditions', path: 'terms' },
-        { name: 'Disclaimer', path: 'disclaimer' },
-        { name: 'Due Diligence', path: 'dueDiligenceEditor' },
-        // { name: 'Suggestions', path: 'suggestion' },
+        { name: 'All Tickets', path: 'all-Ticket', icon: '🎫' },
+        { name: 'Pending Tickets', path: 'pending-Ticket', icon: '⏳' },
+        { name: 'Answered Tickets', path: 'answered-Ticket', icon: '✅' },
+        { name: 'Closed Tickets', path: 'closed-Ticket', icon: '🔒' },
       ]
     },
-    // { 
-    //   name: 'Review', 
-    //   icon: <FiAnchor />,
-    //   subItems: [
-    //     { name: 'Review Reason', path: 'review-Reason' },
-    //     { name: 'All Review', path: 'all-reviews' },
-    //   ]
-    // },
+
+    // Business Configuration (Medium Priority)
     { 
-      name: 'Dispute', 
+      name: 'Business Config', 
+      icon: <FiBox />,
+      priority: 'medium',
+      description: 'Categories & setup',
+      subItems: [
+        { name: 'Logistics Category', path: 'logistics-categories', icon: '📦' },
+        { name: 'Business Category', path: 'business-categories', icon: '🏢' },
+      ]
+    },
+
+    // Subscription Management (Medium Priority)
+    { 
+      name: 'Subscriptions', 
+      icon: <FiCreditCard />,
+      priority: 'medium',
+      description: 'Plans & billing',
+      subItems: [
+        { name: 'Create Subscription', path: 'create-Subscription', icon: '➕' },
+        { name: 'Manage Subscription', path: 'manage-subscription', icon: '⚙️' },
+      ]
+    },
+
+    // Dispute Resolution (Medium Priority)
+    { 
+      name: 'Dispute Center', 
       icon: <FiShield />,
+      priority: 'medium',
+      description: 'Resolve conflicts',
       subItems: [
-        { name: 'Dispute Reason', path: 'dispute-Reason' },
-        { name: 'Dispute', path: 'disputes' },
+        { name: 'Dispute Reason', path: 'dispute-Reason', icon: '📝' },
+        { name: 'Active Disputes', path: 'disputes', icon: '⚖️' },
       ]
     },
-    { name: 'Subscribers', icon: <FiUsers />, path: 'subscribers' },
-    { name: 'Contact Requests', icon: <FiMail />, path: 'contactList' },
-    { name: 'Bank Detail', icon: <FiBriefcase />, path: 'BankDetail' },
-    {
-      name: 'Notification',
-      icon: <FiBell />,
-      subItems: [
-        { name: 'Send Notifications', path: 'send-notifications' },
-        { name: 'Send Emails', path: 'send-emails' },
-      ]
+
+    // Analytics & Reports (Lower Priority)
+   
+
+    // System Settings (Lower Priority)
+    { 
+      name: 'System Settings', 
+      icon: <FiSettings />, 
+      path: 'general-settings',
+      priority: 'low',
+      description: 'App configuration'
     },
-    { name: 'General Settings', icon: <FiSettings />, path: 'general-settings' },
-    { name: 'Version Management', icon: <FiTag />, path: 'version-management' },
+    
+    { 
+      name: 'Version Control', 
+      icon: <FiTag />, 
+      path: 'version-management',
+      priority: 'low',
+      description: 'App versions'
+    },
   ];
 
   const handleDropdownClick = (itemName) => {
@@ -129,70 +162,149 @@ const SidebarContent = () => {
 
   const currentPathSegment = location.pathname.split('/').pop();
 
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case 'high': return 'from-blue-500 to-indigo-600';
+      case 'medium': return 'from-emerald-500 to-teal-600';
+      case 'low': return 'from-slate-500 to-gray-600';
+      default: return 'from-blue-500 to-indigo-600';
+    }
+  };
+
+  const getPriorityBg = (priority, isActive) => {
+    if (isActive) {
+      switch (priority) {
+        case 'high': return 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200';
+        case 'medium': return 'bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-200';
+        case 'low': return 'bg-gradient-to-r from-slate-50 to-gray-50 border-slate-200';
+        default: return 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200';
+      }
+    }
+    return 'hover:bg-gradient-to-r hover:from-slate-50 hover:to-gray-50';
+  };
+
   return (
-    <nav className="p-3 overscroll-contain h-[calc(100vh-70px)] overflow-y-auto">
-      <ul>
+    <nav className="p-4 h-[calc(100vh-140px)] overflow-y-auto custom-scrollbar">
+      <div className="space-y-2">
         {menuItems.map((item, index) => {
           const isParentActive = item.subItems?.some(sub => currentPathSegment === sub.path);
           const isActive = currentPathSegment === item.path || isParentActive;
 
           if (item.subItems) {
             return (
-              <li key={index} className="mb-1">
+              <div key={index} className="mb-2">
                 <button
                   onClick={() => handleDropdownClick(item.name)}
-                  className={`w-full flex items-center justify-between p-3 rounded-lg text-gray-600 hover:bg-yellow-50 hover:text-yellow-600 transition-colors duration-200 ${
-                    isActive ? 'bg-yellow-50 text-yellow-600 font-semibold' : ''
+                  className={`w-full group relative overflow-hidden rounded-xl border transition-all duration-300 ${
+                    getPriorityBg(item.priority, isActive)
+                  } ${isActive ? 'border-opacity-50 shadow-sm' : 'border-transparent hover:border-slate-200'}`}
+                >
+                  <div className="flex items-center justify-between p-4">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${getPriorityColor(item.priority)} flex items-center justify-center text-white shadow-sm`}>
+                        <span className="text-sm">{item.icon}</span>
+                      </div>
+                      <div className="text-left">
+                        <span className={`font-semibold text-sm ${isActive ? 'text-slate-800' : 'text-slate-700'}`}>
+                          {item.name}
+                        </span>
+                        <p className="text-xs text-slate-500 mt-0.5">{item.description}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {item.priority === 'high' && (
+                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                      )}
+                      <FiChevronDown 
+                        className={`text-sm text-slate-400 transition-transform duration-300 ${
+                          openDropdown === item.name ? 'rotate-180' : ''
+                        }`} 
+                      />
+                    </div>
+                  </div>
+                </button>
+                
+                <div 
+                  className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                    openDropdown === item.name ? 'max-h-96 mt-2' : 'max-h-0'
                   }`}
                 >
-                  <div className="flex items-center">
-                    <span className="mr-3 text-lg">{item.icon}</span>
-                    <span>{item.name}</span>
-                  </div>
-                  <FiChevronDown 
-                    className={`text-xs transition-transform duration-300 ${openDropdown === item.name ? 'rotate-180' : ''}`} 
-                  />
-                </button>
-                <div 
-                  className={`overflow-hidden transition-all duration-300 ease-in-out ${openDropdown === item.name ? 'max-h-96' : 'max-h-0'}`}
-                >
-                  <ul className="pl-6 pt-2">
+                  <div className="bg-white/50 rounded-lg border border-slate-100 p-2 ml-4">
                     {item.subItems.map((subItem, subIndex) => (
-                      <li key={subIndex} className="mb-1">
-                        <Link
-                          to={subItem.path}
-                          className={`flex items-center p-2 rounded-lg text-sm text-gray-600 hover:bg-yellow-50 hover:text-yellow-600 ${
-                            currentPathSegment === subItem.path ? 'bg-yellow-50 text-yellow-600 font-semibold' : ''
-                          }`}
-                        >
-                          {subItem.name}
-                        </Link>
-                      </li>
+                      <Link
+                        key={subIndex}
+                        to={subItem.path}
+                        className={`flex items-center space-x-3 p-3 rounded-lg text-sm transition-all duration-200 mb-1 ${
+                          currentPathSegment === subItem.path 
+                            ? 'bg-white text-slate-800 font-medium shadow-sm border border-slate-200' 
+                            : 'text-slate-600 hover:bg-white/70 hover:text-slate-800'
+                        }`}
+                      >
+                        <span className="text-base">{subItem.icon}</span>
+                        <span>{subItem.name}</span>
+                      </Link>
                     ))}
-                  </ul>
+                  </div>
                 </div>
-              </li>
+              </div>
             );
           }
 
           return (
-            <li key={index} className="mb-1">
-              <Link
-                to={item.path}
-                className={`flex items-center justify-between p-3 rounded-lg text-gray-600 hover:bg-yellow-50 hover:text-yellow-600 transition-colors duration-200 ${
-                  isActive ? 'bg-yellow-50 text-yellow-600 font-semibold' : ''
-                }`}
-              >
-                <div className="flex items-center">
-                  <span className="mr-3 text-lg">{item.icon}</span>
-                  <span>{item.name}</span>
+            <Link
+              key={index}
+              to={item.path}
+              className={`block group relative overflow-hidden rounded-xl border transition-all duration-300 mb-2 ${
+                getPriorityBg(item.priority, isActive)
+              } ${isActive ? 'border-opacity-50 shadow-sm' : 'border-transparent hover:border-slate-200'}`}
+            >
+              <div className="flex items-center justify-between p-4">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${getPriorityColor(item.priority)} flex items-center justify-center text-white shadow-sm`}>
+                    <span className="text-sm">{item.icon}</span>
+                  </div>
+                  <div className="text-left">
+                    <span className={`font-semibold text-sm ${isActive ? 'text-slate-800' : 'text-slate-700'}`}>
+                      {item.name}
+                    </span>
+                    <p className="text-xs text-slate-500 mt-0.5">{item.description}</p>
+                  </div>
                 </div>
-                {item.dropdown && <FiChevronDown className="text-xs" />}
-              </Link>
-            </li>
+                {item.priority === 'high' && (
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                )}
+              </div>
+            </Link>
           );
         })}
-      </ul>
+      </div>
+
+      {/* Footer */}
+      <div className="mt-6 p-4 bg-gradient-to-r from-slate-50 to-gray-50 rounded-xl border border-slate-200">
+        <div className="text-center">
+          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg mx-auto mb-2 flex items-center justify-center">
+            <FiTrendingUp className="text-white text-sm" />
+          </div>
+          <p className="text-xs text-slate-600 font-medium">Admin Dashboard</p>
+          {/* <p className="text-xs text-slate-400">v2.1.0</p> */}
+        </div>
+      </div>
+
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: linear-gradient(to bottom, #e2e8f0, #cbd5e1);
+          border-radius: 2px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(to bottom, #cbd5e1, #94a3b8);
+        }
+      `}</style>
     </nav>
   );
 };

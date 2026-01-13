@@ -1,10 +1,11 @@
 // src/components/BusinessOwners.jsx
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { FaPen, FaEye, FaTimes, FaSave } from 'react-icons/fa';
+import { FaPen, FaEye, FaTimes } from 'react-icons/fa';
 import { FaArrowUp, FaArrowDown } from 'react-icons/fa6';
 import { api } from '../../utils/api';
 import { adminToast } from '../../utils/adminToast';
+import StatusConfirmationModal from '../../components/Modal/StatusConfirmationModal';
 
 // --- Custom Toggle Switch Component ---
 const ToggleSwitch = ({ checked, onChange }) => {
@@ -28,16 +29,27 @@ function BusinessOwners() {
   const [editingUser, setEditingUser] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [viewingUser, setViewingUser] = useState(null);
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    type: '',
+    userId: null,
+    currentValue: null,
+    userName: ''
+  });
 
   // --- Fetch Data from Backend ---
   useEffect(() => {
     const fetchBusinessUsers = async () => {
       try {
+        console.log('Fetching business users...'); // Debug log
         const response = await api.get('/api/user/business-owners');
+        console.log('Business users response:', response); // Debug log
         setUsers(response);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching business users:", error);
+        console.error("Error details:", error.response || error); // More detailed error logging
+        adminToast.error(error.message || "Failed to fetch business users");
         setLoading(false);
       }
     };
@@ -48,75 +60,155 @@ function BusinessOwners() {
 
   // --- Handlers for User Actions (Connected to API) ---
   
-  // 1. Handle Active/Inactive Status
-  const handleStatusChange = async (userId, currentStatus) => {
-    // Optimistic Update (Update UI immediately)
-    const updatedUsers = users.map(user =>
-      user.id === userId ? { ...user, status: !currentStatus } : user
-    );
-    setUsers(updatedUsers);
+  // 1. Handle Active/Inactive Status with Confirmation
+  const handleStatusChange = (userId, currentStatus, userName) => {
+    setConfirmModal({
+      isOpen: true,
+      type: currentStatus ? 'deactivate' : 'activate',
+      userId,
+      currentValue: currentStatus,
+      userName
+    });
+  };
 
+  const confirmStatusChange = async () => {
+    const { userId, currentValue } = confirmModal;
+    
     try {
         await api.put(`/api/user/business-status/${userId}`, { 
           type: 'status', 
-          value: !currentStatus 
+          value: !currentValue 
         });
-        adminToast.success(`User ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
+        
+        // Show toast BEFORE state update to prevent dismissal
+        adminToast.success(`User ${!currentValue ? 'activated' : 'deactivated'} successfully`);
+        
+        // Then update UI
+        const updatedUsers = users.map(user =>
+          user.id === userId ? { ...user, status: !currentValue } : user
+        );
+        setUsers(updatedUsers);
+        
     } catch (error) {
         console.error("Error updating status:", error);
         adminToast.error("Failed to update status");
-        setUsers(users); // Revert on error
+    } finally {
+      setConfirmModal({ isOpen: false, type: '', userId: null, currentValue: null, userName: '' });
     }
   };
 
-  // 2. Handle Blacklist Status
-  const handleBlacklistToggle = async (userId, currentBlacklistStatus) => {
-    // Optimistic Update
-    const updatedUsers = users.map(user =>
-      user.id === userId ? { ...user, onBlacklist: !currentBlacklistStatus } : user
-    );
-    setUsers(updatedUsers);
+  // 2. Handle Blacklist Status with Confirmation
+  const handleBlacklistToggle = (userId, currentBlacklistStatus, userName) => {
+    setConfirmModal({
+      isOpen: true,
+      type: currentBlacklistStatus ? 'unblacklist' : 'blacklist',
+      userId,
+      currentValue: currentBlacklistStatus,
+      userName
+    });
+  };
 
+  const confirmBlacklistToggle = async () => {
+    const { userId, currentValue } = confirmModal;
+    
     try {
         await api.put(`/api/user/business-status/${userId}`, { 
           type: 'blacklist', 
-          value: !currentBlacklistStatus 
+          value: !currentValue 
         });
-        adminToast.success(`User ${!currentBlacklistStatus ? 'added to' : 'removed from'} blacklist`);
+        
+        // Show toast BEFORE state update to prevent dismissal
+        adminToast.success(`User ${!currentValue ? 'added to' : 'removed from'} blacklist`);
+        
+        // Then update UI
+        const updatedUsers = users.map(user =>
+          user.id === userId ? { ...user, onBlacklist: !currentValue } : user
+        );
+        setUsers(updatedUsers);
+        
     } catch (error) {
         console.error("Error updating blacklist:", error);
         adminToast.error("Failed to update blacklist");
-        setUsers(users); // Revert on error
+    } finally {
+      setConfirmModal({ isOpen: false, type: '', userId: null, currentValue: null, userName: '' });
     }
   };
 
   // 3. Handle Edit User
-  const handleEditUser = (user) => {
-    setEditingUser(user.id);
-    setEditForm({
-      name: user.name,
-      email: user.email,
-      mobile: user.mobile,
-      category: user.category || '',
-      country: user.country || '',
-      state: user.state || '',
-      city: user.city || ''
-    });
+  const handleEditUser = async (user) => {
+    console.log('Editing user:', user); // Debug log
+    setLoading(true);
+    try {
+      // Fetch full user details for editing
+      const userDetails = await api.get(`/api/user/profile/${user.id}`);
+      console.log('User details fetched:', userDetails); // Debug log
+      
+      setEditingUser(user.id);
+      setEditForm({
+        name: userDetails.name || '',
+        email: userDetails.email || '',
+        mobile: userDetails.phone || userDetails.mobile || '',
+        category: userDetails.category || '',
+        country: userDetails.country || '',
+        state: userDetails.state || '',
+        city: userDetails.city || '',
+        owner_name: userDetails.owner_name || '',
+        owner_phone: userDetails.owner_phone || '',
+        incharge_name: userDetails.incharge_name || '',
+        incharge_phone: userDetails.incharge_phone || '',
+        website: userDetails.website || '',
+        skype: userDetails.skype || ''
+      });
+    } catch (error) {
+      console.error("Error fetching user details for edit:", error);
+      // Fallback to basic user data if detailed fetch fails
+      setEditingUser(user.id);
+      setEditForm({
+        name: user.name || '',
+        email: user.email || '',
+        mobile: user.mobile || '',
+        category: user.category || '',
+        country: user.country || '',
+        state: user.state || '',
+        city: user.city || '',
+        owner_name: '',
+        owner_phone: '',
+        incharge_name: '',
+        incharge_phone: '',
+        website: '',
+        skype: ''
+      });
+      adminToast.warning('Could not load full profile details, showing basic information');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // 4. Handle Save Edit
   const handleSaveEdit = async () => {
+    console.log('Saving edit form:', editForm); // Debug log
     try {
-      // Use the admin update API
-      await api.put(`/api/user/update-profile/${editingUser}`, {
+      // Use the admin update API with correct field mapping
+      const updateData = {
         name: editForm.name,
         email: editForm.email,
         mobile: editForm.mobile,
         category: editForm.category,
         country: editForm.country,
         state: editForm.state,
-        city: editForm.city
-      });
+        city: editForm.city,
+        owner_name: editForm.owner_name || '',
+        owner_phone: editForm.owner_phone || '',
+        incharge_name: editForm.incharge_name || '',
+        incharge_phone: editForm.incharge_phone || '',
+        website: editForm.website || '',
+        skype: editForm.skype || ''
+      };
+      
+      console.log('Sending update data:', updateData); // Debug log
+      
+      const response = await api.put(`/api/user/update-profile/${editingUser}`, updateData);
+      console.log('Update response:', response); // Debug log
       
       // Update local state
       setUsers(users.map(user => 
@@ -135,6 +227,7 @@ function BusinessOwners() {
       adminToast.success('Business profile updated successfully');
     } catch (error) {
       console.error("Error updating business:", error);
+      console.error("Error details:", error.response || error); // More detailed error logging
       adminToast.error(error.message || "Failed to update business profile");
     }
   };
@@ -340,21 +433,22 @@ function BusinessOwners() {
                       <td className="p-3">
                         <ToggleSwitch 
                             checked={user.onBlacklist} 
-                            onChange={() => handleBlacklistToggle(user.id, user.onBlacklist)} 
+                            onChange={() => handleBlacklistToggle(user.id, user.onBlacklist, user.name)} 
                         />
                       </td>
                       <td className="p-3">
                         <ToggleSwitch 
                             checked={user.status} 
-                            onChange={() => handleStatusChange(user.id, user.status)} 
+                            onChange={() => handleStatusChange(user.id, user.status, user.name)} 
                         />
                       </td>
                       <td className="p-3">
                         <div className="flex space-x-2">
                           <button 
                             onClick={() => handleEditUser(user)}
-                            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400"
                             title="Edit User"
+                            disabled={loading}
                           >
                             <FaPen />
                           </button>
@@ -492,7 +586,7 @@ function BusinessOwners() {
       {/* Edit User Modal */}
       {editingUser && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold">Edit Business Owner</h3>
               <button 
@@ -504,6 +598,11 @@ function BusinessOwners() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Basic Information */}
+              <div className="md:col-span-2">
+                <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">Basic Information</h4>
+              </div>
+              
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Business Name *</label>
                 <input
@@ -546,6 +645,11 @@ function BusinessOwners() {
                 />
               </div>
 
+              {/* Location Information */}
+              <div className="md:col-span-2 mt-4">
+                <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">Location Information</h4>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
                 <input
@@ -575,6 +679,77 @@ function BusinessOwners() {
                   className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
                 />
               </div>
+
+              {/* Contact Information */}
+              <div className="md:col-span-2 mt-4">
+                <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">Contact Information</h4>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Owner Name</label>
+                <input
+                  type="text"
+                  value={editForm.owner_name}
+                  onChange={(e) => setEditForm({...editForm, owner_name: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Owner Phone</label>
+                <input
+                  type="text"
+                  value={editForm.owner_phone}
+                  onChange={(e) => setEditForm({...editForm, owner_phone: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Incharge Name</label>
+                <input
+                  type="text"
+                  value={editForm.incharge_name}
+                  onChange={(e) => setEditForm({...editForm, incharge_name: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Incharge Phone</label>
+                <input
+                  type="text"
+                  value={editForm.incharge_phone}
+                  onChange={(e) => setEditForm({...editForm, incharge_phone: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                />
+              </div>
+
+              {/* Online Presence */}
+              <div className="md:col-span-2 mt-4">
+                <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">Online Presence</h4>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                <input
+                  type="url"
+                  value={editForm.website}
+                  onChange={(e) => setEditForm({...editForm, website: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  placeholder="https://example.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Skype</label>
+                <input
+                  type="text"
+                  value={editForm.skype}
+                  onChange={(e) => setEditForm({...editForm, skype: e.target.value})}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                />
+              </div>
             </div>
             
             <div className="mt-6 flex justify-end space-x-3">
@@ -594,6 +769,37 @@ function BusinessOwners() {
           </div>
         </div>
       )}
+
+      {/* Status Confirmation Modal */}
+      <StatusConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ isOpen: false, type: '', userId: null, currentValue: null, userName: '' })}
+        onConfirm={confirmModal.type === 'activate' || confirmModal.type === 'deactivate' ? confirmStatusChange : confirmBlacklistToggle}
+        title={
+          confirmModal.type === 'activate' ? 'Activate User' :
+          confirmModal.type === 'deactivate' ? 'Deactivate User' :
+          confirmModal.type === 'blacklist' ? 'Add to Blacklist' :
+          confirmModal.type === 'unblacklist' ? 'Remove from Blacklist' : 'Confirm Action'
+        }
+        message={
+          confirmModal.type === 'activate' ? 
+            `Are you sure you want to activate "${confirmModal.userName}"? This will allow them to access the platform.` :
+          confirmModal.type === 'deactivate' ? 
+            `Are you sure you want to deactivate "${confirmModal.userName}"? This will prevent them from accessing the platform.` :
+          confirmModal.type === 'blacklist' ? 
+            `Are you sure you want to add "${confirmModal.userName}" to the blacklist? This will restrict their access and activities.` :
+          confirmModal.type === 'unblacklist' ? 
+            `Are you sure you want to remove "${confirmModal.userName}" from the blacklist? This will restore their normal access.` :
+            'Please confirm this action.'
+        }
+        confirmText={
+          confirmModal.type === 'activate' ? 'Activate' :
+          confirmModal.type === 'deactivate' ? 'Deactivate' :
+          confirmModal.type === 'blacklist' ? 'Add to Blacklist' :
+          confirmModal.type === 'unblacklist' ? 'Remove from Blacklist' : 'Confirm'
+        }
+        type={confirmModal.type}
+      />
     </div>
   );
 }

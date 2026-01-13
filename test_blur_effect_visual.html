@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Blur Effect Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .enhanced-blur {
+            filter: blur(3px);
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
+            letter-spacing: 2px;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+        .enhanced-blur:hover {
+            transform: scale(1.05);
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .animate-pulse-custom {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-4xl font-bold text-gray-800 mb-8 text-center">🔒 Enhanced Blur Effect Demo</h1>
+        
+        <!-- Live Demo Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Without Blur (Authorized User) -->
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-xl font-semibold text-green-600 mb-4 flex items-center">
+                    ✅ Authorized User View
+                    <span class="ml-2 text-sm bg-green-100 text-green-800 px-2 py-1 rounded-full">Premium Plan</span>
+                </h3>
+                <div class="space-y-4">
+                    <div class="border-b py-3">
+                        <span class="font-semibold text-gray-800">Customer Name:</span> 
+                        <span class="ml-2">Ahmed Al-Rashid</span>
+                    </div>
+                    <div class="border-b py-3">
+                        <span class="font-semibold text-gray-800">Email:</span> 
+                        <span class="ml-2">ahmed.rashid@tradingco.ae</span>
+                    </div>
+                    <div class="border-b py-3">
+                        <span class="font-semibold text-gray-800">Phone:</span> 
+                        <span class="ml-2">+971 50 123 4567</span>
+                    </div>
+                    <div class="border-b py-3">
+                        <span class="font-semibold text-gray-800">Location:</span> 
+                        <span class="ml-2">Dubai, UAE</span>
+                    </div>
+                </div>
+                <div class="mt-4 p-3 bg-green-50 border border-green-200 rounded">
+                    <p class="text-green-700 text-sm">✨ Full access to customer contact information</p>
+                </div>
+            </div>
+
+            <!-- With Blur (Restricted User) -->
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-xl font-semibold text-red-600 mb-4 flex items-center">
+                    🔒 Restricted User View
+                    <span class="ml-2 text-sm bg-red-100 text-red-800 px-2 py-1 rounded-full">Basic Plan</span>
+                </h3>
+                <div class="space-y-4">
+                    <div class="border-b py-3">
+                        <span class="font-semibold text-gray-800">Customer Name:</span> 
+                        <div class="relative inline-flex items-center group ml-2">
+                            <span class="enhanced-blur select-none text-gray-400">Customer Name</span>
+                            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <svg class="w-5 h-5 text-yellow-500 drop-shadow-lg animate-pulse-custom" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-3 px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full border border-yellow-300">
+                                🔒 Upgrade to view
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border-b py-3">
+                        <span class="font-semibold text-gray-800">Email:</span> 
+                        <div class="relative inline-flex items-center group ml-2">
+                            <span class="enhanced-blur select-none text-gray-400">customer@email.com</span>
+                            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <svg class="w-5 h-5 text-yellow-500 drop-shadow-lg animate-pulse-custom" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-3 px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full border border-yellow-300">
+                                🔒 Upgrade to view
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border-b py-3">
+                        <span class="font-semibold text-gray-800">Phone:</span> 
+                        <div class="relative inline-flex items-center group ml-2">
+                            <span class="enhanced-blur select-none text-gray-400">+XXX XXX XXXX</span>
+                            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <svg class="w-5 h-5 text-yellow-500 drop-shadow-lg animate-pulse-custom" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-3 px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full border border-yellow-300">
+                                🔒 Upgrade to view
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border-b py-3">
+                        <span class="font-semibold text-gray-800">Location:</span> 
+                        <span class="ml-2 text-gray-400">N/A</span>
+                    </div>
+                </div>
+                <div class="mt-4 p-3 bg-red-50 border border-red-200 rounded">
+                    <p class="text-red-700 text-sm">🔒 Contact information hidden - upgrade required</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Blur Intensity Demo -->
+        <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+            <h3 class="text-xl font-semibold text-blue-600 mb-4">🎛️ Interactive Blur Intensity Demo</h3>
+            <p class="text-gray-600 mb-4">Adjust the blur intensity to see different effects:</p>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Blur Intensity:</label>
+                <input type="range" id="blurRange" min="0" max="10" value="3" step="0.5" class="w-full">
+                <div class="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>No Blur</span>
+                    <span>Maximum Blur</span>
+                </div>
+            </div>
+            
+            <div class="p-4 bg-gray-50 rounded-lg">
+                <div class="border-b py-3">
+                    <span class="font-semibold text-gray-800">Sample Contact:</span> 
+                    <span id="blurDemo" class="ml-2 select-none text-gray-600 transition-all duration-300" style="filter: blur(3px); letter-spacing: 2px;">
+                        john.smith@example.com
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upgrade Prompt Demo -->
+        <div class="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-6 mb-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                        <svg class="text-white text-xl w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800">Upgrade Your Plan</h3>
+                        <p class="text-gray-600 text-sm">You're on a basic plan with 0 responses. Upgrade to see customer contact information and respond to quotes.</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <button class="bg-gradient-to-r from-yellow-500 to-orange-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-yellow-600 hover:to-orange-700 transition-all duration-300 shadow-lg transform hover:scale-105">
+                        Upgrade Now
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical Details -->
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-xl font-semibold text-purple-600 mb-4">🔧 Technical Implementation</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="font-semibold text-gray-800 mb-2">CSS Blur Effect:</h4>
+                    <pre class="bg-gray-100 p-3 rounded text-sm overflow-x-auto"><code>filter: blur(3px);
+text-shadow: 0 0 10px rgba(0,0,0,0.8);
+letter-spacing: 2px;
+transition: all 0.3s ease;</code></pre>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-800 mb-2">Security Flow:</h4>
+                    <ul class="text-sm text-gray-600 space-y-1">
+                        <li>1. Backend sends placeholder data</li>
+                        <li>2. Frontend applies blur effect</li>
+                        <li>3. Lock icon overlays blurred text</li>
+                        <li>4. Upgrade prompt encourages action</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Interactive blur demo
+        const blurRange = document.getElementById('blurRange');
+        const blurDemo = document.getElementById('blurDemo');
+        
+        blurRange.addEventListener('input', function() {
+            const blurValue = this.value;
+            blurDemo.style.filter = `blur(${blurValue}px)`;
+            blurDemo.style.letterSpacing = `${blurValue * 0.5}px`;
+        });
+    </script>
+</body>
+</html>

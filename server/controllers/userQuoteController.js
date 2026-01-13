@@ -1,12 +1,6 @@
 // controllers/userQuoteController.js
 import db from '../config/db.js';
-import { 
-    sendQuoteResponseNotification, 
-    sendQuoteAcceptanceNotification, 
-    sendQuoteRejectionNotification,
-    sendStatusUpdateNotification,
-    sendUserAcceptanceThankYou
-} from '../services/emailService.js';
+import realTimeNotificationService from '../services/realTimeNotificationService.js';
 import {
     sendQuoteAcceptanceNotificationToCompany,
     sendQuoteRejectionNotificationToCompany,
@@ -17,6 +11,11 @@ import {
     sendQuoteRejectionMessage,
     sendStatusUpdateMessage
 } from '../services/messageService.js';
+import {
+    sendQuoteAcceptanceNotificationToAdmin,
+    sendQuoteRejectionNotificationToAdmin
+} from '../services/adminNotificationService.js';
+import { queueSubscriptionEmails } from '../services/emailQueue.js';
 
 // @desc    Get user's quotes with responses
 // @route   GET /api/user-quotes/my-quotes
@@ -100,6 +99,9 @@ const acceptQuoteResponse = async (req, res) => {
     }
 
     try {
+        // Start a transaction to prevent race conditions
+        await db.query('START TRANSACTION');
+
         // Verify the quote belongs to the user
         const [quoteRows] = await db.execute(
             'SELECT * FROM quotes WHERE id = ? AND user_id = ?',
@@ -107,16 +109,18 @@ const acceptQuoteResponse = async (req, res) => {
         );
 
         if (quoteRows.length === 0) {
+            await db.query('ROLLBACK');
             return res.status(404).json({ message: 'Quote not found or access denied' });
         }
 
-        // Check if user has already accepted any response for this quote
+        // Check if user has already accepted any response for this quote (with FOR UPDATE to prevent race conditions)
         const [acceptedResponses] = await db.execute(
-            'SELECT * FROM user_quote_status WHERE quote_id = ? AND user_id = ? AND status = "accepted"',
+            'SELECT * FROM user_quote_status WHERE quote_id = ? AND user_id = ? AND status = "accepted" FOR UPDATE',
             [quoteId, userId]
         );
 
         if (acceptedResponses.length > 0) {
+            await db.query('ROLLBACK');
             return res.status(400).json({ 
                 message: 'You have already accepted a quote for this request. Cannot accept multiple quotes.' 
             });
@@ -124,25 +128,64 @@ const acceptQuoteResponse = async (req, res) => {
 
         // Check if user has already responded to this specific quote response
         const [existingResponse] = await db.execute(
-            'SELECT * FROM user_quote_status WHERE quote_id = ? AND user_id = ? AND quote_response_id = ?',
+            'SELECT * FROM user_quote_status WHERE quote_id = ? AND user_id = ? AND quote_response_id = ? FOR UPDATE',
             [quoteId, userId, quoteResponseId]
         );
 
         if (existingResponse.length > 0) {
-            return res.status(400).json({ message: 'You have already responded to this quote' });
+            if (existingResponse[0].status === 'accepted') {
+                await db.query('ROLLBACK');
+                return res.status(400).json({ message: 'You have already accepted this quote' });
+            }
+            // Update existing record to accepted
+            await db.execute(
+                'UPDATE user_quote_status SET status = ?, accepted_at = NOW() WHERE quote_id = ? AND user_id = ? AND quote_response_id = ?',
+                ['accepted', quoteId, userId, quoteResponseId]
+            );
+        } else {
+            // Insert new acceptance record
+            await db.execute(
+                `INSERT INTO user_quote_status (quote_id, user_id, company_id, quote_response_id, status, accepted_at) 
+                 VALUES (?, ?, ?, ?, 'accepted', NOW())`,
+                [quoteId, userId, companyId, quoteResponseId]
+            );
         }
 
-        // Insert acceptance record
-        await db.execute(
-            `INSERT INTO user_quote_status (quote_id, user_id, company_id, quote_response_id, status, accepted_at) 
-             VALUES (?, ?, ?, ?, 'accepted', NOW())`,
-            [quoteId, userId, companyId, quoteResponseId]
+        // Check if this quote response has bank details (requires payment)
+        const [bankDetailsCheck] = await db.execute(
+            `SELECT cbd.id FROM quote_response_bank_details qrbd 
+             JOIN company_bank_details cbd ON qrbd.company_bank_details_id = cbd.id 
+             WHERE qrbd.quote_response_id = ?`,
+            [quoteResponseId]
         );
 
-        // Update quote status to 'running'
+        const requiresPayment = bankDetailsCheck.length > 0;
+
+        // If payment is required, check if payment proof has been uploaded and verified
+        let newQuoteStatus = 'approved'; // Default status
+        
+        if (requiresPayment) {
+            // Check if user has uploaded payment proof and it's been verified
+            const [paymentCheck] = await db.execute(
+                `SELECT pv.verification_status 
+                 FROM user_quote_status uqs
+                 LEFT JOIN payment_proofs pp ON uqs.payment_proof_id = pp.id
+                 LEFT JOIN payment_verifications pv ON pp.id = pv.payment_proof_id
+                 WHERE uqs.quote_id = ? AND uqs.user_id = ? AND uqs.quote_response_id = ?`,
+                [quoteId, userId, quoteResponseId]
+            );
+
+            if (paymentCheck.length > 0 && paymentCheck[0].verification_status === 'verified') {
+                newQuoteStatus = 'approved'; // Payment verified, can start work
+            } else {
+                newQuoteStatus = 'payment_pending'; // Waiting for payment verification
+            }
+        }
+
+        // Update quote status
         await db.execute(
             'UPDATE quotes SET status = ? WHERE id = ?',
-            ['running', quoteId]
+            [newQuoteStatus, quoteId]
         );
 
         // Update quote response status to 'accepted'
@@ -151,58 +194,117 @@ const acceptQuoteResponse = async (req, res) => {
             ['accepted', quoteResponseId]
         );
 
-        // Get company and user details for email notification
-        const [companyDetails] = await db.execute(
-            'SELECT name, email FROM users WHERE id = ?',
-            [companyId]
+        // Reject all other responses for this quote automatically
+        await db.execute(
+            `UPDATE user_quote_status 
+             SET status = 'rejected', rejected_at = NOW() 
+             WHERE quote_id = ? AND user_id = ? AND quote_response_id != ? AND status IS NULL`,
+            [quoteId, userId, quoteResponseId]
         );
 
-        const [userDetails] = await db.execute(
-            'SELECT name, email FROM users WHERE id = ?',
-            [userId]
+        // Update other quote responses status to 'rejected'
+        await db.execute(
+            `UPDATE quote_responses 
+             SET status = 'rejected' 
+             WHERE quote_id = ? AND id != ? AND status != 'accepted'`,
+            [quoteId, quoteResponseId]
         );
 
-        // Send email notifications
-        if (companyDetails.length > 0 && userDetails.length > 0) {
-            try {
-                // Send acceptance notification to company
-                await sendQuoteAcceptanceNotification(
-                    companyDetails[0].email,
-                    companyDetails[0].name,
-                    userDetails[0].name,
-                    quoteId
-                );
+        // Commit the transaction
+        await db.query('COMMIT');
 
-                // Send thank you email to user with company details
-                const [companyFullDetails] = await db.execute(
-                    'SELECT name, email, phone FROM users WHERE id = ?',
-                    [companyId]
-                );
+        // 🚀 SEND COMPREHENSIVE QUOTE ACCEPTANCE EMAILS (NON-BLOCKING)
+        try {
+          // Get complete quote, response, and user details for emails
+          const [fullQuoteDetails] = await db.execute(`
+            SELECT q.*, 
+                   qr.price, qr.transit_time, qr.inclusions, qr.value_added_services, 
+                   qr.valid_until, qr.terms, qr.notes,
+                   u.name as user_name, u.email as user_email, u.phone as user_phone, u.role as user_role,
+                   c.name as company_name, c.email as company_email, c.phone as company_phone, c.logo as company_logo
+            FROM quotes q
+            JOIN quote_responses qr ON qr.id = ?
+            JOIN users u ON q.user_id = u.id
+            JOIN users c ON qr.company_id = c.id
+            WHERE q.id = ?
+          `, [quoteResponseId, quoteId]);
 
-                if (companyFullDetails.length > 0) {
-                    await sendUserAcceptanceThankYou(
-                        userDetails[0].email,
-                        userDetails[0].name,
-                        quoteId,
-                        companyFullDetails[0].name,
-                        companyFullDetails[0].email,
-                        companyFullDetails[0].phone
-                    );
-                }
+          if (fullQuoteDetails.length > 0) {
+            const details = fullQuoteDetails[0];
+            
+            // Prepare acceptance data
+            const acceptanceData = {
+              quoteId: quoteId,
+              quoteResponseId: quoteResponseId,
+              userName: details.user_name,
+              userEmail: details.user_email,
+              userPhone: details.user_phone,
+              userRole: details.user_role,
+              companyName: details.company_name,
+              companyEmail: details.company_email,
+              companyPhone: details.company_phone,
+              companyLogo: details.company_logo,
+              acceptedPrice: details.price,
+              transitTime: details.transit_time,
+              acceptedAt: new Date().toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              }),
+              originalQuote: {
+                shippingMode: details.shipping_mode,
+                departureCountry: details.departure_country,
+                departureState: details.departure_state,
+                departureCity: details.departure_city,
+                arrivalCountry: details.arrival_country,
+                arrivalState: details.arrival_state,
+                arrivalCity: details.arrival_city,
+                productDescription: details.product_description,
+                arrivalDate: details.arrival_date,
+                weight: details.weight,
+                quantity: details.quantity,
+                packing: details.packing,
+                incoterms: details.incoterms,
+                type: details.type,
+                isStackable: details.is_stackable,
+                isHazardous: details.is_hazardous,
+                hasInsurance: details.has_insurance
+              },
+              acceptanceData: {
+                inclusions: details.inclusions,
+                valueAddedServices: details.value_added_services,
+                terms: details.terms,
+                notes: details.notes
+              }
+            };
 
-                // Send status update to user
-                await sendStatusUpdateNotification(
-                    userDetails[0].email,
-                    userDetails[0].name,
-                    quoteId,
-                    'running'
-                );
-            } catch (emailError) {
-                console.error('Error sending email notifications:', emailError);
-                // Don't fail the whole operation if email fails
-            }
+            // Queue acceptance email to company
+            queueSubscriptionEmails.quoteAcceptanceToCompany({
+              ...acceptanceData,
+              recipientEmail: details.company_email
+            }).then(jobId => {
+              console.log(`✅ Quote acceptance company email queued (Job ID: ${jobId})`);
+            }).catch(error => {
+              console.error('❌ Failed to queue quote acceptance company email:', error);
+            });
+
+            // Queue acceptance confirmation email to user
+            queueSubscriptionEmails.quoteAcceptanceToUser({
+              ...acceptanceData,
+              recipientEmail: details.user_email
+            }).then(jobId => {
+              console.log(`✅ Quote acceptance user email queued (Job ID: ${jobId})`);
+            }).catch(error => {
+              console.error('❌ Failed to queue quote acceptance user email:', error);
+            });
+          }
+
+        } catch (emailError) {
+          console.error('❌ Error processing quote acceptance emails:', emailError);
+          // Don't fail the acceptance if emails fail
         }
-
         // Send in-app notifications
         try {
             if (companyDetails.length > 0 && userDetails.length > 0) {
@@ -217,7 +319,7 @@ const acceptQuoteResponse = async (req, res) => {
                 await sendStatusUpdateNotificationToUser(
                     userId,
                     quoteId,
-                    'running'
+                    'approved'
                 );
             }
         } catch (notificationError) {
@@ -239,17 +341,65 @@ const acceptQuoteResponse = async (req, res) => {
                 await sendStatusUpdateMessage(
                     userId,
                     quoteId,
-                    'running'
+                    'approved'
                 );
+
+                // Create admin notification (not message) for quote acceptance
+                try {
+                    await sendQuoteAcceptanceNotificationToAdmin(
+                        userId,
+                        userDetails[0].name,
+                        companyId,
+                        companyDetails[0].name,
+                        quoteId,
+                        quoteRows[0].budget || 0
+                    );
+                    
+                    console.log(`Admin notification created for quote acceptance: ${quoteId}`);
+                } catch (notificationError) {
+                    console.error('Error creating admin notification:', notificationError);
+                    // Don't fail the whole operation if notification fails
+                }
             }
         } catch (messageError) {
             console.error('Error sending messages:', messageError);
             // Don't fail the whole operation if message fails
         }
 
+        // Send real-time notifications
+        try {
+            // Get all other companies that submitted quotes for this request
+            const [allResponses] = await db.execute(
+                'SELECT DISTINCT company_id FROM quote_responses WHERE quote_id = ? AND company_id != ?',
+                [quoteId, companyId]
+            );
+            
+            const rejectedCompanyIds = allResponses.map(row => row.company_id);
+
+            // Notify about quote acceptance
+            await realTimeNotificationService.notifyUserAcceptsQuote(
+                quoteId, 
+                companyId, 
+                rejectedCompanyIds
+            );
+
+            // Notify about quote status change
+            await realTimeNotificationService.notifyQuoteStatusChange(
+                quoteId, 
+                'approved', 
+                'user',
+                { accepted_by: userDetails[0].name }
+            );
+        } catch (realtimeError) {
+            console.error('Error sending real-time notifications:', realtimeError);
+            // Don't fail the whole operation if real-time notification fails
+        }
+
         res.status(200).json({ message: 'Quote response accepted successfully' });
 
     } catch (error) {
+        // Rollback transaction on error
+        await db.query('ROLLBACK');
         console.error('Error accepting quote response:', error);
         res.status(500).json({ message: 'Server error accepting quote response' });
     }
@@ -432,9 +582,9 @@ const updateQuoteStatus = async (req, res) => {
     const { status } = req.body;
     const userId = req.user.id;
 
-    const validStatuses = ['pending', 'running', 'closed'];
+    const validStatuses = ['pending', 'approved', 'rejected', 'running', 'closed'];
     if (!validStatuses.includes(status)) {
-        return res.status(400).json({ message: 'Invalid status. Valid statuses: pending, running, closed' });
+        return res.status(400).json({ message: 'Invalid status. Valid statuses: pending, approved, rejected, running, closed' });
     }
 
     try {

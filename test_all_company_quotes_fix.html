@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test AllCompanyQuotesList Fix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 AllCompanyQuotesList Component Fix Test</h1>
+        <p>Testing the fixes for displaying company name, email, and price in the AllCompanyQuotesList component</p>
+        
+        <div class="test-section info">
+            <h3>📋 Changes Made</h3>
+            <ul>
+                <li>✅ Simplified API fetching logic (removed complex fallback)</li>
+                <li>✅ Cleaned up company name and email display logic</li>
+                <li>✅ Simplified price display logic</li>
+                <li>✅ Added company name and email to search functionality</li>
+                <li>✅ Removed excessive console logging</li>
+                <li>✅ Removed unused imports (FiEdit)</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 API Test</h3>
+            <button onclick="testAPI()">Test Admin Quotes API</button>
+            <div id="apiResults"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🎯 Expected Behavior</h3>
+            <p><strong>Company Column should show:</strong></p>
+            <ul>
+                <li>Company name in blue text</li>
+                <li>Company email in gray text below name</li>
+                <li>Acceptance date if available</li>
+                <li>"No company assigned" for quotes without accepted responses</li>
+            </ul>
+            
+            <p><strong>Price Column should show:</strong></p>
+            <ul>
+                <li>Accepted price in green bold text</li>
+                <li>Transit time in small gray text</li>
+                <li>Payment status badge</li>
+                <li>Verification date if available</li>
+                <li>"No accepted quote" for quotes without accepted responses</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>🔗 Test Links</h3>
+            <button onclick="window.open('http://localhost:5173/admin/all-company-quotes', '_blank')">
+                🔗 Open AllCompanyQuotesList Page
+            </button>
+            <button onclick="window.open('http://localhost:5173/company/my-quotes', '_blank')">
+                🔗 Compare with Company My Quotes
+            </button>
+        </div>
+
+        <div class="test-section">
+            <h3>✅ Verification Checklist</h3>
+            <div id="checklist">
+                <label><input type="checkbox"> Company names are visible in the "Working Company" column</label><br>
+                <label><input type="checkbox"> Company emails are displayed below company names</label><br>
+                <label><input type="checkbox"> Accepted prices are shown in green bold text</label><br>
+                <label><input type="checkbox"> Transit times are displayed below prices</label><br>
+                <label><input type="checkbox"> Payment status badges are working correctly</label><br>
+                <label><input type="checkbox"> Search includes company names and emails</label><br>
+                <label><input type="checkbox"> "No company assigned" shows for unaccepted quotes</label><br>
+                <label><input type="checkbox"> "No accepted quote" shows for quotes without accepted responses</label><br>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:5000';
+
+        async function testAPI() {
+            const resultsDiv = document.getElementById('apiResults');
+            resultsDiv.innerHTML = '<p>🔄 Testing API...</p>';
+
+            try {
+                // First try to login as admin
+                const loginResponse = await fetch(`${BASE_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@gmail.com',
+                        password: 'admin123'
+                    })
+                });
+
+                if (!loginResponse.ok) {
+                    throw new Error(`Login failed: ${loginResponse.status}`);
+                }
+
+                const loginData = await loginResponse.json();
+                const token = loginData.token;
+
+                // Now test the quotes API
+                const response = await fetch(`${BASE_URL}/api/admin-panel/quotes`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const quotes = await response.json();
+                
+                let html = `
+                    <div style="margin-top: 15px;">
+                        <h4>✅ API Response Success</h4>
+                        <p><strong>Total Quotes:</strong> ${quotes.length}</p>
+                `;
+
+                if (quotes.length > 0) {
+                    const quotesWithCompany = quotes.filter(q => q.company_name && q.company_name !== 'null');
+                    const quotesWithPrice = quotes.filter(q => q.accepted_price && q.accepted_price !== 'null');
+                    
+                    html += `
+                        <p><strong>Quotes with company:</strong> ${quotesWithCompany.length}</p>
+                        <p><strong>Quotes with accepted price:</strong> ${quotesWithPrice.length}</p>
+                        
+                        <h5>Sample Quote Data:</h5>
+                        <pre>${JSON.stringify({
+                            id: quotes[0].id,
+                            user_name: quotes[0].user_name,
+                            user_email: quotes[0].user_email,
+                            company_name: quotes[0].company_name || 'null',
+                            company_email: quotes[0].company_email || 'null',
+                            accepted_price: quotes[0].accepted_price || 'null',
+                            accepted_transit_time: quotes[0].accepted_transit_time || 'null',
+                            payment_status: quotes[0].payment_status || 'null',
+                            response_count: quotes[0].response_count,
+                            accepted_count: quotes[0].accepted_count,
+                            status: quotes[0].status
+                        }, null, 2)}</pre>
+                    `;
+                } else {
+                    html += '<p>No quotes found</p>';
+                }
+
+                html += '</div>';
+                resultsDiv.innerHTML = html;
+
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div style="margin-top: 15px; color: #dc3545;">
+                        <h4>❌ API Test Failed</h4>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <p>Make sure the server is running on port 5000</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

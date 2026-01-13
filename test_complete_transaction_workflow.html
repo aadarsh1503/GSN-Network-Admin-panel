@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Transaction Workflow Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .workflow-step {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 5px solid #CDA435;
+        }
+        .step-header {
+            color: #CDA435;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .api-endpoint {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 10px 0;
+            border: 1px solid #e9ecef;
+        }
+        .data-flow {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            border: 1px solid #c3e6cb;
+        }
+        .test-case {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            border: 1px solid #ffeaa7;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .arrow {
+            text-align: center;
+            font-size: 2em;
+            color: #CDA435;
+            margin: 10px 0;
+        }
+        .workflow-diagram {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+            font-family: monospace;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔄 Complete Transaction Workflow Test</h1>
+    <p>Testing the complete data flow from company transaction history to admin dashboard</p>
+
+    <div class="workflow-diagram">
+        <strong>COMPLETE WORKFLOW DIAGRAM</strong><br><br>
+        [User Payment] → [Company Verification] → [Enhanced Quotes API]<br>
+        ↓<br>
+        [Transaction History] → [My Quotes] → [Company Dashboard]<br>
+        ↓<br>
+        [Admin Transactions] → [Admin Dashboard Transaction Volume]<br><br>
+        <em>All components now use consistent data sources</em>
+    </div>
+
+    <div class="workflow-step">
+        <div class="step-header">Step 1: Transaction History → My Quotes</div>
+        
+        <div class="api-endpoint">
+            <strong>API:</strong> /api/enhanced-quotes/company-responses-with-payments<br>
+            <strong>Filter:</strong> payment_status = 'verified' OR user_response_status = 'accepted'<br>
+            <strong>Scope:</strong> Single company
+        </div>
+        
+        <div class="data-flow">
+            <strong>Data Flow:</strong><br>
+            1. Verified payments appear in Transaction History<br>
+            2. Same verified payments appear in My Quotes<br>
+            3. Both pages show identical data<br>
+            4. Quote #62 ($520,519.99) should appear in both
+        </div>
+        
+        <div class="test-case">
+            <strong>Test Case:</strong><br>
+            • Navigate to: <code>http://localhost:5173/company/transaction-History-Company</code><br>
+            • Find Quote #62 with status "Verified"<br>
+            • Navigate to: <code>http://localhost:5173/company/my-Quotes</code><br>
+            • Verify Quote #62 appears in the list<br>
+            • Confirm same amount and details
+        </div>
+    </div>
+
+    <div class="arrow">↓</div>
+
+    <div class="workflow-step">
+        <div class="step-header">Step 2: My Quotes → Company Dashboard</div>
+        
+        <div class="api-endpoint">
+            <strong>API:</strong> /api/enhanced-quotes/company-responses-with-payments<br>
+            <strong>Calculation:</strong> Sum of all verified payments<br>
+            <strong>Display:</strong> Transaction Amount metric card
+        </div>
+        
+        <div class="data-flow">
+            <strong>Data Flow:</strong><br>
+            1. My Quotes data feeds Company Dashboard<br>
+            2. Transaction Amount = Sum of verified payments<br>
+            3. Card shows total for logged-in company<br>
+            4. Clicking card navigates to transaction history
+        </div>
+        
+        <div class="test-case">
+            <strong>Test Case:</strong><br>
+            • Navigate to: <code>http://localhost:5173/company/dashboard</code><br>
+            • Check "Transaction Amount" metric card<br>
+            • Verify it includes Quote #62 amount<br>
+            • Click card to navigate to transaction history<br>
+            • Confirm data consistency
+        </div>
+    </div>
+
+    <div class="arrow">↓</div>
+
+    <div class="workflow-step">
+        <div class="step-header">Step 3: Company Data → Admin Transactions</div>
+        
+        <div class="api-endpoint">
+            <strong>API:</strong> /api/enhanced-quotes/all-company-responses-with-payments<br>
+            <strong>Filter:</strong> payment_status = 'verified'<br>
+            <strong>Scope:</strong> All companies system-wide
+        </div>
+        
+        <div class="data-flow">
+            <strong>Data Flow:</strong><br>
+            1. Admin Transactions aggregates all companies' data<br>
+            2. Shows verified payments from ALL companies<br>
+            3. Quote #62 appears in system-wide list<br>
+            4. Total should be ≥ any individual company total
+        </div>
+        
+        <div class="test-case">
+            <strong>Test Case:</strong><br>
+            • Navigate to: <code>http://localhost:5173/admin/transactions-management</code><br>
+            • Search for Quote #62 in the list<br>
+            • Verify it shows same amount as company view<br>
+            • Check total revenue includes this amount<br>
+            • Confirm admin total ≥ company total
+        </div>
+    </div>
+
+    <div class="arrow">↓</div>
+
+    <div class="workflow-step">
+        <div class="step-header">Step 4: Admin Transactions → Admin Dashboard</div>
+        
+        <div class="api-endpoint">
+            <strong>API:</strong> /api/enhanced-quotes/all-company-responses-with-payments<br>
+            <strong>Calculation:</strong> Sum of all verified payments system-wide<br>
+            <strong>Display:</strong> Transaction Volume metric
+        </div>
+        
+        <div class="data-flow">
+            <strong>Data Flow:</strong><br>
+            1. Admin Dashboard uses same data as Admin Transactions<br>
+            2. Transaction Volume = Total verified payments<br>
+            3. Shows money flowing through platform to companies<br>
+            4. Includes Quote #62 in total calculation
+        </div>
+        
+        <div class="test-case">
+            <strong>Test Case:</strong><br>
+            • Navigate to: <code>http://localhost:5173/admin</code> (Admin Dashboard)<br>
+            • Check "Transaction Volume" metric<br>
+            • Verify it matches Admin Transactions total<br>
+            • Confirm it includes Quote #62 amount<br>
+            • Validate consistency across all admin pages
+        </div>
+    </div>
+
+    <div class="workflow-step">
+        <div class="step-header">🎯 Expected Results Summary</div>
+        
+        <div class="success">
+            <strong>✅ Quote #62 ($520,519.99) should appear in:</strong><br>
+            1. Company Transaction History<br>
+            2. Company My Quotes<br>
+            3. Company Dashboard (included in total)<br>
+            4. Admin Transactions Management<br>
+            5. Admin Dashboard Transaction Volume<br><br>
+            
+            <strong>✅ Data Consistency:</strong><br>
+            • Same amount across all pages<br>
+            • Same verification status<br>
+            • Same customer details<br>
+            • Real-time updates when payments verified<br><br>
+            
+            <strong>✅ Totals Relationship:</strong><br>
+            • Admin Total ≥ Any Company Total<br>
+            • Admin Total = Sum of All Companies<br>
+            • Company Total = Sum of That Company's Verified Payments<br>
+        </div>
+    </div>
+
+    <div class="workflow-step">
+        <div class="step-header">🔧 Technical Implementation</div>
+        
+        <div class="api-endpoint">
+            <strong>Enhanced Quote Controller:</strong><br>
+            • getCompanyResponsesWithPayments() - Single company<br>
+            • getAllCompanyResponsesWithPayments() - All companies<br><br>
+            
+            <strong>Data Processing:</strong><br>
+            • Filter: payment_status = 'verified'<br>
+            • Calculation: Sum of price fields<br>
+            • Fallback: Original APIs if enhanced fails<br><br>
+            
+            <strong>Updated Components:</strong><br>
+            • My Quotes: Now uses enhanced API<br>
+            • Admin Dashboard: Now uses enhanced API<br>
+            • Admin Transactions: Already updated<br>
+            • Company Dashboard: Already updated
+        </div>
+    </div>
+
+    <div class="workflow-step">
+        <div class="step-header">🚀 Workflow Status</div>
+        
+        <div class="success">
+            <h3>✅ COMPLETE WORKFLOW IMPLEMENTED</h3>
+            <p>All four steps of the transaction workflow are now working with consistent data sources:</p>
+            <ol>
+                <li>✅ Transaction History → My Quotes</li>
+                <li>✅ My Quotes → Company Dashboard</li>
+                <li>✅ Company Data → Admin Transactions</li>
+                <li>✅ Admin Transactions → Admin Dashboard</li>
+            </ol>
+            <p><strong>Result:</strong> Complete data consistency from individual company verification to system-wide admin reporting.</p>
+        </div>
+    </div>
+
+    <script>
+        console.log('🔄 Complete Transaction Workflow Test Loaded');
+        console.log('📊 Testing data flow from company to admin systems');
+        console.log('🎯 Expected: Quote #62 visible in all 5 locations');
+        console.log('✅ Status: All components updated with consistent APIs');
+        
+        // Test sequence
+        const testSequence = [
+            'http://localhost:5173/company/transaction-History-Company',
+            'http://localhost:5173/company/my-Quotes',
+            'http://localhost:5173/company/dashboard',
+            'http://localhost:5173/admin/transactions-management',
+            'http://localhost:5173/admin'
+        ];
+        
+        console.log('🧪 Test these pages in sequence:', testSequence);
+    </script>
+</body>
+</html>

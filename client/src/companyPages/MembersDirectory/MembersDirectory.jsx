@@ -4,7 +4,7 @@ import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import CompanyProfile from './CompanyProfile';
 
-const MemberCard = ({ member, onViewProfile, onAddToWishlist }) => (
+const MemberCard = ({ member, onViewProfile, onAddToWishlist, isLoading, loadingId }) => (
   <div className="bg-white rounded-lg shadow-md overflow-hidden">
     <div className="relative h-48 bg-gradient-to-br from-[#CDA435] to-[#8B7355]">
       {member.logo ? (
@@ -39,9 +39,14 @@ const MemberCard = ({ member, onViewProfile, onAddToWishlist }) => (
           )}
           <button 
             onClick={() => onViewProfile(member)}
-            className="h-8 w-8 flex items-center justify-center border-2 border-[#D9B95B] text-[#D9B95B] rounded-full hover:bg-yellow-50"
+            disabled={isLoading && loadingId === member.id}
+            className="h-8 w-8 flex items-center justify-center border-2 border-[#D9B95B] text-[#D9B95B] rounded-full hover:bg-yellow-50 disabled:opacity-50 disabled:cursor-not-allowed relative"
           >
-            <FiEye />
+            {isLoading && loadingId === member.id ? (
+              <div className="w-4 h-4 border-2 border-[#D9B95B] border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              <FiEye />
+            )}
           </button>
           <button 
             onClick={() => onAddToWishlist(member.id)}
@@ -72,6 +77,8 @@ const MembersDirectory = () => {
   const [selectedMember, setSelectedMember] = useState(null);
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [loadingProfileId, setLoadingProfileId] = useState(null);
   const [filters, setFilters] = useState({ categories: [], countries: [] });
   const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1, totalCompanies: 0 });
   
@@ -119,12 +126,17 @@ const MembersDirectory = () => {
   };
 
   const handleViewProfile = async (member) => {
+    setProfileLoading(true);
+    setLoadingProfileId(member.id);
     try {
       const data = await api.get(`/api/directory/company/${member.id}`);
       setSelectedMember(data);
       setCurrentView('profile');
     } catch (error) {
       toast.error('Error loading company profile');
+    } finally {
+      setProfileLoading(false);
+      setLoadingProfileId(null);
     }
   };
 
@@ -147,7 +159,7 @@ const MembersDirectory = () => {
   }
 
   return (
-    <div className="bg-gray-50 mt-32 p-4 sm:p-6 lg:p-8 min-h-screen">
+    <div className="bg-gray-50  p-4 sm:p-6 lg:p-8 min-h-screen">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">Members Directory</h1>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -207,6 +219,8 @@ const MembersDirectory = () => {
                     member={member} 
                     onViewProfile={handleViewProfile}
                     onAddToWishlist={handleAddToWishlist}
+                    isLoading={profileLoading}
+                    loadingId={loadingProfileId}
                   />
                 ))}
               </div>

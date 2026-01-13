@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test User Invoices API</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; background: #f9f9f9; }
+        .error { background: #ffebee; border-color: #f44336; }
+        .success { background: #e8f5e8; border-color: #4caf50; }
+        button { padding: 10px 20px; margin: 5px; background: #2196f3; color: white; border: none; cursor: pointer; }
+        pre { background: #f5f5f5; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Test User Transaction Invoices API</h1>
+    
+    <div>
+        <h3>Login as User</h3>
+        <input type="email" id="email" placeholder="Enter email" value="subodhchauhan1309@gmail.com">
+        <input type="password" id="password" placeholder="Enter password" value="222333">
+        <button onclick="login()">Login</button>
+    </div>
+    
+    <div>
+        <h3>Test APIs</h3>
+        <button onclick="testUserInvoices()">Test User Invoices API</button>
+        <button onclick="testBusinessInvoices()">Test Business Invoices API</button>
+    </div>
+    
+    <div id="results"></div>
+
+    <script>
+        let authToken = '';
+        const results = document.getElementById('results');
+        
+        function addResult(message, isError = false) {
+            const div = document.createElement('div');
+            div.className = `result ${isError ? 'error' : 'success'}`;
+            div.innerHTML = message;
+            results.appendChild(div);
+        }
+        
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/users/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    authToken = data.token;
+                    addResult(`✅ Login successful! User: ${data.user.name} (${data.user.role})`);
+                } else {
+                    const error = await response.text();
+                    addResult(`❌ Login failed: ${error}`, true);
+                }
+            } catch (error) {
+                addResult(`❌ Login error: ${error.message}`, true);
+            }
+        }
+        
+        async function testUserInvoices() {
+            if (!authToken) {
+                addResult('❌ Please login first', true);
+                return;
+            }
+            
+            try {
+                addResult('🔍 Testing User Transaction Invoices API...');
+                
+                const response = await fetch('http://localhost:5000/api/user/transaction-invoices', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                addResult(`📊 User API Status: ${response.status}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult(`✅ User Invoices Found: ${data.length}`);
+                    if (data.length > 0) {
+                        addResult(`<pre>${JSON.stringify(data, null, 2)}</pre>`);
+                    }
+                } else {
+                    const error = await response.text();
+                    addResult(`❌ User API Error: ${error}`, true);
+                }
+            } catch (error) {
+                addResult(`❌ Network error: ${error.message}`, true);
+            }
+        }
+        
+        async function testBusinessInvoices() {
+            if (!authToken) {
+                addResult('❌ Please login first', true);
+                return;
+            }
+            
+            try {
+                addResult('🔍 Testing Business Transaction Invoices API...');
+                
+                const response = await fetch('http://localhost:5000/api/business/transaction-invoices', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                addResult(`📊 Business API Status: ${response.status}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult(`✅ Business Invoices Found: ${data.length}`);
+                    if (data.length > 0) {
+                        addResult(`<pre>${JSON.stringify(data, null, 2)}</pre>`);
+                    }
+                } else {
+                    const error = await response.text();
+                    addResult(`❌ Business API Error: ${error}`, true);
+                }
+            } catch (error) {
+                addResult(`❌ Network error: ${error.message}`, true);
+            }
+        }
+    </script>
+</body>
+</html>

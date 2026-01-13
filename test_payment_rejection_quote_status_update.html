@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Rejection → Quote Status Update Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .panel {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .panel h2 {
+            color: #333;
+            margin-top: 0;
+            border-bottom: 2px solid #CDA435;
+            padding-bottom: 10px;
+        }
+        .status-flow {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .flow-step {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #CDA435;
+        }
+        .flow-step.current {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+        }
+        .flow-step.completed {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+        .flow-step.rejected {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+        }
+        .step-number {
+            background: #CDA435;
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        .step-number.completed {
+            background: #28a745;
+        }
+        .step-number.rejected {
+            background: #dc3545;
+        }
+        .instructions {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .instructions h3 {
+            color: #1976d2;
+            margin-top: 0;
+        }
+        .test-scenario {
+            background: #fff3e0;
+            border: 1px solid #ff9800;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-scenario h4 {
+            color: #f57c00;
+            margin-top: 0;
+        }
+        .expected-results {
+            background: #e8f5e9;
+            border: 1px solid #4caf50;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .expected-results h4 {
+            color: #2e7d32;
+            margin-top: 0;
+        }
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 14px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-approved { background: #d4edda; color: #155724; }
+        .status-rejected { background: #f8d7da; color: #721c24; }
+        .status-running { background: #cce5ff; color: #004085; }
+        .arrow {
+            font-size: 24px;
+            color: #CDA435;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔄 Payment Rejection → Quote Status Update Test</h1>
+    
+    <div class="instructions">
+        <h3>📋 Test Objective</h3>
+        <p>Verify that when a company rejects a payment from the Payment Management page, the quote status is automatically updated to "rejected" and this change is reflected on the My Quotes page.</p>
+        
+        <h4>🎯 Expected Behavior:</h4>
+        <ul>
+            <li>Payment rejection on <code>http://localhost:5173/company/payment-management</code></li>
+            <li>Quote status automatically changes from "pending" to <span class="status-badge status-rejected">rejected</span></li>
+            <li>Status change appears on <code>http://localhost:5173/company/my-Quotes</code></li>
+            <li>Admin notification is created</li>
+            <li>Customer receives rejection email</li>
+        </ul>
+    </div>
+
+    <div class="container">
+        <div class="panel">
+            <h2>🏢 Payment Management Page</h2>
+            <p><strong>URL:</strong> <code>http://localhost:5173/company/payment-management</code></p>
+            
+            <div class="test-scenario">
+                <h4>Test Scenario:</h4>
+                <ol>
+                    <li>Navigate to Payment Management page</li>
+                    <li>Find a quote with pending payment verification</li>
+                    <li>Click "Review Payment" button</li>
+                    <li>Click "Reject Payment" button</li>
+                    <li>Provide rejection reason</li>
+                    <li>Confirm rejection</li>
+                </ol>
+            </div>
+
+            <div class="status-flow">
+                <h4>Payment Rejection Flow:</h4>
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div>
+                        <strong>Payment Uploaded</strong><br>
+                        <small>Customer uploads payment proof</small>
+                    </div>
+                </div>
+                <div class="flow-step current">
+                    <div class="step-number">2</div>
+                    <div>
+                        <strong>Company Reviews</strong><br>
+                        <small>Company accesses Payment Management</small>
+                    </div>
+                </div>
+                <div class="flow-step rejected">
+                    <div class="step-number rejected">3</div>
+                    <div>
+                        <strong>Payment Rejected</strong><br>
+                        <small>Company rejects payment with reason</small>
+                    </div>
+                </div>
+                <div class="flow-step rejected">
+                    <div class="step-number rejected">4</div>
+                    <div>
+                        <strong>Quote Status Updated</strong><br>
+                        <small>Quote status → "rejected"</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>📋 My Quotes Page</h2>
+            <p><strong>URL:</strong> <code>http://localhost:5173/company/my-Quotes</code></p>
+            
+            <div class="expected-results">
+                <h4>Expected Results:</h4>
+                <ul>
+                    <li>Quote status badge shows <span class="status-badge status-rejected">rejected</span></li>
+                    <li>Status dropdown reflects "rejected" selection</li>
+                    <li>Payment status shows "Payment Rejected"</li>
+                    <li>Last updated timestamp is current</li>
+                    <li>Real-time sync updates (if implemented)</li>
+                </ul>
+            </div>
+
+            <div class="status-flow">
+                <h4>Status Synchronization:</h4>
+                <div style="display: flex; align-items: center; justify-content: center; margin: 20px 0;">
+                    <span class="status-badge status-pending">pending</span>
+                    <span class="arrow">→</span>
+                    <span class="status-badge status-rejected">rejected</span>
+                </div>
+                <p style="text-align: center; color: #666; font-size: 14px;">
+                    Automatic status update via payment rejection
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>🔧 Implementation Details</h2>
+        
+        <h3>Backend Changes Made:</h3>
+        <div class="code-block">
+// In server/routes/paymentRoutes.js - verify-enhanced endpoint
+
+if (verification_status === 'verified') {
+  await db.execute(
+    'UPDATE quotes SET status = ? WHERE id = ?',
+    ['approved', verification.quote_id]
+  );
+} else if (verification_status === 'rejected') {
+  // <span class="highlight">NEW: Update quote status to rejected</span>
+  await db.execute(
+    'UPDATE quotes SET status = ? WHERE id = ?',
+    ['rejected', verification.quote_id]
+  );
+
+  // <span class="highlight">NEW: Create admin notification</span>
+  await db.execute(`
+    INSERT INTO admin_notifications (type, title, message, user_id, created_at, is_read)
+    VALUES (?, ?, ?, ?, NOW(), 0)
+  `, [
+    'quote',
+    'Quote Status Updated - Payment Rejected',
+    detailedMessage,
+    verification.user_id
+  ]);
+}
+        </div>
+
+        <h3>Database Updates:</h3>
+        <ul>
+            <li>✅ <code>quotes.status</code> → "rejected" when payment is rejected</li>
+            <li>✅ <code>payment_verifications.verification_status</code> → "rejected"</li>
+            <li>✅ <code>user_quote_status.payment_verification_status</code> → "rejected"</li>
+            <li>✅ <code>admin_notifications</code> → New notification created</li>
+        </ul>
+
+        <h3>Email Notifications:</h3>
+        <ul>
+            <li>✅ Customer receives payment rejection email</li>
+            <li>✅ Company receives confirmation email</li>
+            <li>✅ Admin receives notification email</li>
+            <li>✅ All emails include rejection reason</li>
+        </ul>
+    </div>
+
+    <div class="panel">
+        <h2>🧪 Testing Checklist</h2>
+        
+        <h3>Pre-Test Setup:</h3>
+        <ul>
+            <li>□ Ensure you have a quote with uploaded payment proof</li>
+            <li>□ Quote should be in "pending" status</li>
+            <li>□ Payment should be in "pending" verification status</li>
+            <li>□ Both pages should be accessible</li>
+        </ul>
+
+        <h3>Test Steps:</h3>
+        <ol>
+            <li>□ Open Payment Management page</li>
+            <li>□ Locate quote with pending payment</li>
+            <li>□ Click "Review Payment" button</li>
+            <li>□ Verify payment details are displayed correctly</li>
+            <li>□ Click "Reject Payment" button</li>
+            <li>□ Enter rejection reason in modal</li>
+            <li>□ Click "Confirm Rejection"</li>
+            <li>□ Verify success message appears</li>
+            <li>□ Navigate to My Quotes page</li>
+            <li>□ Verify quote status shows "rejected"</li>
+            <li>□ Verify payment status shows "Payment Rejected"</li>
+            <li>□ Check admin panel for new notification</li>
+        </ol>
+
+        <h3>Verification Points:</h3>
+        <ul>
+            <li>□ Quote status badge is red and shows "Rejected"</li>
+            <li>□ Status dropdown shows "rejected" as selected</li>
+            <li>□ Payment status badge shows rejection</li>
+            <li>□ Timestamps are updated</li>
+            <li>□ Admin notification was created</li>
+            <li>□ Customer received rejection email</li>
+            <li>□ Real-time sync works (if applicable)</li>
+        </ul>
+
+        <h3>Edge Cases to Test:</h3>
+        <ul>
+            <li>□ Reject payment without providing reason</li>
+            <li>□ Cancel rejection and verify no changes</li>
+            <li>□ Reject already rejected payment</li>
+            <li>□ Network interruption during rejection</li>
+            <li>□ Multiple companies rejecting same quote</li>
+        </ul>
+    </div>
+
+    <div class="panel">
+        <h2>🎯 Success Criteria</h2>
+        
+        <div class="expected-results">
+            <h4>✅ Test Passes If:</h4>
+            <ul>
+                <li><strong>Payment Rejection:</strong> Company can successfully reject payment with reason</li>
+                <li><strong>Status Update:</strong> Quote status automatically changes to "rejected"</li>
+                <li><strong>UI Synchronization:</strong> My Quotes page reflects the status change</li>
+                <li><strong>Notifications:</strong> Admin notification is created</li>
+                <li><strong>Email Alerts:</strong> All parties receive appropriate emails</li>
+                <li><strong>Data Consistency:</strong> All database tables are updated correctly</li>
+                <li><strong>User Experience:</strong> Clear feedback and error handling</li>
+            </ul>
+        </div>
+
+        <div class="test-scenario">
+            <h4>⚠️ Test Fails If:</h4>
+            <ul>
+                <li>Quote status remains "pending" after payment rejection</li>
+                <li>My Quotes page doesn't show updated status</li>
+                <li>No admin notification is created</li>
+                <li>Emails are not sent or contain incorrect information</li>
+                <li>Database inconsistencies occur</li>
+                <li>Error messages are unclear or missing</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Add some interactive elements for testing
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click handlers to checklist items
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const listItem = this.closest('li');
+                    if (this.checked) {
+                        listItem.style.textDecoration = 'line-through';
+                        listItem.style.opacity = '0.7';
+                    } else {
+                        listItem.style.textDecoration = 'none';
+                        listItem.style.opacity = '1';
+                    }
+                });
+            });
+
+            // Add timestamp
+            const timestamp = document.createElement('div');
+            timestamp.style.cssText = 'position: fixed; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px;';
+            timestamp.textContent = `Test Page Generated: ${new Date().toLocaleString()}`;
+            document.body.appendChild(timestamp);
+        });
+    </script>
+</body>
+</html>

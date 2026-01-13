@@ -221,6 +221,10 @@ const CompanyProfileDetail = () => {
     website: '',
     location: '',
     country: '',
+    coordinates: {
+      latitude: null,
+      longitude: null
+    },
     isGuest: true,
     about: '',
     contactPerson: {
@@ -258,6 +262,10 @@ const CompanyProfileDetail = () => {
           website: companyProfile.website || '#',
           location: `${companyProfile.country || ''}${companyProfile.state ? `, ${companyProfile.state}` : ''}${companyProfile.city ? `, ${companyProfile.city}` : ''}`,
           country: companyProfile.country || '',
+          coordinates: {
+            latitude: companyProfile.latitude || null,
+            longitude: companyProfile.longitude || null
+          },
           isGuest: subscriptionData.is_guest || false, // Use actual subscription status
           subscriptionPlan: subscriptionData.plan_name || 'Guest Member', // Show actual plan name
           about: companyProfile.about_company || 'No company description available.',
@@ -280,6 +288,14 @@ const CompanyProfileDetail = () => {
         };
 
         setCompanyData(transformedData);
+        
+        // Debug log the coordinates data
+        console.log('Company coordinates data:', {
+          latitude: transformedData.coordinates.latitude,
+          longitude: transformedData.coordinates.longitude,
+          mapLocation: transformedData.mapLocation,
+          shouldShowMap: !!(transformedData.coordinates.latitude && transformedData.coordinates.longitude)
+        });
       } catch (err) {
         console.error('Error fetching company data:', err);
         setError('Failed to load company profile');
@@ -369,6 +385,15 @@ const CompanyProfileDetail = () => {
                     <FiMapPin className="mr-2 text-yellow-600" /> 
                     {companyData.location}
                   </p>
+                  {companyData.coordinates.latitude && companyData.coordinates.longitude && (
+                    <p className="flex items-center text-sm text-blue-600">
+                      <svg className="mr-2 w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      GPS: {parseFloat(companyData.coordinates.latitude).toFixed(4)}, {parseFloat(companyData.coordinates.longitude).toFixed(4)}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -424,8 +449,110 @@ const CompanyProfileDetail = () => {
               </div>
             )}
 
-            {/* Google Maps Location Card */}
-            {companyData.mapLocation && (
+            {/* Interactive Google Map using Coordinates */}
+            {companyData.coordinates.latitude && companyData.coordinates.longitude && (
+              <div className="bg-white p-8 rounded-lg shadow-md">
+                <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                  <FiMapPin className="mr-3 text-blue-600" />
+                  Our Location
+                </h3>
+                
+                {/* Coordinates Info Bar */}
+                <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center space-x-4">
+                      <div className="text-sm">
+                        <span className="font-medium text-blue-800">Coordinates:</span>
+                        <span className="ml-2 font-mono text-blue-700">
+                          {parseFloat(companyData.coordinates.latitude).toFixed(6)}, {parseFloat(companyData.coordinates.longitude).toFixed(6)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${companyData.coordinates.latitude}, ${companyData.coordinates.longitude}`);
+                        }}
+                        className="inline-flex items-center px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors duration-200"
+                      >
+                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        Copy
+                      </button>
+                      <a
+                        href={`https://www.google.com/maps?q=${companyData.coordinates.latitude},${companyData.coordinates.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors duration-200"
+                      >
+                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        Open
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Interactive Google Map */}
+                <div className="w-full h-96 rounded-lg overflow-hidden border border-gray-200 shadow-sm bg-gray-100">
+                  <iframe
+                    src={`https://maps.google.com/maps?q=${companyData.coordinates.latitude},${companyData.coordinates.longitude}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    allowFullScreen=""
+                    loading="eager"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Company Location Map"
+                  ></iframe>
+                </div>
+
+                {/* Map Controls */}
+                <div className="mt-4 flex flex-wrap gap-3 justify-center">
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${companyData.coordinates.latitude},${companyData.coordinates.longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m-6 3l6-3" />
+                    </svg>
+                    Get Directions
+                  </a>
+                  <a
+                    href={`https://www.google.com/maps/@${companyData.coordinates.latitude},${companyData.coordinates.longitude},18z`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    Street View
+                  </a>
+                  {/* <button
+                    onClick={() => {
+                      const mapUrl = `https://www.google.com/maps?q=${companyData.coordinates.latitude},${companyData.coordinates.longitude}`;
+                      navigator.share ? 
+                        navigator.share({ title: 'Company Location', url: mapUrl }) :
+                        navigator.clipboard.writeText(mapUrl);
+                    }}
+                    className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                    </svg>
+                    Share Location
+                  </button> */}
+                </div>
+              </div>
+            )}
+
+            {/* Google Maps Location Card - Only show if mapLocation exists and no coordinates */}
+            {companyData.mapLocation && !companyData.coordinates.latitude && !companyData.coordinates.longitude && (
               <div className="bg-white p-8 rounded-lg shadow-md">
                 <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
                   <FiMapPin className="mr-3 text-yellow-600" />

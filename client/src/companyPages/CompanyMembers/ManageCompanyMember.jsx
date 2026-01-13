@@ -133,7 +133,7 @@ const ManageCompanyMember = () => {
   );
 
   // CSS classes for Edit Modal inputs
-  const inputClasses = "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-amber-500 text-sm";
+  const inputClasses = "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#CDA435] text-sm";
   const labelClasses = "block text-xs font-medium text-gray-700 mb-1";
 
   return (
@@ -144,7 +144,7 @@ const ManageCompanyMember = () => {
       <div className="flex flex-col md:flex-row items-center justify-between mb-4 gap-4">
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <span>Show</span>
-          <select value={entriesPerPage} onChange={(e) => { setEntriesPerPage(Number(e.target.value)); setCurrentPage(1); }} className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-amber-400">
+          <select value={entriesPerPage} onChange={(e) => { setEntriesPerPage(Number(e.target.value)); setCurrentPage(1); }} className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#CDA435]">
             <option value="5">5</option>
             <option value="10">10</option>
             <option value="25">25</option>
@@ -153,7 +153,7 @@ const ManageCompanyMember = () => {
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <label htmlFor="search">Search:</label>
-          <input id="search" type="text" value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} placeholder="Name, Role..." className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-400" />
+          <input id="search" type="text" value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} placeholder="Name, Role..." className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#CDA435]" />
         </div>
       </div>
 
@@ -176,7 +176,7 @@ const ManageCompanyMember = () => {
               {currentEntries.map((member, index) => (
                 <tr key={member.id} className="border-b border-gray-200 hover:bg-gray-50">
                   <td className="p-3 text-sm text-gray-700">{indexOfFirstEntry + index + 1}</td>
-                  <td className="p-3 text-sm text-gray-700 text-amber-600">{member.branch_name || 'N/A'}</td>
+                  <td className="p-3 text-sm text-gray-700 text-[#CDA435]">{member.branch_name || 'N/A'}</td>
                   <td className="p-3 text-sm text-gray-700 font-semibold">{member.member_name}</td>
                   <td className="p-3 text-sm text-gray-700">{member.member_phone || '-'}</td>
                   <td className="p-3 text-sm text-gray-700">{member.member_email || '-'}</td>
@@ -224,7 +224,7 @@ const ManageCompanyMember = () => {
             <form onSubmit={handleUpdateSubmit} className="p-6">
               
               {/* Basic Details */}
-              <h4 className="text-md font-semibold text-amber-600 mb-4 border-b pb-2">Basic Details</h4>
+              <h4 className="text-md font-semibold text-[#CDA435] mb-4 border-b pb-2">Basic Details</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
                   <label className={labelClasses}>Branch</label>
@@ -240,7 +240,7 @@ const ManageCompanyMember = () => {
               </div>
 
               {/* Social Media */}
-              <h4 className="text-md font-semibold text-amber-600 mb-4 border-b pb-2">Social Media</h4>
+              <h4 className="text-md font-semibold text-[#CDA435] mb-4 border-b pb-2">Social Media</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  <div><label className={labelClasses}>Whatsapp</label><input type="tel" name="whatsapp" value={editFormData.whatsapp} onChange={handleEditChange} className={inputClasses} /></div>
                  <div><label className={labelClasses}>Skype</label><input type="url" name="skype" value={editFormData.skype} onChange={handleEditChange} className={inputClasses} /></div>
@@ -253,7 +253,7 @@ const ManageCompanyMember = () => {
               {/* Modal Actions */}
               <div className="mt-8 flex justify-end gap-3">
                 <button type="button" onClick={() => setIsEditModalOpen(false)} className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
-                <button type="submit" className="px-6 py-2 bg-amber-400 text-gray-800 font-semibold rounded-lg hover:bg-amber-500">Update Member</button>
+                <button type="submit" className="px-6 py-2 bg-[#CDA435] text-white font-semibold rounded-lg hover:bg-[#B8941F]">Update Member</button>
               </div>
 
             </form>

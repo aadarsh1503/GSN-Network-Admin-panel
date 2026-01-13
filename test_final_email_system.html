@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Email System Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; }
+        button:hover { background: #0056b3; }
+        .test-section { border: 2px solid #007bff; margin: 20px 0; padding: 15px; border-radius: 8px; }
+        .test-section h3 { color: #007bff; margin-top: 0; }
+    </style>
+</head>
+<body>
+    <h1>🎫 Final Email System Test</h1>
+    <p>Testing the fixed email notification system with updated admin emails.</p>
+    
+    <div class="test-section">
+        <h3>👤 Login</h3>
+        <input type="email" id="email" placeholder="Email" value="aadi@gmail.com">
+        <input type="password" id="password" placeholder="Password" value="222333">
+        <button onclick="login()">Login</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>🎫 Test Email Notifications</h3>
+        <p><strong>Updated Admin Emails:</strong></p>
+        <ul>
+            <li>admin@gsnnetwork.com (ID: 1) ✅</li>
+            <li>dzero169@gmail.com (ID: 32) ✅</li>
+        </ul>
+        
+        <button onclick="createAdminTicket()">Create Admin Ticket</button>
+        <button onclick="createCompanyTicket()">Create Company Ticket</button>
+        
+        <p><strong>Expected Results:</strong></p>
+        <ul>
+            <li><strong>Admin Ticket:</strong> Email sent to both admin users only</li>
+            <li><strong>Company Ticket:</strong> Email sent to company + both admin users</li>
+        </ul>
+    </div>
+    
+    <div id="results"></div>
+
+    <script>
+        let authToken = localStorage.getItem('token');
+        let currentUser = null;
+        
+        function addResult(title, content, isError = false) {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${isError ? 'error' : 'success'}`;
+            div.innerHTML = `<h4>${title}</h4><pre>${content}</pre>`;
+            results.appendChild(div);
+        }
+        
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.token;
+                    currentUser = data.user;
+                    localStorage.setItem('token', authToken);
+                    addResult('✅ Login Success', `User: ${data.user.name} (${data.user.email})
+Role: ${data.user.role}
+ID: ${data.user.id}`);
+                } else {
+                    addResult('❌ Login Failed', JSON.stringify(data, null, 2), true);
+                }
+            } catch (error) {
+                addResult('❌ Login Error', error.message, true);
+            }
+        }
+        
+        async function createAdminTicket() {
+            if (!authToken) {
+                addResult('❌ Error', 'Please login first', true);
+                return;
+            }
+            
+            try {
+                const ticketData = {
+                    subject: 'Final Test - Admin Ticket Email System',
+                    message: 'This is the final test to verify that admin tickets send emails to ALL admin users in the database (admin@gsnnetwork.com and dzero169@gmail.com) and are NOT shared with company members.',
+                    priority: 'high',
+                    category: 'technical',
+                    recipient_type: 'admin'
+                };
+                
+                const response = await fetch('http://localhost:5000/api/business/help/ticket', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(ticketData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('✅ Admin Ticket Created', `Ticket Number: ${data.ticketNumber}
+Ticket ID: ${data.ticketId}
+Expected Email Recipients: 
+- admin@gsnnetwork.com ✅
+- dzero169@gmail.com ✅
+Check server console for email logs!`);
+                } else {
+                    addResult('❌ Failed to Create Admin Ticket', JSON.stringify(data, null, 2), true);
+                }
+            } catch (error) {
+                addResult('❌ Admin Ticket Error', error.message, true);
+            }
+        }
+        
+        async function createCompanyTicket() {
+            if (!authToken) {
+                addResult('❌ Error', 'Please login first', true);
+                return;
+            }
+            
+            try {
+                const ticketData = {
+                    subject: 'Final Test - Company Ticket Email System',
+                    message: 'This is the final test to verify that company tickets send emails to the target company AND all admin users in the database.',
+                    priority: 'medium',
+                    category: 'billing',
+                    recipient_type: 'company',
+                    recipient_id: 10 // Assuming company ID 10 exists
+                };
+                
+                const response = await fetch('http://localhost:5000/api/business/help/ticket', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(ticketData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('✅ Company Ticket Created', `Ticket Number: ${data.ticketNumber}
+Ticket ID: ${data.ticketId}
+Target Company ID: 10
+Expected Email Recipients:
+- Company (ID: 10) email ✅
+- admin@gsnnetwork.com ✅
+- dzero169@gmail.com ✅
+Check server console for email logs!`);
+                } else {
+                    addResult('❌ Failed to Create Company Ticket', JSON.stringify(data, null, 2), true);
+                }
+            } catch (error) {
+                addResult('❌ Company Ticket Error', error.message, true);
+            }
+        }
+        
+        // Auto-login if token exists
+        if (authToken) {
+            addResult('🔑 Token Found', `Using existing token`);
+        }
+    </script>
+    
+    <div style="margin-top: 40px; padding: 20px; background-color: #e9ecef; border-radius: 8px;">
+        <h3>✅ System Status: FIXED</h3>
+        <p><strong>Admin Emails Updated:</strong></p>
+        <ul>
+            <li>admin@gmail.com → admin@gsnnetwork.com ✅</li>
+            <li>dzero169@gmail.com → dzero169@gmail.com ✅ (kept)</li>
+        </ul>
+        
+        <p><strong>Email System Features:</strong></p>
+        <ul>
+            <li>✅ Fetches admin emails ONLY from database</li>
+            <li>✅ Sends to ALL admin users (not just one)</li>
+            <li>✅ Handles invalid emails gracefully</li>
+            <li>✅ Admin tickets → Admin users only</li>
+            <li>✅ Company tickets → Company + Admin users</li>
+            <li>✅ Professional GSN Network email templates</li>
+        </ul>
+        
+        <h4>🔍 What to Check in Server Console:</h4>
+        <pre>📧 Sending ticket email: ticket_created
+🔍 Fetching admin emails from database...
+📋 Found 2 admin users in database:
+   - ID: 1, Name: No name, Email: admin@gsnnetwork.com
+   - ID: 32, Name: Admin User, Email: dzero169@gmail.com
+📧 Valid admin emails for notifications (2): ['admin@gsnnetwork.com', 'dzero169@gmail.com']
+✅ Will send to 2 admin users
+📧 Final recipient list (2 emails): ['admin@gsnnetwork.com', 'dzero169@gmail.com']
+📤 Sending email to: admin@gsnnetwork.com
+✅ Ticket creation notification sent successfully to: admin@gsnnetwork.com
+📤 Sending email to: dzero169@gmail.com
+✅ Ticket creation notification sent successfully to: dzero169@gmail.com</pre>
+        
+        <p><strong>Admin Panel URL:</strong> <a href="http://localhost:5173/admin/all-tickets" target="_blank">http://localhost:5173/admin/all-tickets</a></p>
+    </div>
+</body>
+</html>

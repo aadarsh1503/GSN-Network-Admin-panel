@@ -48,7 +48,7 @@ const ProfileViewers = () => {
             <select 
               value={entries} 
               onChange={(e) => setEntries(e.target.value)}
-              className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
             >
               <option value="10">10</option>
               <option value="25">25</option>
@@ -63,7 +63,7 @@ const ProfileViewers = () => {
               type="text" 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
             />
           </div>
         </div>
@@ -105,10 +105,10 @@ const ProfileViewers = () => {
             Showing 0 to 0 of 0 entries
           </div>
           <div className="flex items-center">
-            <button className="px-3 py-1 border border-[#D9CBAA] text-[#D9CBAA] font-semibold rounded-l-md hover:bg-amber-50" disabled>
+            <button className="px-3 py-1 border border-[#D9CBAA] text-[#D9CBAA] font-semibold rounded-l-md hover:bg-yellow-50" disabled>
               Previous
             </button>
-            <button className="px-3 py-1 border border-[#D9CBAA] text-[#D9CBAA] font-semibold rounded-r-md hover:bg-amber-50">
+            <button className="px-3 py-1 border border-[#D9CBAA] text-[#D9CBAA] font-semibold rounded-r-md hover:bg-yellow-50">
               Next
             </button>
           </div>

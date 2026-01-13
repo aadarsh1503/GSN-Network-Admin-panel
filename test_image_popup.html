@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Image Popup</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-image { 
+            width: 200px; 
+            height: 150px; 
+            object-fit: cover; 
+            border: 2px solid #ccc; 
+            cursor: pointer; 
+            margin: 10px;
+            transition: border-color 0.3s;
+        }
+        .test-image:hover { border-color: #CDA435; }
+        .button { 
+            padding: 10px 20px; 
+            background: #CDA435; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            margin: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Image Popup Functionality</h1>
+    
+    <h3>Method 1: Click on Image</h3>
+    <img 
+        src="https://via.placeholder.com/400x300/CDA435/FFFFFF?text=Payment+Proof+Sample" 
+        alt="Sample payment proof" 
+        class="test-image"
+        onclick="window.open(this.src, '_blank')"
+    />
+    
+    <h3>Method 2: Click Button</h3>
+    <button 
+        class="button"
+        onclick="openImageInNewWindow()"
+    >
+        Open Image in New Window
+    </button>
+    
+    <h3>Method 3: Test with Real Image URL</h3>
+    <input 
+        type="url" 
+        id="imageUrl" 
+        placeholder="Enter image URL to test" 
+        style="width: 400px; padding: 5px; margin: 10px;"
+        value="https://via.placeholder.com/600x400/0066CC/FFFFFF?text=Test+Image"
+    />
+    <button 
+        class="button"
+        onclick="testCustomImage()"
+    >
+        Test Custom Image
+    </button>
+    
+    <div id="result" style="margin-top: 20px; padding: 10px; background: #f0f0f0;"></div>
+
+    <script>
+        function openImageInNewWindow() {
+            const imageUrl = 'https://via.placeholder.com/800x600/CDA435/FFFFFF?text=Sample+Payment+Proof';
+            const newWindow = window.open(imageUrl, '_blank');
+            
+            if (newWindow) {
+                document.getElementById('result').innerHTML = '✅ Image opened in new window successfully!';
+            } else {
+                document.getElementById('result').innerHTML = '❌ Popup blocked! Please allow popups for this site.';
+            }
+        }
+        
+        function testCustomImage() {
+            const imageUrl = document.getElementById('imageUrl').value;
+            if (!imageUrl) {
+                document.getElementById('result').innerHTML = '❌ Please enter an image URL';
+                return;
+            }
+            
+            const newWindow = window.open(imageUrl, '_blank');
+            
+            if (newWindow) {
+                document.getElementById('result').innerHTML = `✅ Custom image opened: ${imageUrl}`;
+            } else {
+                document.getElementById('result').innerHTML = '❌ Popup blocked! Please allow popups for this site.';
+            }
+        }
+        
+        // Test popup blocker on page load
+        window.onload = function() {
+            const testWindow = window.open('', '_blank');
+            if (testWindow) {
+                testWindow.close();
+                document.getElementById('result').innerHTML = '✅ Popups are allowed on this site';
+            } else {
+                document.getElementById('result').innerHTML = '⚠️ Popups may be blocked. Please check your browser settings.';
+            }
+        };
+    </script>
+</body>
+</html>

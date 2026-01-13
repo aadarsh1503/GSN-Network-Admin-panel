@@ -1,10 +1,14 @@
 import { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Outlet, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { LoadingProvider } from "./contexts/LoadingContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
+import { GlobalNotificationProvider } from "./contexts/GlobalNotificationContext";
 import { SubscriptionProvider } from "./contexts/SubscriptionContext";
 import "./App.css";
+import "./styles/notifications.css";
 
 // --- Layouts & Global Components ---
 import Navbar from "./components/Navbar/Navbar";
@@ -19,6 +23,8 @@ import Hero from "./components/Hero/Hero";
 import LoginPage from "./components/Login/Login";
 import RegisterPage from "./components/Login/RegisterPage";
 import UserRegisterPage from "./components/Login/UserRegisterPage";
+import ForgotPassword from "./components/ForgotPassword/ForgotPassword";
+import ResetPassword from "./components/ResetPassword/ResetPassword";
 
 // --- Admin Pages ---
 import Dashboard from "./pages/DashboardContent/DashboardContent";
@@ -54,9 +60,12 @@ import ReviewReason from "./pages/Review/ReviewReason";
 import Review from "./pages/Review/Review";
 import DisputeReason from "./pages/Dispute/DisputeReason";
 import AdminDisputes from "./pages/Admin/AdminDisputes";
+import AdminMessages from "./pages/Admin/AdminMessages";
+import AdminNotifications from "./pages/Admin/AdminNotifications";
 import Subscribers from "./pages/Subscribers/Subscribers";
 import ContactsList from "./pages/ContactsList/ContactsList";
 import BankDetailEditor from "./pages/BankDetailEditor/BankDetailEditor";
+import AdminBankDetails from "./pages/Admin/AdminBankDetails";
 import GeneralSettings from "./pages/GeneralSettings/GeneralSettings";
 import SendNotifications from "./pages/Notifications/SendNotifications";
 import SendEmails from "./pages/Notifications/SendEmails";
@@ -66,6 +75,7 @@ import VersionManagement from "./pages/VersionManagement/VersionManagement";
 import AdminSubscriptions from "./pages/Admin/AdminSubscriptions";
 import AdminQuotes from "./pages/Admin/AdminQuotes";
 import AdminTransactions from "./pages/Admin/AdminTransactions";
+import AdminInvoices from "./pages/Admin/AdminInvoices";
 
 // --- Company Pages ---
 import CompanyDashboard from "./companyPages/CompanyDashboard/CompanyDashboard";
@@ -86,7 +96,7 @@ import Invoices from "./companyPages/Invoices/Invoices";
 import TransactionHistorycompany from "./companyPages/TransactionHistory/TransactionHistorycompany";
 import ProfileViewers from "./companyPages/ProfileViewers/ProfileViewers";
 import SupportTicket from "./companyPages/Tickets/SupportTicket";
-import MyTickets from "./companyPages/Tickets/MyTickets";
+import MyTickets from "./companyPages/Tickets/CompanyTicketsManager";
 import Wishlist from "./companyPages/Wishlist/Wishlist";
 import IndividualQuotes from "./companyPages/IndividualQuotes/IndividualQuotes";
 import MyQuotes from "./companyPages/MyQuotes/MyQuotes";
@@ -104,9 +114,28 @@ import QuoteDetails from "./pages/UserQuotes/QuoteDetails";
 import UserMessages from "./pages/UserMessages/UserMessages";
 import UserNotifications from "./pages/UserNotifications/UserNotifications";
 import UserDisputes from "./pages/UserDisputes/UserDisputes";
+import UserInvoices from "./pages/UserInvoices/UserInvoices";
 import CompanyDisputes from "./companyPages/Disputes/CompanyDisputes";
 import UserHelp from "./pages/Help/UserHelp";
 import CompanyHelp from "./pages/Help/CompanyHelp";
+import UserTickets from "./pages/UserTickets/UserTickets";
+
+// --- Payment Management Components ---
+import BankDetailsManager from "./components/BankDetailsManager/BankDetailsManager";
+import PaymentManagement from "./components/PaymentManagement/PaymentManagement";
+
+// --- Business Pages ---
+import BusinessLayout from "./layouts/BusinessLayout";
+import BusinessDashboard from "./pages/BusinessDashboard/BusinessDashboard";
+import BusinessQuotes from "./pages/BusinessQuotes/BusinessQuotes";
+import BusinessQuoteDetails from "./pages/BusinessQuotes/BusinessQuoteDetails";
+import BusinessMessages from "./pages/BusinessMessages/BusinessMessages";
+import BusinessNotifications from "./pages/BusinessNotifications/BusinessNotifications";
+import BusinessDisputes from "./pages/BusinessDisputes/BusinessDisputes";
+import BusinessProfile from "./pages/BusinessProfile/BusinessProfile";
+import BusinessHelp from "./pages/BusinessHelp/BusinessHelp";
+import BusinessInvoices from "./pages/BusinessInvoices/BusinessInvoices";
+import BusinessTickets from "./pages/BusinessTickets/BusinessTickets";
 
 // --- Components ---
 
@@ -135,18 +164,34 @@ function App() {
   return (
     <LoadingProvider>
       <NotificationProvider>
-        <SubscriptionProvider>
-          <Router>
-          {/* ScrollToTop must be inside Router to access useLocation */}
-          <ScrollToTop />
-          
-          {/* Global Toaster Configuration */}
-          <Toaster
-            position="top-center"
-            toastOptions={{
-              duration: 3000,
-            }}
-          />
+        <GlobalNotificationProvider>
+          <SubscriptionProvider>
+            <Router>
+            {/* ScrollToTop must be inside Router to access useLocation */}
+            <ScrollToTop />
+            
+            {/* Global Toaster Configuration for react-hot-toast */}
+            <Toaster
+              position="top-center"
+              toastOptions={{
+                duration: 3000,
+              }}
+            />
+
+            {/* Global Toast Container for react-toastify */}
+            <ToastContainer
+              position="top-right"
+              autoClose={6000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss={false}
+              draggable
+              pauseOnHover
+              theme="light"
+              limit={5}
+            />
 
       <Routes>
         {/* ================= PUBLIC ROUTES ================= */}
@@ -155,6 +200,8 @@ function App() {
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<RegisterPage />} />
           <Route path="user-register" element={<UserRegisterPage />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="reset-password" element={<ResetPassword />} />
           <Route path="quote" element={<RequestQuote />} />
           <Route path="subscriptions" element={<SubscriptionPage />} />
           <Route path="/company/freight-quotes" element={<QuotesPage />} />
@@ -204,10 +251,13 @@ function App() {
           <Route path="all-reviews" element={<Review />} />
           <Route path="dispute-Reason" element={<DisputeReason />} />
           <Route path="disputes" element={<AdminDisputes />} />
+          <Route path="messages" element={<AdminMessages />} />
           <Route path="subscribers" element={<Subscribers />} />
           <Route path="contactList" element={<ContactsList />} />
           <Route path="BankDetail" element={<BankDetailEditor />} />
+          <Route path="bank-details" element={<AdminBankDetails />} />
           <Route path="general-settings" element={<GeneralSettings />} />
+          <Route path="notifications" element={<AdminNotifications />} />
           <Route path="send-notifications" element={<SendNotifications />} />
           <Route path="send-emails" element={<SendEmails />} />
           <Route path="user-Profile" element={<UserProfile />} />
@@ -216,6 +266,7 @@ function App() {
           <Route path="subscriptions-management" element={<AdminSubscriptions />} />
           <Route path="quotes-management" element={<AdminQuotes />} />
           <Route path="transactions-management" element={<AdminTransactions />} />
+          <Route path="invoices-management" element={<AdminInvoices />} />
         </Route>
 
         {/* ================= COMPANY ROUTES ================= */}
@@ -242,12 +293,15 @@ function App() {
           <Route path="plans" element={<PlansPage />} />
           <Route path="subscriptions" element={<SubscriptionPage />} />
           <Route path="available-quotes" element={<MemberQuotesPage />} />
+          <Route path="bank-details" element={<BankDetailsManager />} />
+          <Route path="payment-management" element={<PaymentManagement />} />
           <Route path="profile-certificate" element={<MyCertificatePage />} />
           <Route path="transaction-History-Company" element={<TransactionHistorycompany />} />
           <Route path="invoices" element={<Invoices />} />
           <Route path="profile-Viewers" element={<ProfileViewers />} />
           <Route path="create-Ticket" element={<SupportTicket />} />
           <Route path="my-Tickets" element={<MyTickets />} />
+          <Route path="tickets" element={<MyTickets />} />
           <Route path="wishlist" element={<Wishlist />} />
           <Route path="individual-Quotes" element={<IndividualQuotes />} />
           <Route path="my-Quotes" element={<MyQuotes />} />
@@ -274,13 +328,38 @@ function App() {
           <Route path="quotes/:quoteId" element={<QuoteDetails />} />
           <Route path="messages" element={<UserMessages />} />
           <Route path="notifications" element={<UserNotifications />} />
+          <Route path="invoices" element={<UserInvoices />} />
           <Route path="disputes" element={<UserDisputes />} />
+          <Route path="tickets" element={<UserTickets />} />
           <Route path="profile" element={<UserProfile />} />
           <Route path="help" element={<UserHelp />} />
         </Route>
+
+        {/* ================= BUSINESS ROUTES ================= */}
+        <Route
+          path="/business"
+          element={
+            <ProtectedRoute allowedRoles={["business"]}>
+              <BusinessLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<BusinessDashboard />} />
+          <Route path="dashboard" element={<BusinessDashboard />} />
+          <Route path="quotes" element={<BusinessQuotes />} />
+          <Route path="quotes/:quoteId" element={<BusinessQuoteDetails />} />
+          <Route path="messages" element={<BusinessMessages />} />
+          <Route path="notifications" element={<BusinessNotifications />} />
+          <Route path="invoices" element={<BusinessInvoices />} />
+          <Route path="disputes" element={<BusinessDisputes />} />
+          <Route path="tickets" element={<BusinessTickets />} />
+          <Route path="profile" element={<BusinessProfile />} />
+          <Route path="help" element={<BusinessHelp />} />
+        </Route>
       </Routes>
     </Router>
-        </SubscriptionProvider>
+          </SubscriptionProvider>
+        </GlobalNotificationProvider>
       </NotificationProvider>
     </LoadingProvider>
   );

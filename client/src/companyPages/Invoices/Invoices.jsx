@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FaEye, FaDownload, FaPrint, FaQrcode, FaFileInvoiceDollar, FaCalendarAlt, FaCreditCard, FaSearch } from 'react-icons/fa';
+import { FaEye, FaDownload, FaFileInvoiceDollar } from 'react-icons/fa';
 import QRCode from 'qrcode';
-import { useReactToPrint } from 'react-to-print';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import api from '../../utils/api';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import QRScanner from '../../components/QRScanner/QRScanner';
 import toast from 'react-hot-toast';
+import GSNLogo from './GSN.jpg';
 
 const Invoices = () => {
   const [invoices, setInvoices] = useState([]);
@@ -72,9 +74,143 @@ Date: ${new Date(qrData.date).toLocaleDateString()}`);
     }
   };
 
-  const handlePrint = useReactToPrint({
-    content: () => invoiceRef.current,
-  });
+  const handleDownloadPDF = async () => {
+    try {
+      const element = invoiceRef.current;
+      if (!element) {
+        toast.error('Invoice content not found');
+        return;
+      }
+
+      // Show loading toast
+      const loadingToast = toast.loading('Generating PDF...');
+
+      // Temporarily modify the element for better PDF rendering
+      const originalStyle = element.style.cssText;
+      element.style.width = '794px'; // A4 width in pixels at 96 DPI
+      element.style.maxWidth = '794px';
+      element.style.padding = '15px';
+      element.style.fontSize = '12px';
+      element.style.lineHeight = '1.5';
+      element.style.wordSpacing = 'normal';
+      element.style.letterSpacing = 'normal';
+
+      // Wait for layout to settle
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      // Create canvas from the invoice element
+      const canvas = await html2canvas(element, {
+        scale: 2, // Higher scale for better quality
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        width: 794,
+        height: element.scrollHeight,
+        logging: false,
+        letterRendering: true, // Better text rendering
+        onclone: (clonedDoc) => {
+          // Apply PDF-friendly styles to cloned document
+          const style = clonedDoc.createElement('style');
+          style.textContent = `
+            * {
+              -webkit-print-color-adjust: exact !important;
+              color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              word-spacing: normal !important;
+              letter-spacing: normal !important;
+              white-space: normal !important;
+            }
+            body { 
+              margin: 0; 
+              padding: 0; 
+              font-family: Arial, sans-serif !important;
+              line-height: 1.5 !important;
+            }
+            p, div, span {
+              word-break: normal !important;
+              word-wrap: break-word !important;
+              white-space: normal !important;
+              word-spacing: normal !important;
+              letter-spacing: normal !important;
+            }
+            /* Specific fix for Bill To section spacing */
+            .text-xs p {
+              display: block !important;
+              margin-bottom: 3px !important;
+              line-height: 1.4 !important;
+            }
+            /* Ensure proper spacing in all text sections */
+            p {
+              margin-bottom: 3px !important;
+            }
+            .text-gray-600 { color: rgb(75, 85, 99) !important; }
+            .text-gray-500 { color: rgb(107, 114, 128) !important; }
+            .text-gray-800 { color: rgb(31, 41, 55) !important; }
+            .text-green-600 { color: rgb(22, 163, 74) !important; }
+            .bg-green-100 { background-color: rgb(220, 252, 231) !important; }
+            .text-green-800 { color: rgb(22, 101, 52) !important; }
+            .bg-yellow-100 { background-color: rgb(254, 249, 195) !important; }
+            .text-yellow-800 { color: rgb(146, 64, 14) !important; }
+            .bg-red-100 { background-color: rgb(254, 226, 226) !important; }
+            .text-red-800 { color: rgb(153, 27, 27) !important; }
+            .bg-gray-100 { background-color: rgb(243, 244, 246) !important; }
+            .bg-gray-50 { background-color: rgb(249, 250, 251) !important; }
+            .border-gray-300 { border-color: rgb(209, 213, 219) !important; }
+            .border-gray-800 { border-color: rgb(31, 41, 55) !important; }
+          `;
+          clonedDoc.head.appendChild(style);
+        }
+      });
+
+      // Restore original styles
+      element.style.cssText = originalStyle;
+
+      // Create PDF with better positioning
+      const imgData = canvas.toDataURL('image/png', 1.0);
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      // Get PDF dimensions
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      // Convert canvas to mm (accounting for higher scale)
+      const imgWidthMM = (canvas.width * 0.264583) / 2; // Divide by scale factor
+      const imgHeightMM = (canvas.height * 0.264583) / 2;
+      
+      // Calculate margins - smaller margins for better use of space
+      const margin = 5;
+      const availableWidth = pdfWidth - (margin * 2);
+      const availableHeight = pdfHeight - (margin * 2);
+      
+      // Scale to fit width
+      let scale = availableWidth / imgWidthMM;
+      let finalWidth = imgWidthMM * scale;
+      let finalHeight = imgHeightMM * scale;
+      
+      // If height is too large, scale down further
+      if (finalHeight > availableHeight) {
+        scale = availableHeight / imgHeightMM;
+        finalWidth = imgWidthMM * scale;
+        finalHeight = imgHeightMM * scale;
+      }
+      
+      // Position at top-left with small margin instead of centering
+      const x = margin;
+      const y = margin;
+      
+      pdf.addImage(imgData, 'PNG', x, y, finalWidth, finalHeight);
+      
+      // Download the PDF
+      const fileName = `Invoice_${selectedInvoice.invoice_number}.pdf`;
+      pdf.save(fileName);
+      
+      toast.dismiss(loadingToast);
+      toast.success('PDF downloaded successfully!');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error('Failed to generate PDF. Please try again.');
+    }
+  };
 
   const getStatusBadge = (status) => {
     const colors = {
@@ -136,12 +272,7 @@ Date: ${new Date(qrData.date).toLocaleDateString()}`);
           <FaFileInvoiceDollar className="text-[#CDA435]" />
           Invoices
         </div>
-        <button
-          onClick={() => setShowQRScanner(true)}
-          className="bg-[#CDA435] text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors flex items-center gap-2 text-sm"
-        >
-          <FaQrcode /> Scan QR Code
-        </button>
+       
       </h2>
 
       {invoices.length === 0 ? (
@@ -159,7 +290,7 @@ Date: ${new Date(qrData.date).toLocaleDateString()}`);
               <select 
                 value={entriesPerPage} 
                 onChange={(e) => { setEntriesPerPage(Number(e.target.value)); setCurrentPage(1); }}
-                className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
               >
                 <option value="10">10</option>
                 <option value="25">25</option>
@@ -175,7 +306,7 @@ Date: ${new Date(qrData.date).toLocaleDateString()}`);
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                 placeholder="Invoice number, plan name..."
-                className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
               />
             </div>
           </div>
@@ -195,7 +326,7 @@ Date: ${new Date(qrData.date).toLocaleDateString()}`);
                 </tr>
               </thead>
               <tbody>
-                {currentEntries.map((invoice, index) => (
+                {currentEntries.map((invoice) => (
                   <tr key={invoice.id} className="border-b border-gray-200 hover:bg-gray-50">
                     <td className="p-3 text-sm text-gray-700 font-mono">{invoice.invoice_number}</td>
                     <td className="p-3 text-sm text-gray-700">
@@ -219,11 +350,13 @@ Date: ${new Date(qrData.date).toLocaleDateString()}`);
                           <FaEye size={12} />
                         </button>
                         <button
+                          onClick={() => handleViewInvoice(invoice.id)}
                           className="bg-green-500 text-white p-2 rounded-full hover:bg-green-600 transition-colors"
                           title="Download PDF"
                         >
                           <FaDownload size={12} />
                         </button>
+
                       </div>
                     </td>
                   </tr>
@@ -271,14 +404,14 @@ Date: ${new Date(qrData.date).toLocaleDateString()}`);
               <h3 className="text-lg font-bold text-gray-800">Invoice Details</h3>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={handlePrint}
-                  className="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 flex items-center gap-1"
+                  onClick={handleDownloadPDF}
+                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 flex items-center gap-2 transition-colors"
                 >
-                  <FaPrint size={12} /> Print
+                  <FaDownload size={14} /> Download PDF
                 </button>
                 <button
                   onClick={() => setShowInvoiceModal(false)}
-                  className="text-gray-500 hover:text-red-500 text-xl font-bold"
+                  className="text-gray-500 hover:text-red-500 text-xl font-bold ml-2"
                 >
                   ×
                 </button>
@@ -286,87 +419,110 @@ Date: ${new Date(qrData.date).toLocaleDateString()}`);
             </div>
 
             {/* Invoice Content */}
-            <div ref={invoiceRef} className="p-6">
-              <div className="bg-white">
+            <div ref={invoiceRef} className="p-4" style={{ backgroundColor: '#ffffff', color: '#000000', maxWidth: '794px', margin: '0 auto', fontFamily: 'Arial, sans-serif', lineHeight: '1.5', wordSpacing: 'normal', letterSpacing: 'normal' }}>
+              <div className="bg-white" style={{ backgroundColor: '#ffffff' }}>
                 {/* Invoice Header */}
-                <div className="flex justify-between items-start mb-8">
-                  <div>
-                    <h1 className="text-3xl font-bold text-[#CDA435] mb-2">INVOICE</h1>
-                    <p className="text-gray-600">GSN Network Services</p>
-                    <p className="text-sm text-gray-500">Freight Forwarding & Logistics</p>
+                <div className="flex justify-between items-start mb-6">
+                  <div className="flex items-center gap-3">
+                    <img 
+                      src="https://res.cloudinary.com/ds1dt3qub/image/upload/v1767724966/GSN_vebkrv.jpg"
+                      alt="GSN Logo" 
+                      className="w-12 h-12 object-contain"
+                      style={{ maxWidth: '48px', maxHeight: '48px' }}
+                    />
+                    <div>
+                      <h1 className="text-2xl font-bold mb-1" style={{ color: '#CDA435', fontSize: '24px', fontWeight: 'bold' }}>INVOICE</h1>
+                      <p className="font-semibold" style={{ color: '#4B5563', fontSize: '14px', fontWeight: '600' }}>GSN Network Services</p>
+                      <p className="text-xs" style={{ color: '#6B7280', fontSize: '12px' }}>Freight Forwarding & Logistics</p>
+                    </div>
                   </div>
                   <div className="text-right">
-                    <div className="mb-4">
-                      <img src={qrCodeUrl} alt="QR Code" className="w-24 h-24 border" />
-                      <p className="text-xs text-gray-500 mt-1">Scan for details</p>
+                    <div className="mb-3">
+                      <img src={qrCodeUrl} alt="QR Code" className="w-20 h-20 border" style={{ width: '80px', height: '80px', border: '1px solid #D1D5DB' }} />
+                      <p className="text-xs mt-1" style={{ color: '#6B7280', fontSize: '10px' }}>Scan for details</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Invoice Info */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   <div>
-                    <h3 className="font-semibold text-gray-800 mb-2">Bill To:</h3>
-                    <div className="text-sm text-gray-600">
-                      <p className="font-medium">{selectedInvoice.company_name}</p>
-                      <p>{selectedInvoice.company_email}</p>
-                      {selectedInvoice.company_phone && <p>{selectedInvoice.company_phone}</p>}
-                      {selectedInvoice.company_address && <p>{selectedInvoice.company_address}</p>}
-                      {selectedInvoice.city && <p>{selectedInvoice.city}, {selectedInvoice.state}</p>}
-                      {selectedInvoice.country && <p>{selectedInvoice.country}</p>}
+                    <h3 className="font-semibold mb-2" style={{ color: '#1F2937', fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>Bill To:</h3>
+                    <div className="text-xs" style={{ color: '#4B5563', fontSize: '12px', lineHeight: '1.5' }}>
+                      <p className="font-medium" style={{ fontWeight: '500', marginBottom: '2px' }}>{selectedInvoice.company_name}</p>
+                      <p style={{ marginBottom: '2px' }}>{selectedInvoice.company_email}</p>
+                      {selectedInvoice.company_phone && <p style={{ marginBottom: '2px' }}>{selectedInvoice.company_phone}</p>}
+                      {selectedInvoice.company_address && <p style={{ marginBottom: '2px' }}>{selectedInvoice.company_address}</p>}
+                      {selectedInvoice.city && <p style={{ marginBottom: '2px' }}>{selectedInvoice.city}, {selectedInvoice.state}</p>}
+                      {selectedInvoice.country && <p style={{ margin: '0' }}>{selectedInvoice.country}</p>}
                     </div>
                   </div>
                   <div>
-                    <div className="text-sm">
-                      <div className="mb-2">
-                        <span className="font-semibold">Invoice Number:</span>
+                    <div className="text-xs" style={{ fontSize: '12px', lineHeight: '1.5' }}>
+                      <div className="mb-1" style={{ marginBottom: '4px' }}>
+                        <span className="font-semibold" style={{ fontWeight: '600' }}>Invoice Number: </span>
                         <span className="ml-2 font-mono">{selectedInvoice.invoice_number}</span>
                       </div>
-                      <div className="mb-2">
-                        <span className="font-semibold">Invoice Date:</span>
+                      <div className="mb-1" style={{ marginBottom: '4px' }}>
+                        <span className="font-semibold" style={{ fontWeight: '600' }}>Invoice Date: </span>
                         <span className="ml-2">{formatDate(selectedInvoice.created_at)}</span>
                       </div>
-                      <div className="mb-2">
-                        <span className="font-semibold">Due Date:</span>
+                      <div className="mb-1" style={{ marginBottom: '4px' }}>
+                        <span className="font-semibold" style={{ fontWeight: '600' }}>Due Date: </span>
                         <span className="ml-2">{formatDate(selectedInvoice.due_date)}</span>
                       </div>
-                      <div className="mb-2">
-                        <span className="font-semibold">Status:</span>
-                        <span className="ml-2">{getStatusBadge(selectedInvoice.status)}</span>
+                      <div className="mb-1" style={{ marginBottom: '4px' }}>
+                        <span className="font-semibold" style={{ fontWeight: '600' }}>Status: </span>
+                        <span className="ml-2 px-2 py-1 rounded-full text-xs font-medium" style={{ 
+                          backgroundColor: selectedInvoice.status === 'paid' ? '#DCFCE7' : 
+                                         selectedInvoice.status === 'pending' ? '#FEF3C7' : 
+                                         selectedInvoice.status === 'overdue' ? '#FEE2E2' : '#F3F4F6',
+                          color: selectedInvoice.status === 'paid' ? '#166534' : 
+                                selectedInvoice.status === 'pending' ? '#92400E' : 
+                                selectedInvoice.status === 'overdue' ? '#991B1B' : '#374151',
+                          fontSize: '10px',
+                          padding: '2px 6px',
+                          borderRadius: '12px'
+                        }}>
+                          {selectedInvoice.status?.charAt(0).toUpperCase() + selectedInvoice.status?.slice(1)}
+                        </span>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Invoice Items */}
-                <div className="mb-8">
-                  <table className="w-full border border-gray-300">
-                    <thead className="bg-[#D9CBAA]">
+                <div className="mb-6">
+                  <table className="w-full" style={{ border: '1px solid #D1D5DB', borderCollapse: 'collapse' }}>
+                    <thead style={{ backgroundColor: '#D9CBAA' }}>
                       <tr>
-                        <th className="border border-gray-300 p-3 text-left">Description</th>
-                        <th className="border border-gray-300 p-3 text-center">Period</th>
-                        <th className="border border-gray-300 p-3 text-right">Amount</th>
+                        <th className="p-2 text-left" style={{ border: '1px solid #D1D5DB', padding: '8px', textAlign: 'left', fontWeight: '600', fontSize: '12px' }}>Description</th>
+                        <th className="p-2 text-center" style={{ border: '1px solid #D1D5DB', padding: '8px', textAlign: 'center', fontWeight: '600', fontSize: '12px' }}>Period</th>
+                        <th className="p-2 text-right" style={{ border: '1px solid #D1D5DB', padding: '8px', textAlign: 'right', fontWeight: '600', fontSize: '12px' }}>Amount</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr>
-                        <td className="border border-gray-300 p-3">
+                        <td className="p-2" style={{ border: '1px solid #D1D5DB', padding: '8px', verticalAlign: 'top' }}>
                           <div>
-                            <p className="font-semibold">{selectedInvoice.plan_name} Subscription</p>
-                            <p className="text-sm text-gray-600">{selectedInvoice.plan_description}</p>
+                            <p className="font-semibold" style={{ fontWeight: '600', fontSize: '12px', marginBottom: '4px' }}>{selectedInvoice.plan_name} Subscription</p>
+                            <p className="text-xs" style={{ color: '#4B5563', fontSize: '11px', marginBottom: '4px', wordWrap: 'break-word', whiteSpace: 'normal' }}>{selectedInvoice.plan_description}</p>
                             {selectedInvoice.features && (
-                              <ul className="text-xs text-gray-500 mt-1">
-                                {selectedInvoice.features.slice(0, 3).map((feature, idx) => (
-                                  <li key={idx}>• {feature}</li>
+                              <ul className="text-xs mt-1" style={{ color: '#6B7280', fontSize: '10px', marginTop: '4px', paddingLeft: '16px' }}>
+                                {selectedInvoice.features.slice(0, 2).map((feature, idx) => (
+                                  <li key={idx} style={{ marginBottom: '2px' }}>• {feature}</li>
                                 ))}
                               </ul>
                             )}
                           </div>
                         </td>
-                        <td className="border border-gray-300 p-3 text-center text-sm">
-                          {formatDate(selectedInvoice.start_date)} - {formatDate(selectedInvoice.end_date)}
+                        <td className="p-2 text-center text-xs" style={{ border: '1px solid #D1D5DB', padding: '8px', textAlign: 'center', fontSize: '11px', verticalAlign: 'top' }}>
+                          {selectedInvoice.start_date && selectedInvoice.end_date ? 
+                            `${formatDate(selectedInvoice.start_date)} - ${formatDate(selectedInvoice.end_date)}` : 
+                            'Subscription Period (Cancelled)'
+                          }
                         </td>
-                        <td className="border border-gray-300 p-3 text-right font-semibold">
+                        <td className="p-2 text-right font-semibold" style={{ border: '1px solid #D1D5DB', padding: '8px', textAlign: 'right', fontWeight: '600', fontSize: '12px', verticalAlign: 'top' }}>
                           {formatCurrency(selectedInvoice.amount)}
                         </td>
                       </tr>
@@ -375,17 +531,17 @@ Date: ${new Date(qrData.date).toLocaleDateString()}`);
                 </div>
 
                 {/* Invoice Summary */}
-                <div className="flex justify-end mb-8">
-                  <div className="w-64">
-                    <div className="flex justify-between py-2 border-b">
+                <div className="flex justify-end mb-6">
+                  <div className="w-48">
+                    <div className="flex justify-between py-1" style={{ borderBottom: '1px solid #D1D5DB', paddingTop: '4px', paddingBottom: '4px', fontSize: '12px' }}>
                       <span>Subtotal:</span>
                       <span>{formatCurrency(selectedInvoice.amount)}</span>
                     </div>
-                    <div className="flex justify-between py-2 border-b">
+                    <div className="flex justify-between py-1" style={{ borderBottom: '1px solid #D1D5DB', paddingTop: '4px', paddingBottom: '4px', fontSize: '12px' }}>
                       <span>Tax:</span>
                       <span>{formatCurrency(selectedInvoice.tax_amount || 0)}</span>
                     </div>
-                    <div className="flex justify-between py-2 font-bold text-lg border-b-2 border-gray-800">
+                    <div className="flex justify-between py-1 font-bold" style={{ borderBottom: '2px solid #1F2937', paddingTop: '4px', paddingBottom: '4px', fontWeight: 'bold', fontSize: '14px' }}>
                       <span>Total:</span>
                       <span>{formatCurrency(selectedInvoice.total_amount)}</span>
                     </div>
@@ -393,21 +549,37 @@ Date: ${new Date(qrData.date).toLocaleDateString()}`);
                 </div>
 
                 {/* Payment Info */}
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-semibold mb-2">Payment Information</h4>
-                  <div className="text-sm text-gray-600">
-                    <p><strong>Payment Method:</strong> {selectedInvoice.payment_method}</p>
-                    <p><strong>Payment Status:</strong> {selectedInvoice.payment_status}</p>
+                {/* <div className="p-3 rounded-lg mb-4" style={{ backgroundColor: '#F9FAFB', padding: '12px', borderRadius: '6px' }}>
+                  <h4 className="font-semibold mb-2" style={{ fontWeight: '600', marginBottom: '6px', fontSize: '12px' }}>Payment Information</h4>
+                  <div className="text-xs" style={{ color: '#4B5563', fontSize: '11px', lineHeight: '1.5' }}>
+                    <p style={{ marginBottom: '2px' }}><strong>Payment Method:</strong> {selectedInvoice.payment_method}</p>
+                    <p style={{ marginBottom: '2px' }}><strong>Payment Status:</strong> {selectedInvoice.payment_status}</p>
                     {selectedInvoice.transaction_id && (
-                      <p><strong>Transaction ID:</strong> {selectedInvoice.transaction_id}</p>
+                      <p style={{ margin: '0' }}><strong>Transaction ID:</strong> {selectedInvoice.transaction_id}</p>
                     )}
                   </div>
-                </div>
+                </div> */}
+
+                {/* Cancellation Info (if cancelled) */}
+                {selectedInvoice.status === 'cancelled' && (
+                  <div className="p-3 rounded-lg mb-4" style={{ backgroundColor: '#FEF2F2', padding: '12px', borderRadius: '6px', border: '1px solid #FECACA' }}>
+                    <h4 className="font-semibold mb-2" style={{ fontWeight: '600', marginBottom: '6px', fontSize: '12px', color: '#DC2626' }}>Cancellation Information</h4>
+                    <div className="text-xs" style={{ color: '#7F1D1D', fontSize: '11px', lineHeight: '1.5' }}>
+                      <p style={{ marginBottom: '2px' }}><strong>Status:</strong> This invoice has been cancelled</p>
+                      {selectedInvoice.cancelled_at && (
+                        <p style={{ marginBottom: '2px' }}><strong>Cancelled Date:</strong> {formatDate(selectedInvoice.cancelled_at)}</p>
+                      )}
+                      {selectedInvoice.cancellation_reason && (
+                        <p style={{ margin: '0', wordWrap: 'break-word', whiteSpace: 'normal' }}><strong>Reason:</strong> {selectedInvoice.cancellation_reason}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Footer */}
-                <div className="mt-8 pt-4 border-t text-center text-sm text-gray-500">
-                  <p>Thank you for your business!</p>
-                  <p>GSN Network - Connecting Global Trade</p>
+                <div className="mt-4 pt-3 text-center text-xs" style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #D1D5DB', textAlign: 'center', fontSize: '11px', color: '#6B7280' }}>
+                  <p style={{ marginBottom: '2px' }}>Thank you for your business!</p>
+                  <p style={{ margin: '0' }}>GSN Network - Connecting Global Trade</p>
                 </div>
               </div>
             </div>

@@ -35,16 +35,25 @@ const createUserNotification = async (userId, notificationId) => {
 // Send quote acceptance notification to company
 const sendQuoteAcceptanceNotificationToCompany = async (companyId, userName, quoteId) => {
     try {
+        console.log(`🔍 DEBUG: sendQuoteAcceptanceNotificationToCompany called with:`, {
+            companyId,
+            userName,
+            quoteId,
+            timestamp: new Date().toISOString()
+        });
+        
         const title = 'Quote Accepted!';
         const message = `Great news! ${userName} has accepted your quote for Quote #${quoteId}. You can now proceed with the shipment arrangements.`;
         
         // Create user-specific notification (not general)
         const notificationId = await createNotification('user_specific', title, message, null, 'companies');
         
+        console.log(`🔍 DEBUG: Created notification ID: ${notificationId}`);
+        
         // Create user-specific notification record for the company
         await createUserNotification(companyId, notificationId);
         
-        console.log(`Quote acceptance notification sent to company ${companyId} for quote ${quoteId}`);
+        console.log(`🔍 DEBUG: Quote acceptance notification sent to company ${companyId} for quote ${quoteId}`);
     } catch (error) {
         console.error('Error sending quote acceptance notification:', error);
         throw error;
@@ -127,6 +136,25 @@ const sendDisputeResponseNotificationToUser = async (userId, disputeId, companyN
     }
 };
 
+// Send quote response notification to user (when business responds to quote)
+const sendQuoteResponseNotificationToUser = async (userId, companyName, quoteId, price, transitTime) => {
+    try {
+        const title = 'New Quote Response';
+        const message = `${companyName} has responded to your Quote #${quoteId} with a price of ${price} and transit time of ${transitTime}. Please review and respond.`;
+        
+        // Create user-specific notification (not general)
+        const notificationId = await createNotification('user_specific', title, message, null, 'users');
+        
+        // Create user-specific notification record
+        await createUserNotification(userId, notificationId);
+        
+        console.log(`Quote response notification sent to user ${userId} for quote ${quoteId}`);
+    } catch (error) {
+        console.error('Error sending quote response notification:', error);
+        throw error;
+    }
+};
+
 export {
     createNotification,
     createUserNotification,
@@ -134,5 +162,6 @@ export {
     sendQuoteRejectionNotificationToCompany,
     sendStatusUpdateNotificationToUser,
     sendDisputeStatusUpdateNotificationToUser,
-    sendDisputeResponseNotificationToUser
+    sendDisputeResponseNotificationToUser,
+    sendQuoteResponseNotificationToUser
 };

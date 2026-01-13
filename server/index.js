@@ -29,6 +29,14 @@ import adminPanelRoutes from './routes/adminPanelRoutes.js';
 import disputeRoutes from './routes/disputeRoutes.js';
 import emailRoutes from './routes/emailRoutes.js';
 import generalSettingsRoutes from './routes/generalSettingsRoutes.js';
+import bankDetailsRoutes from './routes/bankDetailsRoutes.js';
+import realTimeNotificationRoutes from './routes/realTimeNotificationRoutes.js';
+import businessRoutes from './routes/businessRoutes.js';
+import businessQuoteRoutes from './routes/businessQuoteRoutes.js';
+import uploadRoutes from './routes/uploadRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
+import enhancedQuoteRoutes from './routes/enhancedQuoteRoutes.js';
+import emailQueueRoutes from './routes/emailQueueRoutes.js';
 // ==========================================================
 // CONFIGURE DOTENV AT THE VERY TOP
 dotenv.config();
@@ -75,6 +83,14 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/admin-panel', adminPanelRoutes);
 app.use('/api/admin', emailRoutes);
 app.use('/api/general-settings', generalSettingsRoutes);
+app.use('/api/bank-details', bankDetailsRoutes);
+app.use('/api/notifications', realTimeNotificationRoutes);
+app.use('/api/business', businessRoutes);
+app.use('/api/business-quotes', businessQuoteRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/enhanced-quotes', enhancedQuoteRoutes);
+app.use('/api/email-queue', emailQueueRoutes);
 
 // Start the server
 app.listen(PORT, () => {

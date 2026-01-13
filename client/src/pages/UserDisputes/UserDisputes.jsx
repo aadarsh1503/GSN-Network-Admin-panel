@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FiPlus, FiEye, FiClock, FiCheckCircle, FiAlertTriangle, FiImage, FiX } from 'react-icons/fi';
+import { FiPlus, FiEye, FiClock, FiCheckCircle, FiAlertTriangle, FiImage, FiX, FiSearch, FiUpload, FiFileText } from 'react-icons/fi';
+import { Building, Search, CheckCircle2, X, Upload, Image as ImageIcon, Eye, FileText } from 'lucide-react';
 import { api } from '../../utils/api';
 import { toast } from 'react-hot-toast';
 
@@ -9,12 +10,16 @@ const UserDisputes = () => {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingFiles, setUploadingFiles] = useState(false);
   const [closingDispute, setClosingDispute] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [selectedDispute, setSelectedDispute] = useState(null);
   const [closeFeedback, setCloseFeedback] = useState('');
+  const [companySearchTerm, setCompanySearchTerm] = useState('');
+  const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
+  const [attachments, setAttachments] = useState([]);
   const [formData, setFormData] = useState({
     company_id: '',
     dispute_reason_id: '',
@@ -73,16 +78,45 @@ const UserDisputes = () => {
   const handleCreateDispute = async (e) => {
     e.preventDefault();
     
+    console.log('🚀 Starting user dispute creation process...');
+    console.log('📋 Form data:', formData);
+    console.log('📁 Attachments:', attachments.map(f => ({ name: f.name, size: f.size, type: f.type })));
+    
     if (!formData.company_id || !formData.dispute_reason_id || !formData.title || !formData.description) {
       toast.error('Please fill in all required fields');
+      console.error('❌ Missing required fields:', {
+        company_id: formData.company_id,
+        dispute_reason_id: formData.dispute_reason_id,
+        title: formData.title,
+        description: formData.description
+      });
       return;
     }
 
     setSubmitting(true);
 
     try {
-      await api.post('/api/disputes/create', formData);
+      console.log('📝 Creating dispute...');
+      
+      // Create dispute first
+      const disputeResponse = await api.post('/api/disputes/create', formData);
+      console.log('✅ Dispute creation response:', disputeResponse);
+      
+      const disputeId = disputeResponse.disputeId;
+      console.log('🆔 Dispute ID:', disputeId);
+
+      // Upload attachments if any
+      if (attachments.length > 0 && disputeId) {
+        console.log(`📤 Starting file upload for ${attachments.length} files...`);
+        setUploadingFiles(true);
+        await uploadAttachments(disputeId);
+      } else {
+        console.log('📝 No attachments to upload');
+      }
+
       toast.success('Dispute created successfully');
+      console.log('✅ Dispute creation completed successfully');
+      
       setShowCreateModal(false);
       setFormData({
         company_id: '',
@@ -91,18 +125,170 @@ const UserDisputes = () => {
         description: '',
         priority: 'medium'
       });
+      setAttachments([]);
+      setCompanySearchTerm('');
+      setShowCompanyDropdown(false);
       
-      // Refresh disputes data with delay
-      setTimeout(async () => {
-        await fetchUserDisputes();
-      }, 1000);
+      // Refresh disputes data
+      console.log('🔄 Refreshing disputes list...');
+      await fetchUserDisputes();
       
     } catch (error) {
-      console.error('Error creating dispute:', error);
-      toast.error(error.response?.data?.message || 'Failed to create dispute');
+      console.error('❌ Error creating dispute:', error);
+      console.error('Error details:', error);
+      
+      // Show error but DON'T redirect automatically
+      if (error.message?.includes('Authentication failed') || error.message?.includes('token') || error.message?.includes('expired')) {
+        toast.error('Authentication error: ' + error.message + ' - Please check your login status');
+        console.log('🔒 Authentication error - showing error instead of redirecting');
+      } else {
+        toast.error(error.message || 'Failed to create dispute');
+      }
     } finally {
       setSubmitting(false);
+      setUploadingFiles(false);
     }
+  };
+
+  const uploadAttachments = async (disputeId) => {
+    try {
+      console.log(`🔄 Starting upload process for ${attachments.length} attachment(s)...`);
+      console.log(`📋 Dispute ID: ${disputeId}`);
+      console.log(`📁 Files to upload:`, attachments.map(f => ({ 
+        name: f.name, 
+        size: f.size, 
+        type: f.type,
+        lastModified: f.lastModified
+      })));
+      
+      let uploadedCount = 0;
+      
+      for (const file of attachments) {
+        try {
+          console.log(`📤 Processing file: ${file.name}`);
+          console.log(`📊 File details:`, {
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            lastModified: file.lastModified
+          });
+          
+          // Validate file before upload
+          if (!file.type.startsWith('image/')) {
+            console.error('❌ File is not an image:', file.type);
+            toast.error(`${file.name} is not an image file`);
+            continue;
+          }
+          
+          if (file.size > 1 * 1024 * 1024) {
+            console.error('❌ File too large:', file.size);
+            toast.error(`${file.name} is too large (max 1MB)`);
+            continue;
+          }
+          
+          console.log('✅ File validation passed');
+          
+          // Create FormData for file upload
+          const formData = new FormData();
+          formData.append('image', file);
+          
+          console.log('📋 FormData created');
+          console.log('🔑 Token check:', localStorage.getItem('token') ? 'Token exists' : 'No token');
+          
+          console.log('📡 Making upload request to /api/upload/image...');
+          
+          // Upload to server endpoint using api utility
+          const uploadResponse = await api.post('/api/upload/image', formData);
+          
+          console.log('✅ Upload response received:', uploadResponse);
+          
+          if (uploadResponse && uploadResponse.url) {
+            console.log(`📎 Upload successful, saving attachment to dispute...`);
+            console.log(`🔗 Image URL: ${uploadResponse.url}`);
+            
+            // Save attachment info to database
+            const attachmentData = {
+              dispute_id: disputeId,
+              image_url: uploadResponse.url,
+              image_type: 'evidence'
+            };
+            
+            console.log('💾 Attachment data to save:', attachmentData);
+            
+            const attachmentResponse = await api.post('/api/disputes/attachments', attachmentData);
+            
+            console.log('✅ Attachment saved to database:', attachmentResponse);
+            uploadedCount++;
+          } else {
+            console.error('❌ No URL in upload response:', uploadResponse);
+            toast.error(`Failed to upload ${file.name}: No URL returned`);
+          }
+        } catch (fileError) {
+          console.error(`❌ Error uploading file ${file.name}:`, fileError);
+          console.error('📋 Error details:', {
+            message: fileError.message,
+            stack: fileError.stack,
+            response: fileError.response
+          });
+          toast.error(`Failed to upload ${file.name}: ${fileError.message}`);
+        }
+      }
+      
+      if (uploadedCount > 0) {
+        toast.success(`${uploadedCount} attachment(s) uploaded successfully`);
+        console.log(`✅ Successfully uploaded ${uploadedCount} out of ${attachments.length} files`);
+      } else {
+        toast.error('Failed to upload attachments');
+        console.error('❌ No files were uploaded successfully');
+      }
+      
+    } catch (error) {
+      console.error('❌ Error in uploadAttachments function:', error);
+      console.error('📋 Function error details:', {
+        message: error.message,
+        stack: error.stack
+      });
+      toast.error('Error uploading attachments: ' + error.message);
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    console.log('📁 File selection triggered...');
+    
+    const files = Array.from(e.target.files);
+    console.log('📋 Selected files:', files.map(f => ({ name: f.name, size: f.size, type: f.type })));
+    
+    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+    console.log('🖼️ Image files:', imageFiles.map(f => ({ name: f.name, size: f.size, type: f.type })));
+    
+    if (imageFiles.length !== files.length) {
+      toast.error('Only image files are allowed');
+      console.error('❌ Non-image files detected');
+      return;
+    }
+    
+    // Only allow 1 file
+    if (imageFiles.length > 1) {
+      toast.error('Only 1 attachment allowed');
+      console.error('❌ Too many files selected:', imageFiles.length);
+      return;
+    }
+    
+    // Check file size limit (1MB per file)
+    const oversizedFiles = imageFiles.filter(file => file.size > 1 * 1024 * 1024);
+    if (oversizedFiles.length > 0) {
+      toast.error(`File size limit exceeded. Maximum 1MB per file.`);
+      console.error('❌ Oversized files:', oversizedFiles.map(f => ({ name: f.name, size: f.size })));
+      return;
+    }
+    
+    console.log('✅ File validation passed');
+    setAttachments(imageFiles);
+    console.log('📁 Attachments state updated:', imageFiles.map(f => ({ name: f.name, size: f.size })));
+  };
+
+  const removeAttachment = (index) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleCloseDispute = async (e) => {
@@ -130,6 +316,33 @@ const UserDisputes = () => {
     } finally {
       setClosingDispute(false);
     }
+  };
+
+  // Filter companies based on search term
+  const filteredCompanies = companies.filter(company =>
+    company.name.toLowerCase().includes(companySearchTerm.toLowerCase()) ||
+    company.email?.toLowerCase().includes(companySearchTerm.toLowerCase()) ||
+    company.id.toString().includes(companySearchTerm)
+  );
+
+  // Get selected company name for display
+  const getSelectedCompanyName = () => {
+    const selectedCompany = companies.find(c => c.id.toString() === formData.company_id);
+    return selectedCompany ? selectedCompany.name : '';
+  };
+
+  // Handle company selection
+  const handleCompanySelect = (company) => {
+    setFormData({...formData, company_id: company.id.toString()});
+    setCompanySearchTerm('');
+    setShowCompanyDropdown(false);
+  };
+
+  // Clear company selection
+  const clearCompanySelection = () => {
+    setFormData({...formData, company_id: ''});
+    setCompanySearchTerm('');
+    setShowCompanyDropdown(false);
   };
 
   const getStatusColor = (status) => {
@@ -300,15 +513,15 @@ const UserDisputes = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto relative">
             {/* Loading Overlay */}
-            {submitting && (
+            {(submitting || uploadingFiles) && (
               <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-10 rounded-lg">
                 <div className="text-center">
                   <div className="animate-spin rounded-full h-12 w-12 border-4 border-yellow-500 border-t-transparent mx-auto mb-4"></div>
                   <p className="text-lg font-medium text-gray-700 animate-pulse">
-                    Filing your dispute...
+                    {uploadingFiles ? 'Uploading attachments...' : 'Filing your dispute...'}
                   </p>
                   <p className="text-sm text-gray-500 mt-2">
-                    Please wait while we process your request
+                    {uploadingFiles ? 'Please wait while we upload your files' : 'Please wait while we process your request'}
                   </p>
                 </div>
               </div>
@@ -318,13 +531,15 @@ const UserDisputes = () => {
               <h3 className="text-xl font-bold text-white">File New Dispute</h3>
               <button 
                 onClick={() => {
-                  if (!submitting) {
+                  if (!submitting && !uploadingFiles) {
                     setShowCreateModal(false);
+                    setCompanySearchTerm('');
+                    setShowCompanyDropdown(false);
                   }
                 }}
-                disabled={submitting}
+                disabled={submitting || uploadingFiles}
                 className={`text-white transition-all duration-200 ${
-                  submitting ? 'opacity-50 cursor-not-allowed' : 'hover:text-gray-200'
+                  (submitting || uploadingFiles) ? 'opacity-50 cursor-not-allowed' : 'hover:text-gray-200'
                 }`}
               >
                 <FiX size={20} />
@@ -337,22 +552,145 @@ const UserDisputes = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Company *
                   </label>
-                  <select
-                    value={formData.company_id}
-                    onChange={(e) => setFormData({...formData, company_id: e.target.value})}
-                    disabled={submitting}
-                    className={`w-full p-2 border rounded transition-all duration-200 ${
-                      submitting 
-                        ? 'bg-gray-100 cursor-not-allowed opacity-60' 
-                        : 'focus:ring-2 focus:ring-yellow-500 focus:border-transparent hover:border-yellow-300'
-                    }`}
-                    required
-                  >
-                    <option value="">Select a company</option>
-                    {companies.map(company => (
-                      <option key={company.id} value={company.id}>{company.name}</option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    {/* Selected Company Display / Search Input */}
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={formData.company_id ? getSelectedCompanyName() : companySearchTerm}
+                        onChange={(e) => {
+                          setCompanySearchTerm(e.target.value);
+                          setShowCompanyDropdown(true);
+                          if (formData.company_id) {
+                            // Clear selection when user starts typing
+                            setFormData({...formData, company_id: ''});
+                          }
+                        }}
+                        onFocus={() => setShowCompanyDropdown(true)}
+                        disabled={submitting || uploadingFiles}
+                        className={`w-full p-3 pr-10 border rounded-lg transition-all duration-200 ${
+                          (submitting || uploadingFiles)
+                            ? 'bg-gray-100 cursor-not-allowed opacity-60' 
+                            : 'focus:ring-2 focus:ring-yellow-500 focus:border-transparent hover:border-yellow-300'
+                        }`}
+                        placeholder="Search for a company you've worked with..."
+                        required
+                      />
+                      
+                      {/* Search/Clear Icon */}
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                        {formData.company_id ? (
+                          <button
+                            type="button"
+                            onClick={clearCompanySelection}
+                            className="text-gray-400 hover:text-gray-600"
+                            disabled={submitting || uploadingFiles}
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        ) : (
+                          <Search className="h-4 w-4 text-gray-400" />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Dropdown List */}
+                    {showCompanyDropdown && !submitting && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                        {filteredCompanies.length > 0 ? (
+                          <>
+                            {/* Results Count */}
+                            <div className="px-3 py-2 text-xs text-gray-500 bg-gray-50 border-b">
+                              {filteredCompanies.length} compan{filteredCompanies.length !== 1 ? 'ies' : 'y'} found
+                              {companySearchTerm && ` for "${companySearchTerm}"`}
+                            </div>
+                            
+                            {/* Company List */}
+                            {filteredCompanies.map((company) => (
+                              <div
+                                key={company.id}
+                                onClick={() => handleCompanySelect(company)}
+                                className="px-3 py-3 hover:bg-yellow-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors duration-150"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center space-x-2">
+                                      <Building className="h-4 w-4 text-yellow-600 flex-shrink-0" />
+                                      <div className="min-w-0 flex-1">
+                                        <p className="text-sm font-medium text-gray-900 truncate">
+                                          {company.name}
+                                        </p>
+                                        {company.email && (
+                                          <p className="text-xs text-gray-500 truncate">
+                                            {company.email}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="flex-shrink-0 ml-2">
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                      ID: {company.id}
+                                    </span>
+                                  </div>
+                                </div>
+                                
+                                {/* Additional company info if available */}
+                                {(company.city || company.country) && (
+                                  <div className="mt-1 flex items-center text-xs text-gray-400">
+                                    <span>📍 {[company.city, company.country].filter(Boolean).join(', ')}</span>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </>
+                        ) : (
+                          <div className="px-3 py-4 text-center text-gray-500">
+                            <Building className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                            <p className="text-sm">No companies found</p>
+                            {companySearchTerm && (
+                              <p className="text-xs mt-1">
+                                Try adjusting your search term "{companySearchTerm}"
+                              </p>
+                            )}
+                            <p className="text-xs mt-2 text-gray-400">
+                              Only companies you've worked with are shown
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Click outside to close dropdown */}
+                    {showCompanyDropdown && (
+                      <div
+                        className="fixed inset-0 z-0"
+                        onClick={() => setShowCompanyDropdown(false)}
+                      />
+                    )}
+                  </div>
+                  
+                  {/* Selected Company Info */}
+                  {formData.company_id && (
+                    <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          <span className="text-sm text-gray-700">
+                            Selected: <span className="font-medium">{getSelectedCompanyName()}</span>
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={clearCompanySelection}
+                          className="text-gray-400 hover:text-gray-600"
+                          disabled={submitting}
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 <div>
@@ -362,9 +700,9 @@ const UserDisputes = () => {
                   <select
                     value={formData.dispute_reason_id}
                     onChange={(e) => setFormData({...formData, dispute_reason_id: e.target.value})}
-                    disabled={submitting}
+                    disabled={submitting || uploadingFiles}
                     className={`w-full p-2 border rounded transition-all duration-200 ${
-                      submitting 
+                      (submitting || uploadingFiles) 
                         ? 'bg-gray-100 cursor-not-allowed opacity-60' 
                         : 'focus:ring-2 focus:ring-yellow-500 focus:border-transparent hover:border-yellow-300'
                     }`}
@@ -385,9 +723,9 @@ const UserDisputes = () => {
                     type="text"
                     value={formData.title}
                     onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    disabled={submitting}
+                    disabled={submitting || uploadingFiles}
                     className={`w-full p-2 border rounded transition-all duration-200 ${
-                      submitting 
+                      (submitting || uploadingFiles) 
                         ? 'bg-gray-100 cursor-not-allowed opacity-60' 
                         : 'focus:ring-2 focus:ring-yellow-500 focus:border-transparent hover:border-yellow-300'
                     }`}
@@ -403,9 +741,9 @@ const UserDisputes = () => {
                   <select
                     value={formData.priority}
                     onChange={(e) => setFormData({...formData, priority: e.target.value})}
-                    disabled={submitting}
+                    disabled={submitting || uploadingFiles}
                     className={`w-full p-2 border rounded transition-all duration-200 ${
-                      submitting 
+                      (submitting || uploadingFiles) 
                         ? 'bg-gray-100 cursor-not-allowed opacity-60' 
                         : 'focus:ring-2 focus:ring-yellow-500 focus:border-transparent hover:border-yellow-300'
                     }`}
@@ -424,9 +762,9 @@ const UserDisputes = () => {
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    disabled={submitting}
+                    disabled={submitting || uploadingFiles}
                     className={`w-full p-2 border rounded transition-all duration-200 ${
-                      submitting 
+                      (submitting || uploadingFiles) 
                         ? 'bg-gray-100 cursor-not-allowed opacity-60' 
                         : 'focus:ring-2 focus:ring-yellow-500 focus:border-transparent hover:border-yellow-300'
                     }`}
@@ -435,19 +773,80 @@ const UserDisputes = () => {
                     required
                   />
                 </div>
+
+                {/* File Upload Section */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Attachments (Optional)
+                  </label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                    <div className="text-center">
+                      <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
+                      <div className="mt-2">
+                        <label htmlFor="file-upload" className="cursor-pointer">
+                          <span className="mt-2 block text-sm font-medium text-gray-900">
+                            Upload images
+                          </span>
+                          <span className="mt-1 block text-xs text-gray-500">
+                            PNG, JPG, GIF up to 1MB (Max 1 file)
+                          </span>
+                        </label>
+                        <input
+                          id="file-upload"
+                          name="file-upload"
+                          type="file"
+                          accept="image/*"
+                          className="sr-only"
+                          onChange={handleFileSelect}
+                          disabled={submitting || uploadingFiles}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Selected Files Preview */}
+                  {attachments.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      <p className="text-sm font-medium text-gray-700">Selected files:</p>
+                      <div className="grid grid-cols-1 gap-2">
+                        {attachments.map((file, index) => (
+                          <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                            <div className="flex items-center space-x-2">
+                              <ImageIcon className="h-4 w-4 text-gray-500" />
+                              <span className="text-sm text-gray-700 truncate">{file.name}</span>
+                              <span className="text-xs text-gray-500">
+                                ({(file.size / (1024 * 1024)).toFixed(1)}MB)
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeAttachment(index)}
+                              className="text-red-500 hover:text-red-700"
+                              disabled={submitting || uploadingFiles}
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
               
               <div className="flex justify-end space-x-3 mt-6">
                 <button
                   type="button"
                   onClick={() => {
-                    if (!submitting) {
+                    if (!submitting && !uploadingFiles) {
                       setShowCreateModal(false);
+                      setCompanySearchTerm('');
+                      setShowCompanyDropdown(false);
                     }
                   }}
-                  disabled={submitting}
+                  disabled={submitting || uploadingFiles}
                   className={`px-4 py-2 text-white rounded transition-all duration-200 ${
-                    submitting 
+                    (submitting || uploadingFiles)
                       ? 'bg-gray-400 cursor-not-allowed opacity-60' 
                       : 'bg-gray-500 hover:bg-gray-600'
                   }`}
@@ -456,17 +855,19 @@ const UserDisputes = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={submitting || uploadingFiles}
                   className={`px-6 py-3 text-white rounded-lg font-medium transition-all duration-200 flex items-center justify-center min-w-[180px] ${
-                    submitting 
+                    (submitting || uploadingFiles)
                       ? 'bg-gradient-to-r from-yellow-400 to-orange-400 cursor-not-allowed' 
                       : 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 transform hover:scale-105 shadow-lg hover:shadow-xl'
                   }`}
                 >
-                  {submitting ? (
+                  {(submitting || uploadingFiles) ? (
                     <>
                       <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-3"></div>
-                      <span className="animate-pulse">Filing...</span>
+                      <span className="animate-pulse">
+                        {uploadingFiles ? 'Uploading...' : 'Filing...'}
+                      </span>
                     </>
                   ) : (
                     <>
@@ -545,6 +946,136 @@ const UserDisputes = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Admin Response</label>
                     <div className="bg-blue-50 p-4 rounded-lg">
                       <p className="text-gray-700 whitespace-pre-wrap">{selectedDispute.admin_response}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Attachments Display */}
+                {selectedDispute.images && selectedDispute.images.length > 0 && (
+                  <div className="md:col-span-2">
+                    <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                      <ImageIcon className="mr-2 h-5 w-5 text-yellow-600" />
+                      Attachments ({selectedDispute.images.length})
+                    </h4>
+                    
+                    <div className="space-y-4">
+                      {selectedDispute.images.map((image, index) => {
+                        console.log(`🖼️ Rendering image ${index + 1}:`, {
+                          url: image.image_url,
+                          type: image.image_type,
+                          id: image.id
+                        });
+                        
+                        return (
+                          <div key={index} className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-xl p-4 border border-yellow-200">
+                            <div className="flex items-start space-x-4">
+                              {/* Image Preview */}
+                              <div className="flex-shrink-0">
+                                <div className="relative w-32 h-32 bg-white rounded-lg border-2 border-yellow-300 overflow-hidden shadow-md">
+                                  <img
+                                    src={image.image_url}
+                                    alt={`Evidence ${index + 1}`}
+                                    className="w-full h-full object-contain bg-white"
+                                    onClick={() => {
+                                      console.log('🔗 Opening image in new tab:', image.image_url);
+                                      window.open(image.image_url, '_blank');
+                                    }}
+                                    onError={(e) => {
+                                      console.error('❌ Image failed to load:', image.image_url);
+                                      e.target.style.backgroundColor = '#fef3c7';
+                                      e.target.style.display = 'flex';
+                                      e.target.style.alignItems = 'center';
+                                      e.target.style.justifyContent = 'center';
+                                      e.target.innerHTML = '<div style="text-align: center; color: #d97706; font-size: 12px;"><div>📷</div><div>Failed to load</div></div>';
+                                    }}
+                                    onLoad={(e) => {
+                                      console.log('✅ Image loaded successfully:', image.image_url);
+                                      console.log('📐 Image dimensions:', e.target.naturalWidth + 'x' + e.target.naturalHeight);
+                                      
+                                      // Ensure proper display for small images
+                                      if (e.target.naturalWidth <= 10 && e.target.naturalHeight <= 10) {
+                                        console.warn('⚠️ Very small image detected, adjusting display');
+                                        e.target.style.objectFit = 'none';
+                                        e.target.style.imageRendering = 'pixelated';
+                                        e.target.style.transform = 'scale(10)';
+                                      }
+                                    }}
+                                    style={{ cursor: 'pointer' }}
+                                  />
+                                  
+                                  {/* Hover overlay */}
+                                  <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center opacity-0 hover:opacity-100">
+                                    <div className="bg-white bg-opacity-90 rounded-full p-2">
+                                      <Eye className="h-4 w-4 text-gray-700" />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Image Details */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between mb-2">
+                                  <h5 className="text-sm font-semibold text-gray-800 capitalize">
+                                    {image.image_type} Image
+                                  </h5>
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+                                    {image.image_type}
+                                  </span>
+                                </div>
+                                
+                                <div className="space-y-2 text-sm text-gray-600">
+                                  <div className="flex items-center">
+                                    <span className="font-medium mr-2">File ID:</span>
+                                    <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">#{image.id}</span>
+                                  </div>
+                                  
+                                  <div className="flex items-center">
+                                    <span className="font-medium mr-2">Status:</span>
+                                    <span className="text-green-600 font-medium">✓ Uploaded Successfully</span>
+                                  </div>
+                                </div>
+                                
+                                {/* Action Buttons */}
+                                <div className="flex space-x-2 mt-3">
+                                  <button
+                                    onClick={() => window.open(image.image_url, '_blank')}
+                                    className="inline-flex items-center px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-medium rounded-lg transition-colors duration-200"
+                                  >
+                                    <Eye className="h-3 w-3 mr-1" />
+                                    View Full Size
+                                  </button>
+                                  
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(image.image_url);
+                                      toast.success('Image URL copied to clipboard');
+                                    }}
+                                    className="inline-flex items-center px-3 py-1.5 bg-gray-500 hover:bg-gray-600 text-white text-xs font-medium rounded-lg transition-colors duration-200"
+                                  >
+                                    <FileText className="h-3 w-3 mr-1" />
+                                    Copy URL
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    
+                    {/* Gallery Footer */}
+                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center text-yellow-700">
+                          <ImageIcon className="h-4 w-4 mr-2" />
+                          <span className="font-medium">
+                            {selectedDispute.images.length} attachment{selectedDispute.images.length !== 1 ? 's' : ''} uploaded
+                          </span>
+                        </div>
+                        <div className="text-yellow-600 text-xs">
+                          Click any image to view in full resolution
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}

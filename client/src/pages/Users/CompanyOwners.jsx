@@ -1,10 +1,11 @@
 // src/components/BusinessOwners.jsx
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { FaPen, FaEye, FaTimes, FaSave } from 'react-icons/fa';
+import { FaPen, FaEye, FaTimes } from 'react-icons/fa';
 import { FaArrowUp, FaArrowDown } from 'react-icons/fa6';
 import { api } from '../../utils/api';
-import { adminToast } from '../../utils/adminToast'; 
+import { adminToast } from '../../utils/adminToast';
+import StatusConfirmationModal from '../../components/Modal/StatusConfirmationModal'; 
 
 // Custom Toggle Switch Component
 const ToggleSwitch = ({ checked, onChange }) => {
@@ -27,6 +28,13 @@ function CompanyOwners() {
   const [editingUser, setEditingUser] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [viewingUser, setViewingUser] = useState(null);
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    type: '',
+    userId: null,
+    currentValue: null,
+    userName: ''
+  });
 
   // 1. Fetch Data from API on Component Mount
   useEffect(() => {
@@ -49,47 +57,77 @@ function CompanyOwners() {
   }, []);
 
 
-  // 2. Handle Status Change (Active/Inactive)
-  const handleStatusChange = async (userId, currentStatus) => {
-    // Optimistic UI update (update immediately before API returns)
-    const updatedUsers = users.map(user =>
-      user.id === userId ? { ...user, status: !currentStatus } : user
-    );
-    setUsers(updatedUsers);
+  // 2. Handle Status Change (Active/Inactive) with Confirmation
+  const handleStatusChange = (userId, currentStatus, userName) => {
+    setConfirmModal({
+      isOpen: true,
+      type: currentStatus ? 'deactivate' : 'activate',
+      userId,
+      currentValue: currentStatus,
+      userName
+    });
+  };
 
+  const confirmStatusChange = async () => {
+    const { userId, currentValue } = confirmModal;
+    
     try {
         await api.put(`/api/user/company-status/${userId}`, { 
           type: 'status', 
-          value: !currentStatus 
+          value: !currentValue 
         });
-        adminToast.success(`User ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
+        
+        // Show toast BEFORE state update to prevent dismissal
+        adminToast.success(`User ${!currentValue ? 'activated' : 'deactivated'} successfully`);
+        
+        // Then update UI
+        const updatedUsers = users.map(user =>
+          user.id === userId ? { ...user, status: !currentValue } : user
+        );
+        setUsers(updatedUsers);
+        
     } catch (error) {
         console.error("Error updating status:", error);
         adminToast.error("Failed to update status");
-        // Revert changes if API fails
-        setUsers(users); 
+    } finally {
+      setConfirmModal({ isOpen: false, type: '', userId: null, currentValue: null, userName: '' });
     }
   };
 
-  // 3. Handle Blacklist Toggle
-  const handleBlacklistToggle = async (userId, currentBlacklistStatus) => {
-    // Optimistic UI update
-    const updatedUsers = users.map(user =>
-      user.id === userId ? { ...user, onBlacklist: !currentBlacklistStatus } : user
-    );
-    setUsers(updatedUsers);
+  // 3. Handle Blacklist Toggle with Confirmation
+  const handleBlacklistToggle = (userId, currentBlacklistStatus, userName) => {
+    setConfirmModal({
+      isOpen: true,
+      type: currentBlacklistStatus ? 'unblacklist' : 'blacklist',
+      userId,
+      currentValue: currentBlacklistStatus,
+      userName
+    });
+  };
 
+  const confirmBlacklistToggle = async () => {
+    const { userId, currentValue } = confirmModal;
+    
     try {
         await api.put(`/api/user/company-status/${userId}`, { 
           type: 'blacklist', 
-          value: !currentBlacklistStatus 
+          value: !currentValue 
         });
-        adminToast.success(`User ${!currentBlacklistStatus ? 'added to' : 'removed from'} blacklist`);
+        
+        // Show toast BEFORE state update to prevent dismissal
+        adminToast.success(`User ${!currentValue ? 'added to' : 'removed from'} blacklist`);
+        
+        // Then update UI
+        const updatedUsers = users.map(user =>
+          user.id === userId ? { ...user, onBlacklist: !currentValue } : user
+        );
+        setUsers(updatedUsers);
+        
     } catch (error) {
         console.error("Error updating blacklist:", error);
         adminToast.error("Failed to update blacklist status");
-        // Revert changes if API fails
-        setUsers(users);
+    } finally {
+      setConfirmModal({ isOpen: false, type: '', userId: null, currentValue: null, userName: '' });
     }
   };
 
@@ -374,13 +412,13 @@ const handleEditUser = async (user) => {
                       <td className="p-3">
                         <ToggleSwitch 
                             checked={user.onBlacklist} 
-                            onChange={() => handleBlacklistToggle(user.id, user.onBlacklist)} 
+                            onChange={() => handleBlacklistToggle(user.id, user.onBlacklist, user.name)} 
                         />
                       </td>
                       <td className="p-3">
                         <ToggleSwitch 
                             checked={user.status} 
-                            onChange={() => handleStatusChange(user.id, user.status)} 
+                            onChange={() => handleStatusChange(user.id, user.status, user.name)} 
                         />
                       </td>
                       <td className="p-3">
@@ -930,6 +968,37 @@ const handleEditUser = async (user) => {
           </div>
         </div>
       )}
+
+      {/* Status Confirmation Modal */}
+      <StatusConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ isOpen: false, type: '', userId: null, currentValue: null, userName: '' })}
+        onConfirm={confirmModal.type === 'activate' || confirmModal.type === 'deactivate' ? confirmStatusChange : confirmBlacklistToggle}
+        title={
+          confirmModal.type === 'activate' ? 'Activate User' :
+          confirmModal.type === 'deactivate' ? 'Deactivate User' :
+          confirmModal.type === 'blacklist' ? 'Add to Blacklist' :
+          confirmModal.type === 'unblacklist' ? 'Remove from Blacklist' : 'Confirm Action'
+        }
+        message={
+          confirmModal.type === 'activate' ? 
+            `Are you sure you want to activate "${confirmModal.userName}"? This will allow them to access the platform.` :
+          confirmModal.type === 'deactivate' ? 
+            `Are you sure you want to deactivate "${confirmModal.userName}"? This will prevent them from accessing the platform.` :
+          confirmModal.type === 'blacklist' ? 
+            `Are you sure you want to add "${confirmModal.userName}" to the blacklist? This will restrict their access and activities.` :
+          confirmModal.type === 'unblacklist' ? 
+            `Are you sure you want to remove "${confirmModal.userName}" from the blacklist? This will restore their normal access.` :
+            'Please confirm this action.'
+        }
+        confirmText={
+          confirmModal.type === 'activate' ? 'Activate' :
+          confirmModal.type === 'deactivate' ? 'Deactivate' :
+          confirmModal.type === 'blacklist' ? 'Add to Blacklist' :
+          confirmModal.type === 'unblacklist' ? 'Remove from Blacklist' : 'Confirm'
+        }
+        type={confirmModal.type}
+      />
     </div>
   );
 }

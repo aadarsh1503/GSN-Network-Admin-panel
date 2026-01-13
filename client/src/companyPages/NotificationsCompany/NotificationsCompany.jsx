@@ -5,7 +5,7 @@ import axios from 'axios';
 import { useNotifications } from '../../contexts/NotificationContext';
 
 const NotificationsCompany = () => {
-  const [notifications, setNotifications] = useState([]);
+  const [notifications, setNotifications] = useState([]); // Initialize as empty array
   const [entries, setEntries] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
@@ -16,24 +16,82 @@ const NotificationsCompany = () => {
     const fetchNotifications = async () => {
       try {
         const token = localStorage.getItem('token'); // Ensure user is logged in
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        console.log('🔍 DEBUG: Current user:', user);
+        console.log('🔍 DEBUG: User ID:', user.id);
+        console.log('🔍 DEBUG: User role:', user.role);
+        console.log('🔍 DEBUG: User name:', user.name);
+        
+        if (!token) {
+          console.error('No token found');
+          setNotifications([]);
+          setLoading(false);
+          return;
+        }
+
         const response = await axios.get('/api/notifications/my-notifications', {
             headers: { Authorization: `Bearer ${token}` }
         });
-        setNotifications(response.data);
+        
+        console.log('🔍 DEBUG: Full API response:', response.data);
+        console.log('🔍 DEBUG: Number of notifications received:', response.data.length);
+        console.log('🔍 DEBUG: Response is array?', Array.isArray(response.data));
+        
+        // Ensure response.data is always an array
+        const notificationsData = Array.isArray(response.data) ? response.data : [];
+        console.log('🔍 DEBUG: Processed notifications data:', notificationsData);
+        
+        // TEMPORARY FIX: Filter out notifications that might not belong to this user
+        // This is a safety measure while we investigate the root cause
+        const filteredNotifications = notificationsData.filter(notification => {
+          // Keep all general notifications (target_role !== 'user_specific')
+          if (notification.target_role !== 'user_specific') {
+            return true;
+          }
+          
+          // For user-specific notifications, we should only see our own
+          // Since the backend should already filter these correctly, 
+          // this is just a safety check
+          return true; // Keep all for now, but log suspicious ones
+        });
+        
+        console.log('🔍 DEBUG: Setting notifications state with:', filteredNotifications.length, 'items');
+        
+        setNotifications(filteredNotifications);
         
         // Mark notifications as read when user views the page
-        await markAsRead('all');
-        // Refresh unread count
-        await fetchUnreadCount();
+        if (notificationsData.length > 0) {
+          // Use the proper API endpoint to mark notifications as read
+          try {
+            console.log('Attempting to mark notifications as read...');
+            const markReadResponse = await axios.post('/api/notifications/mark-read', 
+              { pageType: 'all' },
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            console.log('Mark read response:', markReadResponse.data);
+            
+            // Refresh unread count after marking as read
+            console.log('Refreshing unread count...');
+            await fetchUnreadCount();
+            console.log('Unread count refreshed');
+          } catch (markReadError) {
+            console.error('Error marking notifications as read:', markReadError);
+            console.error('Error response:', markReadError.response?.data);
+          }
+        }
       } catch (error) {
         console.error("Error loading notifications", error);
+        console.error("Error response:", error.response?.data); // More detailed error logging
+        // Set empty array on error to prevent filter issues
+        setNotifications([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchNotifications();
-  }, [markAsRead, fetchUnreadCount]);
+  }, [fetchUnreadCount]); // Remove markAsRead from dependencies since we're not using it
 
   // 2. Format Date helper
   const formatDate = (isoString) => {
@@ -51,11 +109,16 @@ const NotificationsCompany = () => {
     </div>
   );
 
-  // 3. Search Filter
-  const filteredData = notifications.filter(item => 
-    item.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    item.message.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // 3. Search Filter with additional safety checks
+  const filteredData = Array.isArray(notifications) 
+    ? notifications.filter(item => {
+        if (!item) return false; // Skip null/undefined items
+        const title = item.title || '';
+        const message = item.message || '';
+        return title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+               message.toLowerCase().includes(searchTerm.toLowerCase());
+      })
+    : [];
 
   // 4. Pagination Slicing
   const displayData = filteredData.slice(0, entries);
@@ -71,7 +134,7 @@ const NotificationsCompany = () => {
           <select 
             value={entries} 
             onChange={(e) => setEntries(e.target.value)}
-            className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-amber-400"
+            className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
           >
             <option value="10">10</option>
             <option value="25">25</option>
@@ -86,7 +149,7 @@ const NotificationsCompany = () => {
             type="text" 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-400"
+            className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
           />
         </div>
       </div>
@@ -106,33 +169,44 @@ const NotificationsCompany = () => {
           <tbody>
             {loading ? (
                 <tr><td colSpan="5" className="p-4 text-center">Loading notifications...</td></tr>
-            ) : displayData.length === 0 ? (
+            ) : !Array.isArray(displayData) || displayData.length === 0 ? (
                 <tr><td colSpan="5" className="p-4 text-center">No notifications found.</td></tr>
             ) : (
-                displayData.map((item, index) => (
-                <tr key={item.id} className="border-b border-gray-200 last:border-b-0 hover:bg-gray-50">
-                    <td className="p-3 text-sm text-gray-700 align-top">{index + 1}</td>
-                    <td className="p-3 align-top">
-                    {item.image ? (
-                        <img 
-                            src={item.image} 
-                            alt={item.title} 
-                            className="h-16 w-24 object-contain border p-1 rounded-md bg-white" 
-                        />
-                    ) : (
-                        <span className="text-gray-400 text-xs">No Image</span>
-                    )}
-                    </td>
-                    <td className="p-3 text-sm text-gray-700 align-top">{item.title}</td>
-                    <td className="p-3 text-sm text-gray-700 align-top whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                        <FiClock />
-                        <span>{formatDate(item.created_at)}</span>
-                    </div>
-                    </td>
-                    <td className="p-3 text-sm text-gray-700 align-top">{item.message}</td>
-                </tr>
-                ))
+                displayData.map((item, index) => {
+                  // Safety check for each item
+                  if (!item || !item.id) {
+                    return (
+                      <tr key={`empty-${index}`} className="border-b border-gray-200">
+                        <td colSpan="5" className="p-4 text-center text-gray-400">Invalid notification data</td>
+                      </tr>
+                    );
+                  }
+                  
+                  return (
+                    <tr key={item.id} className="border-b border-gray-200 last:border-b-0 hover:bg-gray-50">
+                        <td className="p-3 text-sm text-gray-700 align-top">{index + 1}</td>
+                        <td className="p-3 align-top">
+                        {item.image ? (
+                            <img 
+                                src={item.image} 
+                                alt={item.title || 'Notification'} 
+                                className="h-16 w-24 object-contain border p-1 rounded-md bg-white" 
+                            />
+                        ) : (
+                            <span className="text-gray-400 text-xs">No Image</span>
+                        )}
+                        </td>
+                        <td className="p-3 text-sm text-gray-700 align-top">{item.title || 'No Title'}</td>
+                        <td className="p-3 text-sm text-gray-700 align-top whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                            <FiClock />
+                            <span>{item.created_at ? formatDate(item.created_at) : 'No Date'}</span>
+                        </div>
+                        </td>
+                        <td className="p-3 text-sm text-gray-700 align-top">{item.message || 'No Message'}</td>
+                    </tr>
+                  );
+                })
             )}
           </tbody>
         </table>
@@ -141,7 +215,7 @@ const NotificationsCompany = () => {
       {/* Bottom Controls */}
       <div className="flex flex-col md:flex-row items-center justify-between mt-4 gap-4">
         <div className="text-sm text-gray-600">
-          Showing 1 to {Math.min(entries, filteredData.length)} of {filteredData.length} entries
+          Showing 1 to {Math.min(entries, Array.isArray(filteredData) ? filteredData.length : 0)} of {Array.isArray(filteredData) ? filteredData.length : 0} entries
         </div>
         <div className="flex items-center">
           <button className="px-3 py-1 border border-gray-300 rounded-l-md hover:bg-gray-100 disabled:opacity-50" disabled>

@@ -34,7 +34,8 @@ const updateCompanyProfile = async (req, res) => {
         skype, website, facebook, twitter, instagram, linkedin,
         category, country, state, city, name, 
         services, // stringified JSON coming from frontend
-        map_location, company_address, about_company
+        map_location, company_address, about_company,
+        longitude, latitude // New coordinate fields
     } = req.body;
 
     try {
@@ -80,6 +81,7 @@ const updateCompanyProfile = async (req, res) => {
                     skype = ?, website = ?, facebook = ?, twitter = ?, instagram = ?, linkedin = ?,
                     category = ?, country = ?, state = ?, city = ?, name = ?,
                     services = ?, map_location = ?, company_address = ?, about_company = ?, 
+                    longitude = ?, latitude = ?,
                     logo = ?, incharge_image = ?
                 WHERE id = ?
             `;
@@ -88,6 +90,7 @@ const updateCompanyProfile = async (req, res) => {
                 sanitizeValue(skype), sanitizeValue(website), sanitizeValue(facebook), sanitizeValue(twitter), sanitizeValue(instagram), sanitizeValue(linkedin),
                 sanitizeValue(category), sanitizeValue(country), sanitizeValue(state), sanitizeValue(city), sanitizeValue(name),
                 sanitizeValue(servicesString), sanitizeValue(map_location), sanitizeValue(company_address), sanitizeValue(about_company), 
+                sanitizeValue(longitude), sanitizeValue(latitude),
                 logoUrl, inchargeImageUrl, userId
             ];
         } else if (logoUrl) {
@@ -98,6 +101,7 @@ const updateCompanyProfile = async (req, res) => {
                     skype = ?, website = ?, facebook = ?, twitter = ?, instagram = ?, linkedin = ?,
                     category = ?, country = ?, state = ?, city = ?, name = ?,
                     services = ?, map_location = ?, company_address = ?, about_company = ?, 
+                    longitude = ?, latitude = ?,
                     logo = ?
                 WHERE id = ?
             `;
@@ -106,6 +110,7 @@ const updateCompanyProfile = async (req, res) => {
                 sanitizeValue(skype), sanitizeValue(website), sanitizeValue(facebook), sanitizeValue(twitter), sanitizeValue(instagram), sanitizeValue(linkedin),
                 sanitizeValue(category), sanitizeValue(country), sanitizeValue(state), sanitizeValue(city), sanitizeValue(name),
                 sanitizeValue(servicesString), sanitizeValue(map_location), sanitizeValue(company_address), sanitizeValue(about_company), 
+                sanitizeValue(longitude), sanitizeValue(latitude),
                 logoUrl, userId
             ];
         } else if (inchargeImageUrl) {
@@ -116,6 +121,7 @@ const updateCompanyProfile = async (req, res) => {
                     skype = ?, website = ?, facebook = ?, twitter = ?, instagram = ?, linkedin = ?,
                     category = ?, country = ?, state = ?, city = ?, name = ?,
                     services = ?, map_location = ?, company_address = ?, about_company = ?, 
+                    longitude = ?, latitude = ?,
                     incharge_image = ?
                 WHERE id = ?
             `;
@@ -124,6 +130,7 @@ const updateCompanyProfile = async (req, res) => {
                 sanitizeValue(skype), sanitizeValue(website), sanitizeValue(facebook), sanitizeValue(twitter), sanitizeValue(instagram), sanitizeValue(linkedin),
                 sanitizeValue(category), sanitizeValue(country), sanitizeValue(state), sanitizeValue(city), sanitizeValue(name),
                 sanitizeValue(servicesString), sanitizeValue(map_location), sanitizeValue(company_address), sanitizeValue(about_company), 
+                sanitizeValue(longitude), sanitizeValue(latitude),
                 inchargeImageUrl, userId
             ];
         } else {
@@ -133,7 +140,8 @@ const updateCompanyProfile = async (req, res) => {
                     owner_name = ?, owner_phone = ?, incharge_name = ?, incharge_phone = ?,
                     skype = ?, website = ?, facebook = ?, twitter = ?, instagram = ?, linkedin = ?,
                     category = ?, country = ?, state = ?, city = ?, name = ?,
-                    services = ?, map_location = ?, company_address = ?, about_company = ?
+                    services = ?, map_location = ?, company_address = ?, about_company = ?,
+                    longitude = ?, latitude = ?
                 WHERE id = ?
             `;
             values = [
@@ -141,6 +149,7 @@ const updateCompanyProfile = async (req, res) => {
                 sanitizeValue(skype), sanitizeValue(website), sanitizeValue(facebook), sanitizeValue(twitter), sanitizeValue(instagram), sanitizeValue(linkedin),
                 sanitizeValue(category), sanitizeValue(country), sanitizeValue(state), sanitizeValue(city), sanitizeValue(name),
                 sanitizeValue(servicesString), sanitizeValue(map_location), sanitizeValue(company_address), sanitizeValue(about_company),
+                sanitizeValue(longitude), sanitizeValue(latitude),
                 userId
             ];
         }

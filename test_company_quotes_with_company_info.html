@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Enhanced Company Quotes Display</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .quote-card { 
+            border: 1px solid #ddd; 
+            padding: 20px; 
+            margin: 15px 0; 
+            border-radius: 12px; 
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .company-info { 
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb); 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-bottom: 15px;
+            border: 2px solid #2196f3;
+        }
+        .customer-info { 
+            background: linear-gradient(135deg, #f3e5f5, #e1bee7); 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-bottom: 15px;
+            border: 2px solid #9c27b0;
+        }
+        .quote-info { 
+            background: #f8f9fa; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-bottom: 15px;
+        }
+        .error { color: red; font-weight: bold; }
+        .success { color: green; font-weight: bold; }
+        .warning { color: orange; font-weight: bold; }
+        button { 
+            padding: 12px 24px; 
+            margin: 8px; 
+            cursor: pointer; 
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+        .btn-primary { background: #2196f3; color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .stats { display: flex; justify-content: center; gap: 20px; margin: 20px 0; }
+        .stat-item { padding: 10px 20px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏢 Enhanced Company Quotes Display Test</h1>
+            <p>Testing the enhanced My Quotes page with both company and customer details</p>
+        </div>
+        
+        <div>
+            <button class="btn-primary" onclick="testCompanyQuotes()">🔍 Test Enhanced Company Quotes API</button>
+            <button class="btn-secondary" onclick="clearResults()">🗑️ Clear Results</button>
+        </div>
+        
+        <div id="stats" class="stats" style="display: none;"></div>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000';
+        
+        async function testCompanyQuotes() {
+            const resultsDiv = document.getElementById('results');
+            const statsDiv = document.getElementById('stats');
+            resultsDiv.innerHTML = '<p>🔄 Testing enhanced company quotes API...</p>';
+            statsDiv.style.display = 'none';
+            
+            try {
+                // Get token from localStorage (assuming company is logged in)
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    resultsDiv.innerHTML = '<p class="error">❌ No authentication token found. Please log in as a company first.</p>';
+                    return;
+                }
+                
+                const response = await fetch(`${API_BASE}/api/enhanced-quotes/company-responses-with-payments`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const quotes = await response.json();
+                
+                if (quotes.length === 0) {
+                    resultsDiv.innerHTML = '<p class="success">✅ API working! No quotes found for this company.</p>';
+                    return;
+                }
+                
+                // Show stats
+                const companyQuotes = quotes.filter(q => q.company_name || q.company_email);
+                const customerQuotes = quotes.filter(q => q.user_name || q.user_email);
+                
+                statsDiv.innerHTML = `
+                    <div class="stat-item">
+                        <strong>📊 Total Quotes:</strong> ${quotes.length}
+                    </div>
+                    <div class="stat-item">
+                        <strong>🏢 With Company Info:</strong> ${companyQuotes.length}
+                    </div>
+                    <div class="stat-item">
+                        <strong>👤 With Customer Info:</strong> ${customerQuotes.length}
+                    </div>
+                `;
+                statsDiv.style.display = 'flex';
+                
+                let html = `<h2 class="success">✅ Enhanced API Working! Found ${quotes.length} quotes:</h2>`;
+                
+                quotes.forEach((quote, index) => {
+                    html += `
+                        <div class="quote-card">
+                            <h3>📋 Quote #${quote.id}</h3>
+                            
+                            ${quote.company_name || quote.company_email ? `
+                                <div class="company-info">
+                                    <h4>🏢 <strong>Your Company Information:</strong></h4>
+                                    ${quote.company_name ? `<p><strong>Company Name:</strong> ${quote.company_name}</p>` : ''}
+                                    ${quote.company_email ? `<p><strong>Company Email:</strong> ${quote.company_email}</p>` : ''}
+                                    ${quote.company_phone ? `<p><strong>Company Phone:</strong> ${quote.company_phone}</p>` : ''}
+                                </div>
+                            ` : '<div class="error">❌ Company information missing</div>'}
+                            
+                            ${quote.user_name || quote.user_email ? `
+                                <div class="customer-info">
+                                    <h4>👤 <strong>Customer Information:</strong></h4>
+                                    ${quote.user_name ? `<p><strong>Customer Name:</strong> ${quote.user_name}</p>` : ''}
+                                    ${quote.user_email ? `<p><strong>Customer Email:</strong> ${quote.user_email}</p>` : ''}
+                                    ${quote.user_phone ? `<p><strong>Customer Phone:</strong> ${quote.user_phone}</p>` : ''}
+                                </div>
+                            ` : '<div class="warning">⚠️ Customer information not available</div>'}
+                            
+                            <div class="quote-info">
+                                <h4>📦 <strong>Quote Details:</strong></h4>
+                                <p><strong>Product:</strong> ${quote.product_description}</p>
+                                <p><strong>Route:</strong> ${quote.departure_country} → ${quote.arrival_country}</p>
+                                <p><strong>Price:</strong> $${quote.price}</p>
+                                <p><strong>Shipping Mode:</strong> ${quote.shipping_mode}</p>
+                                <p><strong>Delivery Date:</strong> ${quote.arrival_date ? new Date(quote.arrival_date).toLocaleDateString() : 'N/A'}</p>
+                                <p><strong>Status:</strong> ${quote.user_response_status || 'No response'}</p>
+                                <p><strong>Payment Status:</strong> ${quote.payment_status || 'No payment'}</p>
+                                ${quote.accepted_at ? `<p><strong>Accepted:</strong> ${new Date(quote.accepted_at).toLocaleDateString()}</p>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                resultsDiv.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error testing company quotes:', error);
+                resultsDiv.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+            document.getElementById('stats').style.display = 'none';
+        }
+        
+        // Auto-test on page load if token exists
+        window.onload = function() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                console.log('Token found, auto-testing...');
+                testCompanyQuotes();
+            } else {
+                document.getElementById('results').innerHTML = '<p class="error">❌ Please log in as a company first to test this API.</p>';
+            }
+        };
+    </script>
+</body>
+</html>

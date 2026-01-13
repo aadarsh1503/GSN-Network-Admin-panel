@@ -56,7 +56,7 @@ const SuggestionCompany = () => {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'pending': return <FiClock className="text-yellow-500" />;
+      case 'pending': return <FiClock className="text-[#CDA435]" />;
       case 'reviewed': return <FiAlertCircle className="text-blue-500" />;
       case 'implemented': return <FiCheckCircle className="text-green-500" />;
       case 'rejected': return <FiXCircle className="text-red-500" />;
@@ -79,7 +79,7 @@ const SuggestionCompany = () => {
   };
 
   const labelClasses = "block text-sm font-medium text-gray-700 mb-2";
-  const inputClasses = "w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500";
+  const inputClasses = "w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-[#CDA435]";
 
   return (
     <div className="space-y-6">

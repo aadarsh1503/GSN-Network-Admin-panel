@@ -1,6 +1,7 @@
 // controllers/quoteResponseController.js
 import db from '../config/db.js';
-import { sendQuoteResponseNotification } from '../services/emailService.js';
+import realTimeNotificationService from '../services/realTimeNotificationService.js';
+import { queueSubscriptionEmails } from '../services/emailQueue.js';
 
 // @desc    Submit quote response (Company responds to a quote)
 // @route   POST /api/quote-responses/submit
@@ -9,7 +10,7 @@ const submitQuoteResponse = async (req, res) => {
     const companyId = req.user.id;
     const {
         quoteId, price, transitTime, inclusions, valueAddedServices, 
-        validUntil, terms, notes
+        validUntil, terms, notes, bankDetailsId
     } = req.body;
 
     if (!quoteId || !price || !transitTime) {
@@ -82,6 +83,18 @@ const submitQuoteResponse = async (req, res) => {
             return res.status(400).json({ message: 'You have already responded to this quote' });
         }
 
+        // If bank details are provided, verify they belong to the company
+        if (bankDetailsId) {
+            const [bankDetails] = await db.execute(
+                'SELECT * FROM company_bank_details WHERE id = ? AND company_id = ? AND is_active = TRUE',
+                [bankDetailsId, companyId]
+            );
+
+            if (bankDetails.length === 0) {
+                return res.status(404).json({ message: 'Bank details not found or inactive' });
+            }
+        }
+
         const sql = `
             INSERT INTO quote_responses (
                 quote_id, company_id, price, transit_time, inclusions, 
@@ -95,8 +108,114 @@ const submitQuoteResponse = async (req, res) => {
         ];
 
         const [result] = await db.execute(sql, values);
+        const quoteResponseId = result.insertId;
 
-        // Send email notification to quote owner if they are a registered user
+        // If bank details are provided, link them to the quote response
+        if (bankDetailsId) {
+            await db.execute(
+                'INSERT INTO quote_response_bank_details (quote_response_id, company_bank_details_id) VALUES (?, ?)',
+                [quoteResponseId, bankDetailsId]
+            );
+        }
+
+        // 🚀 SEND QUOTE RESPONSE EMAILS (NON-BLOCKING)
+        try {
+          // Get complete quote and company details for email
+          const [quoteDetails] = await db.execute(`
+              SELECT q.*, 
+                     COALESCE(u.name, q.contact_name) as user_name, 
+                     COALESCE(u.email, q.contact_email) as user_email,
+                     COALESCE(u.phone, q.contact_phone) as user_phone,
+                     u.role as user_role,
+                     c.name as company_name,
+                     c.email as company_email,
+                     c.phone as company_phone,
+                     c.logo as company_logo
+              FROM quotes q
+              LEFT JOIN users u ON q.user_id = u.id
+              JOIN users c ON c.id = ?
+              WHERE q.id = ?
+          `, [companyId, quoteId]);
+
+          if (quoteDetails.length > 0 && quoteDetails[0].user_email) {
+            const quote = quoteDetails[0];
+            
+            // Get bank details if provided
+            let bankDetails = null;
+            if (bankDetailsId) {
+              const [bankRows] = await db.execute(
+                'SELECT * FROM company_bank_details WHERE id = ? AND company_id = ?',
+                [bankDetailsId, companyId]
+              );
+              if (bankRows.length > 0) {
+                const bank = bankRows[0];
+                bankDetails = {
+                  bankName: bank.bank_name,
+                  accountName: bank.account_holder_name,
+                  accountNumber: bank.account_number,
+                  branchName: bank.branch_name,
+                  ibanNumber: bank.iban_number,
+                  swiftCode: bank.swift_code,
+                  routingNumber: bank.routing_number,
+                  paymentInstructions: bank.payment_instructions
+                };
+              }
+            }
+
+            // Prepare email data
+            const emailData = {
+              recipientEmail: quote.user_email,
+              quoteId: quoteId,
+              quoteResponseId: quoteResponseId,
+              userName: quote.user_name,
+              userRole: quote.user_role || 'user',
+              companyName: quote.company_name,
+              companyEmail: quote.company_email,
+              companyPhone: quote.company_phone,
+              companyLogo: quote.company_logo,
+              price: price,
+              transitTime: transitTime,
+              inclusions: inclusions,
+              valueAddedServices: valueAddedServices,
+              validUntil: validUntil,
+              terms: terms,
+              notes: notes,
+              bankDetails: bankDetails,
+              originalQuote: {
+                shippingMode: quote.shipping_mode,
+                departureCountry: quote.departure_country,
+                departureState: quote.departure_state,
+                departureCity: quote.departure_city,
+                arrivalCountry: quote.arrival_country,
+                arrivalState: quote.arrival_state,
+                arrivalCity: quote.arrival_city,
+                productDescription: quote.product_description,
+                arrivalDate: quote.arrival_date,
+                weight: quote.weight,
+                quantity: quote.quantity,
+                packing: quote.packing,
+                incoterms: quote.incoterms,
+                type: quote.type,
+                isStackable: quote.is_stackable,
+                isHazardous: quote.is_hazardous,
+                hasInsurance: quote.has_insurance
+              }
+            };
+
+            // Queue quote response email to user
+            queueSubscriptionEmails.quoteResponseToUser(emailData).then(jobId => {
+              console.log(`✅ Quote response email queued (Job ID: ${jobId})`);
+            }).catch(error => {
+              console.error('❌ Failed to queue quote response email:', error);
+            });
+          }
+
+        } catch (emailError) {
+          console.error('❌ Error processing quote response emails:', emailError);
+          // Don't fail the response submission if emails fail
+        }
+
+        // Get quote details for messaging (email notification is handled by enhanced email queue above)
         const [quoteDetails] = await db.execute(`
             SELECT q.*, u.name as user_name, u.email as user_email, c.name as company_name
             FROM quotes q
@@ -105,17 +224,7 @@ const submitQuoteResponse = async (req, res) => {
             WHERE q.id = ?
         `, [companyId, quoteId]);
 
-        if (quoteDetails.length > 0 && quoteDetails[0].user_email) {
-            // Send email notification
-            await sendQuoteResponseNotification(
-                quoteDetails[0].user_email,
-                quoteDetails[0].user_name,
-                quoteDetails[0].company_name,
-                quoteId,
-                price,
-                transitTime
-            );
-
+        if (quoteDetails.length > 0) {
             // Create a message for the user if they are registered
             if (quoteDetails[0].user_id) {
                 const messageText = `We have submitted a quote response for your request (Quote #${quoteId}).
@@ -138,12 +247,21 @@ Please review our offer and let us know if you have any questions.`;
                     messageText,
                     quoteId
                 ]);
+
+                // Send real-time notification to user
+                await realTimeNotificationService.notifyNewQuoteResponse({
+                    quote_id: quoteId,
+                    company_id: companyId,
+                    price: price,
+                    delivery_time: transitTime,
+                    message: notes || 'New quote response received'
+                });
             }
         }
 
         res.status(201).json({
             message: 'Quote response submitted successfully',
-            responseId: result.insertId
+            responseId: quoteResponseId
         });
 
     } catch (error) {

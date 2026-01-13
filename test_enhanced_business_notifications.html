@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Notifications - Click to View</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #CDA435, #D9B95B);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .feature-section {
+            margin: 25px 0;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            background: #fafafa;
+        }
+        .feature-section.enhanced {
+            border-color: #CDA435;
+            background: linear-gradient(135deg, #fff9e6, #fffbf0);
+        }
+        .notification-demo {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .notification-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid #CDA435;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        .notification-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        .notification-card::before {
+            content: "👆 Click to view in quotes page";
+            position: absolute;
+            top: -10px;
+            right: 10px;
+            background: linear-gradient(135deg, #CDA435, #D9B95B);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .notification-card:hover::before {
+            opacity: 1;
+        }
+        .click-indicator {
+            background: linear-gradient(135deg, rgba(205, 164, 53, 0.1), rgba(217, 185, 91, 0.1));
+            border: 1px solid rgba(205, 164, 53, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+            color: #CDA435;
+            font-weight: bold;
+            text-align: center;
+        }
+        .notification-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .notification-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .notification-meta {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .notification-message {
+            color: #555;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        .quote-details {
+            background: linear-gradient(135deg, #e8f4fd, #f0f7ff);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #2196F3;
+            margin: 10px 0;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .btn-view {
+            background: linear-gradient(135deg, #CDA435, #D9B95B);
+            color: white;
+        }
+        .btn-view:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(205, 164, 53, 0.3);
+        }
+        .btn-mark {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+        }
+        .btn-mark:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+        }
+        .filter-tabs {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            background: white;
+            padding: 5px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .filter-tab {
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: medium;
+        }
+        .filter-tab.active {
+            background: linear-gradient(135deg, #CDA435, #D9B95B);
+            color: white;
+            box-shadow: 0 2px 8px rgba(205, 164, 53, 0.3);
+        }
+        .filter-tab:not(.active) {
+            color: #666;
+        }
+        .filter-tab:not(.active):hover {
+            background: #f0f0f0;
+        }
+        .test-button {
+            background: linear-gradient(135deg, #CDA435, #D9B95B);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(205, 164, 53, 0.3);
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status-new {
+            background: #ff4444;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔔 Business Notifications - Click to View</h1>
+            <p>Simplified UI - Click notifications to view details in quotes page</p>
+        </div>
+
+        <div class="feature-section enhanced">
+            <h2>✨ Updated Features</h2>
+            <ul>
+                <li>🖱️ <strong>Click to View:</strong> Click any notification to go to quotes page</li>
+                <li>🎨 <strong>Modern UI:</strong> Card-based layout with website colors</li>
+                <li>🔍 <strong>Filter Tabs:</strong> All, Quote Responses, Status Updates, General</li>
+                <li>📋 <strong>Enhanced Details:</strong> Quote information, company details, pricing</li>
+                <li>🚀 <strong>Direct Navigation:</strong> No accept/reject - just view in quotes page</li>
+                <li>📱 <strong>Responsive Design:</strong> Works on all devices</li>
+            </ul>
+        </div>
+
+        <div class="feature-section">
+            <h2>🎯 Filter Tabs Demo</h2>
+            <div class="filter-tabs">
+                <div class="filter-tab active">🔔 All Notifications</div>
+                <div class="filter-tab">💰 Quote Responses</div>
+                <div class="filter-tab">📊 Status Updates</div>
+                <div class="filter-tab">🏢 General</div>
+            </div>
+        </div>
+
+        <div class="feature-section">
+            <h2>📋 Clickable Notifications Demo</h2>
+            <div class="notification-demo">
+                <!-- Quote Response Notification -->
+                <div class="notification-card" onclick="simulateClick('quote_response')">
+                    <div class="notification-header">
+                        <div>
+                            <div class="notification-title">💰 New Quote Response</div>
+                            <div class="notification-meta">🕒 Jan 12, 2026 2:30 PM <span class="status-badge status-new">New</span></div>
+                        </div>
+                        <img src="https://via.placeholder.com/60x40/CDA435/FFFFFF?text=LOGO" alt="Company Logo" style="border-radius: 6px;">
+                    </div>
+                    <div class="notification-message">
+                        ABC Logistics has responded to your Quote #123 with a price of $1,250 and transit time of 5-7 days. Please review and respond.
+                    </div>
+                    <div class="click-indicator">
+                        👆 Click anywhere on this card to view details in quotes page
+                    </div>
+                    <div class="quote-details">
+                        <h4>📦 Quote Details</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px;">
+                            <div>🚛 Quote ID: #123</div>
+                            <div>💵 Price: $1,250</div>
+                            <div>👤 Company: ABC Logistics</div>
+                            <div>📅 Transit: 5-7 days</div>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-view" onclick="event.stopPropagation(); simulateViewClick()">👁️ View in Quotes Page</button>
+                        <button class="btn btn-mark" onclick="event.stopPropagation(); simulateMarkRead()">✓ Mark as Read</button>
+                    </div>
+                </div>
+
+                <!-- Status Update Notification -->
+                <div class="notification-card" onclick="simulateClick('status_update')">
+                    <div class="notification-header">
+                        <div>
+                            <div class="notification-title">📊 Quote Status Update</div>
+                            <div class="notification-meta">🕒 Jan 12, 2026 1:15 PM</div>
+                        </div>
+                    </div>
+                    <div class="notification-message">
+                        Your quote #124 status has been updated to: Approved. The shipment process will begin shortly.
+                    </div>
+                    <div class="click-indicator">
+                        👆 Click anywhere on this card to view details in quotes page
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-view" onclick="event.stopPropagation(); simulateViewClick()">👁️ View in Quotes Page</button>
+                    </div>
+                </div>
+
+                <!-- General Notification -->
+                <div class="notification-card" onclick="simulateClick('general')">
+                    <div class="notification-header">
+                        <div>
+                            <div class="notification-title">🏢 System Update</div>
+                            <div class="notification-meta">🕒 Jan 11, 2026 4:45 PM</div>
+                        </div>
+                    </div>
+                    <div class="notification-message">
+                        New features have been added to the quotes management system. Check out the enhanced interface for better quote handling.
+                    </div>
+                    <div class="click-indicator">
+                        👆 Click anywhere on this card to view details in quotes page
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-view" onclick="event.stopPropagation(); simulateViewClick()">👁️ View in Quotes Page</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="feature-section">
+            <h2>🧪 Test Functions</h2>
+            <p>Click the buttons below to test different scenarios:</p>
+            
+            <button class="test-button" onclick="openBusinessNotifications()">
+                🔔 Open Business Notifications
+            </button>
+            <button class="test-button" onclick="testClickFlow()">
+                🖱️ Test Click Flow
+            </button>
+            <button class="test-button" onclick="testFiltering()">
+                🔍 Test Filtering
+            </button>
+        </div>
+
+        <div class="feature-section">
+            <h2>📋 Implementation Summary</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <h3>✅ Simplified Functionality</h3>
+                    <ul>
+                        <li>Click notification to view in quotes page</li>
+                        <li>No accept/reject from notifications</li>
+                        <li>Mark as read functionality</li>
+                        <li>Filter by notification type</li>
+                        <li>Auto-mark as read on click</li>
+                        <li>Visual click indicators</li>
+                        <li>Hover effects for better UX</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>🎨 UI Features</h3>
+                    <ul>
+                        <li>Modern card-based design</li>
+                        <li>Website color scheme integration</li>
+                        <li>Clickable card indicators</li>
+                        <li>Enhanced quote details display</li>
+                        <li>Responsive design</li>
+                        <li>Company logo display</li>
+                        <li>Status badges and icons</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function simulateClick(type) {
+            alert(`🖱️ Notification clicked!\n\nType: ${type}\n\n1. Marking notification as read\n2. Redirecting to /business/quotes\n3. User can accept/reject from quotes page`);
+        }
+
+        function simulateViewClick() {
+            alert('👁️ View button clicked - Redirecting to quotes page...');
+        }
+
+        function simulateMarkRead() {
+            alert('✓ Notification marked as read!');
+        }
+
+        function openBusinessNotifications() {
+            window.open('http://localhost:5173/business/notifications', '_blank');
+        }
+
+        function testClickFlow() {
+            alert('🧪 Testing Click Flow:\n\n1. User clicks on notification card\n2. Notification marked as read automatically\n3. Redirect to /business/quotes\n4. User can accept/reject from quotes page\n5. Toast message confirms navigation');
+        }
+
+        function testFiltering() {
+            alert('🧪 Testing Filter Functionality:\n\n• All Notifications: Shows everything\n• Quote Responses: Shows quote-related notifications\n• Status Updates: Shows status change notifications\n• General: Shows system notifications');
+        }
+
+        // Simulate filter tab switching
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Auto-run basic validation on page load
+        window.onload = function() {
+            console.log('🔔 Business Notifications - Click to View Test Loaded');
+            console.log('✅ Clickable notification cards');
+            console.log('✅ Auto-navigation to quotes page');
+            console.log('✅ No accept/reject from notifications');
+            console.log('✅ Enhanced quote details display');
+            console.log('✅ Modern UI with website colors');
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment File Validation Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .file-input {
+            margin: 10px 0;
+            padding: 10px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Payment File Validation Test</h1>
+    <p>This page tests the file type validation for payment proof uploads.</p>
+
+    <div class="test-section">
+        <h2>📋 Test Instructions</h2>
+        <div class="info result">
+            <strong>Expected Behavior:</strong>
+            <ul>
+                <li>✅ JPG files should be accepted</li>
+                <li>✅ JPEG files should be accepted</li>
+                <li>✅ PNG files should be accepted</li>
+                <li>❌ GIF files should be rejected</li>
+                <li>❌ PDF files should be rejected</li>
+                <li>❌ Other file types should be rejected</li>
+                <li>❌ Files over 5MB should be rejected (PaymentUpload component)</li>
+                <li>❌ Files over 10MB should be rejected (SubscriptionPage component)</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 PaymentUpload Component Simulation</h2>
+        <p>This simulates the file validation logic from the PaymentUpload component:</p>
+        
+        <div class="file-input">
+            <input type="file" id="paymentUpload" accept=".jpg,.jpeg,.png,image/jpeg,image/png">
+            <label for="paymentUpload">Choose Payment Proof File (JPG, JPEG, PNG only - Max 5MB)</label>
+        </div>
+        <div id="paymentResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>💳 SubscriptionPage Component Simulation</h2>
+        <p>This simulates the file validation logic from the SubscriptionPage component:</p>
+        
+        <div class="file-input">
+            <input type="file" id="subscriptionUpload" accept=".jpg,.jpeg,.png,image/jpeg,image/png">
+            <label for="subscriptionUpload">Choose Payment Receipt (JPG, JPEG, PNG only - Max 10MB)</label>
+        </div>
+        <div id="subscriptionResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 Test Results Summary</h2>
+        <div id="testSummary" class="info result">
+            No tests run yet. Upload files above to test validation.
+        </div>
+    </div>
+
+    <script>
+        // PaymentUpload component validation logic
+        function validatePaymentUploadFile(file) {
+            if (!file) return { valid: false, message: 'No file selected' };
+
+            // Validate file type - Only allow JPG, JPEG, and PNG files
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+            const allowedExtensions = ['.jpg', '.jpeg', '.png'];
+            
+            // Check MIME type
+            if (!allowedTypes.includes(file.type.toLowerCase())) {
+                return { valid: false, message: 'Please upload only JPG, JPEG, or PNG image files' };
+            }
+
+            // Double-check file extension as backup validation
+            const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+            if (!allowedExtensions.includes(fileExtension)) {
+                return { valid: false, message: 'Please upload only JPG, JPEG, or PNG image files' };
+            }
+
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                return { valid: false, message: 'File size must be less than 5MB' };
+            }
+
+            return { valid: true, message: 'File is valid!' };
+        }
+
+        // SubscriptionPage component validation logic
+        function validateSubscriptionUploadFile(file) {
+            if (!file) return { valid: false, message: 'No file selected' };
+
+            // Validate file type - Only allow JPG, JPEG, and PNG files
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+            const allowedExtensions = ['.jpg', '.jpeg', '.png'];
+            
+            // Check MIME type
+            if (!allowedTypes.includes(file.type.toLowerCase())) {
+                return { valid: false, message: 'Please upload only JPG, JPEG, or PNG image files' };
+            }
+
+            // Double-check file extension as backup validation
+            const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+            if (!allowedExtensions.includes(fileExtension)) {
+                return { valid: false, message: 'Please upload only JPG, JPEG, or PNG image files' };
+            }
+
+            // Validate file size (max 10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                return { valid: false, message: 'File size must be less than 10MB' };
+            }
+
+            return { valid: true, message: 'File is valid!' };
+        }
+
+        // Test results tracking
+        let testResults = [];
+
+        function displayResult(elementId, result, fileName, fileSize) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = `result ${result.valid ? 'success' : 'error'}`;
+            element.innerHTML = `
+                <strong>File:</strong> ${fileName}<br>
+                <strong>Size:</strong> ${(fileSize / 1024 / 1024).toFixed(2)} MB<br>
+                <strong>Result:</strong> ${result.message}
+            `;
+
+            // Track test result
+            testResults.push({
+                component: elementId.includes('payment') ? 'PaymentUpload' : 'SubscriptionPage',
+                fileName,
+                fileSize,
+                valid: result.valid,
+                message: result.message
+            });
+
+            updateTestSummary();
+        }
+
+        function updateTestSummary() {
+            const summary = document.getElementById('testSummary');
+            const totalTests = testResults.length;
+            const passedTests = testResults.filter(r => r.valid).length;
+            const failedTests = totalTests - passedTests;
+
+            summary.innerHTML = `
+                <strong>Test Summary:</strong><br>
+                Total Tests: ${totalTests}<br>
+                Passed: ${passedTests}<br>
+                Failed: ${failedTests}<br><br>
+                <strong>Recent Tests:</strong><br>
+                ${testResults.slice(-5).map(r => 
+                    `${r.component}: ${r.fileName} - ${r.valid ? '✅ PASS' : '❌ FAIL'}`
+                ).join('<br>')}
+            `;
+        }
+
+        // Event listeners
+        document.getElementById('paymentUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const result = validatePaymentUploadFile(file);
+                displayResult('paymentResult', result, file.name, file.size);
+            }
+        });
+
+        document.getElementById('subscriptionUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const result = validateSubscriptionUploadFile(file);
+                displayResult('subscriptionResult', result, file.name, file.size);
+            }
+        });
+
+        // Initial message
+        console.log('🧪 Payment File Validation Test Page Loaded');
+        console.log('📋 Test different file types to verify validation works correctly');
+    </script>
+</body>
+</html>

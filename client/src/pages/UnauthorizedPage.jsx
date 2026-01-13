@@ -1,14 +1,37 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { getToken, isTokenExpired, removeToken } from '../utils/api';
 
 const UnauthorizedPage = () => {
-    // This logic correctly determines the user's correct dashboard link
+    // Check authentication state properly
+    const token = getToken();
     const userString = localStorage.getItem('user');
     const user = userString ? JSON.parse(userString) : null;
     
     let homeLink = '/login';
-    if (user) {
-        homeLink = user.role === 'admin' ? '/admin' : '/company';
+    
+    // Only set role-based links if user is properly authenticated
+    if (user && token && !isTokenExpired(token)) {
+        switch(user.role) {
+            case 'admin':
+                homeLink = '/admin';
+                break;
+            case 'company':
+                homeLink = '/company';
+                break;
+            case 'business':
+                homeLink = '/business';
+                break;
+            case 'user':
+                homeLink = '/user/dashboard';
+                break;
+            default:
+                homeLink = '/';
+        }
+    } else {
+        // Clear invalid authentication data
+        removeToken();
+        homeLink = '/login';
     }
 
     // Since we can't use tailwind.config.js, we inject the necessary CSS

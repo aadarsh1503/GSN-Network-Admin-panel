@@ -36,7 +36,11 @@ const Navbar = () => {
           console.error('Error parsing user data:', error);
           localStorage.removeItem('token');
           localStorage.removeItem('user');
+          setUser(null);
         }
+      } else {
+        // Clear user state if no token or userData
+        setUser(null);
       }
     };
 
@@ -45,8 +49,18 @@ const Navbar = () => {
     // Listen for storage changes (login/logout in other tabs)
     window.addEventListener('storage', checkAuth);
     
+    // Listen for custom logout event (same tab logout)
+    const handleLogout = () => {
+      setUser(null);
+      setIsUserDropdownOpen(false);
+      setIsMobileMenuOpen(false);
+    };
+    
+    window.addEventListener('userLogout', handleLogout);
+    
     return () => {
       window.removeEventListener('storage', checkAuth);
+      window.removeEventListener('userLogout', handleLogout);
     };
   }, []);
 
@@ -102,9 +116,9 @@ const Navbar = () => {
       { name: 'Home', href: '/' },
       { name: 'About Us', href: '#' },
       { name: 'Member', href: '#' },
-      { name: 'Business', href: '#' },
+      // { name: 'Business', href: '#' },
       { name: 'Subscriptions', href: '/subscriptions' },
-      { name: 'Blacklist', href: '#' },
+      // { name: 'Blacklist', href: '#' },
       { name: 'Contact Us', href: '#', icon: <FaSearch size={14} /> },
     ];
 
@@ -158,6 +172,8 @@ const Navbar = () => {
         return '/company/dashboard';
       case 'user':
         return '/user/dashboard';
+        case 'business':
+        return '/business';
       default:
         return '/';
     }
@@ -216,7 +232,7 @@ const Navbar = () => {
 
               {/* Dropdown Menu */}
               {isUserDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[60]">
                   <a
                     href={getDashboardUrl(user.role)}
                     className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"

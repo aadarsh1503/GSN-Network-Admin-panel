@@ -503,6 +503,7 @@ const DetailedDataModal = ({ modalData, onClose }) => {
         );
 
       case 'quotes':
+      case 'activeQuotes':
       case 'weeklyQuotes':
         return (
           <div className="overflow-x-auto">
@@ -834,7 +835,10 @@ const Dashboard = () => {
         api.get('/api/user/all'),
         api.get('/api/admin-panel/quotes'),
         api.get('/api/admin-panel/subscriptions'),
-        api.get('/api/admin-panel/transactions'),
+        api.get('/api/enhanced-quotes/all-company-responses-with-payments').catch(() => 
+          // Fallback to old endpoint if new one doesn't exist
+          api.get('/api/admin-panel/accepted-quote-transactions')
+        ),
         api.get('/api/disputes/admin/all')
       ]);
 
@@ -843,7 +847,7 @@ const Dashboard = () => {
       const activeUsers = usersData.filter(user => user.status === 1 || user.status === true).length;
       
       const totalQuotes = quotesData.length;
-      const activeQuotes = quotesData.filter(q => q.status === 'running').length;
+      const activeQuotes = quotesData.filter(q => ['pending', 'approved', 'running'].includes(q.status)).length;
       const oneWeekAgo = new Date();
       oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
       const weeklyQuotes = quotesData.filter(quote => new Date(quote.created_at) >= oneWeekAgo).length;
@@ -895,8 +899,21 @@ const Dashboard = () => {
       
       // Transaction amounts go to companies, not platform revenue
       const transactionVolume = transactionsData
-        .filter(txn => txn.status === 'completed')
-        .reduce((sum, txn) => sum + parseFloat(txn.amount), 0);
+        .filter(txn => {
+          // Handle both enhanced quotes format and old format
+          if (txn.payment_status !== undefined) {
+            // Enhanced quotes format - filter for verified payments
+            return txn.payment_status === 'verified';
+          } else {
+            // Old format - filter for completed transactions
+            return txn.status === 'completed';
+          }
+        })
+        .reduce((sum, txn) => {
+          // Handle both price (enhanced) and amount (old) fields
+          const amount = parseFloat(txn.price || txn.amount || 0);
+          return sum + amount;
+        }, 0);
       
       // Platform revenue = only subscription revenue
       const totalRevenue = subscriptionRevenue;
@@ -941,17 +958,29 @@ const Dashboard = () => {
           data = await api.get('/api/admin-panel/quotes');
           title = `All Quotes Details (${data.length} quotes)`;
           break;
+        case 'activeQuotes':
+          const allQuotes = await api.get('/api/admin-panel/quotes');
+          data = allQuotes.filter(quote => ['pending', 'approved', 'running'].includes(quote.status));
+          title = `Active Quotes Details (${data.length} of ${allQuotes.length} quotes)`;
+          break;
         case 'subscriptions':
           data = await api.get('/api/admin-panel/subscriptions');
           title = `All Subscriptions Details (${data.length} subscriptions)`;
           break;
         case 'transactions':
-          // Try to get quote-related transactions first
-          let quoteTransactions = await api.get('/api/admin-panel/transactions');
+          // Get verified payment transactions from enhanced quotes API
+          let quoteTransactions = await api.get('/api/enhanced-quotes/all-company-responses-with-payments').catch(() => []);
+          
           if (quoteTransactions.length === 0) {
-            // If no quote transactions, get subscription transactions as fallback
-            quoteTransactions = await api.get('/api/admin-panel/subscription-transactions');
+            // Fallback to old endpoint
+            quoteTransactions = await api.get('/api/admin-panel/accepted-quote-transactions').catch(() => []);
           }
+          
+          // Filter for verified payments if using enhanced format
+          if (quoteTransactions.length > 0 && quoteTransactions[0].payment_status !== undefined) {
+            quoteTransactions = quoteTransactions.filter(txn => txn.payment_status === 'verified');
+          }
+          
           data = quoteTransactions;
           title = `All Transactions Details (${data.length} transactions)`;
           break;
@@ -966,21 +995,28 @@ const Dashboard = () => {
           title = `Active Subscriptions Details (${data.length} of ${allSubs.length} subscriptions)`;
           break;
         case 'avgTransaction':
-          // Try to get quote-related transactions first
-          let avgTransactions = await api.get('/api/admin-panel/transactions');
+          // Get verified payment transactions for average calculation
+          let avgTransactions = await api.get('/api/enhanced-quotes/all-company-responses-with-payments').catch(() => []);
+          
           if (avgTransactions.length === 0) {
-            // If no quote transactions, get subscription transactions as fallback
-            avgTransactions = await api.get('/api/admin-panel/subscription-transactions');
+            // Fallback to old endpoint
+            avgTransactions = await api.get('/api/admin-panel/accepted-quote-transactions').catch(() => []);
           }
+          
+          // Filter for verified payments if using enhanced format
+          if (avgTransactions.length > 0 && avgTransactions[0].payment_status !== undefined) {
+            avgTransactions = avgTransactions.filter(txn => txn.payment_status === 'verified');
+          }
+          
           data = avgTransactions;
           title = `Transaction Analysis (${data.length} transactions)`;
           break;
         case 'weeklyQuotes':
-          const allQuotes = await api.get('/api/admin-panel/quotes');
+          const allQuotesForWeekly = await api.get('/api/admin-panel/quotes');
           const oneWeekAgo = new Date();
           oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-          data = allQuotes.filter(quote => new Date(quote.created_at) >= oneWeekAgo);
-          title = `Weekly Quotes Details (${data.length} of ${allQuotes.length} quotes)`;
+          data = allQuotesForWeekly.filter(quote => new Date(quote.created_at) >= oneWeekAgo);
+          title = `Weekly Quotes Details (${data.length} of ${allQuotesForWeekly.length} quotes)`;
           break;
         case 'disputes':
           data = await api.get('/api/disputes/admin/all');
@@ -1137,7 +1173,7 @@ const Dashboard = () => {
             previousValue={Math.max(0, realTimeData.activeQuotes - 1)}
             icon={FileText}
             color="blue"
-            onClick={() => handleCardClick('quotes')}
+            onClick={() => handleCardClick('activeQuotes')}
           />
           <MetricCard
             title="Transactions"

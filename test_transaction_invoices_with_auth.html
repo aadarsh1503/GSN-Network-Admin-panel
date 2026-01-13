@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Transaction Invoices with Auth</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { margin: 5px; padding: 10px; }
+        input { margin: 5px; padding: 5px; width: 300px; }
+    </style>
+</head>
+<body>
+    <h1>Test Transaction Invoices API</h1>
+    
+    <div>
+        <h3>Step 1: Login to get token</h3>
+        <input type="email" id="email" placeholder="Enter business email" value="business@example.com">
+        <input type="password" id="password" placeholder="Enter password" value="password123">
+        <button onclick="login()">Login</button>
+    </div>
+    
+    <div>
+        <h3>Step 2: Test Transaction Invoices API</h3>
+        <button onclick="testTransactionInvoices()">Get Transaction Invoices</button>
+        <button onclick="testUserTransactionInvoices()">Get User Transaction Invoices</button>
+        <button onclick="testAdminTransactionInvoices()">Get Admin Transaction Invoices</button>
+    </div>
+    
+    <div id="results"></div>
+
+    <script>
+        let authToken = '';
+        
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const results = document.getElementById('results');
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/users/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    authToken = data.token;
+                    results.innerHTML += `<div class="result success">✅ Login successful! Token: ${authToken.substring(0, 20)}...</div>`;
+                } else {
+                    const error = await response.text();
+                    results.innerHTML += `<div class="result error">❌ Login failed: ${error}</div>`;
+                }
+            } catch (error) {
+                results.innerHTML += `<div class="result error">❌ Login error: ${error.message}</div>`;
+            }
+        }
+        
+        async function testTransactionInvoices() {
+            const results = document.getElementById('results');
+            
+            if (!authToken) {
+                results.innerHTML += `<div class="result error">❌ Please login first</div>`;
+                return;
+            }
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/business/transaction-invoices', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    results.innerHTML += `<div class="result success">✅ Business Transaction Invoices: ${JSON.stringify(data, null, 2)}</div>`;
+                } else {
+                    const error = await response.text();
+                    results.innerHTML += `<div class="result error">❌ Business API error: ${error}</div>`;
+                }
+            } catch (error) {
+                results.innerHTML += `<div class="result error">❌ Business API network error: ${error.message}</div>`;
+            }
+        }
+        
+        async function testUserTransactionInvoices() {
+            const results = document.getElementById('results');
+            
+            if (!authToken) {
+                results.innerHTML += `<div class="result error">❌ Please login first</div>`;
+                return;
+            }
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/user/transaction-invoices', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    results.innerHTML += `<div class="result success">✅ User Transaction Invoices: ${JSON.stringify(data, null, 2)}</div>`;
+                } else {
+                    const error = await response.text();
+                    results.innerHTML += `<div class="result error">❌ User API error: ${error}</div>`;
+                }
+            } catch (error) {
+                results.innerHTML += `<div class="result error">❌ User API network error: ${error.message}</div>`;
+            }
+        }
+        
+        async function testAdminTransactionInvoices() {
+            const results = document.getElementById('results');
+            
+            if (!authToken) {
+                results.innerHTML += `<div class="result error">❌ Please login first</div>`;
+                return;
+            }
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/admin-panel/transaction-invoices', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    results.innerHTML += `<div class="result success">✅ Admin Transaction Invoices: ${JSON.stringify(data, null, 2)}</div>`;
+                } else {
+                    const error = await response.text();
+                    results.innerHTML += `<div class="result error">❌ Admin API error: ${error}</div>`;
+                }
+            } catch (error) {
+                results.innerHTML += `<div class="result error">❌ Admin API network error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

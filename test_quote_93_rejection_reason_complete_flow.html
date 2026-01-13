@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quote #93 Rejection Reason - Complete Flow Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .test-button.success {
+            background: #28a745;
+        }
+        .test-button.danger {
+            background: #dc3545;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .info {
+            color: #17a2b8;
+            font-weight: bold;
+        }
+        .warning {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        .result-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .step {
+            background: #e9ecef;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .step.completed {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        .step.failed {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        .navigation-link {
+            display: inline-block;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            margin: 10px 5px;
+        }
+        .navigation-link:hover {
+            background: #0056b3;
+            color: white;
+        }
+        .rejection-banner {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            border: 2px solid #dc3545;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Quote #93 Rejection Reason - Complete Flow Test</h1>
+        <p>Testing the complete user experience for Quote #93 rejection reason display and messaging functionality.</p>
+
+        <div class="test-section">
+            <h2>🎯 Test Objectives</h2>
+            <div class="info">
+                <p><strong>What we're testing:</strong></p>
+                <ul>
+                    <li>✅ Rejection reason displays prominently at the top of the page</li>
+                    <li>✅ Company details are shown with contact information</li>
+                    <li>✅ Message button navigates to business messages with company pre-selected</li>
+                    <li>✅ Full rejection reason is visible (not truncated)</li>
+                    <li>✅ Next steps are clearly provided to the user</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>📋 Test Steps</h2>
+            
+            <div class="step" id="step1">
+                <h3>Step 1: Navigate to Quote #93</h3>
+                <p>Go to the quote details page to see the rejection reason banner.</p>
+                <a href="http://localhost:5173/business/quotes/93" target="_blank" class="navigation-link">
+                    🔗 Open Quote #93
+                </a>
+                <button class="test-button" onclick="markStepCompleted('step1')">✅ Mark Completed</button>
+            </div>
+
+            <div class="step" id="step2">
+                <h3>Step 2: Verify Rejection Banner</h3>
+                <p>Check that the rejection reason banner appears at the top with:</p>
+                <ul>
+                    <li>Red colored banner with "Payment Rejected" title</li>
+                    <li>Company name: "Aadarsh-company"</li>
+                    <li>Company email: "aadarshchauhan35@gmail.com"</li>
+                    <li>Company phone: "917300648999"</li>
+                    <li>Rejection reason: "hii fake pic"</li>
+                    <li>Message Company button</li>
+                </ul>
+                <button class="test-button" onclick="markStepCompleted('step2')">✅ Banner Visible</button>
+                <button class="test-button danger" onclick="markStepFailed('step2')">❌ Banner Missing</button>
+            </div>
+
+            <div class="step" id="step3">
+                <h3>Step 3: Test Message Company Button</h3>
+                <p>Click the "Message Company" button to navigate to business messages.</p>
+                <div class="warning">
+                    <p><strong>Expected behavior:</strong></p>
+                    <ul>
+                        <li>Should navigate to: <code>http://localhost:5173/business/messages</code></li>
+                        <li>Should auto-select "Aadarsh-company" in the conversation list</li>
+                        <li>Should open the chat interface with that company</li>
+                    </ul>
+                </div>
+                <button class="test-button" onclick="markStepCompleted('step3')">✅ Navigation Works</button>
+                <button class="test-button danger" onclick="markStepFailed('step3')">❌ Navigation Failed</button>
+            </div>
+
+            <div class="step" id="step4">
+                <h3>Step 4: Verify Messages Page</h3>
+                <p>On the business messages page, verify:</p>
+                <ul>
+                    <li>Aadarsh-company is selected in the conversation list</li>
+                    <li>Chat interface is open and ready for messaging</li>
+                    <li>Company information is displayed correctly</li>
+                </ul>
+                <a href="http://localhost:5173/business/messages" target="_blank" class="navigation-link">
+                    🔗 Open Business Messages
+                </a>
+                <button class="test-button" onclick="markStepCompleted('step4')">✅ Messages Work</button>
+                <button class="test-button danger" onclick="markStepFailed('step4')">❌ Messages Failed</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔧 Expected UI Elements</h2>
+            <div class="rejection-banner">
+                <h3>❌ Payment Rejected - Quote #93</h3>
+                <p><strong>Company:</strong> Aadarsh-company</p>
+                <p><strong>Email:</strong> aadarshchauhan35@gmail.com</p>
+                <p><strong>Phone:</strong> 917300648999</p>
+                <p><strong>Rejection Reason:</strong> "hii fake pic"</p>
+                <p><strong>Rejected On:</strong> January 12, 2026</p>
+                <button style="background: #dc3545; color: white; padding: 8px 16px; border: none; border-radius: 6px;">
+                    💬 Message Company
+                </button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 Test Results</h2>
+            <div id="test-results">
+                <p>Complete the test steps above to see results...</p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🐛 Troubleshooting</h2>
+            <div class="info">
+                <p><strong>If rejection banner is not showing:</strong></p>
+                <ul>
+                    <li>Check browser console for JavaScript errors</li>
+                    <li>Verify you're logged in as the correct business user</li>
+                    <li>Ensure Quote #93 exists and has rejected payment status</li>
+                    <li>Check API response: <code>GET /api/enhanced-quotes/93/responses-with-bank-details</code></li>
+                </ul>
+                
+                <p><strong>If message navigation is not working:</strong></p>
+                <ul>
+                    <li>Check browser console for navigation errors</li>
+                    <li>Verify useNavigate and useLocation hooks are imported</li>
+                    <li>Check that BusinessMessages component handles location.state</li>
+                    <li>Ensure company ID is being passed correctly</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let completedSteps = [];
+        let failedSteps = [];
+
+        function markStepCompleted(stepId) {
+            const step = document.getElementById(stepId);
+            step.classList.remove('failed');
+            step.classList.add('completed');
+            
+            if (!completedSteps.includes(stepId)) {
+                completedSteps.push(stepId);
+            }
+            
+            // Remove from failed if it was there
+            failedSteps = failedSteps.filter(id => id !== stepId);
+            
+            updateResults();
+        }
+
+        function markStepFailed(stepId) {
+            const step = document.getElementById(stepId);
+            step.classList.remove('completed');
+            step.classList.add('failed');
+            
+            if (!failedSteps.includes(stepId)) {
+                failedSteps.push(stepId);
+            }
+            
+            // Remove from completed if it was there
+            completedSteps = completedSteps.filter(id => id !== stepId);
+            
+            updateResults();
+        }
+
+        function updateResults() {
+            const resultsDiv = document.getElementById('test-results');
+            const totalSteps = 4;
+            const completedCount = completedSteps.length;
+            const failedCount = failedSteps.length;
+            
+            let html = `
+                <h3>Test Progress: ${completedCount}/${totalSteps} steps completed</h3>
+                <div style="margin: 15px 0;">
+                    <div style="background: #28a745; height: 20px; width: ${(completedCount/totalSteps)*100}%; border-radius: 10px; display: inline-block;"></div>
+                    <div style="background: #dc3545; height: 20px; width: ${(failedCount/totalSteps)*100}%; border-radius: 10px; display: inline-block;"></div>
+                    <div style="background: #e9ecef; height: 20px; width: ${((totalSteps-completedCount-failedCount)/totalSteps)*100}%; border-radius: 10px; display: inline-block;"></div>
+                </div>
+            `;
+            
+            if (completedSteps.length > 0) {
+                html += `<p class="success">✅ Completed Steps: ${completedSteps.join(', ')}</p>`;
+            }
+            
+            if (failedSteps.length > 0) {
+                html += `<p class="error">❌ Failed Steps: ${failedSteps.join(', ')}</p>`;
+            }
+            
+            if (completedCount === totalSteps) {
+                html += `
+                    <div class="success" style="background: #d4edda; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                        <h3>🎉 All Tests Passed!</h3>
+                        <p>The rejection reason display and messaging functionality is working correctly.</p>
+                    </div>
+                `;
+            }
+            
+            resultsDiv.innerHTML = html;
+        }
+
+        // Auto-update results on page load
+        updateResults();
+    </script>
+</body>
+</html>

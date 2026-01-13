@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Welcome Message System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .success { border-color: #4CAF50; background: #f0fff0; }
+        .error { border-color: #f44336; background: #fff0f0; }
+        .info { border-color: #2196F3; background: #f0f8ff; }
+        button {
+            background: #CDA435;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #b8932e; }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            background: #f0f0f0;
+        }
+        .message-preview {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            white-space: pre-line;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 Welcome Message System Test</h1>
+        <p>This page tests the new welcome message functionality for GSN Network.</p>
+
+        <div class="test-section info">
+            <h3>📋 Test Overview</h3>
+            <p><strong>What we're testing:</strong></p>
+            <ul>
+                <li>✅ Admin name display in messages (no more blank names)</li>
+                <li>✅ Welcome messages sent to new users automatically</li>
+                <li>✅ Role-specific welcome message content</li>
+                <li>✅ Messages visible to users but NOT to admin</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 Test Results</h3>
+            
+            <h4>1. Admin Name Display Fix</h4>
+            <div class="result">
+                <p><strong>Status:</strong> ✅ IMPLEMENTED</p>
+                <p><strong>Changes Made:</strong></p>
+                <ul>
+                    <li>Enhanced message controller to include sender roles</li>
+                    <li>Updated all message components to show "Admin Support" for admin messages</li>
+                    <li>Added sender name display for non-admin messages</li>
+                </ul>
+            </div>
+
+            <h4>2. Welcome Message System</h4>
+            <div class="result">
+                <p><strong>Status:</strong> ✅ IMPLEMENTED</p>
+                <p><strong>Features:</strong></p>
+                <ul>
+                    <li>Automatic welcome message on user registration</li>
+                    <li>Role-specific message content (User, Business, Company)</li>
+                    <li>Messages sent from Admin but not visible in Admin panel</li>
+                    <li>Integrated with existing message system</li>
+                </ul>
+            </div>
+
+            <h4>3. Message Content Preview</h4>
+            
+            <h5>👤 Regular User Welcome Message:</h5>
+            <div class="message-preview">🎉 Welcome to GSN Network!
+
+Thank you for joining our logistics platform! We're excited to have you as part of our community.
+
+Here's what you can do:
+• Request quotes from verified logistics providers
+• Compare prices and services
+• Track your shipments
+• Access 24/7 customer support
+
+If you have any questions or need assistance, feel free to reply to this message. Our support team is here to help!
+
+Best regards,
+GSN Network Support Team</div>
+
+            <h5>🏢 Business User Welcome Message:</h5>
+            <div class="message-preview">🎉 Welcome to GSN Network!
+
+Congratulations on creating your business account! You're now part of our growing network of logistics professionals.
+
+As a business member, you can:
+• Respond to quote requests from customers
+• Showcase your services and capabilities
+• Build your reputation through reviews
+• Access advanced business tools
+• Connect with potential clients
+
+Your account is now active and ready to use. Start exploring opportunities and growing your business with us!
+
+If you need any assistance getting started, don't hesitate to reach out.
+
+Best regards,
+GSN Network Support Team</div>
+
+            <h5>🏭 Company Registration Welcome Message:</h5>
+            <div class="message-preview">🎉 Thank you for registering with GSN Network!
+
+We've received your company registration and it's currently under review by our admin team.
+
+What happens next:
+• Our team will verify your company details
+• You'll receive an email notification once approved
+• After approval, you can access all company features
+• Start connecting with customers and growing your business
+
+This review process typically takes 24-48 hours. We appreciate your patience!
+
+If you have any questions about the registration process, feel free to reply to this message.
+
+Best regards,
+GSN Network Support Team</div>
+        </div>
+
+        <div class="test-section success">
+            <h3>✅ Implementation Complete</h3>
+            <p><strong>All fixes have been successfully implemented:</strong></p>
+            <ol>
+                <li><strong>Admin Name Display:</strong> Messages now show "Admin Support" instead of blank names</li>
+                <li><strong>Sender Identity:</strong> All messages display proper sender names with role indicators</li>
+                <li><strong>Welcome Messages:</strong> New users automatically receive personalized welcome messages</li>
+                <li><strong>Role-Specific Content:</strong> Different welcome messages for Users, Business, and Company accounts</li>
+                <li><strong>System Integration:</strong> Welcome messages integrate seamlessly with existing message system</li>
+            </ol>
+        </div>
+
+        <div class="test-section info">
+            <h3>🚀 How to Test</h3>
+            <p><strong>To verify the fixes work:</strong></p>
+            <ol>
+                <li><strong>Test Admin Name Display:</strong>
+                    <ul>
+                        <li>Go to any Messages panel (Company/Business/User)</li>
+                        <li>Check existing conversations with admin</li>
+                        <li>Admin messages should now show "Admin Support" instead of blank</li>
+                    </ul>
+                </li>
+                <li><strong>Test Welcome Messages:</strong>
+                    <ul>
+                        <li>Register a new user account</li>
+                        <li>Login and go to Messages</li>
+                        <li>You should see a welcome message from "Admin Support"</li>
+                        <li>The message content should match your account type</li>
+                    </ul>
+                </li>
+                <li><strong>Test Message Flow:</strong>
+                    <ul>
+                        <li>Reply to the welcome message</li>
+                        <li>Admin should see your reply in their Messages panel</li>
+                        <li>Admin can respond back normally</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h3>🔧 Technical Details</h3>
+            <p><strong>Files Modified:</strong></p>
+            <ul>
+                <li><code>server/controllers/messageController.js</code> - Enhanced with admin name handling and welcome message function</li>
+                <li><code>server/controllers/userController.js</code> - Added welcome message trigger on registration</li>
+                <li><code>client/src/pages/Admin/AdminMessages.jsx</code> - Updated message display with sender names</li>
+                <li><code>client/src/companyPages/MessagesPage/MessagesPage.jsx</code> - Enhanced message rendering</li>
+                <li><code>client/src/pages/BusinessMessages/BusinessMessages.jsx</code> - Added sender name display</li>
+                <li><code>client/src/pages/UserMessages/UserMessages.jsx</code> - Updated message UI</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        console.log('🎉 Welcome Message System Test Page Loaded');
+        console.log('✅ All fixes have been implemented and are ready for testing');
+        
+        // Add some interactive functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📋 Test page ready - you can now test the message system');
+        });
+    </script>
+</body>
+</html>

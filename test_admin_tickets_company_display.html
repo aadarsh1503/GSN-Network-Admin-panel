@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Admin Tickets - Company Display</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #fef3c7, #fbbf24);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #f59e0b;
+            border-radius: 10px;
+            background: #fef3c7;
+        }
+        .success {
+            color: #059669;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc2626;
+            font-weight: bold;
+        }
+        .info {
+            color: #0369a1;
+            font-weight: bold;
+        }
+        button {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .ticket-display {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #f59e0b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎫 Admin Tickets - Company Display Test</h1>
+            <p>Testing the enhanced company information display in admin tickets</p>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 Test Instructions</h3>
+            <ol>
+                <li>Click "Open Admin Tickets" to navigate to the tickets page</li>
+                <li>Look for tickets with "To Company" recipient type</li>
+                <li>Verify that company tickets show:</li>
+                <ul>
+                    <li>✅ Company name instead of "Company (ID: X)"</li>
+                    <li>✅ Company email address</li>
+                    <li>✅ "To Company" badge</li>
+                    <li>✅ "Company Support Ticket" label</li>
+                </ul>
+                <li>Test the recipient filter to show only company tickets</li>
+                <li>Verify delete functionality works for company tickets</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h3>🎯 Expected Features</h3>
+            <div class="ticket-display">
+                <strong>Company Ticket Display Should Show:</strong>
+                <ul>
+                    <li><span class="success">✓</span> Company Name (e.g., "Tech Solutions Inc")</li>
+                    <li><span class="success">✓</span> Company Email (e.g., "contact@techsolutions.com")</li>
+                    <li><span class="success">✓</span> Green "To Company" badge</li>
+                    <li><span class="success">✓</span> "Company Support Ticket" label</li>
+                    <li><span class="success">✓</span> Proper filtering by recipient type</li>
+                    <li><span class="success">✓</span> Delete functionality with confirmation</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🚀 Quick Actions</h3>
+            <button onclick="window.open('http://localhost:5174/admin/all-Ticket', '_blank')">
+                🎫 Open Admin Tickets Page
+            </button>
+            <button onclick="window.open('http://localhost:5174/admin', '_blank')">
+                🏠 Open Admin Dashboard
+            </button>
+            <button onclick="testAPI()">
+                🔧 Test API Response
+            </button>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 API Test Results</h3>
+            <div id="apiResults">
+                <p class="info">Click "Test API Response" to check ticket data structure</p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>✅ Implementation Status</h3>
+            <div class="ticket-display">
+                <h4>Recent Updates:</h4>
+                <ul>
+                    <li><span class="success">✓</span> Backend enhanced to fetch company name and email</li>
+                    <li><span class="success">✓</span> Frontend updated to display company information</li>
+                    <li><span class="success">✓</span> Added recipient filter for admin vs company tickets</li>
+                    <li><span class="success">✓</span> Added delete functionality with confirmation modal</li>
+                    <li><span class="success">✓</span> Enhanced UI with yellow/amber color scheme</li>
+                    <li><span class="success">✓</span> Added futuristic glass morphism effects</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function testAPI() {
+            const resultsDiv = document.getElementById('apiResults');
+            resultsDiv.innerHTML = '<p class="info">🔄 Testing API...</p>';
+            
+            try {
+                // Note: This would need proper authentication in a real scenario
+                const response = await fetch('http://localhost:5000/api/tickets/admin/all', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // In real implementation, you'd need the auth token here
+                    }
+                });
+                
+                if (response.ok) {
+                    const tickets = await response.json();
+                    let html = '<div class="success">✅ API Response Successful!</div>';
+                    html += `<p><strong>Total Tickets:</strong> ${tickets.length}</p>`;
+                    
+                    // Check for company tickets
+                    const companyTickets = tickets.filter(t => t.recipient_type === 'company');
+                    html += `<p><strong>Company Tickets:</strong> ${companyTickets.length}</p>`;
+                    
+                    if (companyTickets.length > 0) {
+                        html += '<h4>Sample Company Ticket Data:</h4>';
+                        const sample = companyTickets[0];
+                        html += `<pre style="background: #f3f4f6; padding: 10px; border-radius: 5px; font-size: 12px;">`;
+                        html += JSON.stringify({
+                            ticket_number: sample.ticket_number,
+                            recipient_type: sample.recipient_type,
+                            recipient_name: sample.recipient_name,
+                            company_name: sample.company_name,
+                            company_email: sample.company_email
+                        }, null, 2);
+                        html += '</pre>';
+                    }
+                    
+                    resultsDiv.innerHTML = html;
+                } else {
+                    resultsDiv.innerHTML = `<div class="error">❌ API Error: ${response.status} ${response.statusText}</div>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ Network Error: ${error.message}</div>`;
+                console.error('API Test Error:', error);
+            }
+        }
+        
+        // Auto-test on page load (with delay to ensure servers are ready)
+        setTimeout(() => {
+            console.log('🎫 Admin Tickets Company Display Test Page Loaded');
+            console.log('📍 Client running on: http://localhost:5174');
+            console.log('📍 Server running on: http://localhost:5000');
+        }, 1000);
+    </script>
+</body>
+</html>

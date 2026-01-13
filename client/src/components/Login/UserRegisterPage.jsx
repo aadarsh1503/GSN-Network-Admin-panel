@@ -25,12 +25,54 @@ const UserRegisterPage = () => {
   const [initialCountry, setInitialCountry] = useState('us');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true); // Loading state for auth check
   const navigate = useNavigate();
   const location = useLocation();
 
   // Get redirect path from location state (if user was redirected after quote submission)
   const from = location.state?.from || '/user/dashboard';
   const redirectMessage = location.state?.message;
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkAuthStatus = () => {
+      const token = localStorage.getItem('token');
+      const user = localStorage.getItem('user');
+      
+      if (token && user) {
+        try {
+          const userData = JSON.parse(user);
+          console.log('User already logged in, redirecting...', userData);
+          
+          // Redirect based on user role
+          if (userData.role === 'admin') {
+            navigate('/admin', { replace: true });
+          } else if (userData.role === 'company') {
+            navigate('/company', { replace: true });
+          } else if (userData.role === 'business') {
+            navigate('/business', { replace: true });
+          } else if (userData.role === 'user') {
+            navigate('/user/dashboard', { replace: true });
+          } else {
+            // If role is unknown, clear storage and allow registration
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            setIsCheckingAuth(false);
+          }
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+          // Clear invalid data and allow registration
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          setIsCheckingAuth(false);
+        }
+      } else {
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkAuthStatus();
+  }, [navigate]);
 
   useEffect(() => {
     const fetchUserCountry = async () => {
@@ -221,6 +263,18 @@ const UserRegisterPage = () => {
     }
   };
 
+  // Show loading spinner while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <div className="bg-stone-50 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#CDA435] mx-auto mb-4"></div>
+          <p className="text-xl text-gray-600">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-stone-50 mt-20 min-h-screen font-sans">
       <header
@@ -246,7 +300,7 @@ const UserRegisterPage = () => {
                 <strong>{redirectMessage}</strong>
               </p>
               <p className="text-xs text-blue-600 mt-1">
-                Company accounts are for logistics providers. User accounts are for requesting and tracking quotes.
+                User accounts are for individuals requesting quotes. Business accounts are for business entities requesting quotes. Company accounts are for logistics providers offering quotes.
               </p>
             </div>
           )}

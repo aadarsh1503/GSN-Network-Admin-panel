@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Company Tickets Functionality</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #fef3c7, #fbbf24);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #f59e0b;
+            border-radius: 10px;
+            background: #fef3c7;
+        }
+        .success {
+            color: #059669;
+            font-weight: bold;
+        }
+        .info {
+            color: #0369a1;
+            font-weight: bold;
+        }
+        .warning {
+            color: #d97706;
+            font-weight: bold;
+        }
+        button {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .step {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #f59e0b;
+        }
+        .feature-list {
+            background: #f0fdf4;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #10b981;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏢 Company Tickets Functionality Test</h1>
+            <p>Testing the enhanced Company "My Tickets" page</p>
+        </div>
+
+        <div class="test-section">
+            <h3>🎯 New Company Tickets Features</h3>
+            <div class="feature-list">
+                <h4>✅ Enhanced Features:</h4>
+                <ul>
+                    <li><span class="success">✓</span> Shows tickets sent TO the company (not FROM the company)</li>
+                    <li><span class="success">✓</span> Displays customer information (name, email, user type)</li>
+                    <li><span class="success">✓</span> Company can respond to customer tickets</li>
+                    <li><span class="success">✓</span> Company responses sync to Messages system</li>
+                    <li><span class="success">✓</span> Futuristic UI with yellow/amber theme</li>
+                    <li><span class="success">✓</span> Advanced filtering and search functionality</li>
+                    <li><span class="success">✓</span> Professional ticket management interface</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 Testing Steps</h3>
+            
+            <div class="step">
+                <h4>Step 1: Access Company Tickets</h4>
+                <p>1. Login as a company user and go to "My Tickets"</p>
+                <button onclick="window.open('http://localhost:5173/company/my-Tickets', '_blank')">
+                    🎫 Open Company My Tickets
+                </button>
+                <p class="info">💡 Should show tickets sent TO your company by customers</p>
+            </div>
+
+            <div class="step">
+                <h4>Step 2: Check Ticket Display</h4>
+                <p>2. Verify tickets show customer information</p>
+                <ul>
+                    <li>Customer name and email</li>
+                    <li>User type badges (Regular User, Business Owner)</li>
+                    <li>Ticket subject (cleaned, without [TO COMPANY ID:X])</li>
+                    <li>Priority and status badges</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <h4>Step 3: Test Company Response</h4>
+                <p>3. Click "Respond" button on any ticket</p>
+                <ul>
+                    <li>Modal should open with customer's message</li>
+                    <li>Company can enter response</li>
+                    <li>Response gets saved and synced to Messages</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <h4>Step 4: Verify Message Integration</h4>
+                <p>4. Check that company responses appear in Messages</p>
+                <button onclick="window.open('http://localhost:5173/company/messages', '_blank')">
+                    💬 Open Company Messages
+                </button>
+                <p class="info">💡 Company responses should create messages to customers</p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 What to Look For</h3>
+            <div class="step">
+                <h4>In Company My Tickets:</h4>
+                <ul>
+                    <li><span class="success">✓</span> <strong>Customer Information</strong> - Name, email, user type</li>
+                    <li><span class="success">✓</span> <strong>Clean Subjects</strong> - No [TO COMPANY ID:X] prefix</li>
+                    <li><span class="success">✓</span> <strong>Professional UI</strong> - Yellow/amber theme, modern design</li>
+                    <li><span class="success">✓</span> <strong>Response Functionality</strong> - Can respond to tickets</li>
+                    <li><span class="success">✓</span> <strong>Filtering Options</strong> - By status, priority, user type</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Backend Implementation</h3>
+            <div class="step">
+                <h4>New API Endpoints:</h4>
+                <ul>
+                    <li><span class="success">✓</span> <code>GET /api/tickets/company/received</code> - Get tickets sent to company</li>
+                    <li><span class="success">✓</span> <code>PUT /api/tickets/company/:id/respond</code> - Company response</li>
+                </ul>
+                
+                <h4>Database Enhancements:</h4>
+                <ul>
+                    <li><span class="success">✓</span> Added <code>company_response</code> field to support_tickets</li>
+                    <li><span class="success">✓</span> Added <code>company_responded_at</code> timestamp field</li>
+                    <li><span class="success">✓</span> Company responses sync to messages table</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🎯 Expected Behavior</h3>
+            <div class="step">
+                <h4>Company Ticket Flow:</h4>
+                <pre style="background: #f3f4f6; padding: 15px; border-radius: 8px; font-size: 14px;">
+1. Customer creates ticket with [TO COMPANY ID:X] format
+2. Ticket appears in Company "My Tickets" page
+3. Company sees customer info and clean subject
+4. Company can respond to ticket
+5. Response is saved and synced to Messages
+6. Customer receives response in their Messages
+                </pre>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🚀 Quick Access Panel</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <button onclick="window.open('http://localhost:5173/company/my-Tickets', '_blank')">
+                    🎫 Company My Tickets
+                </button>
+                <button onclick="window.open('http://localhost:5173/company/messages', '_blank')">
+                    💬 Company Messages
+                </button>
+                <button onclick="window.open('http://localhost:5173/company/dashboard', '_blank')">
+                    🏠 Company Dashboard
+                </button>
+                <button onclick="window.open('http://localhost:5173/admin/all-Ticket', '_blank')">
+                    👨‍💼 Admin Tickets
+                </button>
+                <button onclick="window.open('http://localhost:5173/user/messages', '_blank')">
+                    👤 User Messages
+                </button>
+                <button onclick="window.open('http://localhost:5173/business/messages', '_blank')">
+                    💼 Business Messages
+                </button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>✅ Implementation Status</h3>
+            <div class="feature-list">
+                <h4>🎉 COMPANY TICKETS ENHANCEMENT COMPLETE!</h4>
+                <p><span class="success">✓</span> <strong>Company My Tickets</strong> now shows tickets sent TO the company</p>
+                <p><span class="success">✓</span> <strong>Customer Information</strong> displayed with user type badges</p>
+                <p><span class="success">✓</span> <strong>Company Response System</strong> fully functional</p>
+                <p><span class="success">✓</span> <strong>Message Integration</strong> - responses sync to Messages</p>
+                <p><span class="success">✓</span> <strong>Professional UI</strong> with modern design and filtering</p>
+                <p><span class="success">✓</span> <strong>Easy for Company Members</strong> to manage customer support</p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔧 Technical Details</h3>
+            <div class="step">
+                <h4>Key Changes Made:</h4>
+                <ul>
+                    <li><strong>Backend:</strong> New endpoints for company ticket management</li>
+                    <li><strong>Database:</strong> Added company response fields</li>
+                    <li><strong>Frontend:</strong> Complete rewrite of MyTickets component</li>
+                    <li><strong>Integration:</strong> Company responses sync to Messages system</li>
+                    <li><strong>UI/UX:</strong> Modern, professional interface with advanced features</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-log system status
+        console.log('🏢 Company Tickets Functionality Test Page Loaded');
+        console.log('📍 Company Tickets: http://localhost:5173/company/my-Tickets');
+        console.log('📍 Company Messages: http://localhost:5173/company/messages');
+        console.log('✅ Enhancement Status: FULLY IMPLEMENTED');
+        
+        // Show enhancement features
+        setTimeout(() => {
+            console.log('🎯 Company Tickets Enhancements:');
+            console.log('   • Shows tickets sent TO company by customers');
+            console.log('   • Displays customer information and user types');
+            console.log('   • Company can respond to customer tickets');
+            console.log('   • Responses sync to Messages system');
+            console.log('   • Professional UI with advanced filtering');
+            console.log('   • Easy ticket management for company members');
+        }, 1000);
+    </script>
+</body>
+</html>

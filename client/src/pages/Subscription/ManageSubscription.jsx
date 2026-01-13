@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
 
-const PricingCard = ({ plan, onEdit, onDelete, onToggle }) => {
+const PricingCard = ({ plan, onEdit, onDelete, onToggle, deleting }) => {
   return (
     <div className={`bg-white border rounded-lg shadow-sm p-6 flex flex-col text-gray-700 ${!plan.is_active ? 'opacity-60' : ''}`}>
       <div className="flex justify-between items-start mb-2">
@@ -82,10 +82,15 @@ const PricingCard = ({ plan, onEdit, onDelete, onToggle }) => {
         </button>
         <button 
           onClick={() => onDelete(plan)}
-          className="bg-[#e63273] text-white p-2 rounded-md hover:bg-[#d12c66] transition-colors"
+          disabled={deleting === plan.id}
+          className="bg-[#e63273] text-white p-2 rounded-md hover:bg-[#d12c66] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           title="Delete plan"
         >
-          <FiTrash2 size={16} />
+          {deleting === plan.id ? (
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          ) : (
+            <FiTrash2 size={16} />
+          )}
         </button>
       </div>
     </div>
@@ -96,6 +101,7 @@ const ManageSubscription = () => {
   const navigate = useNavigate();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(null);
   const [editingPlan, setEditingPlan] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -136,18 +142,17 @@ const ManageSubscription = () => {
   };
 
   const handleDelete = async (plan) => {
-    if (!confirm(`Are you sure you want to delete the "${plan.name}" plan?`)) return;
+    if (!confirm(`Are you sure you want to permanently delete the "${plan.name}" plan? This action cannot be undone.`)) return;
     
-    // For now, just deactivate instead of delete
     try {
-      await api.put(`/api/subscriptions/admin/plans/${plan.id}`, {
-        ...plan,
-        isActive: false
-      });
-      toast.success('Plan deactivated successfully');
+      setDeleting(plan.id);
+      await api.delete(`/api/subscriptions/admin/plans/${plan.id}`);
+      toast.success(`Plan "${plan.name}" deleted successfully`);
       fetchPlans();
     } catch (error) {
       toast.error(error.message || 'Failed to delete plan');
+    } finally {
+      setDeleting(null);
     }
   };
 
@@ -209,6 +214,7 @@ const ManageSubscription = () => {
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onToggle={handleToggle}
+                deleting={deleting}
               />
             ))}
           </div>

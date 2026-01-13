@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Admin Quotes Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .debug-section { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .quote-card { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .company-info { background: #e8f5e9; padding: 10px; margin: 5px 0; border-radius: 3px; }
+        .missing-info { background: #ffebee; padding: 10px; margin: 5px 0; border-radius: 3px; }
+        .success { color: #4caf50; }
+        .error { color: #f44336; }
+        .warning { color: #ff9800; }
+        button { padding: 10px 20px; margin: 10px 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Admin Quotes Debug Test</h1>
+        
+        <div class="debug-section">
+            <h2>🚀 Test Admin Login & Fetch Quotes</h2>
+            <button onclick="testAdminQuotes()">Test Admin Quotes API</button>
+            <button onclick="clearResults()">Clear Results</button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:5000';
+        let adminToken = null;
+
+        async function testAdminQuotes() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="debug-section">🔄 Testing...</div>';
+
+            try {
+                // Step 1: Admin Login
+                console.log('🔐 Step 1: Admin Login...');
+                const loginResponse = await fetch(`${BASE_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@gmail.com',
+                        password: 'admin123'
+                    })
+                });
+
+                if (!loginResponse.ok) {
+                    throw new Error(`Login failed: ${loginResponse.status}`);
+                }
+
+                const loginData = await loginResponse.json();
+                adminToken = loginData.token;
+                
+                console.log('✅ Admin login successful');
+                resultsDiv.innerHTML += '<div class="debug-section success">✅ Admin login successful</div>';
+
+                // Step 2: Fetch Admin Quotes
+                console.log('📊 Step 2: Fetching admin quotes...');
+                const quotesResponse = await fetch(`${BASE_URL}/api/admin-panel/quotes`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!quotesResponse.ok) {
+                    throw new Error(`Quotes fetch failed: ${quotesResponse.status}`);
+                }
+
+                const quotes = await quotesResponse.json();
+                console.log('✅ Quotes fetched successfully:', quotes);
+
+                // Display results
+                displayQuotesResults(quotes);
+
+            } catch (error) {
+                console.error('❌ Test failed:', error);
+                resultsDiv.innerHTML += `<div class="debug-section error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        function displayQuotesResults(quotes) {
+            const resultsDiv = document.getElementById('results');
+            
+            // Summary
+            const quotesWithCompany = quotes.filter(q => q.company_name);
+            const quotesWithoutCompany = quotes.filter(q => !q.company_name);
+            const quotesWithPrice = quotes.filter(q => q.accepted_price);
+
+            resultsDiv.innerHTML += `
+                <div class="debug-section">
+                    <h3>📊 Summary</h3>
+                    <p><strong>Total Quotes:</strong> ${quotes.length}</p>
+                    <p class="success"><strong>Quotes with Company:</strong> ${quotesWithCompany.length}</p>
+                    <p class="error"><strong>Quotes without Company:</strong> ${quotesWithoutCompany.length}</p>
+                    <p class="warning"><strong>Quotes with Price:</strong> ${quotesWithPrice.length}</p>
+                </div>
+            `;
+
+            // Display first 5 quotes in detail
+            resultsDiv.innerHTML += '<div class="debug-section"><h3>📋 Quote Details (First 5)</h3></div>';
+            
+            quotes.slice(0, 5).forEach((quote, index) => {
+                const hasCompanyInfo = quote.company_name && quote.company_email;
+                const cardClass = hasCompanyInfo ? 'company-info' : 'missing-info';
+                
+                resultsDiv.innerHTML += `
+                    <div class="quote-card ${cardClass}">
+                        <h4>Quote #${quote.id} ${hasCompanyInfo ? '✅' : '❌'}</h4>
+                        <p><strong>Customer:</strong> ${quote.user_name} (${quote.user_email})</p>
+                        <p><strong>Product:</strong> ${quote.product_description}</p>
+                        <p><strong>Route:</strong> ${quote.departure_country} → ${quote.arrival_country}</p>
+                        <p><strong>Status:</strong> ${quote.status}</p>
+                        <p><strong>Responses:</strong> ${quote.response_count} total, ${quote.accepted_count} accepted</p>
+                        
+                        <div style="margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.1); border-radius: 3px;">
+                            <h5>🏢 Company Information:</h5>
+                            <p><strong>Company Name:</strong> ${quote.company_name || '❌ MISSING'}</p>
+                            <p><strong>Company Email:</strong> ${quote.company_email || '❌ MISSING'}</p>
+                            <p><strong>Company Phone:</strong> ${quote.company_phone || '❌ MISSING'}</p>
+                            <p><strong>Accepted Price:</strong> ${quote.accepted_price ? '$' + quote.accepted_price : '❌ MISSING'}</p>
+                            <p><strong>Payment Status:</strong> ${quote.payment_status || '❌ MISSING'}</p>
+                            <p><strong>Accepted At:</strong> ${quote.accepted_at || '❌ MISSING'}</p>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Show problematic quotes
+            if (quotesWithoutCompany.length > 0) {
+                resultsDiv.innerHTML += `
+                    <div class="debug-section error">
+                        <h3>❌ Quotes Missing Company Data</h3>
+                        <p>These quotes should have company information but don't:</p>
+                        <ul>
+                            ${quotesWithoutCompany.slice(0, 10).map(q => 
+                                `<li>Quote #${q.id}: ${q.user_name} - ${q.product_description} (${q.response_count} responses, ${q.accepted_count} accepted)</li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        // Auto-run test on page load
+        window.onload = () => {
+            console.log('🚀 Page loaded, ready to test admin quotes API');
+        };
+    </script>
+</body>
+</html>

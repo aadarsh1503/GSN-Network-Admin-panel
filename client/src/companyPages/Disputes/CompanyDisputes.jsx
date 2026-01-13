@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiEye, FiClock, FiCheckCircle, FiAlertTriangle, FiMessageSquare, FiUser, FiPlus, FiX } from 'react-icons/fi';
+import { FiEye, FiClock, FiCheckCircle, FiAlertTriangle, FiMessageSquare, FiUser, FiPlus, FiX, FiEdit } from 'react-icons/fi';
 import { api } from '../../utils/api';
 import { toast } from 'react-hot-toast';
 
@@ -222,6 +222,24 @@ const CompanyDisputes = () => {
 
   const counts = getFilterCounts();
 
+  const handleOpenChat = (dispute) => {
+    // Determine who to chat with based on the dispute context
+    let recipientId, recipientName;
+    
+    if (activeTab === 'against') {
+      // For disputes against company, chat with the user who filed it
+      recipientId = dispute.user_id;
+      recipientName = dispute.user_name;
+    } else {
+      // For disputes filed by company, chat with admin (assuming admin has ID 1)
+      recipientId = 1;
+      recipientName = 'Platform Admin';
+    }
+    
+    // Navigate to messages page with the recipient
+    window.location.href = `/company/messages?recipient=${recipientId}&name=${encodeURIComponent(recipientName)}`;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -438,6 +456,13 @@ const CompanyDisputes = () => {
                         >
                           <FiEye size={16} />
                         </button>
+                        <button
+                          onClick={() => handleOpenChat(dispute)}
+                          className="bg-purple-500 text-white p-2 rounded-md hover:bg-purple-600 transition-colors mr-2"
+                          title="Open Chat"
+                        >
+                          <FiMessageSquare size={16} />
+                        </button>
                         {dispute.status !== 'resolved' && dispute.status !== 'closed' && (
                           <button
                             onClick={() => {
@@ -448,7 +473,7 @@ const CompanyDisputes = () => {
                             className="bg-green-500 text-white p-2 rounded-md hover:bg-green-600 transition-colors"
                             title="Respond & Update Status"
                           >
-                            <FiMessageSquare size={16} />
+                            <FiEdit size={16} />
                           </button>
                         )}
                       </td>
@@ -529,20 +554,141 @@ const CompanyDisputes = () => {
 
                 {selectedDispute.images && selectedDispute.images.length > 0 && (
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Evidence Images</label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {selectedDispute.images.map((img, index) => (
-                        <div key={index} className="relative">
-                          <img 
-                            src={img.image_url} 
-                            alt={`Evidence ${index + 1}`}
-                            className="w-full h-24 object-cover rounded border"
-                            onError={(e) => {
-                              e.target.src = 'https://via.placeholder.com/150x100?text=Image+Not+Found';
-                            }}
-                          />
+                    <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                      <svg className="mr-2 h-5 w-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      Evidence Images ({selectedDispute.images.length})
+                    </h4>
+                    
+                    <div className="space-y-4">
+                      {selectedDispute.images.map((image, index) => {
+                        console.log(`🖼️ Rendering image ${index + 1}:`, {
+                          url: image.image_url,
+                          type: image.image_type,
+                          id: image.id
+                        });
+                        
+                        return (
+                          <div key={index} className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-xl p-4 border border-yellow-200">
+                            <div className="flex items-start space-x-4">
+                              {/* Image Preview */}
+                              <div className="flex-shrink-0">
+                                <div className="relative w-32 h-32 bg-white rounded-lg border-2 border-yellow-300 overflow-hidden shadow-md">
+                                  <img
+                                    src={image.image_url}
+                                    alt={`Evidence ${index + 1}`}
+                                    className="w-full h-full object-contain bg-white cursor-pointer"
+                                    onClick={() => {
+                                      console.log('🔗 Opening image in new tab:', image.image_url);
+                                      window.open(image.image_url, '_blank');
+                                    }}
+                                    onError={(e) => {
+                                      console.error('❌ Image failed to load:', image.image_url);
+                                      e.target.style.backgroundColor = '#fef3c7';
+                                      e.target.style.display = 'flex';
+                                      e.target.style.alignItems = 'center';
+                                      e.target.style.justifyContent = 'center';
+                                      e.target.innerHTML = '<div style="text-align: center; color: #d97706; font-size: 12px;"><div>📷</div><div>Failed to load</div></div>';
+                                    }}
+                                    onLoad={(e) => {
+                                      console.log('✅ Image loaded successfully:', image.image_url);
+                                      console.log('📐 Image dimensions:', e.target.naturalWidth + 'x' + e.target.naturalHeight);
+                                      
+                                      // Ensure proper display for small images
+                                      if (e.target.naturalWidth <= 10 && e.target.naturalHeight <= 10) {
+                                        console.warn('⚠️ Very small image detected, adjusting display');
+                                        e.target.style.objectFit = 'none';
+                                        e.target.style.imageRendering = 'pixelated';
+                                        e.target.style.transform = 'scale(10)';
+                                      }
+                                    }}
+                                  />
+                                  
+                                  {/* Hover overlay */}
+                                  <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center opacity-0 hover:opacity-100">
+                                    <div className="bg-white bg-opacity-90 rounded-full p-2">
+                                      <FiEye className="h-4 w-4 text-gray-700" />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Image Details */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between mb-2">
+                                  <h5 className="text-sm font-semibold text-gray-800 capitalize">
+                                    {image.image_type || 'Evidence'} Image
+                                  </h5>
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+                                    {image.image_type || 'evidence'}
+                                  </span>
+                                </div>
+                                
+                                <div className="space-y-2 text-sm text-gray-600">
+                                  <div className="flex items-center">
+                                    <span className="font-medium mr-2">File ID:</span>
+                                    <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">#{image.id}</span>
+                                  </div>
+                                  
+                                  <div className="flex items-center">
+                                    <span className="font-medium mr-2">Status:</span>
+                                    <span className="text-green-600 font-medium">✓ Uploaded Successfully</span>
+                                  </div>
+                                  
+                                  {image.created_at && (
+                                    <div className="flex items-center">
+                                      <span className="font-medium mr-2">Uploaded:</span>
+                                      <span className="text-gray-600">{new Date(image.created_at).toLocaleDateString()}</span>
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                {/* Action Buttons */}
+                                <div className="flex space-x-2 mt-3">
+                                  <button
+                                    onClick={() => window.open(image.image_url, '_blank')}
+                                    className="inline-flex items-center px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-medium rounded-lg transition-colors duration-200"
+                                  >
+                                    <FiEye className="h-3 w-3 mr-1" />
+                                    View Full Size
+                                  </button>
+                                  
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(image.image_url);
+                                      toast.success('Image URL copied to clipboard');
+                                    }}
+                                    className="inline-flex items-center px-3 py-1.5 bg-gray-500 hover:bg-gray-600 text-white text-xs font-medium rounded-lg transition-colors duration-200"
+                                  >
+                                    <svg className="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    Copy URL
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    
+                    {/* Gallery Footer */}
+                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center text-yellow-700">
+                          <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          <span className="font-medium">
+                            {selectedDispute.images.length} evidence image{selectedDispute.images.length !== 1 ? 's' : ''} attached
+                          </span>
                         </div>
-                      ))}
+                        <div className="text-yellow-600 text-xs">
+                          Click any image to view in full resolution
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}

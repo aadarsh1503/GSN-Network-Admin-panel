@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toast Debug Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .debug-section {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #dc3545;
+        }
+        .code-block {
+            background-color: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .test-steps {
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐛 Toast Duration Debug Guide</h1>
+        
+        <div class="debug-section">
+            <h3>Issue: Toasts Still Vanishing Instantly</h3>
+            <p>Despite the fixes, toasts are still disappearing in ~100ms instead of 3 seconds.</p>
+        </div>
+
+        <h2>🔍 Debug Steps</h2>
+        
+        <div class="test-steps">
+            <h3>Step 1: Check Browser Console</h3>
+            <p>Open browser DevTools (F12) and check for:</p>
+            <ul>
+                <li>JavaScript errors that might be dismissing toasts</li>
+                <li>Multiple ToastContainer warnings</li>
+                <li>CSS conflicts or animation issues</li>
+            </ul>
+        </div>
+
+        <div class="test-steps">
+            <h3>Step 2: Test Basic Toast</h3>
+            <p>In browser console, try this basic test:</p>
+            <div class="code-block">
+// Test basic toast without adminToast utility
+import { toast } from 'react-toastify';
+toast.success("Test message", { 
+  autoClose: 3000, 
+  containerId: 'admin-toasts' 
+});
+            </div>
+        </div>
+
+        <div class="test-steps">
+            <h3>Step 3: Check for CSS Interference</h3>
+            <p>Look for CSS rules that might be affecting toast timing:</p>
+            <div class="code-block">
+/* Check if any of these CSS rules exist: */
+.Toastify__toast {
+  animation-duration: 0.1s !important; /* This would cause instant vanish */
+}
+
+.admin-toast {
+  transition: all 0.1s !important; /* This could interfere */
+}
+            </div>
+        </div>
+
+        <div class="test-steps">
+            <h3>Step 4: Temporary Workaround</h3>
+            <p>Try this direct approach in the component:</p>
+            <div class="code-block">
+// Instead of adminToast.success("message")
+// Try direct toast call:
+import { toast } from 'react-toastify';
+
+const handleStatusChange = async () => {
+  // ... your logic ...
+  
+  // Direct toast call
+  toast.success("User activated successfully", {
+    position: "top-right",
+    autoClose: 3000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    containerId: 'admin-toasts'
+  });
+};
+            </div>
+        </div>
+
+        <h2>🔧 Current Configuration</h2>
+        
+        <div class="debug-section">
+            <h3>AdminLayout ToastContainer</h3>
+            <div class="code-block">
+&lt;ToastContainer
+  position="top-right"
+  autoClose={3000}
+  hideProgressBar={false}
+  newestOnTop={true}
+  closeOnClick={true}
+  pauseOnHover={true}
+  theme="light"
+  limit={5}
+  enableMultiContainer={true}
+  containerId="admin-toasts"
+/&gt;
+            </div>
+        </div>
+
+        <div class="debug-section">
+            <h3>App.jsx ToastContainer</h3>
+            <div class="code-block">
+&lt;ToastContainer
+  position="top-right"
+  autoClose={6000}
+  theme="light"
+  limit={5}
+  // No containerId - this is the default container
+/&gt;
+            </div>
+        </div>
+
+        <h2>🎯 Next Steps</h2>
+        <ol>
+            <li>Test the simplified adminToast utility</li>
+            <li>Check browser console for errors</li>
+            <li>Try direct toast calls if utility still fails</li>
+            <li>Inspect CSS for animation conflicts</li>
+            <li>Consider removing custom CSS temporarily</li>
+        </ol>
+
+        <div class="debug-section">
+            <h3>⚠️ Potential Root Causes</h3>
+            <ul>
+                <li><strong>CSS Animation Conflicts:</strong> Custom animations overriding toast timing</li>
+                <li><strong>JavaScript Errors:</strong> Uncaught errors causing premature dismissal</li>
+                <li><strong>Container Conflicts:</strong> Multiple containers interfering</li>
+                <li><strong>React State Updates:</strong> Component re-renders dismissing toasts</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

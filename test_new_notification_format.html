@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test New Notification Format</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { padding: 10px 15px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .log { background: #f8f9fa; padding: 10px; margin: 10px 0; border-radius: 3px; font-family: monospace; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>Test New Notification Format</h1>
+    <p>This page tests the new notification format and cleans up old notifications.</p>
+
+    <div class="test-section">
+        <h3>Step 1: Clear Old Notifications</h3>
+        <button onclick="clearOldNotifications()">Clear Old Notifications</button>
+        <div id="clearResult" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Step 2: Login as Company</h3>
+        <button onclick="loginAsCompany()">Login as Company</button>
+        <div id="loginResult" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Step 3: Update Quote Status (This will create new notification)</h3>
+        <input type="number" id="quoteId" placeholder="Quote ID" value="36" />
+        <select id="newStatus">
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+            <option value="running">Running</option>
+            <option value="closed">Closed</option>
+        </select>
+        <button onclick="updateQuoteStatus()">Update Status</button>
+        <div id="updateResult" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Step 4: Check New Notification Format</h3>
+        <button onclick="checkNewNotifications()">Check Latest Notifications</button>
+        <div id="notificationsResult" class="log"></div>
+    </div>
+
+    <script>
+        let companyToken = '';
+        let adminToken = '';
+
+        async function clearOldNotifications() {
+            const logDiv = document.getElementById('clearResult');
+            try {
+                // First login as admin
+                const loginResponse = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@gmail.com',
+                        password: 'admin123'
+                    })
+                });
+
+                const loginData = await loginResponse.json();
+                if (!loginResponse.ok) {
+                    logDiv.textContent = `❌ Admin login failed: ${loginData.message}`;
+                    logDiv.className = 'log error';
+                    return;
+                }
+
+                adminToken = loginData.token;
+
+                // Note: We can't directly delete from admin_notifications via API
+                // This would need to be done via database directly
+                logDiv.textContent = `✅ Admin login successful!
+                
+⚠️ To clear old notifications, run this SQL query in your database:
+DELETE FROM admin_notifications WHERE message NOT LIKE '%📋%' AND message NOT LIKE '%🔄%';
+
+This will remove old format notifications and keep only the new formatted ones.`;
+                logDiv.className = 'log success';
+
+            } catch (error) {
+                logDiv.textContent = `❌ Error: ${error.message}`;
+                logDiv.className = 'log error';
+            }
+        }
+
+        async function loginAsCompany() {
+            const logDiv = document.getElementById('loginResult');
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'company@test.com', // Replace with actual company email
+                        password: 'password123'     // Replace with actual password
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    companyToken = data.token;
+                    logDiv.textContent = `✅ Company login successful!\nToken: ${companyToken.substring(0, 20)}...`;
+                    logDiv.className = 'log success';
+                } else {
+                    logDiv.textContent = `❌ Company login failed: ${data.message}`;
+                    logDiv.className = 'log error';
+                }
+            } catch (error) {
+                logDiv.textContent = `❌ Error: ${error.message}`;
+                logDiv.className = 'log error';
+            }
+        }
+
+        async function updateQuoteStatus() {
+            const logDiv = document.getElementById('updateResult');
+            const quoteId = document.getElementById('quoteId').value;
+            const status = document.getElementById('newStatus').value;
+
+            if (!companyToken) {
+                logDiv.textContent = '❌ Please login as company first';
+                logDiv.className = 'log error';
+                return;
+            }
+
+            if (!quoteId) {
+                logDiv.textContent = '❌ Please enter a quote ID';
+                logDiv.className = 'log error';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/company-quotes/quote/${quoteId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${companyToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    logDiv.textContent = `✅ Quote status updated successfully!
+Quote ID: ${quoteId}
+New Status: ${status}
+Response: ${data.message}
+
+🎉 This should have created a NEW notification with the improved format!`;
+                    logDiv.className = 'log success';
+                } else {
+                    logDiv.textContent = `❌ Failed to update status: ${data.message}`;
+                    logDiv.className = 'log error';
+                }
+            } catch (error) {
+                logDiv.textContent = `❌ Error: ${error.message}`;
+                logDiv.className = 'log error';
+            }
+        }
+
+        async function checkNewNotifications() {
+            const logDiv = document.getElementById('notificationsResult');
+            
+            try {
+                if (!adminToken) {
+                    // Login as admin first
+                    const loginResponse = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            email: 'admin@gmail.com',
+                            password: 'admin123'
+                        })
+                    });
+
+                    const loginData = await loginResponse.json();
+                    if (!loginResponse.ok) {
+                        logDiv.textContent = `❌ Admin login failed: ${loginData.message}`;
+                        logDiv.className = 'log error';
+                        return;
+                    }
+                    adminToken = loginData.token;
+                }
+
+                // Get latest notifications
+                const notificationsResponse = await fetch('/api/admin/pending-notifications', {
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`
+                    }
+                });
+
+                const notifications = await notificationsResponse.json();
+                if (notificationsResponse.ok) {
+                    const latestNotifications = notifications.slice(0, 3); // Get latest 3
+
+                    logDiv.textContent = `✅ Latest notifications retrieved!
+Total notifications: ${notifications.length}
+
+📋 Latest 3 notifications:
+${latestNotifications.map((n, i) => `
+${i + 1}. Title: ${n.title}
+   Type: ${n.type}
+   Created: ${new Date(n.created_at).toLocaleString()}
+   Message Preview: ${n.message.substring(0, 100)}...
+   Is Read: ${n.is_read ? 'Yes' : 'No'}
+`).join('\n')}
+
+🔍 Look for notifications with emojis (📋, 🔄) - these are the NEW format!
+🔍 Old format notifications will be plain text without emojis.`;
+                    logDiv.className = 'log success';
+                } else {
+                    logDiv.textContent = `❌ Failed to get notifications: ${notifications.message}`;
+                    logDiv.className = 'log error';
+                }
+            } catch (error) {
+                logDiv.textContent = `❌ Error: ${error.message}`;
+                logDiv.className = 'log error';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Frontend Admin Quotes</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .debug-section { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .quote-card { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .company-info { background: #e8f5e9; padding: 10px; margin: 5px 0; border-radius: 3px; }
+        .missing-info { background: #ffebee; padding: 10px; margin: 5px 0; border-radius: 3px; }
+        .success { color: #4caf50; }
+        .error { color: #f44336; }
+        .warning { color: #ff9800; }
+        button { padding: 10px 20px; margin: 10px 5px; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .company-cell { background-color: #e8f5e9; }
+        .no-company-cell { background-color: #ffebee; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Frontend Admin Quotes Test</h1>
+        
+        <div class="debug-section">
+            <h2>🚀 Test Frontend API Call (Same as AdminQuotes.jsx)</h2>
+            <button onclick="testFrontendAPI()">Test Frontend API</button>
+            <button onclick="clearResults()">Clear Results</button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:5000';
+        let adminToken = null;
+
+        // Simulate the api.js utility function
+        const api = {
+            async get(endpoint) {
+                const response = await fetch(`${BASE_URL}${endpoint}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API call failed: ${response.status}`);
+                }
+
+                return await response.json();
+            }
+        };
+
+        async function testFrontendAPI() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="debug-section">🔄 Testing Frontend API...</div>';
+
+            try {
+                // Step 1: Admin Login (same as frontend would do)
+                console.log('🔐 Step 1: Admin Login...');
+                const loginResponse = await fetch(`${BASE_URL}/api/user/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@gmail.com',
+                        password: 'admin123'
+                    })
+                });
+
+                if (!loginResponse.ok) {
+                    throw new Error(`Login failed: ${loginResponse.status}`);
+                }
+
+                const loginData = await loginResponse.json();
+                adminToken = loginData.token;
+                
+                console.log('✅ Admin login successful');
+                resultsDiv.innerHTML += '<div class="debug-section success">✅ Admin login successful</div>';
+
+                // Step 2: Fetch quotes using the same method as AdminQuotes.jsx
+                console.log('📊 Step 2: Fetching quotes using frontend method...');
+                console.log('🔍 [FRONTEND DEBUG] Fetching quotes from API...');
+                
+                const data = await api.get('/api/admin-panel/quotes');
+                
+                console.log('✅ [FRONTEND DEBUG] Received quotes data:', {
+                    totalQuotes: data.length,
+                    sampleQuote: data.length > 0 ? data[0] : null
+                });
+                
+                if (data.length > 0) {
+                    console.log('\n📊 [FRONTEND DEBUG] First 3 quotes analysis:');
+                    data.slice(0, 3).forEach((quote, index) => {
+                        console.log(`\n--- Frontend Quote ${index + 1} (ID: ${quote.id}) ---`);
+                        console.log(`👤 Customer: ${quote.user_name} (${quote.user_email})`);
+                        console.log(`🏢 Company Name: ${quote.company_name || 'MISSING'}`);
+                        console.log(`📧 Company Email: ${quote.company_email || 'MISSING'}`);
+                        console.log(`💰 Accepted Price: ${quote.accepted_price || 'MISSING'}`);
+                        console.log(`📦 Product: ${quote.product_description}`);
+                        console.log(`📊 Response Count: ${quote.response_count}`);
+                        console.log(`✅ Accepted Count: ${quote.accepted_count}`);
+                        console.log(`💳 Payment Status: ${quote.payment_status || 'MISSING'}`);
+                        console.log(`📅 Status: ${quote.status}`);
+                    });
+                    
+                    // Check company data availability
+                    const quotesWithCompany = data.filter(q => q.company_name);
+                    const quotesWithoutCompany = data.filter(q => !q.company_name);
+                    
+                    console.log('\n📈 [FRONTEND DEBUG] Company Data Summary:');
+                    console.log(`🏢 Quotes with company data: ${quotesWithCompany.length}`);
+                    console.log(`❌ Quotes without company data: ${quotesWithoutCompany.length}`);
+                    console.log(`📊 Company data fields present: ${data.length > 0 && 'company_name' in data[0] ? 'YES' : 'NO'}`);
+                }
+
+                // Display results in a table format similar to AdminQuotes.jsx
+                displayQuotesTable(data);
+
+            } catch (error) {
+                console.error('❌ [FRONTEND DEBUG] Error fetching quotes:', error);
+                resultsDiv.innerHTML += `<div class="debug-section error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        function displayQuotesTable(quotes) {
+            const resultsDiv = document.getElementById('results');
+            
+            // Summary
+            const quotesWithCompany = quotes.filter(q => q.company_name);
+            const quotesWithoutCompany = quotes.filter(q => !q.company_name);
+            const quotesWithPrice = quotes.filter(q => q.accepted_price);
+
+            resultsDiv.innerHTML += `
+                <div class="debug-section">
+                    <h3>📊 Frontend Data Summary</h3>
+                    <p><strong>Total Quotes:</strong> ${quotes.length}</p>
+                    <p class="success"><strong>Quotes with Company:</strong> ${quotesWithCompany.length}</p>
+                    <p class="error"><strong>Quotes without Company:</strong> ${quotesWithoutCompany.length}</p>
+                    <p class="warning"><strong>Quotes with Price:</strong> ${quotesWithPrice.length}</p>
+                </div>
+            `;
+
+            // Create table similar to AdminQuotes.jsx
+            let tableHTML = `
+                <div class="debug-section">
+                    <h3>📋 Admin Quotes Table (First 10 quotes)</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>User</th>
+                                <th>Route</th>
+                                <th>Product</th>
+                                <th>Working Company</th>
+                                <th>Price</th>
+                                <th>Responses</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            quotes.slice(0, 10).forEach((quote) => {
+                const hasCompanyInfo = quote.company_name && quote.company_email;
+                const companyCellClass = hasCompanyInfo ? 'company-cell' : 'no-company-cell';
+                
+                tableHTML += `
+                    <tr>
+                        <td>${quote.id}</td>
+                        <td>
+                            <div><strong>${quote.user_name || 'Guest'}</strong></div>
+                            <div style="font-size: 12px; color: #666;">${quote.user_email}</div>
+                        </td>
+                        <td>
+                            <div>${quote.departure_country} → ${quote.arrival_country}</div>
+                            <div style="font-size: 12px; color: #666;">${quote.shipping_mode}</div>
+                        </td>
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+                            ${quote.product_description}
+                        </td>
+                        <td class="${companyCellClass}">
+                            ${quote.company_name ? `
+                                <div><strong style="color: #1976d2;">${quote.company_name}</strong></div>
+                                <div style="font-size: 12px; color: #666;">${quote.company_email}</div>
+                                ${quote.accepted_at ? `<div style="font-size: 10px; color: #4caf50;">Accepted: ${new Date(quote.accepted_at).toLocaleDateString()}</div>` : ''}
+                            ` : `
+                                <span style="color: #999; font-size: 12px;">No company assigned</span>
+                            `}
+                        </td>
+                        <td>
+                            <strong style="color: #4caf50;">$${quote.accepted_price ? parseFloat(quote.accepted_price).toFixed(2) : '0.00'}</strong>
+                        </td>
+                        <td style="text-align: center;">
+                            <strong>${quote.response_count}</strong>
+                            ${quote.accepted_count > 0 ? `<span style="color: #4caf50; font-size: 10px;"> (${quote.accepted_count} accepted)</span>` : ''}
+                        </td>
+                        <td>
+                            <span style="padding: 2px 8px; border-radius: 12px; font-size: 10px; background: #e3f2fd; color: #1976d2;">
+                                ${quote.status}
+                            </span>
+                        </td>
+                        <td style="font-size: 12px;">
+                            ${new Date(quote.created_at).toLocaleDateString()}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            resultsDiv.innerHTML += tableHTML;
+
+            // Show problematic quotes
+            if (quotesWithoutCompany.length > 0) {
+                resultsDiv.innerHTML += `
+                    <div class="debug-section error">
+                        <h3>❌ Quotes Missing Company Data (First 5)</h3>
+                        <p>These quotes should have company information but don't:</p>
+                        <ul>
+                            ${quotesWithoutCompany.slice(0, 5).map(q => 
+                                `<li><strong>Quote #${q.id}:</strong> ${q.user_name} - ${q.product_description} (${q.response_count} responses, ${q.accepted_count} accepted)</li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            // Show successful quotes
+            if (quotesWithCompany.length > 0) {
+                resultsDiv.innerHTML += `
+                    <div class="debug-section success">
+                        <h3>✅ Quotes WITH Company Data (First 5)</h3>
+                        <ul>
+                            ${quotesWithCompany.slice(0, 5).map(q => 
+                                `<li><strong>Quote #${q.id}:</strong> ${q.user_name} → <strong>${q.company_name}</strong> (${q.company_email}) - $${q.accepted_price || '0.00'}</li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        // Auto-run test on page load
+        window.onload = () => {
+            console.log('🚀 Frontend test page loaded, ready to test admin quotes API');
+        };
+    </script>
+</body>
+</html>

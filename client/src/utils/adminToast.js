@@ -1,53 +1,37 @@
 // Utility for consistent admin toast notifications
 import { toast } from 'react-toastify';
 
+// Simple configuration without complex styling that might interfere
 const defaultToastConfig = {
-  autoClose: 5000,
-  className: 'admin-toast',
-  bodyClassName: 'admin-toast-body',
-  progressClassName: 'admin-toast-progress',
+  autoClose: 3000,
   hideProgressBar: false,
   closeOnClick: true,
-  pauseOnHover: false,
+  pauseOnHover: true,
   draggable: true,
   position: 'top-right',
-  pauseOnFocusLoss: false
-};
-
-// Helper function to ensure toasts auto-close
-const createToastWithForceClose = (toastFunction, message, options = {}) => {
-  const config = {
-    ...defaultToastConfig,
-    ...options,
-    autoClose: options.autoClose !== undefined ? options.autoClose : 5000
-  };
-  
-  const toastId = toastFunction(message, config);
-  
-  // Force close after the specified time as a fallback
-  const closeTime = config.autoClose || 5000;
-  setTimeout(() => {
-    toast.dismiss(toastId);
-  }, closeTime + 100); // Add small buffer
-  
-  return toastId;
+  pauseOnFocusLoss: false,
+  containerId: 'admin-toasts'
 };
 
 export const adminToast = {
   success: (message, options = {}) => {
-    return createToastWithForceClose(toast.success, message, options);
+    const config = { ...defaultToastConfig, ...options };
+    return toast.success(message, config);
   },
   
   error: (message, options = {}) => {
-    return createToastWithForceClose(toast.error, message, options);
+    const config = { ...defaultToastConfig, ...options };
+    return toast.error(message, config);
   },
   
   info: (message, options = {}) => {
-    return createToastWithForceClose(toast.info, message, options);
+    const config = { ...defaultToastConfig, ...options };
+    return toast.info(message, config);
   },
   
   warning: (message, options = {}) => {
-    return createToastWithForceClose(toast.warning, message, options);
+    const config = { ...defaultToastConfig, ...options };
+    return toast.warning(message, config);
   },
   
   // Method to dismiss all toasts
@@ -55,23 +39,19 @@ export const adminToast = {
     toast.dismiss();
   },
   
-  // Custom method for admin notifications with enhanced styling
+  // Custom method for admin notifications
   notify: (message, type = 'info', options = {}) => {
-    const config = {
-      ...defaultToastConfig,
-      ...options,
-      autoClose: options.autoClose !== undefined ? options.autoClose : 5000
-    };
+    const config = { ...defaultToastConfig, ...options };
     
     switch (type) {
       case 'success':
-        return createToastWithForceClose(toast.success, message, config);
+        return toast.success(message, config);
       case 'error':
-        return createToastWithForceClose(toast.error, message, config);
+        return toast.error(message, config);
       case 'warning':
-        return createToastWithForceClose(toast.warning, message, config);
+        return toast.warning(message, config);
       default:
-        return createToastWithForceClose(toast.info, message, config);
+        return toast.info(message, config);
     }
   }
 };

@@ -1,37 +1,127 @@
-import React from 'react';
-import { FaSort } from 'react-icons/fa';
+import { useState, useEffect } from 'react';
+import { FaSort, FaEye } from 'react-icons/fa';
+import Flag from 'react-world-flags';
+import api from '../../utils/api';
+import FuturisticLoader from '../../components/Loaders/FuturisticLoader';
+import FuturisticQuoteModal from '../../components/Modals/FuturisticQuoteModal';
 
 const ClosedCompanyQuote = () => {
-  // Dummy data to populate the table, matching the provided image
-  const closedQuotes = [
-    {
-      srNo: 1,
-      shippingMode: 'Air',
-      departureCountry: 'Andorra',
-      departureState: 'Les Escaldes',
-      departureType: 'Commercial address',
-      arrivalCountry: 'Aruba',
-      arrivalState: '', // This column is empty in the image
-      arrivalType: 'Commercial address',
-      arrivalDate: '2024-01-25\n00:00:00',
-      productDescription: '100',
-      packageType: 'Pallet ISO\n43.30 x\n43.30',
-      incoterms: 'CIF',
-      quantity: 10,
-      weight: '10Tons',
-      size: 'L10*W10*H10 inches',
-      additionalItems: 'stackable,',
-      additionalNote: 'testing',
-    },
-    // You can add more quote objects here to test the component
-  ];
+  const [closedQuotes, setClosedQuotes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortField, setSortField] = useState('created_at');
+  const [sortDirection, setSortDirection] = useState('desc');
+  const [viewingQuote, setViewingQuote] = useState(null);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+
+  useEffect(() => {
+    fetchClosedQuotes();
+  }, []);
+
+  const fetchClosedQuotes = async () => {
+    try {
+      const data = await api.get('/api/admin-panel/quotes');
+      // Filter for closed quotes
+      const closed = data.filter(quote => quote.status === 'closed');
+      setClosedQuotes(Array.isArray(closed) ? closed : []);
+    } catch (error) {
+      console.error('Error fetching closed quotes:', error);
+      setClosedQuotes([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getCountryCode = (countryName) => {
+    const countryCodes = {
+      'UAE': 'AE', 'United Arab Emirates': 'AE', 'Saudi Arabia': 'SA', 'Kuwait': 'KW',
+      'Qatar': 'QA', 'Bahrain': 'BH', 'Oman': 'OM', 'India': 'IN', 'USA': 'US',
+      'United States': 'US', 'United Kingdom': 'GB', 'UK': 'GB', 'China': 'CN',
+      'Germany': 'DE', 'France': 'FR', 'Australia': 'AU', 'Canada': 'CA'
+    };
+    return countryCodes[countryName] || countryName?.substring(0, 2).toUpperCase();
+  };
+
+  // Filter and sort quotes
+  const filteredQuotes = closedQuotes.filter(quote =>
+    Object.values(quote).some(value =>
+      value?.toString().toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  );
+
+  const sortedQuotes = [...filteredQuotes].sort((a, b) => {
+    const aValue = a[sortField] || '';
+    const bValue = b[sortField] || '';
+    
+    if (sortDirection === 'asc') {
+      return aValue.toString().localeCompare(bValue.toString());
+    } else {
+      return bValue.toString().localeCompare(aValue.toString());
+    }
+  });
+
+  // Pagination
+  const totalPages = Math.ceil(sortedQuotes.length / entriesPerPage);
+  const startIndex = (currentPage - 1) * entriesPerPage;
+  const paginatedQuotes = sortedQuotes.slice(startIndex, startIndex + entriesPerPage);
+
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const handleViewDetails = async (quote) => {
+    setIsLoadingDetails(true);
+    setViewingQuote(quote); // Show modal immediately with basic data
+    
+    try {
+      const details = await api.get(`/api/admin-panel/quotes/${quote.id}`);
+      setViewingQuote(details); // Update with full details
+    } catch (error) {
+      console.error('Error loading quote details:', error);
+      // Keep the modal open with basic quote data
+    } finally {
+      setIsLoadingDetails(false);
+    }
+  };
+
+  const handleUpdateQuoteStatus = async (quoteId, newStatus) => {
+    try {
+      await api.put(`/api/admin-panel/quotes/${quoteId}/status`, { status: newStatus });
+      
+      // Update the viewing quote if it's the same one
+      if (viewingQuote && viewingQuote.id === quoteId) {
+        setViewingQuote(prev => ({ ...prev, status: newStatus }));
+      }
+      
+      fetchClosedQuotes(); // Refresh the data
+    } catch (error) {
+      console.error('Failed to update quote status:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-gray-50 min-h-screen p-4 sm:p-6 lg:p-8">
+        <div className="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-sm flex items-center justify-center min-h-[400px]">
+          <FuturisticLoader size="large" message="Loading closed quotes..." />
+        </div>
+      </div>
+    );
+  }
 
   // Reusable component for table headers with sorting icons
-  const TableHeader = ({ children }) => (
-    <th scope="col" className="px-4 py-3 font-semibold">
+  const TableHeader = ({ children, field }) => (
+    <th scope="col" className="px-4 py-3 font-semibold cursor-pointer hover:bg-[#d4b46a]" onClick={() => handleSort(field)}>
       <div className="flex items-center">
         {children}
-        <a href="#"><FaSort className="ml-1.5 h-3 w-3 text-gray-400" /></a>
+        <FaSort className={`ml-1.5 h-3 w-3 ${sortField === field ? 'text-[#CDA435]' : 'text-gray-500'}`} />
       </div>
     </th>
   );
@@ -45,10 +135,17 @@ const ClosedCompanyQuote = () => {
         <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
           <div className="flex items-center space-x-2 text-sm text-gray-600">
             <span>Show</span>
-            <select className="border border-gray-300 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-yellow-500">
-              <option>10</option>
-              <option>25</option>
-              <option>50</option>
+            <select 
+              value={entriesPerPage}
+              onChange={(e) => {
+                setEntriesPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="border border-gray-300 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-[#CDA435]"
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
             </select>
             <span>entries</span>
           </div>
@@ -56,7 +153,10 @@ const ClosedCompanyQuote = () => {
             <span>Search:</span>
             <input
               type="text"
-              className="w-full sm:w-auto border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-yellow-500"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full sm:w-auto border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#CDA435]"
+              placeholder="Search quotes..."
             />
           </div>
         </div>
@@ -64,49 +164,87 @@ const ClosedCompanyQuote = () => {
         {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left text-gray-600">
-            <thead className="bg-[#e6c98c] text-gray-700 uppercase text-xs whitespace-nowrap">
+            <thead className="bg-[#CDA435] text-white uppercase text-xs whitespace-nowrap">
               <tr>
-                <TableHeader>Sr.No</TableHeader>
-                <TableHeader>Shipping Mode</TableHeader>
-                <TableHeader>Departure Country</TableHeader>
-                <TableHeader>Departure State</TableHeader>
-                <TableHeader>Departure Type</TableHeader>
-                <TableHeader>Arrival Country</TableHeader>
-                <TableHeader>Arrival State</TableHeader>
-                <TableHeader>Arrival Type</TableHeader>
-                <TableHeader>Arrival Date</TableHeader>
-                <TableHeader>Product Description</TableHeader>
-                <TableHeader>Package Type</TableHeader>
-                <TableHeader>Incoterms</TableHeader>
-                <TableHeader>Quantity</TableHeader>
-                <TableHeader>Weight</TableHeader>
-                <TableHeader>Size</TableHeader>
-                <TableHeader>Additional Items</TableHeader>
-                <TableHeader>Additional Note</TableHeader>
+                <TableHeader field="id">Quote ID</TableHeader>
+                <TableHeader field="shipping_mode">Shipping Mode</TableHeader>
+                <TableHeader field="departure_country">Departure Country</TableHeader>
+                <TableHeader field="departure_state">Departure State</TableHeader>
+                <TableHeader field="departure_type">Departure Type</TableHeader>
+                <TableHeader field="arrival_country">Arrival Country</TableHeader>
+                <TableHeader field="arrival_state">Arrival State</TableHeader>
+                <TableHeader field="arrival_type">Arrival Type</TableHeader>
+                <TableHeader field="arrival_date">Arrival Date</TableHeader>
+                <TableHeader field="product_description">Product Description</TableHeader>
+                <TableHeader field="price">Your Price</TableHeader>
+                <TableHeader field="transit_time">Transit Time</TableHeader>
+                <TableHeader field="user_name">Customer</TableHeader>
+                <TableHeader field="accepted_at">Accepted Date</TableHeader>
+                <th scope="col" className="px-4 py-3 font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {closedQuotes.map((quote) => (
-                <tr key={quote.srNo} className="bg-white border-b">
-                  <td className="px-4 py-4">{quote.srNo}</td>
-                  <td className="px-4 py-4">{quote.shippingMode}</td>
-                  <td className="px-4 py-4">{quote.departureCountry}</td>
-                  <td className="px-4 py-4">{quote.departureState}</td>
-                  <td className="px-4 py-4">{quote.departureType}</td>
-                  <td className="px-4 py-4">{quote.arrivalCountry}</td>
-                  <td className="px-4 py-4">{quote.arrivalState}</td>
-                  <td className="px-4 py-4">{quote.arrivalType}</td>
-                  <td className="px-4 py-4 whitespace-pre-line">{quote.arrivalDate}</td>
-                  <td className="px-4 py-4">{quote.productDescription}</td>
-                  <td className="px-4 py-4 whitespace-pre-line">{quote.packageType}</td>
-                  <td className="px-4 py-4">{quote.incoterms}</td>
-                  <td className="px-4 py-4">{quote.quantity}</td>
-                  <td className="px-4 py-4">{quote.weight}</td>
-                  <td className="px-4 py-4">{quote.size}</td>
-                  <td className="px-4 py-4">{quote.additionalItems}</td>
-                  <td className="px-4 py-4">{quote.additionalNote}</td>
+              {paginatedQuotes.length === 0 ? (
+                <tr className="border-b">
+                  <td colSpan="15" className="text-center py-10 text-gray-500">
+                    {searchTerm ? 'No closed quotes found matching your search.' : 'No closed quotes available.'}
+                  </td>
                 </tr>
-              ))}
+              ) : (
+                paginatedQuotes.map((quote) => (
+                  <tr key={quote.id} className="bg-white border-b hover:bg-gray-50">
+                    <td className="px-4 py-4 font-medium">#{quote.id}</td>
+                    <td className="px-4 py-4">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {quote.shipping_mode}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-4 flex-shrink-0">
+                          <Flag code={getCountryCode(quote.departure_country)} className="w-full h-full object-cover rounded" />
+                        </div>
+                        {quote.departure_country}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">{quote.departure_state || '-'}</td>
+                    <td className="px-4 py-4">{quote.departure_type || '-'}</td>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-4 flex-shrink-0">
+                          <Flag code={getCountryCode(quote.arrival_country)} className="w-full h-full object-cover rounded" />
+                        </div>
+                        {quote.arrival_country}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">{quote.arrival_state || '-'}</td>
+                    <td className="px-4 py-4">{quote.arrival_type || '-'}</td>
+                    <td className="px-4 py-4">{new Date(quote.arrival_date).toLocaleDateString()}</td>
+                    <td className="px-4 py-4 max-w-xs truncate" title={quote.product_description}>
+                      {quote.product_description}
+                    </td>
+                    <td className="px-4 py-4 font-semibold text-[#CDA435]">${quote.price}</td>
+                    <td className="px-4 py-4">{quote.transit_time || '-'}</td>
+                    <td className="px-4 py-4">{quote.user_name || 'Guest User'}</td>
+                    <td className="px-4 py-4">{quote.accepted_at ? new Date(quote.accepted_at).toLocaleDateString() : '-'}</td>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => handleViewDetails(quote)}
+                          className="p-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                          title="View Details"
+                          disabled={isLoadingDetails}
+                        >
+                          <FaEye className="w-4 h-4" />
+                        </button>
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          Closed
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -114,21 +252,49 @@ const ClosedCompanyQuote = () => {
         {/* Table Footer: Entry count & Pagination */}
         <div className="flex flex-col sm:flex-row justify-between items-center mt-4 text-sm text-gray-600 gap-4">
           <div>
-            Showing 1 to 1 of 1 entries
+            Showing {startIndex + 1} to {Math.min(startIndex + entriesPerPage, sortedQuotes.length)} of {sortedQuotes.length} entries
+            {searchTerm && ` (filtered from ${closedQuotes.length} total entries)`}
           </div>
           <div className="flex items-center">
-            <button className="px-3 py-1 border border-[#d4b46a] text-gray-400 rounded-l-md" disabled>
+            <button 
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1 border border-[#CDA435] text-gray-400 rounded-l-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+            >
               Previous
             </button>
-            <button className="px-4 py-1 border-t border-b border-[#d4b46a] text-white bg-[#d4b46a]">
-              1
-            </button>
-            <button className="px-3 py-1 border border-[#d4b46a] text-[#d4b46a] rounded-r-md hover:bg-gray-100">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-3 py-1 border-t border-b border-r border-[#CDA435] ${
+                  currentPage === page 
+                    ? 'text-white bg-[#CDA435]' 
+                    : 'text-[#CDA435] hover:bg-gray-100'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+            <button 
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages || totalPages === 0}
+              className="px-3 py-1 border-t border-b border-r border-[#CDA435] text-[#CDA435] rounded-r-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+            >
               Next
             </button>
           </div>
         </div>
       </div>
+
+      {/* Futuristic Quote Details Modal */}
+      <FuturisticQuoteModal
+        quote={viewingQuote}
+        isOpen={!!viewingQuote}
+        onClose={() => setViewingQuote(null)}
+        onUpdateStatus={handleUpdateQuoteStatus}
+        isLoading={isLoadingDetails}
+      />
     </div>
   );
 };

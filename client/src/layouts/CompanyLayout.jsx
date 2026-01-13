@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 
 // Import all the necessary sidebar components
@@ -26,20 +26,20 @@ const CompanyLayout = () => {
       <MobileCompanySidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* --- Main Content Wrapper --- */}
-      {/* This div now dynamically adjusts its left margin based on the sidebar state */}
+      {/* Updated margin to match new sidebar width: md:ml-80 instead of md:ml-64 */}
       <div 
         className={`flex-grow flex flex-col transition-all duration-300 ease-in-out ${
-          isSidebarOpen ? 'md:ml-64' : 'md:ml-0'
+          isSidebarOpen ? 'md:ml-80' : 'md:ml-0'
         }`}
       >
         {/* The header receives the toggle function to trigger it from the menu button */}
         <CompanyHeader onMenuClick={toggleSidebar} />
         
-        <main className="flex-grow p-4 sm:p-6 md:p-8 overflow-auto">
+        <main className="flex-grow p-4 sm:p-6 md:p-4 overflow-auto">
           
           {/* --- MODIFICATION START --- */}
           {/* This wrapper div constrains the width of the page content and centers it */}
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-7xl mx-auto">
             {/* Outlet renders the current route's component inside the constrained container */}
             <Outlet /> 
           </div>

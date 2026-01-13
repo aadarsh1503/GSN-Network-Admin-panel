@@ -146,10 +146,14 @@ export const getAllDisputes = async (req, res) => {
                 d.resolved_at,
                 d.created_at,
                 d.updated_at,
+                d.user_id,
+                d.company_id,
                 u.name as user_name,
                 u.email as user_email,
+                u.role as user_role,
                 c.name as company_name,
                 c.email as company_email,
+                c.role as company_role,
                 dr.title as reason_title,
                 q.id as quote_id,
                 t.id as transaction_id,
@@ -320,6 +324,10 @@ export const deleteDispute = async (req, res) => {
 // @access  Private
 export const createDispute = async (req, res) => {
     try {
+        console.log('🔍 CREATE DISPUTE - Request received');
+        console.log('👤 User:', req.user);
+        console.log('📋 Request body:', req.body);
+        
         const { 
             company_id, 
             quote_id, 
@@ -332,12 +340,23 @@ export const createDispute = async (req, res) => {
         } = req.body;
         const user_id = req.user.id;
 
+        console.log('📊 Parsed data:', {
+            user_id,
+            company_id,
+            dispute_reason_id,
+            title,
+            description,
+            priority
+        });
+
         if (!company_id || !dispute_reason_id || !title || !description) {
+            console.log('❌ Missing required fields');
             return res.status(400).json({ 
                 message: 'Company, dispute reason, title, and description are required' 
             });
         }
 
+        console.log('💾 Inserting dispute into database...');
         const sql = `
             INSERT INTO disputes (
                 user_id, company_id, quote_id, transaction_id, 
@@ -350,24 +369,136 @@ export const createDispute = async (req, res) => {
         ]);
 
         const disputeId = result.insertId;
+        console.log('✅ Dispute created with ID:', disputeId);
 
         // Add images if provided
         if (images && images.length > 0) {
+            console.log('📸 Adding images to dispute...');
             const imageSql = `
                 INSERT INTO dispute_images (dispute_id, image_url, image_type, uploaded_by)
                 VALUES (?, ?, ?, 'user')
             `;
             for (const image of images) {
                 await db.execute(imageSql, [disputeId, image.url, image.type || 'evidence']);
+                console.log('✅ Image added:', image.url);
             }
         }
 
+        console.log('✅ Dispute creation completed successfully');
+        
+        // Send asynchronous email notifications after successful dispute creation
+        try {
+            console.log('📧 Sending dispute creation email notifications...');
+            
+            // Get complete dispute information for emails
+            const [disputeDetails] = await db.execute(`
+                SELECT 
+                    d.*,
+                    creator.name as creator_name,
+                    creator.email as creator_email,
+                    creator.role as creator_role,
+                    target.name as target_name,
+                    target.email as target_email,
+                    target.role as target_role,
+                    dr.title as reason_title,
+                    dr.description as reason_description
+                FROM disputes d
+                JOIN users creator ON d.user_id = creator.id
+                JOIN users target ON d.company_id = target.id
+                JOIN dispute_reasons dr ON d.dispute_reason_id = dr.id
+                WHERE d.id = ?
+            `, [disputeId]);
+            
+            if (disputeDetails.length > 0) {
+                const dispute = disputeDetails[0];
+                
+                // Format date for email
+                const formatDate = (dateString) => {
+                    return new Date(dateString).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                };
+                
+                // Prepare email data
+                const emailData = {
+                    disputeId: disputeId,
+                    title: dispute.title,
+                    description: dispute.description,
+                    priority: dispute.priority,
+                    status: dispute.status,
+                    createdAt: formatDate(dispute.created_at),
+                    creatorName: dispute.creator_name,
+                    creatorEmail: dispute.creator_email,
+                    creatorRole: dispute.creator_role,
+                    targetName: dispute.target_name,
+                    targetEmail: dispute.target_email,
+                    targetRole: dispute.target_role,
+                    reasonTitle: dispute.reason_title,
+                    reasonDescription: dispute.reason_description,
+                    quoteId: dispute.quote_id,
+                    transactionId: dispute.transaction_id,
+                    attachments: images || []
+                };
+                
+                // Import email queue functions
+                const { queueSubscriptionEmails } = await import('../services/emailQueue.js');
+                
+                // 1. Send email to admin (always)
+                const [adminUsers] = await db.execute(`
+                    SELECT email FROM users WHERE role = 'admin' AND email IS NOT NULL
+                `);
+                
+                console.log(`📧 Sending dispute notifications to ${adminUsers.length} admin(s)`);
+                
+                for (const admin of adminUsers) {
+                    queueSubscriptionEmails.disputeCreationToAdmin({
+                        ...emailData,
+                        recipientEmail: admin.email
+                    }).then(jobId => {
+                        console.log(`✅ Dispute admin email queued for ${admin.email} (Job ID: ${jobId})`);
+                    }).catch(error => {
+                        console.error(`❌ Failed to queue dispute admin email for ${admin.email}:`, error);
+                    });
+                }
+                
+                // 2. Send confirmation email to dispute creator
+                queueSubscriptionEmails.disputeCreationToCreator({
+                    ...emailData,
+                    recipientEmail: dispute.creator_email
+                }).then(jobId => {
+                    console.log(`✅ Dispute creator email queued for ${dispute.creator_email} (Job ID: ${jobId})`);
+                }).catch(error => {
+                    console.error(`❌ Failed to queue dispute creator email:`, error);
+                });
+                
+                // 3. Send notification email to dispute target
+                queueSubscriptionEmails.disputeCreationToTarget({
+                    ...emailData,
+                    recipientEmail: dispute.target_email
+                }).then(jobId => {
+                    console.log(`✅ Dispute target email queued for ${dispute.target_email} (Job ID: ${jobId})`);
+                }).catch(error => {
+                    console.error(`❌ Failed to queue dispute target email:`, error);
+                });
+                
+                console.log('✅ All dispute email notifications queued successfully');
+            }
+            
+        } catch (emailError) {
+            console.error('❌ Error sending dispute creation emails:', emailError);
+            // Don't fail the dispute creation if emails fail
+        }
+        
         res.status(201).json({
             message: 'Dispute created successfully',
             disputeId: disputeId
         });
     } catch (error) {
-        console.error('Error creating dispute:', error);
+        console.error('❌ Error creating dispute:', error);
         res.status(500).json({ message: 'Server error creating dispute' });
     }
 };
@@ -536,18 +667,11 @@ export const companyRespondToDispute = async (req, res) => {
 // @access  Private (Company users only)
 export const companyStatusChangeRequest = async (req, res) => {
     try {
-        console.log('🔄 Company status change request received:', {
-            disputeId: req.params.id,
-            body: req.body,
-            companyId: req.user?.id
-        });
-        
         const { id } = req.params;
         const { status, reason } = req.body;
         const companyId = req.user.id;
 
         if (!status || !reason || !reason.trim()) {
-            console.log('❌ Validation failed: Missing status or reason');
             return res.status(400).json({ message: 'Status and reason are required' });
         }
 
@@ -562,17 +686,10 @@ export const companyStatusChangeRequest = async (req, res) => {
         const [disputes] = await db.execute(checkSql, [id, companyId]);
 
         if (disputes.length === 0) {
-            console.log('❌ Authorization failed: Dispute not found or not authorized');
             return res.status(404).json({ message: 'Dispute not found or not authorized' });
         }
 
         const dispute = disputes[0];
-        console.log('✅ Dispute found:', {
-            id: dispute.id,
-            currentStatus: dispute.status,
-            requestedStatus: status,
-            companyName: dispute.company_name
-        });
 
         // Validate workflow transitions
         const currentStatus = dispute.status;
@@ -602,22 +719,13 @@ export const companyStatusChangeRequest = async (req, res) => {
                 break;
         }
 
-        console.log('🔍 Workflow validation:', {
-            currentStatus,
-            requestedStatus: status,
-            canTransition,
-            autoApply
-        });
-
         if (!canTransition) {
-            console.log('❌ Workflow validation failed');
             return res.status(400).json({ 
                 message: `Cannot change status from ${currentStatus} to ${status}. Invalid workflow transition.` 
             });
         }
 
         // Update dispute with company's status change request
-        console.log('📝 Updating company request...');
         const updateSql = `
             UPDATE disputes 
             SET company_requested_status = ?, company_status_reason = ?, 
@@ -625,11 +733,9 @@ export const companyStatusChangeRequest = async (req, res) => {
             WHERE id = ?
         `;
         const [updateResult1] = await db.execute(updateSql, [status, reason, id]);
-        console.log(`Company request update: ${updateResult1.affectedRows} rows affected`);
 
         // Auto-apply the status change for company-controlled transitions
         if (autoApply) {
-            console.log('🔄 Auto-applying status change...');
             let adminResponse = `Status changed to ${status} by company. Reason: ${reason}`;
             let resolvedAt = null;
             let resolvedBy = null;
@@ -655,7 +761,6 @@ export const companyStatusChangeRequest = async (req, res) => {
                 [status, adminResponse, id];
 
             const [updateResult2] = await db.execute(statusUpdateSql, params);
-            console.log(`Status update: ${updateResult2.affectedRows} rows affected`);
 
             // Send notification to user about status change
             try {
@@ -665,20 +770,18 @@ export const companyStatusChangeRequest = async (req, res) => {
                     status, 
                     dispute.company_name
                 );
-                console.log('✅ Notification sent to user');
             } catch (notifError) {
-                console.log('⚠️ Notification failed:', notifError.message);
+                // Silently handle notification errors
             }
         }
 
-        console.log('✅ Status change completed successfully');
         res.status(200).json({ 
             message: autoApply ? 
                 'Dispute status updated successfully' : 
                 'Status change request submitted for admin review'
         });
     } catch (error) {
-        console.error('❌ Error submitting status change request:', error);
+        console.error('Error submitting status change request:', error);
         res.status(500).json({ message: 'Server error submitting status change request' });
     }
 };
@@ -780,6 +883,199 @@ export const getUserCompanies = async (req, res) => {
     }
 };
 
+// ==================== DISPUTE MESSAGING ====================
+
+// @desc    Get messages for a specific dispute
+// @route   GET /api/disputes/:id/messages
+// @access  Private
+export const getDisputeMessages = async (req, res) => {
+    try {
+        const disputeId = req.params.id;
+        const userId = req.user.id;
+        const userRole = req.user.role;
+
+        // First verify user has access to this dispute
+        let accessCheckSql;
+        let accessParams;
+
+        if (userRole === 'admin') {
+            // Admin can access all disputes
+            accessCheckSql = 'SELECT id FROM disputes WHERE id = ?';
+            accessParams = [disputeId];
+        } else if (userRole === 'company') {
+            // Company can access disputes they're involved in
+            accessCheckSql = 'SELECT id FROM disputes WHERE id = ? AND company_id = ?';
+            accessParams = [disputeId, userId];
+        } else {
+            // User can access disputes they filed
+            accessCheckSql = 'SELECT id FROM disputes WHERE id = ? AND user_id = ?';
+            accessParams = [disputeId, userId];
+        }
+
+        const [accessCheck] = await db.execute(accessCheckSql, accessParams);
+        if (accessCheck.length === 0) {
+            return res.status(403).json({ message: 'Access denied to this dispute' });
+        }
+
+        // Get messages for this dispute
+        const sql = `
+            SELECT 
+                dm.*,
+                sender.name as sender_name,
+                sender.role as sender_role,
+                sender.logo as sender_logo
+            FROM dispute_messages dm
+            JOIN users sender ON dm.sender_id = sender.id
+            WHERE dm.dispute_id = ?
+            ORDER BY dm.created_at ASC
+        `;
+
+        const [messages] = await db.execute(sql, [disputeId]);
+        res.status(200).json(messages);
+
+    } catch (error) {
+        console.error('Error fetching dispute messages:', error);
+        res.status(500).json({ message: 'Server error fetching messages' });
+    }
+};
+
+// @desc    Send message in dispute context
+// @route   POST /api/disputes/:id/messages
+// @access  Private
+export const sendDisputeMessage = async (req, res) => {
+    try {
+        const disputeId = req.params.id;
+        const senderId = req.user.id;
+        const senderRole = req.user.role;
+        const { message, recipientId } = req.body;
+
+        if (!message || !message.trim()) {
+            return res.status(400).json({ message: 'Message content is required' });
+        }
+
+        // First verify user has access to this dispute
+        let accessCheckSql;
+        let accessParams;
+
+        if (senderRole === 'admin') {
+            // Admin can access all disputes
+            accessCheckSql = 'SELECT * FROM disputes WHERE id = ?';
+            accessParams = [disputeId];
+        } else if (senderRole === 'company') {
+            // Company can access disputes they're involved in
+            accessCheckSql = 'SELECT * FROM disputes WHERE id = ? AND company_id = ?';
+            accessParams = [disputeId, senderId];
+        } else {
+            // User can access disputes they filed
+            accessCheckSql = 'SELECT * FROM disputes WHERE id = ? AND user_id = ?';
+            accessParams = [disputeId, senderId];
+        }
+
+        const [accessCheck] = await db.execute(accessCheckSql, accessParams);
+        if (accessCheck.length === 0) {
+            return res.status(403).json({ message: 'Access denied to this dispute' });
+        }
+
+        const dispute = accessCheck[0];
+
+        // Create the dispute message table if it doesn't exist
+        await db.execute(`
+            CREATE TABLE IF NOT EXISTS dispute_messages (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                dispute_id INT NOT NULL,
+                sender_id INT NOT NULL,
+                message TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (dispute_id) REFERENCES disputes(id) ON DELETE CASCADE,
+                FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        `);
+
+        // Insert the message
+        const insertSql = `
+            INSERT INTO dispute_messages (dispute_id, sender_id, message, created_at)
+            VALUES (?, ?, ?, NOW())
+        `;
+
+        const [result] = await db.execute(insertSql, [disputeId, senderId, message]);
+
+        // Also create a regular message for notification purposes
+        let regularRecipientId;
+        if (senderRole === 'admin') {
+            // Admin sending to both user and company
+            regularRecipientId = recipientId || (senderRole === 'user' ? dispute.company_id : dispute.user_id);
+        } else if (senderRole === 'company') {
+            // Company sending to user (and admin gets notified)
+            regularRecipientId = dispute.user_id;
+        } else {
+            // User sending to company (and admin gets notified)
+            regularRecipientId = dispute.company_id;
+        }
+
+        if (regularRecipientId) {
+            await db.execute(`
+                INSERT INTO messages (sender_id, receiver_id, subject, message, created_at)
+                VALUES (?, ?, ?, ?, NOW())
+            `, [
+                senderId,
+                regularRecipientId,
+                `Dispute #${disputeId} Message`,
+                message
+            ]);
+        }
+
+        res.status(201).json({
+            message: 'Message sent successfully',
+            messageId: result.insertId
+        });
+
+    } catch (error) {
+        console.error('Error sending dispute message:', error);
+        res.status(500).json({ message: 'Server error sending message' });
+    }
+};
+
+// @desc    Add attachment to dispute
+// @route   POST /api/disputes/attachments
+// @access  Private
+export const addDisputeAttachment = async (req, res) => {
+    try {
+        const { dispute_id, image_url, image_type } = req.body;
+        const user_id = req.user.id;
+
+        if (!dispute_id || !image_url) {
+            return res.status(400).json({ message: 'Dispute ID and image URL are required' });
+        }
+
+        // Verify the dispute belongs to the user
+        const [disputeCheck] = await db.execute(
+            'SELECT id FROM disputes WHERE id = ? AND user_id = ?',
+            [dispute_id, user_id]
+        );
+
+        if (disputeCheck.length === 0) {
+            return res.status(404).json({ message: 'Dispute not found or not authorized' });
+        }
+
+        // Insert attachment
+        const sql = `
+            INSERT INTO dispute_images (dispute_id, image_url, image_type, uploaded_by, created_at)
+            VALUES (?, ?, ?, 'user', NOW())
+        `;
+        
+        const [result] = await db.execute(sql, [dispute_id, image_url, image_type || 'evidence']);
+
+        res.status(201).json({
+            message: 'Attachment added successfully',
+            attachmentId: result.insertId
+        });
+
+    } catch (error) {
+        console.error('Error adding dispute attachment:', error);
+        res.status(500).json({ message: 'Server error adding attachment' });
+    }
+};
+
 export default {
     getAllDisputeReasons,
     getAdminDisputeReasons,
@@ -796,5 +1092,8 @@ export default {
     companyRespondToDispute,
     companyStatusChangeRequest,
     userCloseDispute,
-    getUserCompanies
+    getUserCompanies,
+    getDisputeMessages,
+    sendDisputeMessage,
+    addDisputeAttachment
 };

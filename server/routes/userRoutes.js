@@ -12,23 +12,41 @@ import {
     updateUserProfileById,
     getCompanyProfileByIdAdmin,
     updateCompanyProfileByIdAdmin,
+    getCompanyProfile,
     getCompanies,
     toggleCompanyStatus,
     getBusinessUsers,
     getRegularUsers,
     changePassword,
     getAllUsers,
-    updateUserProfile
+    updateUserProfile,
+    getAllUsersForMessaging,
+    submitUserTicket,
+    getUserTickets,
+    getUserCompanies,
+    getUserTransactionInvoices,
+    getUserTransactionInvoiceById,
+    forgotPassword,
+    resetPassword,
+    verifyResetTokenEndpoint
 } from '../controllers/userController.js';
 
 // Public Routes
 router.post('/login', loginUser);
 router.post('/register', registerUser);
 
+// Password Reset Routes (Public)
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
+router.get('/verify-reset-token/:token', verifyResetTokenEndpoint);
+
 // Protected Routes
 router.get('/me', protect, getUserProfile);
 router.put('/update-profile', protect, updateUserProfile);
 router.get('/admin-data', protect, authorize('admin'), getAdminData);
+
+// Company profile route (for companies to get their own profile)
+router.get('/company-profile', protect, authorize('company'), getCompanyProfile);
 
 // --- NEW ROUTES FOR USER MANAGEMENT ---
 // Only 'admin' can see list of companies and ban them
@@ -45,6 +63,9 @@ router.put('/change-password', protect, changePassword);
 // Get all users (admin)
 router.get('/all', protect, authorize('admin'), getAllUsers);
 
+// Get all users for messaging (admin)
+router.get('/all-users-for-messaging', protect, authorize('admin'), getAllUsersForMessaging);
+
 // Admin routes for user management
 router.get('/profile/:id', protect, authorize('admin'), getUserProfileById);
 router.put('/update-profile/:id', protect, authorize('admin'), updateUserProfileById);
@@ -52,5 +73,14 @@ router.put('/update-profile/:id', protect, authorize('admin'), updateUserProfile
 // Admin routes for company management (comprehensive)
 router.get('/company-profile/:id', protect, authorize('admin'), getCompanyProfileByIdAdmin);
 router.put('/company-profile/:id', protect, authorize('admin'), updateCompanyProfileByIdAdmin);
+
+// Help & Support routes for users
+router.post('/help/ticket', protect, submitUserTicket);
+router.get('/help/tickets', protect, getUserTickets);
+router.get('/my-companies', protect, getUserCompanies);
+
+// Transaction Invoices routes for users
+router.get('/transaction-invoices', protect, authorize('user'), getUserTransactionInvoices);
+router.get('/transaction-invoices/:id', protect, authorize('user'), getUserTransactionInvoiceById);
 
 export default router;

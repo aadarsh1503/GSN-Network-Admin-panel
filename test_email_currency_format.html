@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Email Currency Format</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 3px; cursor: pointer; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-success { background-color: #28a745; color: white; }
+        input, select { padding: 8px; margin: 5px; border: 1px solid #ddd; border-radius: 3px; }
+        .form-group { margin: 10px 0; }
+        label { display: inline-block; width: 150px; font-weight: bold; }
+        .checklist { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        .checklist ul { margin: 0; padding-left: 20px; }
+        .checklist li { margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Test Email Currency Format</h1>
+        <p>This test verifies that quote response emails show prices with dollar signs ($).</p>
+
+        <!-- Login Section -->
+        <div class="test-section">
+            <h3>🔐 Step 1: Company Login</h3>
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" id="loginEmail" value="aadarshchauhan35@gmail.com" />
+            </div>
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" id="loginPassword" value="123456" />
+            </div>
+            <button class="btn-primary" onclick="login()">Login</button>
+            <div id="loginResult"></div>
+        </div>
+
+        <!-- Submit Quote Response -->
+        <div class="test-section">
+            <h3>📋 Step 2: Submit Quote Response with Price</h3>
+            <div class="form-group">
+                <label>Quote ID:</label>
+                <input type="number" id="quoteId" value="84" />
+            </div>
+            <div class="form-group">
+                <label>Price (without $):</label>
+                <input type="text" id="price" value="851.99" />
+            </div>
+            <div class="form-group">
+                <label>Transit Time:</label>
+                <input type="text" id="transitTime" value="2026-01-16" />
+            </div>
+            <div class="form-group">
+                <label>Notes:</label>
+                <input type="text" id="notes" value="Enhanced quote response with bank details" />
+            </div>
+            <button class="btn-success" onclick="submitQuoteResponse()">Submit Quote Response</button>
+            <div id="quoteResponseResult"></div>
+        </div>
+
+        <!-- Email Verification -->
+        <div class="test-section">
+            <h3>📧 Step 3: Verify Email Content</h3>
+            <div class="checklist">
+                <h4>✅ Check your email for the quote response notification:</h4>
+                <ul>
+                    <li>✅ Subject: "Quote Response Received - GSN Network #84"</li>
+                    <li>✅ <strong>Price should show: $851.99</strong> (with dollar sign)</li>
+                    <li>❌ <strong>NOT: 851.99</strong> (without dollar sign)</li>
+                    <li>✅ All bank details should be included</li>
+                    <li>✅ Professional GSN Network formatting</li>
+                </ul>
+            </div>
+            
+            <div class="info">
+                <h4>🔍 What to Look For:</h4>
+                <p><strong>Before Fix:</strong> Price: 851.99</p>
+                <p><strong>After Fix:</strong> Price: $851.99</p>
+                <p>The dollar sign ($) should now appear before all price amounts in the email.</p>
+            </div>
+        </div>
+
+        <!-- Expected Email Format -->
+        <div class="test-section info">
+            <h3>📝 Expected Email Format</h3>
+            <p>The email should contain a section like this:</p>
+            <pre>
+Quote Details
+Price: $851.99  ← Dollar sign should be here
+Valid Until: 2026-01-16
+Transit Time: 2026-01-16
+Notes: Enhanced quote response with bank details
+
+Payment Information
+Bank Name: [Bank Name]
+Account Holder Name: [Account Holder]
+Account Number: [Account Number]
+IBAN Number: [IBAN]  ← Should be included
+SWIFT Code: [SWIFT Code]
+Payment Instructions: [Instructions]  ← Should be included
+            </pre>
+        </div>
+
+        <!-- Test Results -->
+        <div class="test-section">
+            <h3>📊 Test Results</h3>
+            <div id="testResults">
+                <p>Submit a quote response above and check your email to verify the currency format.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let authToken = '';
+
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.token;
+                    document.getElementById('loginResult').innerHTML = 
+                        `<div class="success">✅ Login successful! Company: ${data.user.name}</div>`;
+                } else {
+                    document.getElementById('loginResult').innerHTML = 
+                        `<div class="error">❌ Login failed: ${data.message}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('loginResult').innerHTML = 
+                    `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function submitQuoteResponse() {
+            if (!authToken) {
+                document.getElementById('quoteResponseResult').innerHTML = 
+                    '<div class="error">❌ Please login first</div>';
+                return;
+            }
+
+            const responseData = {
+                quoteId: parseInt(document.getElementById('quoteId').value),
+                price: document.getElementById('price').value,
+                transitTime: document.getElementById('transitTime').value,
+                notes: document.getElementById('notes').value,
+                bankDetailsId: 1 // Assuming bank details exist
+            };
+
+            try {
+                const response = await fetch('http://localhost:5000/api/quote-responses/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(responseData)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('quoteResponseResult').innerHTML = 
+                        `<div class="success">✅ Quote response submitted successfully!<br>
+                        Response ID: ${data.quoteResponse?.id || 'N/A'}<br><br>
+                        📧 <strong>Check your email now!</strong><br>
+                        The email should show: <strong>Price: $${responseData.price}</strong> (with dollar sign)</div>`;
+                    
+                    document.getElementById('testResults').innerHTML = 
+                        `<div class="info">
+                        <h4>🧪 Test Submitted</h4>
+                        <p><strong>Expected in Email:</strong> Price: $${responseData.price}</p>
+                        <p><strong>If you see:</strong> Price: ${responseData.price} (without $) - The fix didn't work</p>
+                        <p><strong>If you see:</strong> Price: $${responseData.price} (with $) - The fix worked! ✅</p>
+                        </div>`;
+                } else {
+                    document.getElementById('quoteResponseResult').innerHTML = 
+                        `<div class="error">❌ Failed to submit quote response: ${data.message}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('quoteResponseResult').innerHTML = 
+                    `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

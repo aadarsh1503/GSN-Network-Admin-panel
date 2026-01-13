@@ -31,21 +31,23 @@ const getCompanyInvoices = async (req, res) => {
         const sql = `
             SELECT 
                 i.*,
-                us.start_date,
-                us.end_date,
+                -- Use backup dates for cancelled invoices, otherwise use current subscription dates
+                COALESCE(i.subscription_start_date_backup, us.start_date) as start_date,
+                COALESCE(i.subscription_end_date_backup, us.end_date) as end_date,
                 us.payment_status,
                 us.payment_method,
-                mp.name as plan_name,
-                mp.description as plan_description,
+                -- Use backup plan info for cancelled invoices, otherwise use current plan info
+                COALESCE(i.plan_name_backup, mp.name) as plan_name,
+                COALESCE(i.plan_description_backup, mp.description) as plan_description,
                 u.name as company_name,
                 u.email as company_email,
                 u.phone as company_phone,
                 u.company_address
             FROM invoices i
-            JOIN user_subscriptions us ON i.subscription_id = us.id
-            JOIN membership_plans mp ON us.plan_id = mp.id
-            JOIN users u ON us.user_id = u.id
-            WHERE us.user_id = ?
+            LEFT JOIN user_subscriptions us ON i.subscription_id = us.id
+            LEFT JOIN membership_plans mp ON us.plan_id = mp.id
+            LEFT JOIN users u ON i.user_id = u.id
+            WHERE i.user_id = ?
             ORDER BY i.created_at DESC
         `;
 
@@ -54,6 +56,8 @@ const getCompanyInvoices = async (req, res) => {
         // Add QR code data to each invoice
         const invoicesWithQR = rows.map(invoice => ({
             ...invoice,
+            plan_name: invoice.plan_name || 'Unknown Plan',
+            plan_description: invoice.plan_description || 'No description available',
             qr_data: generateQRData(invoice)
         }));
 
@@ -76,13 +80,15 @@ const getInvoiceDetails = async (req, res) => {
         const sql = `
             SELECT 
                 i.*,
-                us.start_date,
-                us.end_date,
+                -- Use backup dates for cancelled invoices, otherwise use current subscription dates
+                COALESCE(i.subscription_start_date_backup, us.start_date) as start_date,
+                COALESCE(i.subscription_end_date_backup, us.end_date) as end_date,
                 us.payment_status,
                 us.payment_method,
                 us.transaction_id,
-                mp.name as plan_name,
-                mp.description as plan_description,
+                -- Use backup plan info for cancelled invoices, otherwise use current plan info
+                COALESCE(i.plan_name_backup, mp.name) as plan_name,
+                COALESCE(i.plan_description_backup, mp.description) as plan_description,
                 mp.features,
                 u.name as company_name,
                 u.email as company_email,
@@ -92,10 +98,10 @@ const getInvoiceDetails = async (req, res) => {
                 u.state,
                 u.country
             FROM invoices i
-            JOIN user_subscriptions us ON i.subscription_id = us.id
-            JOIN membership_plans mp ON us.plan_id = mp.id
-            JOIN users u ON us.user_id = u.id
-            WHERE i.id = ? AND us.user_id = ?
+            LEFT JOIN user_subscriptions us ON i.subscription_id = us.id
+            LEFT JOIN membership_plans mp ON us.plan_id = mp.id
+            LEFT JOIN users u ON i.user_id = u.id
+            WHERE i.id = ? AND i.user_id = ?
         `;
 
         const [rows] = await db.execute(sql, [id, companyId]);
@@ -105,6 +111,11 @@ const getInvoiceDetails = async (req, res) => {
         }
 
         const invoice = rows[0];
+        
+        // Ensure we have plan information
+        invoice.plan_name = invoice.plan_name || 'Unknown Plan';
+        invoice.plan_description = invoice.plan_description || 'No description available';
+        
         invoice.qr_data = generateQRData(invoice);
         invoice.features = invoice.features ? JSON.parse(invoice.features) : [];
 
@@ -119,26 +130,71 @@ const getInvoiceDetails = async (req, res) => {
 // @desc    Create invoice for subscription
 // @route   POST /api/company/invoices
 // @access  Private (Internal use - called when subscription is created)
-const createInvoice = async (subscriptionId, amount, taxAmount = 0) => {
+const createInvoice = async (subscriptionId, amount, taxAmount = 0, userId = null) => {
     try {
         const invoiceNumber = generateInvoiceNumber();
         const dueDate = new Date();
         dueDate.setDate(dueDate.getDate() + 30); // 30 days from now
 
+        // If userId is not provided, get it from the subscription
+        if (!userId) {
+            const [subscription] = await db.execute(
+                'SELECT user_id FROM user_subscriptions WHERE id = ?',
+                [subscriptionId]
+            );
+            if (subscription.length > 0) {
+                userId = subscription[0].user_id;
+            }
+        }
+
+        // Get plan information and subscription period to store as backup
+        let planName = 'Unknown Plan';
+        let planDescription = 'No description available';
+        let startDate = null;
+        let endDate = null;
+        
+        try {
+            const [subscriptionInfo] = await db.execute(`
+                SELECT 
+                    mp.name, 
+                    mp.description,
+                    us.start_date,
+                    us.end_date
+                FROM user_subscriptions us
+                JOIN membership_plans mp ON us.plan_id = mp.id
+                WHERE us.id = ?
+            `, [subscriptionId]);
+            
+            if (subscriptionInfo.length > 0) {
+                planName = subscriptionInfo[0].name;
+                planDescription = subscriptionInfo[0].description || 'No description available';
+                startDate = subscriptionInfo[0].start_date;
+                endDate = subscriptionInfo[0].end_date;
+            }
+        } catch (infoError) {
+            console.warn('Could not fetch subscription info for invoice backup:', infoError.message);
+        }
+
         const sql = `
             INSERT INTO invoices 
-            (subscription_id, invoice_number, amount, tax_amount, total_amount, due_date, status)
-            VALUES (?, ?, ?, ?, ?, ?, 'paid')
+            (subscription_id, user_id, invoice_number, amount, tax_amount, total_amount, due_date, status, 
+             plan_name_backup, plan_description_backup, subscription_start_date_backup, subscription_end_date_backup)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'paid', ?, ?, ?, ?)
         `;
 
         const totalAmount = parseFloat(amount) + parseFloat(taxAmount);
         const [result] = await db.execute(sql, [
             subscriptionId,
+            userId,
             invoiceNumber,
             amount,
             taxAmount,
             totalAmount,
-            dueDate.toISOString().split('T')[0]
+            dueDate.toISOString().split('T')[0],
+            planName,
+            planDescription,
+            startDate,
+            endDate
         ]);
 
         return {

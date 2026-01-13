@@ -4,6 +4,15 @@ import db from '../config/db.js';
 // Create a system message (from system to user)
 const createSystemMessage = async (receiverId, subject, message, quoteId = null) => {
     try {
+        // Check if receiver is admin - if so, create admin notification instead
+        const [receiverCheck] = await db.execute('SELECT role FROM users WHERE id = ?', [receiverId]);
+        
+        if (receiverCheck.length > 0 && receiverCheck[0].role === 'admin') {
+            // Don't send system messages to admin - they should get notifications instead
+            console.log(`Skipping system message to admin user ${receiverId}: ${subject}`);
+            return null;
+        }
+        
         // Use system user ID (1) or create a dedicated system user
         const systemUserId = 1; // You can create a dedicated system user in your database
         
@@ -96,9 +105,32 @@ You can view the full details of your quote in the My Quotes section.`;
     }
 };
 
+// Send quote response message to user (when business responds to quote)
+const sendQuoteResponseMessage = async (userId, companyName, quoteId, price, transitTime) => {
+    try {
+        const subject = `New Quote Response - Quote #${quoteId}`;
+        const message = `You have received a new quote response for Quote #${quoteId}!
+
+Company: ${companyName}
+Price: ${price}
+Transit Time: ${transitTime}
+
+Please review the quote details and decide whether to accept or reject this offer.
+
+You can view all quote responses in your My Quotes section.`;
+
+        await createSystemMessage(userId, subject, message, quoteId);
+        console.log(`Quote response message sent to user ${userId} for quote ${quoteId}`);
+    } catch (error) {
+        console.error('Error sending quote response message:', error);
+        throw error;
+    }
+};
+
 export {
     createSystemMessage,
     sendQuoteAcceptanceMessage,
     sendQuoteRejectionMessage,
-    sendStatusUpdateMessage
+    sendStatusUpdateMessage,
+    sendQuoteResponseMessage
 };

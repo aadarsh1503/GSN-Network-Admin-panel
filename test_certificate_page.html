@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Certificate Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .feature-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .feature-list li:before {
+            content: "✓ ";
+            color: #4caf50;
+            font-weight: bold;
+        }
+        .button {
+            background: #CDA435;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px 0;
+        }
+        .button:hover {
+            background: #b8932e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Certificate Page Test</h1>
+        
+        <div class="test-info">
+            <h3>🎉 Certificate Page Updated Successfully!</h3>
+            <p>The certificate page at <code>/company/profile-certificate</code> has been enhanced with Gulf Star Network (GSN) branding and the following features:</p>
+        </div>
+
+        <h3>✨ New Features Implemented:</h3>
+        <ul class="feature-list">
+            <li><strong>Dynamic Company Data:</strong> Fetches real company name from API</li>
+            <li><strong>Subscription Plan Display:</strong> Shows actual subscription plan (Guest, Premium, etc.)</li>
+            <li><strong>Referral Code as Member ID:</strong> Uses the same referral code format as dashboard (GSN + UserID)</li>
+            <li><strong>Gulf Star Network Branding:</strong> Uses proper "Gulf Star Network (GSN)" branding instead of Alliance/World</li>
+            <li><strong>GSN Logo Integration:</strong> Centered logo with proper Gulf Star Network branding</li>
+            <li><strong>Professional Design:</strong> Modern certificate layout with proper branding</li>
+            <li><strong>Enhanced PDF Download:</strong> Fixed html2canvas issues with modern CSS</li>
+            <li><strong>Loading States:</strong> Proper loading indicators while fetching data</li>
+            <li><strong>Error Handling:</strong> Fallback data if API calls fail</li>
+            <li><strong>Responsive Design:</strong> Works on all device sizes</li>
+            <li><strong>Verification Badge:</strong> Professional verification seal</li>
+        </ul>
+
+        <h3>🔧 Technical Fixes:</h3>
+        <ul class="feature-list">
+            <li><strong>HTML2Canvas Error Fixed:</strong> Added proper options to handle modern CSS functions like oklch</li>
+            <li><strong>Referral Code Logic:</strong> Uses same logic as dashboard: GSN + UserID + padded UserID</li>
+            <li><strong>Inline Styles:</strong> Added inline styles for PDF generation compatibility</li>
+            <li><strong>Error Handling:</strong> Added try-catch for PDF generation with user feedback</li>
+            <li><strong>CSS Compatibility:</strong> Replaced Tailwind classes with inline styles for PDF elements</li>
+        </ul>
+
+        <h3>🎯 How to Test:</h3>
+        <ol>
+            <li>Login as a company user</li>
+            <li>Navigate to <code>/company/profile-certificate</code></li>
+            <li>Verify that your company name appears correctly</li>
+            <li>Check that your subscription plan is displayed</li>
+            <li>Test the PDF download functionality</li>
+            <li>Verify the GSN logos are displayed properly</li>
+        </ol>
+
+        <a href="http://localhost:5173/company/profile-certificate" class="button" target="_blank">
+            🔗 Test Certificate Page
+        </a>
+
+        <h3>📋 Data Sources:</h3>
+        <ul class="feature-list">
+            <li><strong>Company Name:</strong> /api/company/profile</li>
+            <li><strong>Subscription Plan:</strong> /api/subscriptions/my-subscription</li>
+            <li><strong>Referral Code:</strong> Same logic as dashboard - GSN + UserID + padded UserID</li>
+            <li><strong>Logo:</strong> GSN.jpg from navbar component</li>
+        </ul>
+
+        <div class="test-info">
+            <h4>🚀 Issues Fixed & Updates</h4>
+            <p><strong>✅ HTML2Canvas Error:</strong> Fixed the "oklch" color function error by adding proper options and inline styles</p>
+            <p><strong>✅ Member ID Issue:</strong> Now shows the correct referral code (e.g., GSN12341234) instead of #0000</p>
+            <p><strong>✅ PDF Generation:</strong> Enhanced error handling and compatibility with modern CSS</p>
+            <p><strong>✅ Branding Update:</strong> Changed from "GSN Alliance/World" to proper "Gulf Star Network (GSN)" branding</p>
+        </div>
+    </div>
+</body>
+</html>

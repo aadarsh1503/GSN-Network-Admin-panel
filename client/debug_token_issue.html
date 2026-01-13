@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Token Issue</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border-left: 4px solid #007bff; background: #f8f9fa; }
+        .error { border-left-color: #dc3545; background: #f8d7da; }
+        .success { border-left-color: #28a745; background: #d4edda; }
+        .warning { border-left-color: #ffc107; background: #fff3cd; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug Token Issue</h1>
+    <div id="results"></div>
+    
+    <script>
+        function addResult(message, type = 'result') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = message;
+            results.appendChild(div);
+        }
+
+        function debugTokenIssue() {
+            addResult('<h3>📋 Checking LocalStorage...</h3>');
+            
+            // Check if token exists
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            if (!token) {
+                addResult('❌ <strong>No token found in localStorage</strong><br>You need to login first!', 'error');
+                addResult('💡 <strong>Solution:</strong> Go to the login page and login with your company credentials', 'warning');
+                return;
+            }
+            
+            addResult('✅ Token found in localStorage', 'success');
+            addResult(`Token (first 50 chars): ${token.substring(0, 50)}...`);
+            
+            // Check if user data exists
+            if (!user) {
+                addResult('⚠️ No user data found in localStorage', 'warning');
+            } else {
+                try {
+                    const userData = JSON.parse(user);
+                    addResult(`✅ User data found: ${userData.name} (${userData.email}) - Role: ${userData.role}`, 'success');
+                } catch (error) {
+                    addResult('❌ Invalid user data in localStorage', 'error');
+                }
+            }
+            
+            // Check if token is valid/expired
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const currentTime = Date.now() / 1000;
+                const isExpired = payload.exp < currentTime;
+                
+                addResult('<h3>🔓 Token Analysis:</h3>');
+                addResult(`User ID: ${payload.id}`);
+                addResult(`User Role: ${payload.role}`);
+                addResult(`Token expires: ${new Date(payload.exp * 1000).toLocaleString()}`);
+                addResult(`Current time: ${new Date().toLocaleString()}`);
+                
+                if (isExpired) {
+                    addResult('❌ <strong>TOKEN IS EXPIRED!</strong><br>You need to login again.', 'error');
+                    addResult('💡 <strong>Solution:</strong> Go to the login page and login again', 'warning');
+                    return;
+                } else {
+                    addResult('✅ Token is still valid', 'success');
+                }
+                
+            } catch (error) {
+                addResult(`❌ Error decoding token: ${error.message}`, 'error');
+                addResult('💡 <strong>Solution:</strong> Clear localStorage and login again', 'warning');
+                return;
+            }
+            
+            // Test API call
+            addResult('<h3>🔄 Testing API Call...</h3>');
+            
+            fetch('http://localhost:5000/api/quotes/available', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => {
+                addResult(`Response Status: ${response.status}`);
+                addResult(`Response OK: ${response.ok}`);
+                
+                if (response.ok) {
+                    addResult('✅ <strong>API call successful!</strong><br>The authentication is working properly.', 'success');
+                    return response.json();
+                } else {
+                    return response.text().then(text => {
+                        throw new Error(`HTTP ${response.status}: ${text}`);
+                    });
+                }
+            })
+            .then(data => {
+                if (data && typeof data === 'object') {
+                    addResult(`✅ Received ${data.quotes?.length || 0} quotes from API`, 'success');
+                }
+            })
+            .catch(error => {
+                addResult(`❌ <strong>API call failed:</strong> ${error.message}`, 'error');
+                
+                if (error.message.includes('401')) {
+                    addResult('💡 <strong>This is a 401 Unauthorized error.</strong><br>Possible causes:<br>1. Token is invalid<br>2. Server is not running<br>3. Token format is incorrect', 'warning');
+                } else if (error.message.includes('Failed to fetch')) {
+                    addResult('💡 <strong>Network error:</strong> Make sure the backend server is running on http://localhost:5000', 'warning');
+                }
+            });
+        }
+        
+        // Add clear localStorage button
+        function clearAuth() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            addResult('🧹 <strong>Cleared authentication data</strong><br>You can now try logging in again.', 'warning');
+        }
+        
+        // Run debug
+        debugTokenIssue();
+    </script>
+    
+    <br>
+    <button onclick="clearAuth()" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+        🧹 Clear Authentication Data
+    </button>
+    <button onclick="location.reload()" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-left: 10px;">
+        🔄 Refresh Test
+    </button>
+</body>
+</html>

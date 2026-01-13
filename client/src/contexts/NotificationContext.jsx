@@ -24,8 +24,17 @@ export const NotificationProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const data = await api.get('/api/notifications/unread-count');
-      setUnreadCount(data.count || 0);
+      // Get user role to determine correct endpoint
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      
+      const endpoint = user.role === 'business' || user.role === 'user' 
+        ? '/api/user-notifications/unread-count' 
+        : '/api/notifications/unread-count';
+
+      const data = await api.get(endpoint);
+      
+      const newCount = data.unreadCount || data.count || 0;
+      setUnreadCount(newCount);
     } catch (error) {
       console.error('Error fetching unread count:', error);
     }
@@ -50,7 +59,13 @@ export const NotificationProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const data = await api.get('/api/notifications/my-notifications');
+      // Get user role to determine correct endpoint
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const endpoint = user.role === 'business' || user.role === 'user' 
+        ? '/api/user-notifications' 
+        : '/api/notifications/my-notifications';
+
+      const data = await api.get(endpoint);
       const notificationsArray = Array.isArray(data) ? data : [];
       setNotifications(notificationsArray);
       
@@ -62,7 +77,7 @@ export const NotificationProvider = ({ children }) => {
 
       // Show toast for new quote-related notifications
       newNotifications.forEach(notif => {
-        if (notif.title.includes('Quote Accepted') || notif.title.includes('Quote Not Selected')) {
+        if (notif.title && (notif.title.includes('Quote Accepted') || notif.title.includes('Quote Not Selected'))) {
           showQuoteNotificationToast(notif);
         }
       });
@@ -176,12 +191,27 @@ export const NotificationProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      await api.post('/api/notifications/mark-read', { pageType });
-      // Refresh the unread count after marking as read
-      await fetchUnreadCount();
+      // Get user role to determine correct endpoint
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      
+      // For all user types, use the general mark-read endpoint
+      const response = await api.post('/api/notifications/mark-read', { pageType });
+      
+      // Immediately set unread count to 0 for better UX
+      setUnreadCount(0);
+      
+      // Refresh the actual count from server after a short delay
+      setTimeout(() => {
+        fetchUnreadCount();
+      }, 1000); // Increased delay to 1 second
     } catch (error) {
       console.error('Error marking notifications as read:', error);
     }
+  };
+
+  // Force set unread count to 0 (for business notifications page)
+  const forceResetUnreadCount = () => {
+    setUnreadCount(0);
   };
 
   const value = {
@@ -192,7 +222,8 @@ export const NotificationProvider = ({ children }) => {
     fetchNotifications,
     fetchMessageUnreadCount,
     showQuoteNotificationToast,
-    markAsRead
+    markAsRead,
+    forceResetUnreadCount
   };
 
   return (

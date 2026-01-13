@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaUser, FaEnvelope, FaPhone, FaGlobe, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaPhone, FaGlobe, FaEdit, FaSave, FaTimes, FaCamera, FaUpload } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { api } from '../../utils/api';
 
@@ -8,6 +8,9 @@ const UserProfile = () => {
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -16,10 +19,10 @@ const UserProfile = () => {
   });
 
   useEffect(() => {
-    fetchUserProfile();
+    fetchUserProfile('useEffect-mount');
   }, []);
 
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = async (source = 'unknown') => {
     try {
       const data = await api.get('/api/user/me');
       setUser(data.user); // The API returns { user: {...} }
@@ -30,7 +33,7 @@ const UserProfile = () => {
         country: data.user?.country || ''
       });
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error(`Error fetching profile from ${source}:`, error);
       toast.error('Failed to fetch profile');
     } finally {
       setLoading(false);
@@ -47,10 +50,16 @@ const UserProfile = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await api.put('/api/user/update-profile', formData);
+      // Include the current logo to prevent overwriting it
+      const saveData = {
+        ...formData,
+        logo: user?.logo // Preserve the current logo
+      };
+      
+      await api.put('/api/user/update-profile', saveData);
       toast.success('Profile updated successfully');
       setEditing(false);
-      fetchUserProfile(); // Refresh profile data
+      fetchUserProfile('handleSave'); // Refresh profile data
     } catch (error) {
       console.error('Error updating profile:', error);
       toast.error('Failed to update profile');
@@ -68,6 +77,112 @@ const UserProfile = () => {
       phone: user?.phone || '',
       country: user?.country || ''
     });
+    // Reset logo upload states
+    setLogoFile(null);
+    setLogoPreview(null);
+  };
+
+  const handleLogoSelect = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select an image file');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image size should be less than 5MB');
+        return;
+      }
+      
+      // Auto-upload the logo immediately
+      setUploadingLogo(true);
+      try {
+        const uploadFormData = new FormData();
+        uploadFormData.append('image', file);
+        
+        const response = await api.post('/api/upload/image', uploadFormData);
+        
+        if (response.url) {
+          // Get the current user data to ensure we don't lose any fields
+          const currentProfileData = {
+            name: user?.name || formData.name,
+            email: user?.email || formData.email,
+            phone: user?.phone || formData.phone,
+            country: user?.country || formData.country,
+            logo: response.url
+          };
+          
+          // Update user profile with new logo
+          await api.put('/api/user/update-profile', currentProfileData);
+          
+          toast.success('Logo uploaded successfully');
+          
+          // Add a small delay to ensure database has been updated
+          setTimeout(() => {
+            fetchUserProfile('logo-upload'); // Refresh profile data
+          }, 500);
+        }
+      } catch (error) {
+        console.error('Error uploading logo:', error);
+        toast.error('Failed to upload logo');
+      } finally {
+        setUploadingLogo(false);
+      }
+    }
+  };
+
+  const handleLogoUpload = async () => {
+    if (!logoFile) return;
+    
+    setUploadingLogo(true);
+    try {
+      const uploadFormData = new FormData();
+      uploadFormData.append('image', logoFile);
+      
+      const response = await api.post('/api/upload/image', uploadFormData);
+      
+      if (response.url) {
+        // Update user profile with new logo
+        await api.put('/api/user/update-profile', {
+          ...formData,
+          logo: response.url
+        });
+        
+        toast.success('Logo uploaded successfully');
+        setLogoFile(null);
+        setLogoPreview(null);
+        fetchUserProfile('handleLogoUpload'); // Refresh profile data
+      }
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      toast.error('Failed to upload logo');
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const removeLogo = async () => {
+    try {
+      // Get the current user data to ensure we don't lose any fields
+      const currentProfileData = {
+        name: user?.name || formData.name,
+        email: user?.email || formData.email,
+        phone: user?.phone || formData.phone,
+        country: user?.country || formData.country,
+        logo: null
+      };
+      
+      await api.put('/api/user/update-profile', currentProfileData);
+      
+      toast.success('Logo removed successfully');
+      fetchUserProfile('removeLogo'); // Refresh profile data
+    } catch (error) {
+      console.error('Error removing logo:', error);
+      toast.error('Failed to remove logo');
+    }
   };
 
   if (loading) {
@@ -109,10 +224,54 @@ const UserProfile = () => {
       {/* Profile Information */}
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center mb-6">
-          <div className="w-20 h-20 bg-yellow-50 rounded-full flex items-center justify-center">
-            <FaUser className="text-[#CDA435] text-2xl" />
+          <div className="relative">
+            <div className="w-20 h-20 bg-yellow-50 rounded-full flex items-center justify-center overflow-hidden border-2 border-yellow-200">
+              {user?.logo ? (
+                <>
+                  <img 
+                    src={user.logo} 
+                    alt="User Logo" 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
+                  />
+                  <div className="hidden w-full h-full bg-yellow-50 items-center justify-center">
+                    <FaUser className="text-[#CDA435] text-2xl" />
+                  </div>
+                </>
+              ) : (
+                <FaUser className="text-[#CDA435] text-2xl" />
+              )}
+            </div>
+            
+            {editing && (
+              <div className="absolute -bottom-2 -right-2">
+                {uploadingLogo ? (
+                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center shadow-lg">
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                  </div>
+                ) : (
+                  <label htmlFor="logo-upload" className="cursor-pointer">
+                    <div className="w-8 h-8 bg-[#CDA435] rounded-full flex items-center justify-center hover:bg-yellow-600 transition-colors duration-200 shadow-lg">
+                      <FaCamera className="text-white text-sm" />
+                    </div>
+                  </label>
+                )}
+                <input
+                  id="logo-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoSelect}
+                  disabled={uploadingLogo}
+                  className="hidden"
+                />
+              </div>
+            )}
           </div>
-          <div className="ml-6">
+          
+          <div className="ml-6 flex-1">
             <h2 className="text-xl font-semibold text-gray-900">
               {user?.name || 'User'}
             </h2>
@@ -120,6 +279,36 @@ const UserProfile = () => {
             <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full mt-1">
               Active User
             </span>
+            
+            {/* Logo Upload Status */}
+            {editing && uploadingLogo && (
+              <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center space-x-3">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>
+                  <div>
+                    <p className="text-sm font-medium text-blue-900">
+                      Uploading logo...
+                    </p>
+                    <p className="text-xs text-blue-700">
+                      Please wait while we upload your image
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Remove Logo Option */}
+            {editing && user?.logo && !uploadingLogo && (
+              <div className="mt-3">
+                <button
+                  onClick={removeLogo}
+                  className="text-red-600 hover:text-red-800 text-sm flex items-center"
+                >
+                  <FaTimes className="mr-1" />
+                  Remove Logo
+                </button>
+              </div>
+            )}
           </div>
         </div>
 

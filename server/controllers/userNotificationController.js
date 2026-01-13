@@ -33,17 +33,18 @@ const getUserNotifications = async (req, res) => {
                 q.product_description,
                 q.departure_country,
                 q.arrival_country,
-                0 as is_responded,
-                NULL as user_response
+                CASE WHEN uqs.id IS NOT NULL THEN 1 ELSE 0 END as is_responded,
+                uqs.status as user_response
             FROM quote_responses qr
             JOIN quotes q ON qr.quote_id = q.id
             JOIN users c ON qr.company_id = c.id
+            LEFT JOIN user_quote_status uqs ON (qr.id = uqs.quote_response_id AND uqs.user_id = ?)
             WHERE q.user_id = ?
             ORDER BY qr.created_at DESC
             LIMIT 20
         `;
 
-        const [quoteResponses] = await db.execute(quoteResponseSql, [userId]);
+        const [quoteResponses] = await db.execute(quoteResponseSql, [userId, userId]);
 
         // Get regular notifications based on user role
         let regularNotificationsSql;
@@ -80,12 +81,15 @@ const getUserNotifications = async (req, res) => {
                 END as is_read
             FROM notifications n
             LEFT JOIN user_notifications un ON (n.id = un.notification_id AND un.user_id = ?)
-            WHERE n.target_audience IN (${targetAudiences.map(() => '?').join(', ')})
+            WHERE (
+                (n.target_audience IN (${targetAudiences.map(() => '?').join(', ')}) AND n.target_role != 'user_specific')
+                OR (n.target_role = 'user_specific' AND un.user_id = ?)
+            )
             ORDER BY n.created_at DESC
             LIMIT 10
         `;
 
-        const [regularNotifications] = await db.execute(regularNotificationsSql, [userId, ...targetAudiences]);
+        const [regularNotifications] = await db.execute(regularNotificationsSql, [userId, ...targetAudiences, userId]);
 
         // Combine and sort all notifications
         const allNotifications = [
@@ -154,13 +158,14 @@ const getUnreadNotificationCount = async (req, res) => {
         
         const userRole = userInfo[0].role;
         
-        // Count quote responses (only for users who own quotes)
+        // Count quote responses (only for users who own quotes and haven't responded)
         const [quoteResponseCount] = await db.execute(`
             SELECT COUNT(*) as count
             FROM quote_responses qr
             JOIN quotes q ON qr.quote_id = q.id
-            WHERE q.user_id = ?
-        `, [userId]);
+            LEFT JOIN user_quote_status uqs ON (qr.id = uqs.quote_response_id AND uqs.user_id = ?)
+            WHERE q.user_id = ? AND uqs.id IS NULL
+        `, [userId, userId]);
 
         // Determine target audiences based on user role
         let targetAudiences = [];
@@ -182,9 +187,12 @@ const getUnreadNotificationCount = async (req, res) => {
             SELECT COUNT(*) as count
             FROM notifications n
             LEFT JOIN user_notifications un ON (n.id = un.notification_id AND un.user_id = ?)
-            WHERE n.target_audience IN (${targetAudiences.map(() => '?').join(', ')})
+            WHERE (
+                (n.target_audience IN (${targetAudiences.map(() => '?').join(', ')}) AND n.target_role != 'user_specific')
+                OR (n.target_role = 'user_specific' AND un.user_id = ?)
+            )
             AND (un.is_read IS NULL OR un.is_read = 0)
-        `, [userId, ...targetAudiences]);
+        `, [userId, ...targetAudiences, userId]);
 
         const totalUnread = quoteResponseCount[0].count + regularNotificationCount[0].count;
 

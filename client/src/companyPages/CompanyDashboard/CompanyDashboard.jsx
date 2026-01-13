@@ -17,16 +17,19 @@ import {
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import { useNotifications } from '../../contexts/NotificationContext';
+import TransactionSummary from '../TransactionSummary/TransactionSummary';
+import ProfileCompletionModal from '../../components/Modal/ProfileCompletionModal';
+import { useProfileCompletion } from '../../hooks/useProfileCompletion';
 
 // Website color palette matching the Admin Dashboard
 const COLORS = {
-  primary: '#eab308', // yellow-500
-  secondary: '#f59e0b', // amber-500
+  primary: '#CDA435', // signature yellow
+  secondary: '#B8941F', // darker yellow
   success: '#10b981', // emerald-500
-  warning: '#f59e0b', // amber-500
+  warning: '#CDA435', // signature yellow
   danger: '#ef4444', // red-500
   info: '#06b6d4', // cyan-500
-  gradient: ['#eab308', '#f59e0b', '#06b6d4', '#10b981', '#ef4444', '#8b5cf6']
+  gradient: ['#CDA435', '#B8941F', '#06b6d4', '#10b981', '#ef4444', '#8b5cf6']
 };
 
 // Enhanced Metric Card Component matching Admin Dashboard design
@@ -82,9 +85,9 @@ const MetricCard = ({
   
   const colorClasses = {
     yellow: {
-      bg: 'bg-white border-l-4 border-yellow-500',
-      icon: 'bg-yellow-100 text-yellow-600',
-      trend: 'text-yellow-600'
+      bg: 'bg-white border-l-4 border-[#CDA435]',
+      icon: 'bg-yellow-50 text-[#CDA435]',
+      trend: 'text-[#CDA435]'
     },
     green: {
       bg: 'bg-white border-l-4 border-green-500',
@@ -178,32 +181,32 @@ const ReferralCard = ({ subscription, userProfile }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 h-full flex flex-col justify-between">
-      <div>
+    <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 h-fit flex flex-col">
+      <div className="flex-1">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-bold text-gray-800">Referral & Social</h3>
           <Copy className="h-5 w-5 text-gray-400" />
         </div>
         
         <div 
-          className="flex items-center p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl cursor-pointer hover:from-yellow-100 hover:to-orange-100 transition-all duration-200 border border-yellow-200 hover:border-yellow-300 group mb-6"
+          className="flex items-center p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-xl cursor-pointer hover:from-yellow-100 hover:to-yellow-200 transition-all duration-200 border border-[#CDA435] hover:border-[#B8941F] group mb-6"
           onClick={copyReferralCode}
         >
           <div className="p-2 bg-yellow-100 rounded-lg mr-4 group-hover:bg-yellow-200 transition-colors">
-            <Copy className="text-yellow-600 h-5 w-5" />
+            <Copy className="text-[#CDA435] h-5 w-5" />
           </div>
           <div>
-            <span className="text-yellow-700 font-semibold block">Your Referral Code</span>
-            <span className="text-yellow-600 text-sm">{referralCode}</span>
+            <span className="text-[#CDA435] font-semibold block">Your Referral Code</span>
+            <span className="text-[#B8941F] text-sm">{referralCode}</span>
           </div>
         </div>
         
-        <div className="text-center">
+        <div className="text-center mb-6">
           <h4 className="text-lg font-semibold text-gray-800 mb-2">Follow Us</h4>
           <p className="text-sm text-gray-500 mb-4">
             Connect with us on social media for updates and support
           </p>
-         <div className="grid grid-cols-4 gap-3 mb-6 justify-items-center">
+         <div className="grid grid-cols-4 gap-3 justify-items-center">
             <a 
               href={userProfile?.facebook && userProfile.facebook !== '#' ? userProfile.facebook : "#"} 
               className={`p-3 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 ${(!userProfile?.facebook || userProfile.facebook === '#') ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -240,13 +243,16 @@ const ReferralCard = ({ subscription, userProfile }) => {
           </div>
         </div>
       </div>
-      <a 
-        href="/company/create-Ticket" 
-        className="w-full flex items-center justify-center bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-xl transition-colors shadow-md hover:shadow-lg"
-      >
-        <Phone className="mr-2 h-4 w-4" />
-        Contact Support
-      </a>
+      
+      <div className="mt-6">
+        <a 
+          href="/company/create-Ticket" 
+          className="w-full flex items-center justify-center bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-xl transition-colors shadow-md hover:shadow-lg"
+        >
+          <Phone className="mr-2 h-4 w-4" />
+          Contact Support
+        </a>
+      </div>
     </div>
   );
 };
@@ -289,7 +295,7 @@ const NotificationTable = () => {
   const displayData = filteredData.slice(0, entries);
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300">
+    <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 h-fit">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-xl font-bold text-gray-800">Recent Notifications</h3>
@@ -307,7 +313,7 @@ const NotificationTable = () => {
           <select 
             value={entries} 
             onChange={(e) => setEntries(Number(e.target.value))}
-            className="mx-2 border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+            className="mx-2 border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-[#CDA435]"
           >
             <option value="5">5</option>
             <option value="10">10</option>
@@ -322,29 +328,30 @@ const NotificationTable = () => {
             type="text" 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 w-full md:w-64" 
+            className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-[#CDA435] w-full md:w-64" 
             placeholder="Search notifications..."
           />
         </div>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-l-lg">Sr.No</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-r-lg">Message</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+        <div className="min-h-[400px]">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-l-lg">Sr.No</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-r-lg">Message</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
             {loading ? (
               <tr>
                 <td colSpan="5" className="p-8 text-center">
                   <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-4 border-yellow-200 border-t-yellow-500"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-4 border-yellow-200 border-t-[#CDA435]"></div>
                     <span className="ml-3 text-gray-500">Loading notifications...</span>
                   </div>
                 </td>
@@ -388,13 +395,14 @@ const NotificationTable = () => {
                     </div>
                   </td>
                   <td className="px-4 py-4">
-                    <div className="text-sm text-gray-600 max-w-xs truncate">{item.message}</div>
+                    <div className="text-sm text-gray-600 max-w-full truncate">{item.message}</div>
                   </td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       <div className="flex justify-between items-center mt-6 text-sm text-gray-600">
@@ -408,7 +416,7 @@ const NotificationTable = () => {
           >
             Previous
           </button>
-          <button className="px-3 py-2 border border-yellow-500 bg-yellow-500 text-white rounded-lg">
+          <button className="px-3 py-2 border border-[#CDA435] bg-[#CDA435] text-white rounded-lg">
             1
           </button>
           <button className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-100">
@@ -423,8 +431,13 @@ const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [subscription, setSubscription] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
+  const [transactionAmount, setTransactionAmount] = useState(0);
   const [loading, setLoading] = useState(true);
   const { notifications, fetchNotifications } = useNotifications();
+
+  // Profile completion logic
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const { shouldShowPrompt, isModalOpen, closeModal, markProfileCompleted, dismissPermanently } = useProfileCompletion('company', user.id);
 
   useEffect(() => {
     fetchDashboardData();
@@ -526,10 +539,100 @@ const Dashboard = () => {
       setStats(statsData);
       setSubscription(subData);
       setUserProfile(profileData);
+      
+      // Fetch transaction amount from payment verifications
+      await fetchTransactionAmount();
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTransactionAmount = async () => {
+    try {
+      console.log('Fetching transaction amount...');
+      let totalAmount = 0;
+      
+      // Try to get data from the enhanced quotes API
+      try {
+        const data = await api.get('/api/enhanced-quotes/company-responses-with-payments');
+        console.log('Enhanced quotes data received:', data);
+        
+        if (Array.isArray(data) && data.length > 0) {
+          // Filter for payments that have been verified by this company
+          const verifiedPayments = data.filter(item => {
+            const isVerified = item.payment_status === 'verified';
+            console.log(`Item ${item.quote_id || item.id}: payment_status=${item.payment_status}, price=${item.price}, isVerified=${isVerified}`);
+            return isVerified;
+          });
+          
+          console.log('Verified payments found:', verifiedPayments.length);
+          
+          totalAmount = verifiedPayments.reduce((sum, item) => {
+            const price = parseFloat(item.price) || 0;
+            console.log(`Adding price: ${price} to sum: ${sum}`);
+            return sum + price;
+          }, 0);
+          
+          console.log('Total from enhanced quotes:', totalAmount);
+        }
+      } catch (enhancedError) {
+        console.log('Enhanced quotes API failed, trying alternative...', enhancedError);
+      }
+      
+      // If no amount found, try the company quotes API as fallback
+      if (totalAmount === 0) {
+        try {
+          const companyData = await api.get('/api/company-quotes/transactions');
+          console.log('Company quotes data received:', companyData);
+          
+          if (Array.isArray(companyData) && companyData.length > 0) {
+            const paidTransactions = companyData.filter(item => 
+              item.payment_status === 'paid' || item.payment_status === 'verified'
+            );
+            
+            totalAmount = paidTransactions.reduce((sum, item) => {
+              const amount = parseFloat(item.amount_paid || item.price || item.amount) || 0;
+              return sum + amount;
+            }, 0);
+            
+            console.log('Total from company quotes:', totalAmount);
+          }
+        } catch (companyError) {
+          console.log('Company quotes API also failed:', companyError);
+        }
+      }
+      
+      // If still no amount, try to get from my quotes
+      if (totalAmount === 0) {
+        try {
+          const myQuotesData = await api.get('/api/company-quotes/my-quotes');
+          console.log('My quotes data received:', myQuotesData);
+          
+          if (Array.isArray(myQuotesData) && myQuotesData.length > 0) {
+            const acceptedQuotes = myQuotesData.filter(item => 
+              item.status === 'accepted' && (item.payment_status === 'verified' || item.payment_status === 'paid')
+            );
+            
+            totalAmount = acceptedQuotes.reduce((sum, item) => {
+              const price = parseFloat(item.price || item.amount) || 0;
+              return sum + price;
+            }, 0);
+            
+            console.log('Total from my quotes:', totalAmount);
+          }
+        } catch (myQuotesError) {
+          console.log('My quotes API also failed:', myQuotesError);
+        }
+      }
+      
+      console.log('Final transaction amount calculated:', totalAmount);
+      
+      setTransactionAmount(totalAmount);
+    } catch (error) {
+      console.error('Error fetching transaction amount:', error);
+      setTransactionAmount(0);
     }
   };
 
@@ -538,8 +641,8 @@ const Dashboard = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="relative">
-            <div className="animate-spin rounded-full h-20 w-20 border-4 border-yellow-200 border-t-yellow-500 mx-auto mb-4"></div>
-            <div className="absolute inset-0 rounded-full h-20 w-20 border-4 border-orange-200 border-t-orange-500 animate-spin mx-auto" style={{ animationDirection: 'reverse', animationDuration: '3s' }}></div>
+            <div className="animate-spin rounded-full h-20 w-20 border-4 border-yellow-200 border-t-[#CDA435] mx-auto mb-4"></div>
+            <div className="absolute inset-0 rounded-full h-20 w-20 border-4 border-yellow-100 border-t-[#B8941F] animate-spin mx-auto" style={{ animationDirection: 'reverse', animationDuration: '3s' }}></div>
           </div>
           <p className="text-2xl font-bold text-gray-800 mb-2">Loading Dashboard...</p>
           <p className="text-gray-600">Preparing your analytics</p>
@@ -562,8 +665,9 @@ const Dashboard = () => {
             <button
               onClick={() => {
                 fetchDashboardData();
+                fetchTransactionAmount();
               }}
-              className="flex items-center space-x-2 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors"
+              className="flex items-center space-x-2 bg-[#CDA435] hover:bg-[#B8941F] text-white px-4 py-2 rounded-lg transition-colors"
               title="Refresh Data"
             >
               <Activity className="h-4 w-4" />
@@ -583,14 +687,14 @@ const Dashboard = () => {
 
         {/* Enhanced Stats Cards with Admin Dashboard Design */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <MetricCard
+          {/* <MetricCard
             title="Unread Messages"
             value={stats?.messages?.unread_messages || 0}
             previousValue={Math.max(0, (stats?.messages?.unread_messages || 0) - 1)}
             icon={MessageSquare}
             color="yellow"
             onClick={() => window.location.href = '/company/messages'}
-          />
+          /> */}
           <MetricCard
             title="Quote Responses"
             value={stats?.responses?.total_responses || 0}
@@ -604,6 +708,15 @@ const Dashboard = () => {
             previousValue={Math.max(0, (stats?.responses?.accepted_responses || 0) - 1)}
             icon={DollarSign}
             color="blue"
+          />
+          <MetricCard
+            title="Transaction Amount"
+            value={transactionAmount}
+            previousValue={Math.max(0, transactionAmount - 100)}
+            icon={TrendingUp}
+            color="green"
+            prefix="$"
+            onClick={() => window.location.href = '/company/transaction-History-Company'}
           />
           <MetricCard
             title="Active Plan"
@@ -654,16 +767,27 @@ const Dashboard = () => {
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-3">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+          <div className="xl:col-span-2">
             <NotificationTable />
           </div>
 
-          <div className="lg:col-span-1">
+          <div className="xl:col-span-1 space-y-8">
+            <TransactionSummary />
             <ReferralCard subscription={subscription} userProfile={userProfile} />
           </div>
         </div>
       </div>
+
+      {/* Profile Completion Modal */}
+      <ProfileCompletionModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        userRole="company"
+        userName={user.name || 'Company User'}
+        onComplete={markProfileCompleted}
+        onDismissPermanently={dismissPermanently}
+      />
     </div>
   );
 };

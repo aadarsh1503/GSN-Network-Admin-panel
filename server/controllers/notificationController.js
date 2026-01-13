@@ -61,15 +61,15 @@ const getMyNotifications = async (req, res) => {
             FROM notifications n
             LEFT JOIN user_notifications un ON (n.id = un.notification_id AND un.user_id = ?)
             WHERE (
-                -- User-specific notifications
-                un.user_id = ?
+                -- User-specific notifications (only if there's a matching entry in user_notifications)
+                (n.target_role = 'user_specific' AND un.user_id = ?)
                 OR 
-                -- General notifications for all users or their role
-                (n.target_audience = 'all' OR 
+                -- General notifications for all users or their role (excluding user-specific ones)
+                ((n.target_audience = 'all' OR 
                  (n.target_audience = 'companies' AND ? = 'company') OR
                  (n.target_audience = 'businesses' AND ? = 'business') OR
                  (n.target_audience = 'users' AND ? = 'user'))
-                AND n.target_role != 'user_specific'
+                AND n.target_role != 'user_specific')
             )
             ORDER BY n.created_at DESC
             LIMIT 50
@@ -99,21 +99,23 @@ const getUnreadCount = async (req, res) => {
             FROM notifications n
             LEFT JOIN user_notifications un ON (n.id = un.notification_id AND un.user_id = ?)
             WHERE (
-                -- User-specific notifications that are unread
-                (un.user_id = ? AND (un.is_read IS NULL OR un.is_read = 0))
-                OR 
-                -- General notifications for their role that they haven't seen
+                -- User-specific notifications (only if there's a matching entry)
+                (n.target_role = 'user_specific' AND un.user_id = ?)
+                OR
+                -- General notifications for all users or their role (excluding user-specific ones)
                 ((n.target_audience = 'all' OR 
-                  (n.target_audience = 'companies' AND ? = 'company') OR
-                  (n.target_audience = 'businesses' AND ? = 'business') OR
-                  (n.target_audience = 'users' AND ? = 'user'))
-                 AND n.target_role != 'user_specific'
-                 AND un.user_id IS NULL)
+                 (n.target_audience = 'companies' AND ? = 'company') OR
+                 (n.target_audience = 'businesses' AND ? = 'business') OR
+                 (n.target_audience = 'users' AND ? = 'user') OR
+                 (n.target_audience = 'admins' AND ? = 'admin'))
+                AND n.target_role != 'user_specific')
             )
+            AND (un.is_read IS NULL OR un.is_read = 0)
             AND n.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
         `;
 
-        const [result] = await db.execute(sql, [userId, userId, userRole, userRole, userRole]);
+        const [result] = await db.execute(sql, [userId, userId, userRole, userRole, userRole, userRole]);
+        console.log(`Unread count for user ${userId} (${userRole}): ${result[0].count}`);
 
         res.status(200).json({ count: result[0].count });
 
@@ -128,31 +130,55 @@ const getUnreadCount = async (req, res) => {
 // @access  Private
 const markNotificationsAsRead = async (req, res) => {
     const userId = req.user.id;
+    const userRole = req.user.role;
     const { pageType } = req.body; // 'notifications', 'quotes', 'messages', etc.
+
+    console.log(`Marking notifications as read for user ${userId} with role ${userRole}, pageType: ${pageType}`);
 
     try {
         let sql;
         let params = [userId];
 
         if (pageType === 'all') {
-            // Mark all notifications as read
-            sql = `
+            // Mark all notifications as read for this user based on their role
+            // Split into two operations to avoid creating duplicate user-specific notifications
+            
+            // 1. First, handle general notifications (create records if they don't exist)
+            const generalNotificationsSql = `
                 INSERT INTO user_notifications (user_id, notification_id, is_read, read_at)
                 SELECT ?, n.id, 1, NOW()
                 FROM notifications n
                 LEFT JOIN user_notifications un ON (n.id = un.notification_id AND un.user_id = ?)
                 WHERE (
-                    -- User-specific notifications
-                    EXISTS (SELECT 1 FROM user_notifications un2 WHERE un2.notification_id = n.id AND un2.user_id = ?)
-                    OR 
-                    -- General notifications for their role
-                    (n.target_audience = 'all' OR n.target_audience = 'companies')
-                    AND n.target_role != 'user_specific'
+                    -- General notifications for all users or their role (excluding user-specific ones)
+                    ((n.target_audience = 'all' OR 
+                     (n.target_audience = 'companies' AND ? = 'company') OR
+                     (n.target_audience = 'businesses' AND ? = 'business') OR
+                     (n.target_audience = 'users' AND ? = 'user') OR
+                     (n.target_audience = 'admins' AND ? = 'admin'))
+                    AND n.target_role != 'user_specific')
                 )
                 AND un.user_id IS NULL
                 ON DUPLICATE KEY UPDATE is_read = 1, read_at = NOW()
             `;
-            params = [userId, userId, userId];
+            
+            await db.execute(generalNotificationsSql, [userId, userId, userRole, userRole, userRole, userRole]);
+            
+            // 2. Then, update existing user-specific notifications (don't create new ones)
+            const userSpecificUpdateSql = `
+                UPDATE user_notifications un
+                JOIN notifications n ON un.notification_id = n.id
+                SET un.is_read = 1, un.read_at = NOW()
+                WHERE un.user_id = ? AND n.target_role = 'user_specific' AND un.is_read = 0
+            `;
+            
+            const [result] = await db.execute(userSpecificUpdateSql, [userId]);
+            
+            res.status(200).json({ 
+                message: 'Notifications marked as read',
+                affectedRows: result.affectedRows 
+            });
+            return;
         } else if (pageType === 'quotes') {
             // Mark quote-related notifications as read
             sql = `
@@ -162,15 +188,21 @@ const markNotificationsAsRead = async (req, res) => {
                 LEFT JOIN user_notifications un ON (n.id = un.notification_id AND un.user_id = ?)
                 WHERE (n.title LIKE '%Quote%' OR n.message LIKE '%quote%')
                 AND (
-                    EXISTS (SELECT 1 FROM user_notifications un2 WHERE un2.notification_id = n.id AND un2.user_id = ?)
-                    OR 
-                    (n.target_audience = 'all' OR n.target_audience = 'companies')
-                    AND n.target_role != 'user_specific'
+                    -- User-specific notifications (only if there's a matching entry)
+                    (n.target_role = 'user_specific' AND un.user_id = ?)
+                    OR
+                    -- General notifications for all users or their role (excluding user-specific ones)
+                    ((n.target_audience = 'all' OR 
+                     (n.target_audience = 'companies' AND ? = 'company') OR
+                     (n.target_audience = 'businesses' AND ? = 'business') OR
+                     (n.target_audience = 'users' AND ? = 'user') OR
+                     (n.target_audience = 'admins' AND ? = 'admin'))
+                    AND n.target_role != 'user_specific')
                 )
-                AND un.user_id IS NULL
+                AND (un.user_id IS NULL OR un.is_read = 0)
                 ON DUPLICATE KEY UPDATE is_read = 1, read_at = NOW()
             `;
-            params = [userId, userId, userId];
+            params = [userId, userId, userId, userRole, userRole, userRole, userRole];
         } else if (pageType === 'messages') {
             // Mark message-related notifications as read
             sql = `
@@ -180,15 +212,21 @@ const markNotificationsAsRead = async (req, res) => {
                 LEFT JOIN user_notifications un ON (n.id = un.notification_id AND un.user_id = ?)
                 WHERE (n.title LIKE '%Message%' OR n.message LIKE '%message%')
                 AND (
-                    EXISTS (SELECT 1 FROM user_notifications un2 WHERE un2.notification_id = n.id AND un2.user_id = ?)
-                    OR 
-                    (n.target_audience = 'all' OR n.target_audience = 'companies')
-                    AND n.target_role != 'user_specific'
+                    -- User-specific notifications (only if there's a matching entry)
+                    (n.target_role = 'user_specific' AND un.user_id = ?)
+                    OR
+                    -- General notifications for all users or their role (excluding user-specific ones)
+                    ((n.target_audience = 'all' OR 
+                     (n.target_audience = 'companies' AND ? = 'company') OR
+                     (n.target_audience = 'businesses' AND ? = 'business') OR
+                     (n.target_audience = 'users' AND ? = 'user') OR
+                     (n.target_audience = 'admins' AND ? = 'admin'))
+                    AND n.target_role != 'user_specific')
                 )
-                AND un.user_id IS NULL
+                AND (un.user_id IS NULL OR un.is_read = 0)
                 ON DUPLICATE KEY UPDATE is_read = 1, read_at = NOW()
             `;
-            params = [userId, userId, userId];
+            params = [userId, userId, userId, userRole, userRole, userRole, userRole];
         } else {
             // Mark specific type notifications as read
             sql = `
@@ -198,9 +236,13 @@ const markNotificationsAsRead = async (req, res) => {
             `;
         }
 
-        await db.execute(sql, params);
+        const [result] = await db.execute(sql, params);
+        console.log(`Marked ${result.affectedRows} notifications as read for user ${userId}`);
 
-        res.status(200).json({ message: 'Notifications marked as read' });
+        res.status(200).json({ 
+            message: 'Notifications marked as read',
+            affectedRows: result.affectedRows 
+        });
 
     } catch (error) {
         console.error('Error marking notifications as read:', error);

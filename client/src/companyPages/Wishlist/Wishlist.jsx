@@ -3,10 +3,14 @@ import { FaPaperPlane, FaTimes } from 'react-icons/fa';
 import { FiEye, FiStar } from 'react-icons/fi';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
+import CompanyProfile from '../MembersDirectory/CompanyProfile';
 
 const Wishlist = () => {
   const [wishlistItems, setWishlistItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentView, setCurrentView] = useState('wishlist');
+  const [selectedMember, setSelectedMember] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   useEffect(() => {
     fetchWishlist();
@@ -32,6 +36,28 @@ const Wishlist = () => {
       toast.error(error.message || 'Failed to remove from wishlist');
     }
   };
+
+  const handleViewProfile = async (item) => {
+    setProfileLoading(true);
+    try {
+      const data = await api.get(`/api/directory/company/${item.company_id}`);
+      setSelectedMember(data);
+      setCurrentView('profile');
+    } catch (error) {
+      toast.error('Error loading company profile');
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const handleCloseProfile = () => {
+    setSelectedMember(null);
+    setCurrentView('wishlist');
+  };
+
+  if (currentView === 'profile' && selectedMember) {
+    return <CompanyProfile member={selectedMember} onClose={handleCloseProfile} />;
+  }
 
   if (loading) {
     return <div className="text-center py-8">Loading wishlist...</div>;
@@ -85,7 +111,7 @@ const Wishlist = () => {
                   {item.company_name}
                 </h3>
                 {item.average_rating > 0 && (
-                  <div className="flex items-center justify-center text-yellow-500 text-sm mt-1">
+                  <div className="flex items-center justify-center text-[#CDA435] text-sm mt-1">
                     <FiStar className="fill-current" />
                     <span className="ml-1">{item.average_rating}</span>
                   </div>
@@ -98,12 +124,22 @@ const Wishlist = () => {
               </div>
 
               {/* View Profile Button */}
-              <a 
-                href={`/company/member-directory`}
-                className="mt-4 inline-flex items-center gap-2 text-sm text-[#CDA435] hover:underline"
+              <button 
+                onClick={() => handleViewProfile(item)}
+                disabled={profileLoading}
+                className="mt-4 inline-flex items-center gap-2 text-sm text-[#CDA435] hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <FiEye /> View Profile
-              </a>
+                {profileLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-[#CDA435] border-t-transparent rounded-full animate-spin"></div>
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <FiEye /> View Profile
+                  </>
+                )}
+              </button>
             </div>
           ))}
         </div>

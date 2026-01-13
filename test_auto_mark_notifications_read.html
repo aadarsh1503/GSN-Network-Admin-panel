@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Auto Mark Notifications as Read</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #CDA435;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #B8941F;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            background: #f0f0f0;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔔 Auto Mark Notifications as Read Test</h1>
+    <p>Testing the enhanced business notifications auto-mark-as-read functionality</p>
+
+    <div class="test-section">
+        <h2>Test Auto Mark All Notifications as Read</h2>
+        <p>This test verifies that all notifications are automatically marked as read when the notifications page opens.</p>
+        
+        <button class="test-button" onclick="testMarkAllAsReadAPI()">Test Mark All as Read API</button>
+        <button class="test-button" onclick="testUnreadCountAfterMarkAll()">Test Unread Count After Mark All</button>
+        <button class="test-button" onclick="simulatePageLoad()">Simulate Page Load Behavior</button>
+        
+        <div id="markAllResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Notification Count in Business Layout</h2>
+        <p>Test that the notification count in the business layout sidebar is properly updated.</p>
+        
+        <button class="test-button" onclick="testNotificationCountAPI()">Test Notification Count API</button>
+        <button class="test-button" onclick="testGlobalUnreadCount()">Test Global Unread Count</button>
+        
+        <div id="countResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Business Notifications Page Flow</h2>
+        <p>Test the complete flow of opening the notifications page and auto-marking as read.</p>
+        
+        <button class="test-button" onclick="testCompleteFlow()">Test Complete Flow</button>
+        <button class="test-button" onclick="checkCurrentNotificationState()">Check Current State</button>
+        
+        <div id="flowResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Navigation Test</h2>
+        <p>Test navigation to the business notifications page.</p>
+        
+        <button class="test-button" onclick="navigateToNotifications()">Go to Business Notifications</button>
+        
+        <div id="navResult" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        function showResult(elementId, message, type = 'success') {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = `result ${type}`;
+            element.innerHTML = message;
+        }
+
+        async function testMarkAllAsReadAPI() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    showResult('markAllResult', '❌ No authentication token found. Please log in first.', 'error');
+                    return;
+                }
+
+                const response = await fetch('/api/user-notifications/mark-all-read', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult('markAllResult', 
+                        `✅ SUCCESS: Mark All as Read API working<br>
+                        Status: ${response.status}<br>
+                        Response: ${JSON.stringify(data, null, 2)}`, 'success');
+                } else {
+                    showResult('markAllResult', 
+                        `❌ API Error: ${response.status} ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                showResult('markAllResult', 
+                    `❌ Network Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testUnreadCountAfterMarkAll() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    showResult('markAllResult', '❌ No authentication token found. Please log in first.', 'error');
+                    return;
+                }
+
+                // First mark all as read
+                await fetch('/api/user-notifications/mark-all-read', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                // Then check unread count
+                const response = await fetch('/api/user-notifications/unread-count', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const unreadCount = data.unreadCount || data.count || 0;
+                    
+                    if (unreadCount === 0) {
+                        showResult('markAllResult', 
+                            `✅ SUCCESS: Unread count is 0 after marking all as read<br>
+                            Unread count: ${unreadCount}`, 'success');
+                    } else {
+                        showResult('markAllResult', 
+                            `⚠️ WARNING: Unread count is not 0 after marking all as read<br>
+                            Unread count: ${unreadCount}`, 'info');
+                    }
+                } else {
+                    showResult('markAllResult', 
+                        `❌ API Error: ${response.status} ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                showResult('markAllResult', 
+                    `❌ Network Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function simulatePageLoad() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    showResult('markAllResult', '❌ No authentication token found. Please log in first.', 'error');
+                    return;
+                }
+
+                showResult('markAllResult', '🔄 Simulating page load behavior...', 'info');
+
+                // Step 1: Fetch notifications
+                const notificationsResponse = await fetch('/api/user-notifications', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!notificationsResponse.ok) {
+                    throw new Error(`Notifications API failed: ${notificationsResponse.status}`);
+                }
+
+                const notifications = await notificationsResponse.json();
+
+                // Step 2: Mark all as read
+                const markReadResponse = await fetch('/api/user-notifications/mark-all-read', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!markReadResponse.ok) {
+                    throw new Error(`Mark all as read API failed: ${markReadResponse.status}`);
+                }
+
+                // Step 3: Check final unread count
+                const countResponse = await fetch('/api/user-notifications/unread-count', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!countResponse.ok) {
+                    throw new Error(`Unread count API failed: ${countResponse.status}`);
+                }
+
+                const countData = await countResponse.json();
+                const finalUnreadCount = countData.unreadCount || countData.count || 0;
+
+                showResult('markAllResult', 
+                    `✅ SUCCESS: Page load simulation completed<br>
+                    1. Fetched ${Array.isArray(notifications) ? notifications.length : 'N/A'} notifications<br>
+                    2. Marked all notifications as read<br>
+                    3. Final unread count: ${finalUnreadCount}<br>
+                    <br>
+                    This simulates what happens when a user opens the business notifications page.`, 'success');
+
+            } catch (error) {
+                showResult('markAllResult', 
+                    `❌ Simulation Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testNotificationCountAPI() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    showResult('countResult', '❌ No authentication token found. Please log in first.', 'error');
+                    return;
+                }
+
+                const response = await fetch('/api/user-notifications/unread-count', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult('countResult', 
+                        `✅ SUCCESS: Notification Count API working<br>
+                        Status: ${response.status}<br>
+                        Unread count: ${data.unreadCount || data.count || 0}<br>
+                        Raw response: ${JSON.stringify(data, null, 2)}`, 'success');
+                } else {
+                    showResult('countResult', 
+                        `❌ API Error: ${response.status} ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                showResult('countResult', 
+                    `❌ Network Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testGlobalUnreadCount() {
+            showResult('countResult', 
+                `ℹ️ Global unread count testing requires the NotificationContext.<br>
+                This is handled by the React context and should be tested in the actual application.<br>
+                <br>
+                To test manually:<br>
+                1. Open browser dev tools<br>
+                2. Go to business notifications page<br>
+                3. Check that the sidebar notification count updates to 0<br>
+                4. Refresh the page and verify count stays at 0`, 'info');
+        }
+
+        async function testCompleteFlow() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    showResult('flowResult', '❌ No authentication token found. Please log in first.', 'error');
+                    return;
+                }
+
+                showResult('flowResult', '🔄 Testing complete notification flow...', 'info');
+
+                // Step 1: Get initial state
+                const initialCountResponse = await fetch('/api/user-notifications/unread-count', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const initialCountData = await initialCountResponse.json();
+                const initialCount = initialCountData.unreadCount || initialCountData.count || 0;
+
+                // Step 2: Fetch all notifications
+                const notificationsResponse = await fetch('/api/user-notifications', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const notifications = await notificationsResponse.json();
+                const unreadNotifications = Array.isArray(notifications) 
+                    ? notifications.filter(n => !n.is_read).length 
+                    : 0;
+
+                // Step 3: Mark all as read (simulating page open)
+                const markReadResponse = await fetch('/api/user-notifications/mark-all-read', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                // Step 4: Get final count
+                const finalCountResponse = await fetch('/api/user-notifications/unread-count', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const finalCountData = await finalCountResponse.json();
+                const finalCount = finalCountData.unreadCount || finalCountData.count || 0;
+
+                showResult('flowResult', 
+                    `✅ SUCCESS: Complete flow test completed<br>
+                    <br>
+                    📊 Flow Results:<br>
+                    • Initial unread count: ${initialCount}<br>
+                    • Total notifications: ${Array.isArray(notifications) ? notifications.length : 'N/A'}<br>
+                    • Unread notifications found: ${unreadNotifications}<br>
+                    • Mark all as read: ${markReadResponse.ok ? 'SUCCESS' : 'FAILED'}<br>
+                    • Final unread count: ${finalCount}<br>
+                    <br>
+                    ${finalCount === 0 ? '✅ All notifications successfully marked as read!' : '⚠️ Some notifications may still be unread'}`, 
+                    finalCount === 0 ? 'success' : 'info');
+
+            } catch (error) {
+                showResult('flowResult', 
+                    `❌ Flow Test Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkCurrentNotificationState() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    showResult('flowResult', '❌ No authentication token found. Please log in first.', 'error');
+                    return;
+                }
+
+                // Get current notifications
+                const notificationsResponse = await fetch('/api/user-notifications', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const notifications = await notificationsResponse.json();
+
+                // Get current unread count
+                const countResponse = await fetch('/api/user-notifications/unread-count', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const countData = await countResponse.json();
+                const unreadCount = countData.unreadCount || countData.count || 0;
+
+                if (Array.isArray(notifications)) {
+                    const readCount = notifications.filter(n => n.is_read).length;
+                    const unreadInList = notifications.filter(n => !n.is_read).length;
+
+                    showResult('flowResult', 
+                        `📋 Current Notification State:<br>
+                        <br>
+                        • Total notifications: ${notifications.length}<br>
+                        • Read notifications: ${readCount}<br>
+                        • Unread in list: ${unreadInList}<br>
+                        • API unread count: ${unreadCount}<br>
+                        <br>
+                        ${unreadCount === 0 ? '✅ All notifications are marked as read' : '⚠️ Some notifications are still unread'}<br>
+                        ${unreadInList === unreadCount ? '✅ List and API counts match' : '⚠️ List and API counts do not match'}`, 
+                        unreadCount === 0 ? 'success' : 'info');
+                } else {
+                    showResult('flowResult', 
+                        `📋 Current Notification State:<br>
+                        • API unread count: ${unreadCount}<br>
+                        • Notifications data: ${JSON.stringify(notifications)}`, 'info');
+                }
+
+            } catch (error) {
+                showResult('flowResult', 
+                    `❌ State Check Error: ${error.message}`, 'error');
+            }
+        }
+
+        function navigateToNotifications() {
+            const targetUrl = '/business/notifications';
+            
+            if (window.location.pathname.includes('/business/')) {
+                showResult('navResult', 
+                    `✅ Navigation ready<br>
+                    Target URL: ${targetUrl}<br>
+                    Current URL: ${window.location.pathname}<br>
+                    <a href="${targetUrl}">Click here to go to Business Notifications</a><br>
+                    <br>
+                    Expected behavior:<br>
+                    1. Page loads and fetches notifications<br>
+                    2. All notifications are automatically marked as read<br>
+                    3. Notification count in sidebar becomes 0<br>
+                    4. No "Mark as read" buttons are shown`, 'success');
+            } else {
+                showResult('navResult', 
+                    `⚠️ Navigation test<br>
+                    Target URL: ${targetUrl}<br>
+                    Note: You need to be logged in as a business user to test this.<br>
+                    <a href="${targetUrl}">Click here to go to Business Notifications</a>`, 'info');
+            }
+        }
+
+        // Auto-run basic tests on page load
+        window.onload = function() {
+            console.log('🔔 Auto Mark Notifications as Read Test Page Loaded');
+            console.log('Click the test buttons to verify the auto-mark-as-read functionality');
+        };
+    </script>
+</body>
+</html>

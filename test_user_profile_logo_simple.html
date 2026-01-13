@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple User Profile Logo Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover { background-color: #0056b3; }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .info { background-color: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        .logo-display {
+            width: 100px;
+            height: 100px;
+            border: 2px solid #ddd;
+            border-radius: 50%;
+            margin: 10px 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logo-display img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Simple User Profile Logo Test</h1>
+        
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" value="user@example.com">
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" value="password123">
+        </div>
+        
+        <button onclick="testLogin()">1. Login</button>
+        <button onclick="testGetProfile()">2. Get Profile</button>
+        <button onclick="testUploadLogo()">3. Upload Logo</button>
+        
+        <div class="form-group">
+            <label for="logoFile">Select Logo:</label>
+            <input type="file" id="logoFile" accept="image/*">
+        </div>
+        
+        <div id="result"></div>
+        <div id="logoDisplay"></div>
+    </div>
+
+    <script>
+        let token = '';
+        let currentUser = null;
+
+        function showResult(message, type = 'info') {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = `result ${type}`;
+            resultDiv.textContent = message;
+            console.log(message);
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                showResult('Logging in...', 'info');
+                
+                const response = await fetch('http://localhost:5000/api/users/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    token = data.token;
+                    currentUser = data.user;
+                    showResult(`✅ Login successful!\nUser: ${data.user.name}\nRole: ${data.user.role}`, 'success');
+                } else {
+                    showResult(`❌ Login failed: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Login error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testGetProfile() {
+            if (!token) {
+                showResult('❌ Please login first', 'error');
+                return;
+            }
+            
+            try {
+                showResult('Getting profile...', 'info');
+                
+                const response = await fetch('http://localhost:5000/api/user/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    currentUser = data.user;
+                    showResult(`✅ Profile retrieved!\n${JSON.stringify(data.user, null, 2)}`, 'success');
+                    
+                    // Display logo if exists
+                    const logoDiv = document.getElementById('logoDisplay');
+                    if (data.user.logo) {
+                        logoDiv.innerHTML = `
+                            <h3>Current Logo:</h3>
+                            <div class="logo-display">
+                                <img src="${data.user.logo}" alt="User Logo" onerror="this.style.display='none';">
+                            </div>
+                            <p>URL: ${data.user.logo}</p>
+                        `;
+                    } else {
+                        logoDiv.innerHTML = '<h3>No logo found</h3>';
+                    }
+                } else {
+                    showResult(`❌ Failed to get profile: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Profile error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testUploadLogo() {
+            if (!token) {
+                showResult('❌ Please login first', 'error');
+                return;
+            }
+            
+            const fileInput = document.getElementById('logoFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showResult('❌ Please select a file first', 'error');
+                return;
+            }
+            
+            try {
+                showResult('Uploading logo...', 'info');
+                
+                // Step 1: Upload image
+                const formData = new FormData();
+                formData.append('image', file);
+                
+                const uploadResponse = await fetch('http://localhost:5000/api/upload/image', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+                
+                const uploadData = await uploadResponse.json();
+                
+                if (!uploadResponse.ok) {
+                    throw new Error(`Upload failed: ${uploadData.message}`);
+                }
+                
+                showResult(`✅ Image uploaded: ${uploadData.url}`, 'success');
+                
+                // Step 2: Update profile
+                const profileData = {
+                    name: currentUser.name,
+                    email: currentUser.email,
+                    phone: currentUser.phone,
+                    country: currentUser.country,
+                    logo: uploadData.url
+                };
+                
+                const profileResponse = await fetch('http://localhost:5000/api/user/update-profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(profileData)
+                });
+                
+                const profileResult = await profileResponse.json();
+                
+                if (profileResponse.ok) {
+                    showResult(`✅ Logo uploaded and profile updated!\nImage URL: ${uploadData.url}`, 'success');
+                    
+                    // Refresh profile to show new logo
+                    setTimeout(testGetProfile, 1000);
+                } else {
+                    showResult(`❌ Profile update failed: ${profileResult.message}`, 'error');
+                }
+                
+            } catch (error) {
+                showResult(`❌ Upload error: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

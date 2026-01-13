@@ -25,15 +25,25 @@ export const AdminNotificationProvider = ({ children }) => {
       const newRegistrations = await adminNotificationService.getNewRegistrations();
       
       if (newRegistrations && newRegistrations.length > 0) {
-        // Update last checked timestamp FIRST to prevent showing same notifications again
-        adminNotificationService.updateLastChecked();
+        console.log(`🔔 Found ${newRegistrations.length} new unseen registrations`);
         
-        // Then show toast notifications for each new registration
+        // Show toast notifications for each new registration
         newRegistrations.forEach((registration, index) => {
           setTimeout(() => {
             showRegistrationToast(registration);
           }, index * 500); // Stagger notifications by 500ms
         });
+
+        // Mark these registrations as seen by admin
+        const userIds = newRegistrations.map(reg => reg.id);
+        await adminNotificationService.markRegistrationsAsSeen(userIds);
+        
+        // Update last checked timestamp
+        adminNotificationService.updateLastChecked();
+      } else {
+        console.log('🔕 No new unseen registrations found');
+        // Still update session check to prevent repeated calls
+        adminNotificationService.markCheckedThisSession();
       }
     } catch (error) {
       console.error('Error checking new registrations:', error);
@@ -59,15 +69,17 @@ export const AdminNotificationProvider = ({ children }) => {
     const { name, email, role, created_at } = registration;
     const roleText = role === 'company' ? 'Company Owner' : 'Business Owner';
     
+    const toastId = `registration-${registration.id}-${Date.now()}`;
+    
     toast.info(
       <div className="flex flex-col">
-        <div className="font-semibold text-black mb-1">
-          New {roleText} Registered!
+        <div className="font-semibold text-white mb-1">
+          🎉 New {roleText} Registered!
         </div>
-        <div className="text-sm text-gray-800">
+        <div className="text-sm text-white">
           <div><strong>Name:</strong> {name}</div>
           <div><strong>Email:</strong> {email}</div>
-          <div className="text-xs text-gray-700 mt-1">
+          <div className="text-xs text-gray-200 mt-1">
             {new Date(created_at).toLocaleString()}
           </div>
         </div>
@@ -82,9 +94,14 @@ export const AdminNotificationProvider = ({ children }) => {
         className: "admin-notification-toast",
         bodyClassName: "admin-notification-body",
         progressClassName: "admin-notification-progress",
-        toastId: `registration-${registration.id}` // Prevent duplicate toasts
+        toastId: toastId, // Unique ID to prevent duplicates
+        onClose: () => {
+          console.log(`✅ Toast closed for registration: ${name}`);
+        }
       }
     );
+    
+    console.log(`🔔 Showed toast for new ${roleText}: ${name} (${email})`);
   }, []);
 
   // Load pending notifications
@@ -116,10 +133,8 @@ export const AdminNotificationProvider = ({ children }) => {
   // Periodic check for new registrations (every 5 minutes)
   useEffect(() => {
     const interval = setInterval(() => {
-      // Only check periodically if we haven't checked in this session yet
-      if (!adminNotificationService.hasCheckedThisSession()) {
-        checkNewRegistrations();
-      }
+      // Check periodically for new registrations (this will only show truly new ones)
+      checkNewRegistrations();
     }, 5 * 60 * 1000); // 5 minutes
 
     return () => clearInterval(interval);

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Quote Details - Approved Filter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-case {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status-approved {
+            background: linear-gradient(to right, #d4edda, #c3e6cb);
+            border: 2px solid #28a745;
+            color: #155724;
+        }
+        .company-card {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border-left: 4px solid #28a745;
+        }
+        .company-name {
+            font-weight: bold;
+            font-size: 18px;
+            color: #2c3e50;
+        }
+        .company-details {
+            margin-top: 10px;
+            color: #6c757d;
+        }
+        .price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #28a745;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .approved {
+            background: #28a745;
+            color: white;
+        }
+        .verified {
+            background: #17a2b8;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Quote Details - Approved Status Filter Test</h1>
+    
+    <div class="test-case">
+        <h2>Test Scenario: Quote Status = "approved"</h2>
+        <p><strong>Expected Behavior:</strong> Show only the company that accepted the payment and has verified payment status</p>
+        
+        <div class="status-approved">
+            <h3>🎉 Quote Approved!</h3>
+            <p>Great news! Your payment has been verified and your quote has been approved. The company will begin working on your shipment as scheduled.</p>
+        </div>
+        
+        <h3>Selected Company</h3>
+        <p><em>Company that accepted your payment and will handle your shipment</em></p>
+        
+        <div class="company-card">
+            <div class="company-name">ABC Freight Solutions</div>
+            <div class="company-details">
+                <p>📧 contact@abcfreight.com | 📞 +1-555-0123</p>
+                <div class="price">$2,450</div>
+                <p><strong>Transit Time:</strong> 5-7 business days</p>
+                <p><strong>Payment Status:</strong> <span class="status-badge verified">Verified ✓</span></p>
+                <p><strong>User Response:</strong> <span class="status-badge approved">Accepted ✓</span></p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-case">
+        <h2>Key Changes Made:</h2>
+        <ul>
+            <li>✅ Modified header text from "Company Responses" to "Selected Company" when status is approved</li>
+            <li>✅ Updated description to reflect single company selection</li>
+            <li>✅ Added filtering logic to show only companies with:
+                <ul>
+                    <li>user_response_status === 'accepted'</li>
+                    <li>payment_status === 'verified'</li>
+                </ul>
+            </li>
+            <li>✅ Updated counter badge to show "Approved Company" instead of response counts</li>
+            <li>✅ Added fallback message if no approved company found</li>
+        </ul>
+    </div>
+    
+    <div class="test-case">
+        <h2>Filter Logic:</h2>
+        <pre style="background: #f8f9fa; padding: 15px; border-radius: 4px; overflow-x: auto;">
+// Filter responses based on quote status
+let filteredResponses = Array.isArray(responses) ? responses : [];
+
+// If quote is approved, show only the company that accepted the payment
+if (quote && quote.status === 'approved') {
+  filteredResponses = responses.filter(response => 
+    response.user_response_status === 'accepted' && 
+    response.payment_status === 'verified'
+  );
+}
+
+return filteredResponses.map((response, index) => (
+  // Company card JSX...
+))
+        </pre>
+    </div>
+    
+    <div class="test-case">
+        <h2>Testing Instructions:</h2>
+        <ol>
+            <li>Navigate to <code>http://localhost:5173/user/quotes/54</code></li>
+            <li>Ensure the quote has status "approved"</li>
+            <li>Verify that only the company with accepted and verified payment is shown</li>
+            <li>Check that the header shows "Selected Company" instead of "Company Responses"</li>
+            <li>Confirm the description text is updated appropriately</li>
+        </ol>
+    </div>
+</body>
+</html>

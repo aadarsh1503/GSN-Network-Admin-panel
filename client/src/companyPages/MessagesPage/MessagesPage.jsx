@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { 
   FiMessageSquare, FiRefreshCw, FiSearch, FiSend, FiInbox, FiMail,
@@ -8,11 +8,16 @@ import { FaCheck, FaClock } from 'react-icons/fa';
 import { api } from '../../utils/api';
 import toast from 'react-hot-toast';
 import useMarkAsRead from '../../hooks/useMarkAsRead';
+import RoleBadge from '../../components/RoleBadge/RoleBadge';
+import UserAvatar from '../../components/UserAvatar/UserAvatar';
+import { getConversationHeaderInfo, getMessageSenderInfo } from '../../utils/userRoleUtils';
 
 const MessagesPage = () => {
   const location = useLocation();
+  const messagesEndRef = useRef(null);
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [conversationLoading, setConversationLoading] = useState(false); // New loading state for conversations
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [conversationMessages, setConversationMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
@@ -23,14 +28,50 @@ const MessagesPage = () => {
   // Mark message-related notifications as read when this page is visited
   useMarkAsRead('messages');
 
+  // Auto-scroll to bottom when messages change
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [conversationMessages]);
+
   useEffect(() => {
     fetchConversations();
     fetchUnreadCount();
   }, []);
 
-  // Handle navigation from other pages (like MyQuotes)
+  // Handle navigation from other pages (like MyQuotes) and URL parameters
   useEffect(() => {
-    if (location.state?.openConversation && conversations.length > 0) {
+    const urlParams = new URLSearchParams(location.search);
+    const recipientId = urlParams.get('recipient');
+    const recipientName = urlParams.get('name');
+    
+    if (recipientId && recipientName && conversations.length > 0) {
+      // Try to find existing conversation
+      const existingConversation = conversations.find(conv => conv.other_user_id === parseInt(recipientId));
+      
+      if (existingConversation) {
+        // Open existing conversation
+        handleSelectConversation(existingConversation);
+      } else {
+        // Create new conversation object
+        setSelectedConversation({
+          userId: parseInt(recipientId),
+          userName: decodeURIComponent(recipientName),
+          logo: null
+        });
+        
+        // Try to fetch conversation (might be empty for new conversation)
+        fetchConversation(parseInt(recipientId));
+        
+        toast.success(`Opening conversation with ${decodeURIComponent(recipientName)}`);
+      }
+      
+      // Clear the URL parameters to prevent re-triggering
+      window.history.replaceState({}, document.title, location.pathname);
+    } else if (location.state?.openConversation && conversations.length > 0) {
       const { userId, userName, userEmail } = location.state.openConversation;
       
       // Try to find existing conversation
@@ -82,6 +123,7 @@ const MessagesPage = () => {
   };
 
   const fetchConversation = async (userId) => {
+    setConversationLoading(true); // Start loading
     try {
       const data = await api.get(`/api/messages/conversation/${userId}`);
       setConversationMessages(Array.isArray(data) ? data : []);
@@ -89,6 +131,8 @@ const MessagesPage = () => {
       console.error('Error fetching conversation:', error);
       setConversationMessages([]);
       toast.error('Failed to fetch conversation');
+    } finally {
+      setConversationLoading(false); // End loading
     }
   };
 
@@ -96,7 +140,8 @@ const MessagesPage = () => {
     setSelectedConversation({
       userId: conversation.other_user_id,
       userName: conversation.other_user_name,
-      logo: conversation.other_user_logo
+      logo: conversation.other_user_logo,
+      userRole: conversation.other_user_role || 'user'
     });
     
     await fetchConversation(conversation.other_user_id);
@@ -111,6 +156,9 @@ const MessagesPage = () => {
         console.error('Error marking messages as read:', error);
       }
     }
+
+    // Auto-scroll to bottom after selecting conversation
+    setTimeout(scrollToBottom, 100);
   };
 
   const handleSendMessage = async (e) => {
@@ -129,6 +177,9 @@ const MessagesPage = () => {
       setNewMessage('');
       await fetchConversation(selectedConversation.userId);
       toast.success('Message sent!');
+      
+      // Auto-scroll to bottom after sending message
+      setTimeout(scrollToBottom, 100);
     } catch (error) {
       toast.error(error.message || 'Failed to send message');
     } finally {
@@ -142,14 +193,17 @@ const MessagesPage = () => {
   }) : [];
 
   const isSystemMessage = (message) => {
-    return message.subject && (
+    return (message.subject && (
       message.subject.includes('Quote Response') ||
       message.subject.includes('Status Update') ||
-      message.subject.includes('Quote #')
-    );
+      message.subject.includes('Quote #') ||
+      message.subject.includes('Ticket Response') ||
+      message.subject.includes('Company Ticket Response')
+    )) || message.ticket_id;
   };
 
   const getSystemMessageType = (message) => {
+    if (message.ticket_id || message.subject?.includes('Ticket Response') || message.subject?.includes('Company Ticket Response')) return 'ticket';
     if (message.subject?.includes('Quote Response')) return 'response';
     if (message.subject?.includes('Status Update')) return 'status';
     return 'system';
@@ -213,7 +267,7 @@ const MessagesPage = () => {
           </div>
         </div>
 
-        {/* Conversation List */}
+        {/* Conversation List - Independent Scrolling */}
         <div className="flex-1 overflow-y-auto">
           {loading ? (
             <div className="text-center py-8">
@@ -239,18 +293,28 @@ const MessagesPage = () => {
                   } ${conv.unread_count > 0 ? 'bg-blue-50' : ''}`}
                 >
                   <div className="flex items-start gap-3">
-                    {conv.other_user_logo ? (
-                      <img src={conv.other_user_logo} alt={conv.other_user_name} className="w-10 h-10 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-[#CDA435] flex items-center justify-center text-white font-bold">
-                        {conv.other_user_name?.charAt(0)}
-                      </div>
-                    )}
+                    <UserAvatar 
+                      user={{
+                        name: conv.other_user_name,
+                        logo: conv.other_user_logo,
+                        role: conv.other_user_role || 'user'
+                      }}
+                      size="sm"
+                      showRoleIndicator={true}
+                    />
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start">
-                        <p className={`font-medium truncate ${conv.unread_count > 0 ? 'text-gray-900' : 'text-gray-700'}`}>
-                          {conv.other_user_name}
-                        </p>
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <p className={`font-medium truncate ${conv.unread_count > 0 ? 'text-gray-900' : 'text-gray-700'}`}>
+                            {conv.other_user_name}
+                          </p>
+                          <RoleBadge 
+                            role={conv.other_user_role || 'user'}
+                            size="sm"
+                            showIcon={true}
+                            className="flex-shrink-0"
+                          />
+                        </div>
                         <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                           <span className="text-xs text-gray-400">
                             {formatDate(conv.last_message_time)}
@@ -290,21 +354,73 @@ const MessagesPage = () => {
               >
                 <FiChevronLeft size={24} />
               </button>
-              {selectedConversation.logo ? (
-                <img src={selectedConversation.logo} alt={selectedConversation.userName} className="w-10 h-10 rounded-full object-cover mr-3" />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-[#CDA435] flex items-center justify-center text-white font-bold mr-3">
-                  {selectedConversation.userName?.charAt(0)}
+              <UserAvatar 
+                user={{
+                  name: selectedConversation.userName,
+                  logo: selectedConversation.logo,
+                  role: selectedConversation.userRole || 'user'
+                }}
+                size="md"
+                showRoleIndicator={true}
+                className="mr-3"
+              />
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h2 className="font-semibold text-gray-800">{selectedConversation.userName}</h2>
+                  <RoleBadge 
+                    role={selectedConversation.userRole || 'user'}
+                    size="sm"
+                    showIcon={true}
+                  />
                 </div>
-              )}
-              <div>
-                <h2 className="font-semibold text-gray-800">{selectedConversation.userName}</h2>
+                <p className="text-sm text-gray-500">
+                  {selectedConversation.userRole === 'admin' ? 'Platform Administrator' :
+                   selectedConversation.userRole === 'business' ? 'Business Owner' :
+                   selectedConversation.userRole === 'company' ? 'Logistics Company' :
+                   'Platform Member'}
+                </p>
               </div>
             </header>
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-              {Array.isArray(conversationMessages) && conversationMessages.map((msg) => {
+              {conversationLoading ? (
+                // Futuristic Loader
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center">
+                    <div className="relative mb-8">
+                      {/* Outer rotating ring */}
+                      <div className="w-20 h-20 border-4 border-[#CDA435]/20 rounded-full animate-spin mx-auto relative">
+                        <div className="absolute top-0 left-0 w-full h-full border-4 border-transparent border-t-[#CDA435] rounded-full animate-spin"></div>
+                        <div className="absolute top-2 left-2 w-16 h-16 border-4 border-transparent border-t-[#D9B95B] rounded-full animate-spin" style={{animationDirection: 'reverse', animationDuration: '1.5s'}}></div>
+                      </div>
+                      {/* Inner pulsing core */}
+                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                        <div className="w-8 h-8 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-full animate-pulse shadow-lg"></div>
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full animate-ping"></div>
+                      </div>
+                      {/* Floating particles */}
+                      <div className="absolute -top-2 -left-2 w-2 h-2 bg-[#CDA435] rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
+                      <div className="absolute -top-2 -right-2 w-2 h-2 bg-[#D9B95B] rounded-full animate-bounce" style={{animationDelay: '0.5s'}}></div>
+                      <div className="absolute -bottom-2 -left-2 w-2 h-2 bg-[#CDA435] rounded-full animate-bounce" style={{animationDelay: '1s'}}></div>
+                      <div className="absolute -bottom-2 -right-2 w-2 h-2 bg-[#D9B95B] rounded-full animate-bounce" style={{animationDelay: '1.5s'}}></div>
+                    </div>
+                    <div className="space-y-3">
+                      <h3 className="text-xl font-bold bg-gradient-to-r from-[#CDA435] to-[#D9B95B] bg-clip-text text-transparent">
+                        Loading Conversation
+                      </h3>
+                      <p className="text-gray-600 font-medium">Fetching messages...</p>
+                      {/* Loading dots */}
+                      <div className="flex justify-center space-x-2">
+                        <div className="w-2 h-2 bg-[#CDA435] rounded-full animate-pulse" style={{animationDelay: '0s'}}></div>
+                        <div className="w-2 h-2 bg-[#D9B95B] rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                        <div className="w-2 h-2 bg-[#CDA435] rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                Array.isArray(conversationMessages) && conversationMessages.map((msg) => {
                 const isOwn = msg.sender_id === currentUser.id;
                 const isSystem = isSystemMessage(msg);
                 const systemType = getSystemMessageType(msg);
@@ -313,21 +429,35 @@ const MessagesPage = () => {
                   return (
                     <div key={msg.id} className="flex justify-center">
                       <div className={`max-w-[80%] rounded-lg p-3 shadow-sm border-l-4 ${
+                        systemType === 'ticket' ? 'bg-yellow-50 border-yellow-500' :
                         systemType === 'response' ? 'bg-green-50 border-green-500' :
                         systemType === 'status' ? 'bg-blue-50 border-blue-500' :
                         'bg-yellow-50 border-yellow-500'
                       }`}>
                         <div className="flex items-center gap-2 mb-2">
+                          {systemType === 'ticket' && <FiMessageSquare className="text-yellow-600" />}
                           {systemType === 'response' && <FaCheck className="text-green-600" />}
                           {systemType === 'status' && <FaClock className="text-blue-600" />}
                           <p className={`text-xs font-medium ${
+                            systemType === 'ticket' ? 'text-yellow-700' :
                             systemType === 'response' ? 'text-green-700' :
                             systemType === 'status' ? 'text-blue-700' :
                             'text-yellow-700'
                           }`}>
-                            {msg.subject}
+                            {msg.subject || `Ticket ${msg.ticket_number || 'Response'}`}
                           </p>
+                          {msg.ticket_number && (
+                            <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded-full font-medium">
+                              {msg.ticket_number}
+                            </span>
+                          )}
                         </div>
+                        {msg.ticket_subject && (
+                          <div className="mb-2 p-2 bg-white/70 rounded border border-yellow-200">
+                            <p className="text-xs text-yellow-700 font-medium">Ticket Subject:</p>
+                            <p className="text-sm text-gray-700">{msg.ticket_subject}</p>
+                          </div>
+                        )}
                         <p className="text-sm text-gray-700 whitespace-pre-line">{msg.message}</p>
                         <p className="text-xs text-gray-500 mt-2 text-center">
                           {formatDate(msg.created_at)}
@@ -340,6 +470,50 @@ const MessagesPage = () => {
                 return (
                   <div key={msg.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[70%] ${isOwn ? 'bg-[#CDA435] text-white' : 'bg-white'} rounded-lg p-3 shadow-sm`}>
+                      {!isOwn && (
+                        <div className="flex items-center gap-2 mb-2">
+                          <UserAvatar 
+                            user={{
+                              name: msg.sender_display_name || msg.sender_name || 'User',
+                              role: msg.sender_role || 'user'
+                            }}
+                            size="sm"
+                            showRoleIndicator={false}
+                            className="w-8 h-8"
+                          />
+                          <span className="text-xs font-semibold text-gray-600">
+                            {msg.sender_role === 'admin' ? 'Admin' : (msg.sender_display_name || msg.sender_name || 'User')}
+                          </span>
+                          <RoleBadge 
+                            role={msg.sender_role || 'user'}
+                            size="sm"
+                            showIcon={true}
+                            className="ml-1"
+                          />
+                        </div>
+                      )}
+                      {isOwn && (
+                        <div className="flex items-center gap-2 mb-2">
+                          <UserAvatar 
+                            user={{
+                              name: currentUser.name,
+                              role: currentUser.role || 'company'
+                            }}
+                            size="sm"
+                            showRoleIndicator={false}
+                            className="w-4 h-4"
+                          />
+                          <span className="text-xs font-semibold text-yellow-100">
+                            You
+                          </span>
+                          <RoleBadge 
+                            role={currentUser.role || 'company'}
+                            size="sm"
+                            showIcon={true}
+                            className="ml-1 bg-yellow-200/20 text-yellow-100"
+                          />
+                        </div>
+                      )}
                       <p className="text-sm">{msg.message}</p>
                       <p className={`text-xs mt-1 ${isOwn ? 'text-yellow-100' : 'text-gray-400'}`}>
                         {formatDate(msg.created_at)}
@@ -347,7 +521,10 @@ const MessagesPage = () => {
                     </div>
                   </div>
                 );
-              })}
+              }) 
+              )}
+              {/* Auto-scroll anchor */}
+              <div ref={messagesEndRef} />
             </div>
 
             {/* Message Input */}

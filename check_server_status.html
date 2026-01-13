@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Status Checker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status-item {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border-left: 4px solid #ccc;
+        }
+        .status-success {
+            background: #d4edda;
+            border-left-color: #28a745;
+            color: #155724;
+        }
+        .status-error {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+            color: #721c24;
+        }
+        .status-warning {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+            color: #856404;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Server Status Checker</h1>
+        <p>This tool helps diagnose why the comprehensive admin quotes API is not working.</p>
+        
+        <button class="btn" onclick="checkServerStatus()">🚀 Check Server Status</button>
+        <button class="btn" onclick="testEnhancedRoutes()">🔗 Test Enhanced Routes</button>
+        <button class="btn" onclick="analyzeQuoteData()">📊 Analyze Quote Data</button>
+        
+        <div id="results">
+            <p>Click a button above to start testing...</p>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:5000'; // Adjust if needed
+        
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `status-item status-${type}`;
+            div.innerHTML = message;
+            results.appendChild(div);
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        async function checkServerStatus() {
+            clearResults();
+            addResult('<div class="loading"></div> Checking server connectivity...', 'warning');
+            
+            try {
+                const response = await fetch(`${BASE_URL}/api/admin-panel/quotes`);
+                
+                if (response.ok) {
+                    addResult('✅ Server is running and responding', 'success');
+                    const data = await response.json();
+                    addResult(`📊 Found ${data.length} quotes in database`, 'success');
+                } else if (response.status === 401) {
+                    addResult('✅ Server is running (authentication required)', 'success');
+                } else {
+                    addResult(`⚠️ Server responded with status ${response.status}`, 'warning');
+                }
+            } catch (error) {
+                addResult(`❌ Cannot connect to server: ${error.message}`, 'error');
+                addResult('👉 Make sure your server is running on port 5000', 'warning');
+            }
+        }
+        
+        async function testEnhancedRoutes() {
+            clearResults();
+            addResult('<div class="loading"></div> Testing enhanced quote routes...', 'warning');
+            
+            const routes = [
+                '/api/enhanced-quotes/admin/comprehensive-quotes',
+                '/api/enhanced-quotes/admin/comprehensive-quotes/approved'
+            ];
+            
+            for (const route of routes) {
+                try {
+                    const response = await fetch(`${BASE_URL}${route}`);
+                    
+                    if (response.status === 404) {
+                        addResult(`❌ Route not found: ${route}`, 'error');
+                        addResult('👉 Server needs to be restarted to register new routes', 'warning');
+                    } else if (response.status === 401) {
+                        addResult(`✅ Route exists: ${route} (requires auth)`, 'success');
+                    } else if (response.status === 500) {
+                        addResult(`⚠️ Server error on: ${route}`, 'warning');
+                    } else {
+                        addResult(`✅ Route accessible: ${route}`, 'success');
+                    }
+                } catch (error) {
+                    addResult(`❌ Failed to test ${route}: ${error.message}`, 'error');
+                }
+            }
+        }
+        
+        async function analyzeQuoteData() {
+            clearResults();
+            addResult('<div class="loading"></div> Analyzing quote data structure...', 'warning');
+            
+            try {
+                const response = await fetch(`${BASE_URL}/api/admin-panel/quotes`);
+                
+                if (response.ok) {
+                    const quotes = await response.json();
+                    addResult(`📊 Analyzing ${quotes.length} quotes...`, 'success');
+                    
+                    if (quotes.length > 0) {
+                        const sampleQuote = quotes[0];
+                        
+                        // Check for company assignment fields
+                        const hasCompanyFields = !!(sampleQuote.company_name || sampleQuote.accepted_price);
+                        
+                        if (hasCompanyFields) {
+                            addResult('✅ Quotes include company assignment data', 'success');
+                        } else {
+                            addResult('❌ Quotes missing company assignment data', 'error');
+                            addResult('👉 This is why you see "No company assigned"', 'warning');
+                            addResult('👉 Enhanced API is needed for company details', 'warning');
+                        }
+                        
+                        // Show sample structure
+                        addResult(`📋 Sample quote structure:`, 'info');
+                        addResult(`- ID: ${sampleQuote.id}`, 'info');
+                        addResult(`- User: ${sampleQuote.user_name || 'N/A'}`, 'info');
+                        addResult(`- Responses: ${sampleQuote.response_count || 0}`, 'info');
+                        addResult(`- Status: ${sampleQuote.status}`, 'info');
+                        addResult(`- Has company_name: ${!!sampleQuote.company_name}`, 'info');
+                        addResult(`- Has accepted_price: ${!!sampleQuote.accepted_price}`, 'info');
+                        
+                        // Check if quotes have responses but no company assignment
+                        const quotesWithResponses = quotes.filter(q => (q.response_count || 0) > 0);
+                        const quotesWithCompanyData = quotes.filter(q => q.company_name);
+                        
+                        if (quotesWithResponses.length > 0 && quotesWithCompanyData.length === 0) {
+                            addResult(`⚠️ Found ${quotesWithResponses.length} quotes with responses but no company assignment data`, 'warning');
+                            addResult('👉 This confirms the enhanced API is needed', 'warning');
+                        }
+                    }
+                } else {
+                    addResult(`❌ Cannot fetch quote data: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                addResult(`❌ Error analyzing data: ${error.message}`, 'error');
+            }
+        }
+        
+        // Auto-run basic check on page load
+        window.addEventListener('load', () => {
+            setTimeout(checkServerStatus, 1000);
+        });
+    </script>
+</body>
+</html>

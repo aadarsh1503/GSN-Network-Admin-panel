@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { submitPendingQuote, hasPendingQuote } from '../../utils/pendingQuote';
 import toast from 'react-hot-toast';
@@ -10,6 +10,7 @@ const LoginPage = () => {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState(''); // State for error messages
+    const [isCheckingAuth, setIsCheckingAuth] = useState(true); // Loading state for auth check
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -18,12 +19,65 @@ const LoginPage = () => {
     const registrationMessage = location.state?.message;
     const prefilledEmail = location.state?.email;
 
+    // Check if user is already logged in
+    useEffect(() => {
+        const checkAuthStatus = () => {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            if (token && user) {
+                try {
+                    const userData = JSON.parse(user);
+                    console.log('User already logged in, redirecting...', userData);
+                    
+                    // Redirect based on user role
+                    if (userData.role === 'admin') {
+                        navigate('/admin', { replace: true });
+                    } else if (userData.role === 'company') {
+                        navigate('/company', { replace: true });
+                    } else if (userData.role === 'business') {
+                        navigate('/business', { replace: true });
+                    } else if (userData.role === 'user') {
+                        navigate('/user/dashboard', { replace: true });
+                    } else {
+                        // If role is unknown, clear storage and allow login
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user');
+                        setIsCheckingAuth(false);
+                    }
+                } catch (error) {
+                    console.error('Error parsing user data:', error);
+                    // Clear invalid data and allow login
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    setIsCheckingAuth(false);
+                }
+            } else {
+                setIsCheckingAuth(false);
+            }
+        };
+
+        checkAuthStatus();
+    }, [navigate]);
+
     // Pre-fill email if coming from registration
-    React.useEffect(() => {
+    useEffect(() => {
         if (prefilledEmail) {
             setEmail(prefilledEmail);
         }
     }, [prefilledEmail]);
+
+    // Show loading spinner while checking authentication
+    if (isCheckingAuth) {
+        return (
+            <div className="bg-stone-100 min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#CDA435] mx-auto mb-4"></div>
+                    <p className="text-xl text-gray-600">Checking authentication...</p>
+                </div>
+            </div>
+        );
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -47,18 +101,47 @@ const LoginPage = () => {
                 }
             }
 
-            // Redirect based on role or intended destination
+            // Redirect based on role with proper authorization check
+            const userRole = data.user.role;
+            let redirectPath = '/';
+
+            // Determine the correct dashboard for the user's role
+            if (userRole === 'admin') {
+                redirectPath = '/admin';
+            } else if (userRole === 'company') {
+                redirectPath = '/company';
+            } else if (userRole === 'business') {
+                redirectPath = '/business';
+            } else if (userRole === 'user') {
+                redirectPath = '/user/dashboard';
+            }
+
+            // Check if the user has permission to access the intended destination
             if (from) {
-                navigate(from, { replace: true });
-            } else if (data.user.role === 'admin') {
-                navigate('/admin');
-            } else if (data.user.role === 'company') {
-                navigate('/company');
-            } else if (data.user.role === 'user') {
-                navigate('/user/dashboard');
+                const fromPath = from.pathname || from;
+                let hasPermission = false;
+
+                // Check if the user has permission for the intended route
+                if (userRole === 'admin' && fromPath.startsWith('/admin')) {
+                    hasPermission = true;
+                } else if (userRole === 'company' && fromPath.startsWith('/company')) {
+                    hasPermission = true;
+                } else if (userRole === 'business' && fromPath.startsWith('/business')) {
+                    hasPermission = true;
+                } else if (userRole === 'user' && fromPath.startsWith('/user')) {
+                    hasPermission = true;
+                }
+
+                // Redirect to intended destination only if user has permission
+                if (hasPermission) {
+                    navigate(from, { replace: true });
+                } else {
+                    // User doesn't have permission, redirect to their appropriate dashboard
+                    navigate(redirectPath, { replace: true });
+                }
             } else {
-                // Fallback in case of an unexpected role
-                navigate('/');
+                // No intended destination, redirect to appropriate dashboard
+                navigate(redirectPath, { replace: true });
             }
 
         } catch (err) {
@@ -138,7 +221,9 @@ const LoginPage = () => {
 
                         <div className="flex items-center justify-between mb-6">
                             <div className="text-sm">
-                                <a href="#" className="font-medium text-gray-600 hover:text-[#CDA435]">Forgot Password?</a>
+                                <Link to="/forgot-password" className="font-medium text-gray-600 hover:text-[#CDA435]">
+                                    Forgot Password?
+                                </Link>
                             </div>
                         </div>
 
@@ -160,7 +245,7 @@ const LoginPage = () => {
                             </Link>
                         </p>
                         <p>
-                            Need to track quotes?{' '}
+                            Need to request quotes?{' '}
                             <Link 
                                 to="/user-register" 
                                 state={{ from }}

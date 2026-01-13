@@ -22,6 +22,8 @@ import {
 import toast from 'react-hot-toast';
 import { hasPendingQuote, submitPendingQuote, clearPendingQuote } from '../../utils/pendingQuote';
 import { api } from '../../utils/api';
+import ProfileCompletionModal from '../../components/Modal/ProfileCompletionModal';
+import { useProfileCompletion } from '../../hooks/useProfileCompletion';
 
 // Website color palette matching the Admin Dashboard
 const COLORS = {
@@ -247,6 +249,10 @@ const UserDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [showPendingQuote, setShowPendingQuote] = useState(false);
   const [submittingPendingQuote, setSubmittingPendingQuote] = useState(false);
+
+  // Profile completion logic
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const { shouldShowPrompt, isModalOpen, closeModal, markProfileCompleted, dismissPermanently } = useProfileCompletion('user', user.id);
 
   useEffect(() => {
     fetchDashboardData();
@@ -611,6 +617,16 @@ const UserDashboard = () => {
             </div>
           )}
         </div>
+
+        {/* Profile Completion Modal */}
+        <ProfileCompletionModal
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          userRole="user"
+          userName={user.name || 'User'}
+          onComplete={markProfileCompleted}
+          onDismissPermanently={dismissPermanently}
+        />
       </div>
     </div>
   );

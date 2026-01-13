@@ -8,6 +8,10 @@ import db from '../config/db.js';
 // @access  Admin
 export const getAllSubscriptionsAdmin = async (req, res) => {
     try {
+        // Log the request for debugging
+        console.log('🔍 Admin panel subscriptions requested');
+        
+        // Get the latest subscription for each user, prioritizing paid subscriptions
         const sql = `
             SELECT 
                 us.id,
@@ -30,10 +34,31 @@ export const getAllSubscriptionsAdmin = async (req, res) => {
             FROM user_subscriptions us
             JOIN users u ON us.user_id = u.id
             JOIN membership_plans mp ON us.plan_id = mp.id
+            WHERE us.id IN (
+                SELECT MAX(us2.id)
+                FROM user_subscriptions us2
+                WHERE us2.user_id = us.user_id
+                AND us2.amount_paid > 0
+                GROUP BY us2.user_id
+            )
             ORDER BY us.created_at DESC
         `;
         
         const [subscriptions] = await db.execute(sql);
+        
+        // Log any suspicious subscriptions
+        const guestSubs = subscriptions.filter(sub => 
+            sub.plan_name === 'Guest' || parseFloat(sub.amount_paid) === 0
+        );
+        
+        if (guestSubs.length > 0) {
+            console.log('⚠️ WARNING: Guest subscriptions detected in admin panel:');
+            guestSubs.forEach(sub => {
+                console.log(`  - ID: ${sub.id}, User: ${sub.user_email}, Plan: ${sub.plan_name}, Amount: $${sub.amount_paid}`);
+            });
+        }
+        
+        console.log(`📊 Returning ${subscriptions.length} subscriptions to admin panel`);
         res.status(200).json(subscriptions);
     } catch (error) {
         console.error('Error fetching subscriptions:', error);
@@ -119,6 +144,46 @@ export const getAllTransactions = async (req, res) => {
     }
 };
 
+// @desc    Get accepted quote data as transactions (since actual transactions aren't created)
+// @route   GET /api/admin-panel/accepted-quote-transactions
+// @access  Admin
+export const getAcceptedQuoteTransactions = async (req, res) => {
+    try {
+        const sql = `
+            SELECT 
+                uqs.id,
+                uqs.user_id,
+                u.name as user_name,
+                u.email as user_email,
+                uqs.company_id,
+                c.name as company_name,
+                c.email as company_email,
+                uqs.quote_response_id,
+                uqs.quote_id,
+                q.product_description,
+                qr.price as amount,
+                'accepted_quote' as payment_method,
+                CONCAT('QUOTE-', uqs.quote_id, '-', uqs.quote_response_id) as transaction_reference,
+                'completed' as status,
+                'Payment for accepted shipping quote' as description,
+                uqs.accepted_at as created_at
+            FROM user_quote_status uqs
+            JOIN users u ON uqs.user_id = u.id
+            LEFT JOIN users c ON uqs.company_id = c.id
+            LEFT JOIN quote_responses qr ON uqs.quote_response_id = qr.id
+            LEFT JOIN quotes q ON uqs.quote_id = q.id
+            WHERE uqs.status = 'accepted'
+            ORDER BY uqs.accepted_at DESC
+        `;
+        
+        const [transactions] = await db.execute(sql);
+        res.status(200).json(transactions);
+    } catch (error) {
+        console.error('Error fetching accepted quote transactions:', error);
+        res.status(500).json({ message: 'Server error fetching accepted quote transactions' });
+    }
+};
+
 // @desc    Get subscription transactions (member subscription payments)
 // @route   GET /api/admin-panel/subscription-transactions
 // @access  Admin
@@ -162,6 +227,9 @@ export const getSubscriptionTransactions = async (req, res) => {
 // @route   GET /api/admin-panel/quotes
 // @access  Admin
 export const getAllQuotesAdmin = async (req, res) => {
+    console.log('🚨 [URGENT DEBUG] getAllQuotesAdmin function called!');
+    console.log('\n🔍 [DEBUG] getAllQuotesAdmin - Starting to fetch quotes...');
+    
     try {
         const sql = `
             SELECT 
@@ -170,27 +238,137 @@ export const getAllQuotesAdmin = async (req, res) => {
                 u.name as user_name,
                 u.email as user_email,
                 u.phone as user_phone,
+                u.role as user_role,
                 q.shipping_mode,
                 q.departure_country,
                 q.departure_city,
                 q.arrival_country,
                 q.arrival_city,
                 q.product_description,
+                q.arrival_date,
                 q.status,
                 q.created_at,
                 q.updated_at,
-                COUNT(DISTINCT qr.id) as response_count,
-                COUNT(DISTINCT CASE WHEN qr.status = 'accepted' THEN qr.id END) as accepted_count
+                
+                -- Response counts
+                COALESCE(response_counts.response_count, 0) as response_count,
+                COALESCE(response_counts.accepted_count, 0) as accepted_count,
+                
+                -- Company working on this quote (accepted response)
+                working_company.company_name,
+                working_company.company_email,
+                working_company.company_phone,
+                working_company.price as accepted_price,
+                working_company.transit_time as accepted_transit_time,
+                working_company.accepted_at,
+                working_company.payment_status,
+                working_company.payment_proof_url,
+                working_company.verification_date,
+                working_company.payment_company_notes,
+                working_company.has_payment_proof,
+                
+                -- Revenue calculation
+                CASE 
+                    WHEN working_company.payment_status = 'verified' THEN working_company.price
+                    ELSE 0
+                END as verified_revenue
+                
             FROM quotes q
             LEFT JOIN users u ON q.user_id = u.id
-            LEFT JOIN quote_responses qr ON q.id = qr.quote_id
-            GROUP BY q.id
+            
+            -- Subquery for response counts
+            LEFT JOIN (
+                SELECT 
+                    qr_count.quote_id,
+                    COUNT(DISTINCT qr_count.id) as response_count,
+                    COUNT(DISTINCT CASE WHEN uqs_count.status = 'accepted' THEN qr_count.id END) as accepted_count
+                FROM quote_responses qr_count
+                LEFT JOIN user_quote_status uqs_count ON qr_count.id = uqs_count.quote_response_id
+                GROUP BY qr_count.quote_id
+            ) response_counts ON q.id = response_counts.quote_id
+            
+            -- Subquery for working company (accepted response OR verified payment)
+            LEFT JOIN (
+                SELECT 
+                    qr2.quote_id,
+                    c.name as company_name,
+                    c.email as company_email,
+                    c.phone as company_phone,
+                    qr2.price,
+                    qr2.transit_time,
+                    uqs2.accepted_at,
+                    pv.verification_status as payment_status,
+                    pp.file_path as payment_proof_url,
+                    pv.verification_date,
+                    pv.company_notes as payment_company_notes,
+                    CASE WHEN pp.id IS NOT NULL THEN 1 ELSE 0 END as has_payment_proof
+                FROM quote_responses qr2
+                JOIN users c ON qr2.company_id = c.id
+                LEFT JOIN user_quote_status uqs2 ON qr2.id = uqs2.quote_response_id
+                LEFT JOIN payment_proofs pp ON uqs2.payment_proof_id = pp.id
+                LEFT JOIN payment_verifications pv ON pp.id = pv.payment_proof_id
+                WHERE uqs2.status = 'accepted' 
+                   OR (pv.verification_status = 'verified' AND pv.company_id = qr2.company_id)
+            ) working_company ON q.id = working_company.quote_id
+            
             ORDER BY q.created_at DESC
         `;
         
+        console.log('📝 [DEBUG] Executing SQL query for admin quotes...');
         const [quotes] = await db.execute(sql);
+        
+        console.log(`✅ [DEBUG] Query executed successfully. Found ${quotes.length} quotes`);
+        
+        // Log detailed information about the first few quotes
+        if (quotes.length > 0) {
+            console.log('\n📊 [DEBUG] Sample quote data structure:');
+            quotes.slice(0, 3).forEach((quote, index) => {
+                console.log(`\n--- Quote ${index + 1} (ID: ${quote.id}) ---`);
+                console.log(`👤 Customer: ${quote.user_name} (${quote.user_email})`);
+                console.log(`🏢 Company: ${quote.company_name || 'NO COMPANY'} (${quote.company_email || 'NO EMAIL'})`);
+                console.log(`💰 Price: ${quote.accepted_price || 'NO PRICE'}`);
+                console.log(`📦 Product: ${quote.product_description}`);
+                console.log(`📍 Route: ${quote.departure_country} → ${quote.arrival_country}`);
+                console.log(`📊 Responses: ${quote.response_count} total, ${quote.accepted_count} accepted`);
+                console.log(`💳 Payment Status: ${quote.payment_status || 'NO PAYMENT STATUS'}`);
+                console.log(`📅 Status: ${quote.status}`);
+                console.log(`🕒 Accepted At: ${quote.accepted_at || 'NOT ACCEPTED'}`);
+            });
+            
+            // Summary statistics
+            const quotesWithCompany = quotes.filter(q => q.company_name);
+            const quotesWithoutCompany = quotes.filter(q => !q.company_name);
+            const quotesWithAcceptedPrice = quotes.filter(q => q.accepted_price);
+            
+            console.log('\n📈 [DEBUG] Summary Statistics:');
+            console.log(`📊 Total quotes: ${quotes.length}`);
+            console.log(`🏢 Quotes with company assigned: ${quotesWithCompany.length}`);
+            console.log(`❌ Quotes without company: ${quotesWithoutCompany.length}`);
+            console.log(`💰 Quotes with accepted price: ${quotesWithAcceptedPrice.length}`);
+            
+            if (quotesWithCompany.length > 0) {
+                console.log('\n🏢 [DEBUG] Companies found:');
+                const uniqueCompanies = [...new Set(quotesWithCompany.map(q => q.company_name))];
+                uniqueCompanies.forEach(company => {
+                    const companyQuotes = quotesWithCompany.filter(q => q.company_name === company);
+                    console.log(`  - ${company}: ${companyQuotes.length} quotes`);
+                });
+            }
+        } else {
+            console.log('⚠️ [DEBUG] No quotes found in database');
+        }
+        
+        console.log('\n🚀 [DEBUG] Sending response to frontend...');
         res.status(200).json(quotes);
+        
     } catch (error) {
+        console.error('❌ [DEBUG] Error in getAllQuotesAdmin:', error);
+        console.error('❌ [DEBUG] Error details:', {
+            message: error.message,
+            code: error.code,
+            sqlState: error.sqlState,
+            stack: error.stack
+        });
         console.error('Error fetching quotes:', error);
         res.status(500).json({ message: 'Server error fetching quotes' });
     }
@@ -298,6 +476,184 @@ export const updateQuoteStatusAdmin = async (req, res) => {
     } catch (error) {
         console.error('Error updating quote status:', error);
         res.status(500).json({ message: 'Server error updating quote status' });
+    }
+};
+
+// ==================== INVOICE MANAGEMENT ====================
+
+// @desc    Get all invoices for admin panel
+// @route   GET /api/admin-panel/invoices
+// @access  Admin
+export const getAllInvoicesAdmin = async (req, res) => {
+    try {
+        console.log('🔍 Admin panel invoices requested');
+        
+        const sql = `
+            SELECT 
+                i.*,
+                -- Use backup dates for cancelled invoices, otherwise use current subscription dates
+                COALESCE(i.subscription_start_date_backup, us.start_date) as start_date,
+                COALESCE(i.subscription_end_date_backup, us.end_date) as end_date,
+                us.payment_status,
+                us.payment_method,
+                -- Use backup plan info for cancelled invoices, otherwise use current plan info
+                COALESCE(i.plan_name_backup, mp.name) as plan_name,
+                COALESCE(i.plan_description_backup, mp.description) as plan_description,
+                u.name as company_name,
+                u.email as company_email,
+                u.phone as company_phone,
+                u.role as user_role,
+                u.company_address,
+                u.city,
+                u.state,
+                u.country
+            FROM invoices i
+            LEFT JOIN user_subscriptions us ON i.subscription_id = us.id
+            LEFT JOIN membership_plans mp ON us.plan_id = mp.id
+            LEFT JOIN users u ON i.user_id = u.id
+            ORDER BY i.created_at DESC
+        `;
+        
+        const [invoices] = await db.execute(sql);
+        
+        console.log(`📊 Returning ${invoices.length} invoices to admin panel`);
+        res.status(200).json(invoices);
+    } catch (error) {
+        console.error('Error fetching admin invoices:', error);
+        res.status(500).json({ message: 'Server error fetching invoices' });
+    }
+};
+
+// @desc    Get invoice by ID for admin
+// @route   GET /api/admin-panel/invoices/:id
+// @access  Admin
+export const getInvoiceByIdAdmin = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const sql = `
+            SELECT 
+                i.*,
+                -- Use backup dates for cancelled invoices, otherwise use current subscription dates
+                COALESCE(i.subscription_start_date_backup, us.start_date) as start_date,
+                COALESCE(i.subscription_end_date_backup, us.end_date) as end_date,
+                us.payment_status,
+                us.payment_method,
+                us.transaction_id,
+                -- Use backup plan info for cancelled invoices, otherwise use current plan info
+                COALESCE(i.plan_name_backup, mp.name) as plan_name,
+                COALESCE(i.plan_description_backup, mp.description) as plan_description,
+                mp.features,
+                u.name as company_name,
+                u.email as company_email,
+                u.phone as company_phone,
+                u.role as user_role,
+                u.company_address,
+                u.city,
+                u.state,
+                u.country
+            FROM invoices i
+            LEFT JOIN user_subscriptions us ON i.subscription_id = us.id
+            LEFT JOIN membership_plans mp ON us.plan_id = mp.id
+            LEFT JOIN users u ON i.user_id = u.id
+            WHERE i.id = ?
+        `;
+        
+        const [rows] = await db.execute(sql, [id]);
+        
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'Invoice not found' });
+        }
+        
+        const invoice = rows[0];
+        
+        // Ensure we have plan information
+        invoice.plan_name = invoice.plan_name || 'Unknown Plan';
+        invoice.plan_description = invoice.plan_description || 'No description available';
+        invoice.features = invoice.features ? JSON.parse(invoice.features) : [];
+        
+        res.status(200).json(invoice);
+    } catch (error) {
+        console.error('Error fetching admin invoice details:', error);
+        res.status(500).json({ message: 'Server error fetching invoice details' });
+    }
+};
+
+// @desc    Get all transaction invoices for admin panel
+// @route   GET /api/admin-panel/transaction-invoices
+// @access  Admin
+export const getAllTransactionInvoicesAdmin = async (req, res) => {
+    try {
+        console.log('🔍 Admin panel transaction invoices requested');
+        
+        const sql = `
+            SELECT 
+                ti.*,
+                q.id as quote_id,
+                q.departure_city,
+                q.arrival_city,
+                u.name as user_name,
+                u.email as user_email,
+                u.phone as user_phone,
+                c.name as company_name,
+                c.email as company_email,
+                c.phone as company_phone
+            FROM transaction_invoices ti
+            LEFT JOIN quotes q ON ti.quote_id = q.id
+            LEFT JOIN users u ON ti.user_id = u.id
+            LEFT JOIN users c ON ti.company_id = c.id
+            ORDER BY ti.created_at DESC
+        `;
+        
+        const [invoices] = await db.execute(sql);
+        
+        console.log(`📊 Returning ${invoices.length} transaction invoices to admin panel`);
+        res.status(200).json(invoices);
+    } catch (error) {
+        console.error('Error fetching admin transaction invoices:', error);
+        res.status(500).json({ message: 'Server error fetching transaction invoices' });
+    }
+};
+
+// @desc    Get transaction invoice by ID for admin
+// @route   GET /api/admin-panel/transaction-invoices/:id
+// @access  Admin
+export const getTransactionInvoiceByIdAdmin = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const sql = `
+            SELECT 
+                ti.*,
+                q.id as quote_id,
+                q.departure_city,
+                q.arrival_city,
+                q.product,
+                q.shipping_mode,
+                u.name as user_name,
+                u.email as user_email,
+                u.phone as user_phone,
+                c.name as company_name,
+                c.email as company_email,
+                c.phone as company_phone
+            FROM transaction_invoices ti
+            LEFT JOIN quotes q ON ti.quote_id = q.id
+            LEFT JOIN users u ON ti.user_id = u.id
+            LEFT JOIN users c ON ti.company_id = c.id
+            WHERE ti.id = ?
+        `;
+        
+        const [rows] = await db.execute(sql, [id]);
+        
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'Transaction invoice not found' });
+        }
+        
+        const invoice = rows[0];
+        res.status(200).json(invoice);
+    } catch (error) {
+        console.error('Error fetching admin transaction invoice details:', error);
+        res.status(500).json({ message: 'Server error fetching transaction invoice details' });
     }
 };
 
@@ -433,8 +789,16 @@ export const getAdminDashboardStats = async (req, res) => {
         const [subscriptionStats] = await db.execute(subscriptionStatsSql);
         stats.subscriptions = subscriptionStats;
         
-        // Transaction statistics
+        // Transaction statistics (using accepted quotes since actual transactions aren't created)
         const transactionStatsSql = `
+            SELECT 
+                'completed' as status,
+                COUNT(*) as count,
+                SUM(qr.price) as total_amount
+            FROM user_quote_status uqs
+            JOIN quote_responses qr ON uqs.quote_response_id = qr.id
+            WHERE uqs.status = 'accepted'
+            UNION ALL
             SELECT 
                 status,
                 COUNT(*) as count,
@@ -463,7 +827,7 @@ export const getAdminDashboardStats = async (req, res) => {
         const [disputeStats] = await db.execute(disputeStatsSql);
         stats.disputes = disputeStats;
 
-        // Monthly revenue data for charts (last 6 months)
+        // Monthly revenue data for charts (last 6 months) - including accepted quotes
         const monthlyRevenueSql = `
             SELECT 
                 DATE_FORMAT(created_at, '%Y-%m') as month,
@@ -476,6 +840,22 @@ export const getAdminDashboardStats = async (req, res) => {
             WHERE created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
             AND status = 'completed'
             GROUP BY DATE_FORMAT(created_at, '%Y-%m'), DATE_FORMAT(created_at, '%b %Y')
+            
+            UNION ALL
+            
+            SELECT 
+                DATE_FORMAT(uqs.accepted_at, '%Y-%m') as month,
+                DATE_FORMAT(uqs.accepted_at, '%b %Y') as month_name,
+                SUM(qr.price) as quote_revenue,
+                0 as subscription_revenue,
+                SUM(qr.price) as total_revenue,
+                COUNT(*) as transaction_count
+            FROM user_quote_status uqs
+            JOIN quote_responses qr ON uqs.quote_response_id = qr.id
+            WHERE uqs.accepted_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+            AND uqs.status = 'accepted'
+            GROUP BY DATE_FORMAT(uqs.accepted_at, '%Y-%m'), DATE_FORMAT(uqs.accepted_at, '%b %Y')
+            
             ORDER BY month ASC
         `;
         const [monthlyRevenue] = await db.execute(monthlyRevenueSql);
@@ -499,14 +879,20 @@ export const getAdminDashboardStats = async (req, res) => {
         const [monthlyUserGrowth] = await db.execute(monthlyUserGrowthSql);
         stats.monthlyUserGrowth = monthlyUserGrowth;
 
-        // Top performing metrics
+        // Top performing metrics (including accepted quotes as transactions)
         const topMetricsSql = `
             SELECT 
                 (SELECT COUNT(*) FROM quotes WHERE status = 'running') as active_quotes,
                 (SELECT COUNT(*) FROM user_subscriptions WHERE status = 'active') as active_subscriptions,
                 (SELECT COUNT(*) FROM users WHERE status = 1 AND role != 'admin') as active_users,
-                (SELECT COUNT(*) FROM transactions WHERE status = 'completed' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)) as monthly_transactions,
-                (SELECT AVG(amount) FROM transactions WHERE status = 'completed') as avg_transaction_value,
+                (
+                    (SELECT COUNT(*) FROM transactions WHERE status = 'completed' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)) +
+                    (SELECT COUNT(*) FROM user_quote_status WHERE status = 'accepted' AND accepted_at >= DATE_SUB(NOW(), INTERVAL 30 DAY))
+                ) as monthly_transactions,
+                (
+                    COALESCE((SELECT AVG(amount) FROM transactions WHERE status = 'completed'), 0) +
+                    COALESCE((SELECT AVG(qr.price) FROM user_quote_status uqs JOIN quote_responses qr ON uqs.quote_response_id = qr.id WHERE uqs.status = 'accepted'), 0)
+                ) / 2 as avg_transaction_value,
                 (SELECT COUNT(*) FROM quotes WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)) as weekly_quotes,
                 (SELECT COUNT(*) FROM disputes WHERE status = 'pending') as pending_disputes,
                 (SELECT COUNT(*) FROM disputes WHERE status = 'resolved' AND resolved_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)) as monthly_resolved_disputes,
@@ -532,12 +918,18 @@ export const getAdminDashboardStats = async (req, res) => {
         const [recentActivity] = await db.execute(recentActivitySql);
         stats.recentActivity = recentActivity;
 
-        // Performance metrics
+        // Performance metrics (including accepted quotes)
         const performanceMetricsSql = `
             SELECT 
                 (SELECT COUNT(*) FROM quotes WHERE status = 'running') / NULLIF((SELECT COUNT(*) FROM quotes), 0) * 100 as quote_success_rate,
                 (SELECT COUNT(*) FROM user_subscriptions WHERE status = 'active') / NULLIF((SELECT COUNT(*) FROM users WHERE role != 'admin'), 0) * 100 as subscription_rate,
-                (SELECT COUNT(*) FROM transactions WHERE status = 'completed') / NULLIF((SELECT COUNT(*) FROM transactions), 0) * 100 as transaction_success_rate
+                (
+                    (SELECT COUNT(*) FROM transactions WHERE status = 'completed') +
+                    (SELECT COUNT(*) FROM user_quote_status WHERE status = 'accepted')
+                ) / NULLIF(
+                    (SELECT COUNT(*) FROM transactions) +
+                    (SELECT COUNT(*) FROM user_quote_status WHERE status IN ('accepted', 'rejected')), 0
+                ) * 100 as transaction_success_rate
         `;
         const [performanceMetrics] = await db.execute(performanceMetricsSql);
         stats.performanceMetrics = performanceMetrics[0];
@@ -621,6 +1013,256 @@ export const deleteTransaction = async (req, res) => {
     }
 };
 
+// @desc    Delete subscription and revert user to basic plan
+// @route   DELETE /api/admin-panel/subscriptions/:id
+// @access  Admin
+export const deleteSubscription = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { reason } = req.body; // Get reason from request body
+        
+        console.log(`🗑️ Attempting to delete subscription ID: ${id}`);
+        console.log(`📝 Reason provided: ${reason || 'No reason provided'}`);
+        
+        // Validate reason is provided
+        if (!reason || reason.trim() === '') {
+            return res.status(400).json({ message: 'Reason for deletion is required' });
+        }
+        
+        // First, get the subscription details to find the user
+        const getSubscriptionSql = `
+            SELECT us.*, u.name as user_name, u.email as user_email, u.role as user_role
+            FROM user_subscriptions us
+            JOIN users u ON us.user_id = u.id
+            WHERE us.id = ?
+        `;
+        const [subscriptionRows] = await db.execute(getSubscriptionSql, [id]);
+        
+        if (subscriptionRows.length === 0) {
+            console.log(`❌ Subscription ID ${id} not found`);
+            return res.status(404).json({ message: 'Subscription not found' });
+        }
+        
+        const subscription = subscriptionRows[0];
+        console.log(`📋 Found subscription for user: ${subscription.user_name} (${subscription.user_email})`);
+        
+        // Get a connection for transaction
+        const connection = await db.getConnection();
+        
+        try {
+            // Start transaction
+            await connection.beginTransaction();
+            
+            // Check and handle dependencies
+            console.log('🔍 Checking for related records...');
+            
+            // 1. Check for invoices - DON'T DELETE, UPDATE STATUS
+            const [invoices] = await connection.execute(
+                'SELECT id, invoice_number FROM invoices WHERE subscription_id = ?', 
+                [id]
+            );
+            
+            if (invoices.length > 0) {
+                console.log(`📄 Found ${invoices.length} related invoices, updating status to cancelled...`);
+                
+                // First, get the plan and subscription information before we lose the subscription link
+                const [subscriptionInfo] = await connection.execute(`
+                    SELECT 
+                        mp.name as plan_name, 
+                        mp.description as plan_description,
+                        us.start_date,
+                        us.end_date
+                    FROM user_subscriptions us
+                    JOIN membership_plans mp ON us.plan_id = mp.id
+                    WHERE us.id = ?
+                `, [id]);
+                
+                const planName = subscriptionInfo.length > 0 ? subscriptionInfo[0].plan_name : 'Unknown Plan';
+                const planDescription = subscriptionInfo.length > 0 ? subscriptionInfo[0].plan_description : 'Plan information unavailable';
+                const startDate = subscriptionInfo.length > 0 ? subscriptionInfo[0].start_date : null;
+                const endDate = subscriptionInfo.length > 0 ? subscriptionInfo[0].end_date : null;
+                
+                // Update invoices status to cancelled and add cancellation reason
+                // Also store plan and subscription period information directly in the invoice for future reference
+                await connection.execute(`
+                    UPDATE invoices 
+                    SET status = 'cancelled', 
+                        cancellation_reason = ?,
+                        cancelled_at = NOW(),
+                        user_id = ?,
+                        plan_name_backup = ?,
+                        plan_description_backup = ?,
+                        subscription_start_date_backup = ?,
+                        subscription_end_date_backup = ?
+                    WHERE subscription_id = ?
+                `, [reason.trim(), subscription.user_id, planName, planDescription, startDate, endDate, id]);
+                
+                console.log(`✅ Updated ${invoices.length} invoices to cancelled status with plan and period backup info`);
+                
+                // Log each cancelled invoice
+                invoices.forEach(invoice => {
+                    console.log(`  - Invoice ${invoice.invoice_number} (ID: ${invoice.id}) marked as cancelled`);
+                });
+            }
+            
+            // 2. Check for transactions - still delete these as they're payment records
+            const [transactions] = await connection.execute(
+                'SELECT id FROM transactions WHERE subscription_id = ?', 
+                [id]
+            );
+            
+            if (transactions.length > 0) {
+                console.log(`💳 Found ${transactions.length} related transactions, deleting...`);
+                await connection.execute(
+                    'DELETE FROM transactions WHERE subscription_id = ?', 
+                    [id]
+                );
+                console.log(`✅ Deleted ${transactions.length} transactions`);
+            }
+            
+            // 3. Delete the subscription
+            const deleteSubscriptionSql = 'DELETE FROM user_subscriptions WHERE id = ?';
+            const [deleteResult] = await connection.execute(deleteSubscriptionSql, [id]);
+            
+            if (deleteResult.affectedRows === 0) {
+                throw new Error('Failed to delete subscription');
+            }
+            
+            console.log(`✅ Deleted subscription ID: ${id}`);
+            
+            // COMPLETELY REMOVED: No automatic subscription creation
+            // Users get Guest access by default without any subscription record
+            // Only paid subscriptions should exist in the database
+            console.log(`📝 User ${subscription.user_id} (${subscription.user_name}) now has Guest access by default (no subscription record)`);
+            
+            // Log the admin action (if admin_actions table exists)
+            try {
+                const logSql = `
+                    INSERT INTO admin_actions (admin_id, action_type, target_user_id, reason, created_at)
+                    VALUES (?, 'delete_subscription', ?, ?, NOW())
+                `;
+                await connection.execute(logSql, [
+                    req.user?.id || 1, // Use 1 as fallback if req.user.id is undefined
+                    subscription.user_id, 
+                    `Deleted subscription ID ${id}: ${reason.trim()}`
+                ]);
+            } catch (logError) {
+                console.log('⚠️ Could not log admin action (table may not exist):', logError.message);
+            }
+            
+            // Commit transaction
+            await connection.commit();
+            
+            console.log(`🎉 Successfully deleted subscription and updated related records. User now has Guest access by default.`);
+            
+            // Send email notifications after successful deletion
+            try {
+                console.log('📧 Sending subscription deletion email notifications...');
+                
+                // Get plan details for email
+                const [planDetails] = await db.execute(`
+                    SELECT mp.name as plan_name, mp.price as plan_price, mp.duration_months
+                    FROM membership_plans mp 
+                    WHERE mp.id = ?
+                `, [subscription.plan_id]);
+                
+                const planInfo = planDetails.length > 0 ? planDetails[0] : {};
+                
+                // Format dates for email
+                const formatDate = (dateString) => {
+                    if (!dateString) return 'N/A';
+                    return new Date(dateString).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                };
+                
+                // Prepare email data
+                const emailData = {
+                    subscriptionId: id,
+                    userName: subscription.user_name,
+                    userEmail: subscription.user_email,
+                    userRole: subscription.user_role,
+                    userId: subscription.user_id,
+                    planName: planInfo.plan_name || 'Unknown Plan',
+                    planPrice: planInfo.plan_price || subscription.plan_price,
+                    durationMonths: planInfo.duration_months || subscription.duration_months,
+                    startDate: formatDate(subscription.start_date),
+                    endDate: formatDate(subscription.end_date),
+                    amountPaid: subscription.amount_paid,
+                    paymentStatus: subscription.payment_status,
+                    status: subscription.status,
+                    reason: reason.trim(),
+                    cancelledAt: new Date().toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }),
+                    cancelledInvoices: invoices.length,
+                    deletedTransactions: transactions.length
+                };
+                
+                // Import email queue functions
+                const { queueSubscriptionEmails } = await import('../services/emailQueue.js');
+                
+                // Send email to the user (company member)
+                queueSubscriptionEmails.subscriptionDeletionToUser({
+                    ...emailData,
+                    recipientEmail: subscription.user_email
+                }).then(jobId => {
+                    console.log(`✅ Subscription deletion user email queued (Job ID: ${jobId})`);
+                }).catch(error => {
+                    console.error('❌ Failed to queue subscription deletion user email:', error);
+                });
+                
+                // Send email to all admin users
+                const [adminUsers] = await db.execute(`
+                    SELECT email FROM users WHERE role = 'admin' AND email IS NOT NULL
+                `);
+                
+                console.log(`📧 Sending subscription deletion notifications to ${adminUsers.length} admin(s)`);
+                
+                for (const admin of adminUsers) {
+                    queueSubscriptionEmails.subscriptionDeletionToAdmin({
+                        ...emailData,
+                        recipientEmail: admin.email
+                    }).then(jobId => {
+                        console.log(`✅ Subscription deletion admin email queued for ${admin.email} (Job ID: ${jobId})`);
+                    }).catch(error => {
+                        console.error(`❌ Failed to queue subscription deletion admin email for ${admin.email}:`, error);
+                    });
+                }
+                
+            } catch (emailError) {
+                console.error('❌ Error sending subscription deletion emails:', emailError);
+                // Don't fail the deletion if emails fail
+            }
+            
+            res.status(200).json({ 
+                message: 'Subscription deleted successfully. Related invoices have been marked as cancelled.',
+                cancelledInvoices: invoices.length,
+                deletedTransactions: transactions.length,
+                reason: reason.trim()
+            });
+            
+        } catch (error) {
+            // Rollback transaction on error
+            await connection.rollback();
+            throw error;
+        } finally {
+            // Release connection
+            connection.release();
+        }
+        
+    } catch (error) {
+        console.error('❌ Error deleting subscription:', error);
+        res.status(500).json({ message: 'Server error deleting subscription' });
+    }
+};
+
 // @desc    Delete user account (permanent)
 // @route   DELETE /api/admin-panel/users/:id
 // @access  Admin
@@ -651,19 +1293,115 @@ export const deleteUser = async (req, res) => {
     }
 };
 
+// @desc    Activate/Approve user account (for company approvals)
+// @route   PUT /api/admin-panel/users/:id/activate
+// @access  Admin
+export const activateUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { reason } = req.body;
+        
+        // Get user details before activation
+        const [userRows] = await db.execute('SELECT * FROM users WHERE id = ?', [id]);
+        
+        if (userRows.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        
+        const user = userRows[0];
+        
+        // Update user status to active
+        const sql = `
+            UPDATE users 
+            SET status = 1, 
+                updated_at = NOW()
+            WHERE id = ?
+        `;
+        
+        const [result] = await db.execute(sql, [id]);
+        
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        
+        // Log the activation action
+        const logSql = `
+            INSERT INTO admin_actions (admin_id, action_type, target_user_id, reason, created_at)
+            VALUES (?, 'activate_user', ?, ?, NOW())
+        `;
+        await db.execute(logSql, [req.user.id, id, reason || 'User account activated']);
+        
+        // 🚀 QUEUE COMPANY APPROVAL EMAIL (NON-BLOCKING)
+        if (user.role === 'company') {
+            console.log(`🔔 User role is company, queuing approval email for: ${user.name} (${user.email})`);
+            
+            try {
+                const { queueSubscriptionEmails } = await import('../services/emailQueue.js');
+                
+                console.log('📧 Attempting to queue company approval email...');
+                const jobId = await queueSubscriptionEmails.companyApproval({
+                    userId: user.id,
+                    userName: user.name,
+                    userEmail: user.email
+                });
+                
+                console.log(`✅ Company approval email queued successfully (Job ID: ${jobId})`);
+                
+                // Also send admin notification about the approval
+                console.log('📧 Queuing admin notification for company approval...');
+                const adminJobId = await queueSubscriptionEmails.adminCompanyApprovalNotification({
+                    userId: user.id,
+                    userName: user.name,
+                    userEmail: user.email,
+                    userPhone: user.phone || 'Not provided'
+                });
+                
+                console.log(`✅ Admin notification for company approval queued (Job ID: ${adminJobId})`);
+                
+            } catch (error) {
+                console.error('❌ Failed to queue company approval email:', error);
+                console.error('❌ Error details:', error.stack);
+            }
+        } else {
+            console.log(`ℹ️ User role is ${user.role}, not queuing company approval email`);
+        }
+        
+        res.status(200).json({ 
+            message: `User ${user.role === 'company' ? 'company' : 'account'} activated successfully`,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                status: 1
+            }
+        });
+    } catch (error) {
+        console.error('Error activating user:', error);
+        res.status(500).json({ message: 'Server error activating user' });
+    }
+};
+
 export default {
     getAllSubscriptionsAdmin,
     getSubscriptionById,
+    deleteSubscription,
     getAllTransactions,
+    getAcceptedQuoteTransactions,
     getAllQuotesAdmin,
     getQuoteByIdAdmin,
     deleteQuote,
     updateQuoteStatusAdmin,
+    getAllInvoicesAdmin,
+    getInvoiceByIdAdmin,
+    getAllTransactionInvoicesAdmin,
+    getTransactionInvoiceByIdAdmin,
     getUserSubscriptions,
     getUserQuotes,
     getCompanyResponses,
     getAdminDashboardStats,
     blockUser,
     deleteUser,
+    activateUser,
     deleteTransaction
 };

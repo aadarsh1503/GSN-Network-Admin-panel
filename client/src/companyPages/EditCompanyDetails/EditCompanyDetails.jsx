@@ -206,6 +206,7 @@ const EditCompanyDetails = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [locationMethod, setLocationMethod] = useState('coordinates'); // New state for location method
     
     // Location data states
     const [countries, setCountries] = useState([]);
@@ -302,22 +303,27 @@ const EditCompanyDetails = () => {
         setCities([]);
         
         try {
+            // Clean the country and state names (remove extra spaces)
+            const cleanCountry = countryName.trim();
+            const cleanState = stateName.trim();
+            
             const response = await fetch(`https://countriesnow.space/api/v0.1/countries/state/cities`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    country: countryName,
-                    state: stateName
+                    country: cleanCountry,
+                    state: cleanState
                 })
             });
             
             const citiesData = await response.json();
-            if (citiesData.data) {
+            if (citiesData.data && Array.isArray(citiesData.data)) {
                 const sortedCities = citiesData.data.sort();
                 setCities(sortedCities);
             } else {
+                console.log('No cities found for:', cleanCountry, cleanState);
                 setCities([]);
             }
         } catch (err) {
@@ -355,6 +361,15 @@ const EditCompanyDetails = () => {
                     logo: companyData.logo || '' 
                 };
                 setFormData(combinedData);
+
+                // Set initial location method based on existing data
+                if (combinedData.latitude && combinedData.longitude) {
+                    setLocationMethod('coordinates');
+                } else if (combinedData.map_location) {
+                    setLocationMethod('maps');
+                } else {
+                    setLocationMethod('coordinates'); // Default to coordinates
+                }
 
                 // If country is already set, fetch states
                 if (combinedData.country) {
@@ -488,29 +503,46 @@ const EditCompanyDetails = () => {
         try {
             const dataToSend = new FormData();
 
-            // 1. Append Text Data
-            Object.keys(formData).forEach(key => {
+            // 1. Clean up location data based on selected method
+            const cleanedFormData = { ...formData };
+            
+            if (locationMethod === 'coordinates') {
+                // If coordinates method is selected, clear map_location
+                cleanedFormData.map_location = '';
+            } else if (locationMethod === 'maps') {
+                // If maps method is selected, clear coordinates
+                cleanedFormData.latitude = '';
+                cleanedFormData.longitude = '';
+            }
+
+            // 2. Append Text Data
+            Object.keys(cleanedFormData).forEach(key => {
                 if (key === 'services') {
-                    dataToSend.append('services', JSON.stringify(formData.services || []));
-                } else if (key !== 'logo' && key !== 'incharge_image' && key !== 'incharge_image_file' && formData[key] !== null && formData[key] !== undefined) {
-                    dataToSend.append(key, formData[key]);
+                    dataToSend.append('services', JSON.stringify(cleanedFormData.services || []));
+                } else if (key !== 'logo' && key !== 'incharge_image' && key !== 'incharge_image_file' && cleanedFormData[key] !== null && cleanedFormData[key] !== undefined && cleanedFormData[key] !== '') {
+                    dataToSend.append(key, cleanedFormData[key]);
                 }
             });
 
-            // 2. Append Files (if selected)
+            // 3. Append Files (if selected)
             if (logoFile) {
                 dataToSend.append('logo', logoFile);
             }
             
-            if (formData.incharge_image_file) {
-                dataToSend.append('incharge_image', formData.incharge_image_file);
+            if (cleanedFormData.incharge_image_file) {
+                dataToSend.append('incharge_image', cleanedFormData.incharge_image_file);
             }
 
-            // 3. Get Token (Adjust 'token' key if you save it differently in localStorage)
+            // 4. Get Token
             const token = localStorage.getItem('token'); 
 
-            // 4. Use raw fetch instead of 'api' utility
-            // NOTE: Do NOT add 'Content-Type' header. Browser adds it automatically for FormData.
+            // 5. Debug log the data being sent
+            console.log('Submitting form data:');
+            for (let [key, value] of dataToSend.entries()) {
+                console.log(`${key}:`, value);
+            }
+
+            // 6. Use raw fetch instead of 'api' utility
             const response = await fetch('/api/company/profile', {
                 method: 'PUT',
                 headers: {
@@ -519,10 +551,11 @@ const EditCompanyDetails = () => {
                 body: dataToSend
             });
 
-            // 5. Handle Response
+            // 7. Handle Response
             const result = await response.json();
 
             if (!response.ok) {
+                console.error('Server error response:', result);
                 throw new Error(result.message || 'Update failed');
             }
             
@@ -536,13 +569,15 @@ const EditCompanyDetails = () => {
             }
             
             setSuccess('Profile updated successfully!');
-            window.location.reload();
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
             window.scrollTo(0, 0);
 
         } catch (err) {
-            console.error(err);
+            console.error('Form submission error:', err);
             if (err.message !== 'Session expired') {
-                setError(err.message);
+                setError(err.message || 'An error occurred while updating the profile');
             }
         }
     };
@@ -801,6 +836,185 @@ const EditCompanyDetails = () => {
                                     placeholder="Enter complete company address"
                                 />
                             </div>
+
+                            {/* Location Method Selection */}
+<div className="mt-8 relative group">
+    {/* Futuristic Background Glow Effect */}
+    <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400/20 to-yellow-100/20 rounded-2xl blur-lg opacity-75 group-hover:opacity-100 transition duration-1000"></div>
+    
+    <div className="relative bg-white/90 backdrop-blur-xl rounded-2xl border border-yellow-200 shadow-2xl overflow-hidden">
+        {/* Header Section */}
+        <div className="p-6 border-b border-yellow-100 bg-gradient-to-r from-yellow-50/50 to-transparent">
+            <h3 className="text-xl font-bold text-yellow-900 flex items-center tracking-tight">
+                <span className="p-2 bg-yellow-400 rounded-lg mr-3 shadow-md shadow-yellow-200">
+                    <svg className="w-6 h-6 text-yellow-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </span>
+                Spatial Configuration
+            </h3>
+            <p className="mt-2 text-yellow-700/80 text-sm font-medium">
+                Select a positioning protocol to synchronize your precise geographic location.
+            </p>
+        </div>
+        
+        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* GPS Coordinates Option */}
+            <div 
+                onClick={() => {
+                    setLocationMethod('coordinates');
+                    setFormData(prev => ({ ...prev, map_location: '' }));
+                }}
+                className={`group/card relative p-5 rounded-xl border-2 transition-all duration-500 cursor-pointer ${
+                locationMethod === 'coordinates'
+                    ? 'bg-white border-yellow-400 shadow-xl shadow-yellow-100 translate-y-[-2px]' 
+                    : 'bg-gray-50/50 border-gray-100 hover:border-yellow-200'
+            }`}>
+                <div className="flex items-center mb-5">
+                    <div className="relative flex items-center justify-center">
+                        <input
+                            type="radio"
+                            id="coordinates-method"
+                            name="location-method"
+                            checked={locationMethod === 'coordinates'}
+                            onChange={() => {
+                                setLocationMethod('coordinates');
+                                setFormData(prev => ({ ...prev, map_location: '' }));
+                            }}
+                            className="w-5 h-5 text-yellow-600 focus:ring-yellow-500 border-gray-300 transition-all cursor-pointer"
+                        />
+                    </div>
+                    <label htmlFor="coordinates-method" className={`ml-3 font-bold tracking-wide uppercase text-xs transition-colors ${locationMethod === 'coordinates' ? 'text-yellow-800' : 'text-gray-500'}`}>
+                        GPS Satellite Protocol
+                    </label>
+                </div>
+                
+                <div className={`space-y-4 transition-all duration-300 ${
+                    locationMethod === 'coordinates' ? 'opacity-100' : 'opacity-40 grayscale pointer-events-none'
+                }`}>
+                    <div className="grid grid-cols-1 gap-4">
+                        <InputField 
+                            label="Latitude" 
+                            name="latitude" 
+                            value={formData.latitude} 
+                            onChange={handleChange}
+                            placeholder="e.g., 25.2048"
+                            type="number"
+                        />
+                        <InputField 
+                            label="Longitude" 
+                            name="longitude" 
+                            value={formData.longitude} 
+                            onChange={handleChange}
+                            placeholder="e.g., 55.2708"
+                            type="number"
+                        />
+                    </div>
+                    
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (navigator.geolocation) {
+                                navigator.geolocation.getCurrentPosition(
+                                    (position) => {
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            latitude: position.coords.latitude.toFixed(6),
+                                            longitude: position.coords.longitude.toFixed(6),
+                                            map_location: ''
+                                        }));
+                                        setSuccess('Current location coordinates added successfully!');
+                                    },
+                                    (error) => setError('Unable to get current location. Please enter coordinates manually.')
+                                );
+                            } else {
+                                setError('Geolocation is not supported by this browser.');
+                            }
+                        }}
+                        className="w-full flex items-center justify-center px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all duration-300 active:scale-95 shadow-lg shadow-blue-200"
+                    >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        </svg>
+                        Auto-Detect Signal
+                    </button>
+                </div>
+            </div>
+
+            {/* Google Maps URL Option */}
+            <div 
+                onClick={() => {
+                    setLocationMethod('maps');
+                    setFormData(prev => ({ ...prev, latitude: '', longitude: '' }));
+                }}
+                className={`group/card relative p-5 rounded-xl border-2 transition-all duration-500 cursor-pointer ${
+                locationMethod === 'maps'
+                    ? 'bg-white border-yellow-400 shadow-xl shadow-yellow-100 translate-y-[-2px]' 
+                    : 'bg-gray-50/50 border-gray-100 hover:border-yellow-200'
+            }`}>
+                <div className="flex items-center mb-5">
+                    <input
+                        type="radio"
+                        id="maps-method"
+                        name="location-method"
+                        checked={locationMethod === 'maps'}
+                        onChange={() => {
+                            setLocationMethod('maps');
+                            setFormData(prev => ({ ...prev, latitude: '', longitude: '' }));
+                        }}
+                        className="w-5 h-5 text-yellow-600 focus:ring-yellow-500 border-gray-300 transition-all cursor-pointer"
+                    />
+                    <label htmlFor="maps-method" className={`ml-3 font-bold tracking-wide uppercase text-xs transition-colors ${locationMethod === 'maps' ? 'text-yellow-800' : 'text-gray-500'}`}>
+                        Cloud Map Integration
+                    </label>
+                </div>
+                
+                <div className={`transition-all duration-300 ${
+                    locationMethod === 'maps' ? 'opacity-100' : 'opacity-40 grayscale pointer-events-none'
+                }`}>
+                    <textarea
+                        name="map_location"
+                        rows={5}
+                        value={formData.map_location || ''}
+                        onChange={(e) => {
+                            setFormData(prev => ({
+                                ...prev,
+                                map_location: e.target.value,
+                                latitude: '',
+                                longitude: ''
+                            }));
+                        }}
+                        placeholder="Paste shared embed data source..."
+                        className="w-full p-4 bg-gray-100/50 border-none rounded-xl text-sm font-mono focus:ring-2 focus:ring-yellow-400 transition-all resize-none shadow-inner"
+                    />
+                    <div className="mt-3 flex items-center text-[10px] text-gray-500 font-bold uppercase tracking-tighter">
+                        <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full mr-2 animate-pulse"></span>
+                        Instruction: Maps → Share → Embed a map → Copy HTML
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {/* Technical Guidance Footer */}
+        <div className="px-6 py-4 bg-yellow-50/50 border-t border-yellow-100 flex flex-wrap gap-4 items-center justify-between">
+            {/* <div className="flex gap-6">
+                <div className="flex flex-col">
+                    <span className="text-[10px] font-black uppercase text-yellow-800/60 leading-none">Desktop</span>
+                    <span className="text-xs text-yellow-900 font-medium">Right-click for info</span>
+                </div>
+                <div className="flex flex-col">
+                    <span className="text-[10px] font-black uppercase text-yellow-800/60 leading-none">Mobile</span>
+                    <span className="text-xs text-yellow-900 font-medium">Long press marker</span>
+                </div>
+            </div> */}
+            <div className="px-3 py-1 bg-white rounded-full border border-yellow-200 text-[11px] font-bold text-yellow-700">
+                Ready for sync
+            </div>
+        </div>
+    </div>
+</div>
                         </section>
 
                         {/* Social Media & Web Presence */}
@@ -877,28 +1091,6 @@ const EditCompanyDetails = () => {
                         <section>
                             <SectionHeader title="Additional Information" />
                             <div className="space-y-6">
-                                <div>
-                                    <label htmlFor="map_location" className="block text-sm font-medium text-gray-700 mb-1">
-                                        Google Maps Location (Embed URL)
-                                    </label>
-                                    <textarea
-                                        id="map_location"
-                                        name="map_location"
-                                        rows={4}
-                                        value={formData.map_location || ''}
-                                        onChange={handleChange}
-                                        placeholder="Paste your Google Maps embed URL here (e.g., https://www.google.com/maps/embed?pb=...)"
-                                        className="w-full p-3 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200 resize-vertical"
-                                    ></textarea>
-                                    <p className="mt-2 text-sm text-gray-500">
-                                        <strong>How to get Google Maps embed URL:</strong><br />
-                                        1. Go to Google Maps and search for your location<br />
-                                        2. Click "Share" → "Embed a map"<br />
-                                        3. Copy the entire URL from the src attribute of the iframe code<br />
-                                        4. Paste it here
-                                    </p>
-                                </div>
-                                
                                 <div>
                                     <SectionHeader title="About Company" />
                                     <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">

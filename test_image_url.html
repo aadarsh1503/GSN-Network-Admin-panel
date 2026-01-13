@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Image URL</title>
+</head>
+<body>
+    <h1>Testing Cloudinary Image URLs</h1>
+    
+    <h3>Recent Image from Database:</h3>
+    <img src="https://res.cloudinary.com/ds1dt3qub/image/upload/v1767286376/dispute_attachments/a26nr4fzjqxxmnr6h1a8.png" 
+         alt="Test Image" 
+         style="max-width: 300px; border: 1px solid #ccc;">
+    
+    <h3>Another Recent Image:</h3>
+    <img src="https://res.cloudinary.com/ds1dt3qub/image/upload/v1767286310/dispute_attachments/v8ohvyantehplkktvyt8.png" 
+         alt="Test Image 2" 
+         style="max-width: 300px; border: 1px solid #ccc;">
+    
+    <script>
+        // Test if images load
+        const images = document.querySelectorAll('img');
+        images.forEach((img, index) => {
+            img.onload = () => {
+                console.log(`Image ${index + 1} loaded successfully`);
+            };
+            img.onerror = (error) => {
+                console.error(`Image ${index + 1} failed to load:`, error);
+            };
+        });
+    </script>
+</body>
+</html>

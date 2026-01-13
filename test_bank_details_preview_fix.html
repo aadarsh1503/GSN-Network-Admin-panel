@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Bank Details Preview Fix</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .error { color: red; }
+        .success { color: green; }
+        .info { color: blue; }
+        .warning { color: orange; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        input { padding: 8px; margin: 5px; width: 200px; }
+        .bank-preview { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        .field-comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .before, .after { padding: 10px; border-radius: 5px; }
+        .before { background: #ffebee; }
+        .after { background: #e8f5e8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test Bank Details Preview Fix</h1>
+        
+        <div class="section">
+            <h3>Login as Company</h3>
+            <input type="email" id="email" placeholder="Email" value="aadarshchauhan35@gmail.com">
+            <input type="password" id="password" placeholder="Password" value="222333">
+            <button onclick="login()">Login</button>
+            <div id="loginResult"></div>
+        </div>
+
+        <div class="section">
+            <h3>Test Bank Details API & Field Mapping</h3>
+            <button onclick="testBankDetailsFields()">Test Bank Details Fields</button>
+            <div id="bankDetailsFieldsResult"></div>
+        </div>
+
+        <div class="section">
+            <h3>Field Mapping Fix</h3>
+            <div class="field-comparison">
+                <div class="before">
+                    <h4>❌ Before (Incorrect Fields)</h4>
+                    <ul>
+                        <li><code>account_name</code> → undefined</li>
+                        <li><code>routing_number</code> → undefined</li>
+                        <li><code>branch_address</code> → undefined</li>
+                    </ul>
+                </div>
+                <div class="after">
+                    <h4>✅ After (Correct Fields)</h4>
+                    <ul>
+                        <li><code>account_holder_name</code> → Shows name</li>
+                        <li><code>branch_name</code> → Shows branch</li>
+                        <li><code>ifsc_code</code> → Shows IFSC</li>
+                        <li><code>iban_number</code> → Shows IBAN</li>
+                        <li><code>payment_instructions</code> → Shows instructions</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>Simulate Bank Details Preview</h3>
+            <button onclick="simulateBankPreview()">Simulate Bank Preview</button>
+            <div id="bankPreviewResult"></div>
+        </div>
+
+        <div class="section">
+            <h3>Fix Summary</h3>
+            <div class="info">
+                <h4>🔧 What was fixed:</h4>
+                <ul>
+                    <li>✅ Fixed dropdown to use <code>account_holder_name</code> instead of <code>account_name</code></li>
+                    <li>✅ Fixed preview to show <code>account_holder_name</code> instead of <code>account_name</code></li>
+                    <li>✅ Added <code>branch_name</code> field (was missing)</li>
+                    <li>✅ Added <code>ifsc_code</code> field (was missing)</li>
+                    <li>✅ Added <code>iban_number</code> field (was missing)</li>
+                    <li>✅ Added <code>payment_instructions</code> field (was missing)</li>
+                    <li>✅ Removed non-existent fields: <code>routing_number</code>, <code>branch_address</code></li>
+                </ul>
+                
+                <h4>🎯 Expected Result:</h4>
+                <ul>
+                    <li>✅ Bank dropdown shows proper account holder names</li>
+                    <li>✅ Bank preview shows all available details</li>
+                    <li>✅ No more empty/undefined fields in preview</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let authToken = '';
+        const API_BASE = 'http://localhost:5000';
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.token;
+                    document.getElementById('loginResult').innerHTML = 
+                        `<div class="success">✅ Login successful! User: ${data.user.name} (${data.user.role})</div>`;
+                    
+                    localStorage.setItem('token', authToken);
+                } else {
+                    document.getElementById('loginResult').innerHTML = 
+                        `<div class="error">❌ Login failed: ${data.message}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('loginResult').innerHTML = 
+                    `<div class="error">❌ Login error: ${error.message}</div>`;
+            }
+        }
+
+        async function testBankDetailsFields() {
+            if (!authToken) {
+                document.getElementById('bankDetailsFieldsResult').innerHTML = 
+                    '<div class="error">❌ Please login first</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/bank-details`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (Array.isArray(data) && data.length > 0) {
+                    const firstBank = data[0];
+                    
+                    // Check which fields exist
+                    const fieldCheck = {
+                        // Old incorrect fields
+                        'account_name': firstBank.account_name,
+                        'routing_number': firstBank.routing_number,
+                        'branch_address': firstBank.branch_address,
+                        
+                        // New correct fields
+                        'account_holder_name': firstBank.account_holder_name,
+                        'branch_name': firstBank.branch_name,
+                        'ifsc_code': firstBank.ifsc_code,
+                        'iban_number': firstBank.iban_number,
+                        'swift_code': firstBank.swift_code,
+                        'payment_instructions': firstBank.payment_instructions
+                    };
+                    
+                    document.getElementById('bankDetailsFieldsResult').innerHTML = `
+                        <div class="success">✅ Bank Details Field Analysis:</div>
+                        <div><strong>Total Banks:</strong> ${data.length}</div>
+                        
+                        <h4>Field Availability Check:</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div>
+                                <h5 style="color: red;">❌ Old Incorrect Fields:</h5>
+                                <ul>
+                                    <li>account_name: ${fieldCheck.account_name !== undefined ? '✅ ' + fieldCheck.account_name : '❌ undefined'}</li>
+                                    <li>routing_number: ${fieldCheck.routing_number !== undefined ? '✅ ' + fieldCheck.routing_number : '❌ undefined'}</li>
+                                    <li>branch_address: ${fieldCheck.branch_address !== undefined ? '✅ ' + fieldCheck.branch_address : '❌ undefined'}</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h5 style="color: green;">✅ New Correct Fields:</h5>
+                                <ul>
+                                    <li>account_holder_name: ${fieldCheck.account_holder_name !== undefined ? '✅ ' + fieldCheck.account_holder_name : '❌ undefined'}</li>
+                                    <li>branch_name: ${fieldCheck.branch_name !== undefined ? '✅ ' + fieldCheck.branch_name : '❌ undefined'}</li>
+                                    <li>ifsc_code: ${fieldCheck.ifsc_code !== undefined ? '✅ ' + fieldCheck.ifsc_code : '❌ undefined'}</li>
+                                    <li>iban_number: ${fieldCheck.iban_number !== undefined ? '✅ ' + fieldCheck.iban_number : '❌ undefined'}</li>
+                                    <li>swift_code: ${fieldCheck.swift_code !== undefined ? '✅ ' + fieldCheck.swift_code : '❌ undefined'}</li>
+                                    <li>payment_instructions: ${fieldCheck.payment_instructions !== undefined ? '✅ ' + fieldCheck.payment_instructions : '❌ undefined'}</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <h4>Complete Bank Record:</h4>
+                        <pre>${JSON.stringify(firstBank, null, 2)}</pre>
+                    `;
+                } else {
+                    document.getElementById('bankDetailsFieldsResult').innerHTML = 
+                        '<div class="error">❌ No bank details found</div>';
+                }
+            } catch (error) {
+                document.getElementById('bankDetailsFieldsResult').innerHTML = 
+                    `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function simulateBankPreview() {
+            if (!authToken) {
+                document.getElementById('bankPreviewResult').innerHTML = 
+                    '<div class="error">❌ Please login first</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/bank-details`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (Array.isArray(data) && data.length > 0) {
+                    const activeBanks = data.filter(bank => bank.is_active);
+                    
+                    let previewHTML = `
+                        <div class="success">✅ Bank Details Preview Simulation:</div>
+                        <div><strong>Active Banks Found:</strong> ${activeBanks.length}</div>
+                    `;
+                    
+                    activeBanks.forEach((bank, index) => {
+                        previewHTML += `
+                            <div class="bank-preview">
+                                <h4>Bank #${index + 1} Preview (Fixed):</h4>
+                                <p><strong>Bank Name:</strong> ${bank.bank_name}</p>
+                                <p><strong>Account Holder Name:</strong> ${bank.account_holder_name}</p>
+                                <p><strong>Account Number:</strong> ${bank.account_number}</p>
+                                ${bank.branch_name ? `<p><strong>Branch Name:</strong> ${bank.branch_name}</p>` : ''}
+                                ${bank.ifsc_code ? `<p><strong>IFSC Code:</strong> ${bank.ifsc_code}</p>` : ''}
+                                ${bank.iban_number ? `<p><strong>IBAN Number:</strong> ${bank.iban_number}</p>` : ''}
+                                ${bank.swift_code ? `<p><strong>SWIFT Code:</strong> ${bank.swift_code}</p>` : ''}
+                                ${bank.payment_instructions ? `<p><strong>Payment Instructions:</strong> ${bank.payment_instructions}</p>` : ''}
+                            </div>
+                        `;
+                    });
+                    
+                    previewHTML += `
+                        <div class="success">
+                            <strong>🎉 SUCCESS!</strong> All bank details should now display properly in the quote response form!
+                        </div>
+                        
+                        <div style="margin-top: 15px; padding: 10px; background: #fff3cd; border-radius: 5px;">
+                            <strong>📝 To test the fix:</strong><br>
+                            1. Go to <a href="http://localhost:5173/company/available-quotes" target="_blank">Available Quotes</a><br>
+                            2. Click "Respond" on any quote<br>
+                            3. Select different banks from the dropdown<br>
+                            4. Verify the preview shows all available details for each bank!
+                        </div>
+                    `;
+                    
+                    document.getElementById('bankPreviewResult').innerHTML = previewHTML;
+                } else {
+                    document.getElementById('bankPreviewResult').innerHTML = 
+                        '<div class="error">❌ No bank details found</div>';
+                }
+            } catch (error) {
+                document.getElementById('bankPreviewResult').innerHTML = 
+                    `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        // Auto-login on page load
+        window.onload = function() {
+            const storedToken = localStorage.getItem('token');
+            if (storedToken) {
+                authToken = storedToken;
+                document.getElementById('loginResult').innerHTML = 
+                    '<div class="info">🔄 Using stored token</div>';
+            }
+        };
+    </script>
+</body>
+</html>

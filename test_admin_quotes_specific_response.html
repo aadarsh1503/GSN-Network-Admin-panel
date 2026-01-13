@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Admin Quotes - Specific Response View</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .response-buttons {
+            display: flex;
+            gap: 5px;
+            margin: 10px 0;
+        }
+        .response-btn {
+            padding: 4px 8px;
+            background: #e3f2fd;
+            color: #1976d2;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .response-btn:hover {
+            background: #bbdefb;
+        }
+        .quote-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            background: #f9f9f9;
+        }
+        .response-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            background: #f0f8ff;
+        }
+        .btn {
+            padding: 8px 16px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            width: 90%;
+        }
+        .close {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-approved { background: #d4edda; color: #155724; }
+        .status-accepted { background: #d1ecf1; color: #0c5460; }
+        .status-verified { background: #d4edda; color: #155724; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Quotes - Specific Response View Test</h1>
+        <p>This page tests the new functionality where admins can view specific responses instead of all responses.</p>
+        
+        <div id="quotesContainer">
+            <!-- Sample quotes will be loaded here -->
+        </div>
+        
+        <!-- Modal for viewing quote details -->
+        <div id="quoteModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <div id="modalContent">
+                    <!-- Quote details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data to simulate the admin quotes functionality
+        const sampleQuotes = [
+            {
+                id: 1,
+                user_name: "John Doe",
+                user_email: "john@example.com",
+                departure_country: "USA",
+                arrival_country: "Canada",
+                product_description: "Electronics shipment",
+                response_count: 3,
+                status: "pending",
+                created_at: "2024-01-15T10:00:00Z",
+                responses: [
+                    {
+                        id: 1,
+                        company_name: "FastShip Inc",
+                        company_email: "contact@fastship.com",
+                        price: "1200.00",
+                        transit_time: "3-5 days",
+                        user_response_status: "accepted",
+                        payment_status: "verified",
+                        created_at: "2024-01-15T11:00:00Z"
+                    },
+                    {
+                        id: 2,
+                        company_name: "QuickMove Ltd",
+                        company_email: "info@quickmove.com",
+                        price: "1100.00",
+                        transit_time: "5-7 days",
+                        user_response_status: null,
+                        payment_status: null,
+                        created_at: "2024-01-15T12:00:00Z"
+                    },
+                    {
+                        id: 3,
+                        company_name: "ReliableTransport",
+                        company_email: "support@reliable.com",
+                        price: "1350.00",
+                        transit_time: "2-4 days",
+                        user_response_status: "rejected",
+                        payment_status: null,
+                        created_at: "2024-01-15T13:00:00Z"
+                    }
+                ]
+            },
+            {
+                id: 2,
+                user_name: "Jane Smith",
+                user_email: "jane@example.com",
+                departure_country: "UK",
+                arrival_country: "Germany",
+                product_description: "Furniture shipment",
+                response_count: 2,
+                status: "approved",
+                created_at: "2024-01-16T09:00:00Z",
+                responses: [
+                    {
+                        id: 4,
+                        company_name: "EuroShip",
+                        company_email: "contact@euroship.com",
+                        price: "800.00",
+                        transit_time: "7-10 days",
+                        user_response_status: "accepted",
+                        payment_status: "pending",
+                        created_at: "2024-01-16T10:00:00Z"
+                    },
+                    {
+                        id: 5,
+                        company_name: "Continental Express",
+                        company_email: "info@continental.com",
+                        price: "750.00",
+                        transit_time: "10-14 days",
+                        user_response_status: null,
+                        payment_status: null,
+                        created_at: "2024-01-16T11:00:00Z"
+                    }
+                ]
+            }
+        ];
+
+        let currentQuote = null;
+        let selectedResponseIndex = null;
+
+        function loadQuotes() {
+            const container = document.getElementById('quotesContainer');
+            container.innerHTML = '';
+
+            sampleQuotes.forEach(quote => {
+                const quoteCard = document.createElement('div');
+                quoteCard.className = 'quote-card';
+                
+                const responseButtons = quote.response_count > 0 ? 
+                    Array.from({length: quote.response_count}, (_, i) => 
+                        `<button class="response-btn" onclick="viewSpecificResponse(${quote.id}, ${i})">${i + 1}</button>`
+                    ).join('') : '';
+
+                quoteCard.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <h3>Quote #${quote.id}</h3>
+                            <p><strong>User:</strong> ${quote.user_name} (${quote.user_email})</p>
+                            <p><strong>Route:</strong> ${quote.departure_country} → ${quote.arrival_country}</p>
+                            <p><strong>Product:</strong> ${quote.product_description}</p>
+                            <p><strong>Status:</strong> <span class="status-badge status-${quote.status}">${quote.status}</span></p>
+                        </div>
+                        <div style="text-align: center;">
+                            <p><strong>Responses: ${quote.response_count}</strong></p>
+                            <div class="response-buttons">
+                                ${responseButtons}
+                            </div>
+                            <button class="btn btn-primary" onclick="viewAllResponses(${quote.id})">👁️ View All</button>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(quoteCard);
+            });
+        }
+
+        function viewAllResponses(quoteId) {
+            currentQuote = sampleQuotes.find(q => q.id === quoteId);
+            selectedResponseIndex = null;
+            showModal();
+        }
+
+        function viewSpecificResponse(quoteId, responseIndex) {
+            currentQuote = sampleQuotes.find(q => q.id === quoteId);
+            selectedResponseIndex = responseIndex;
+            showModal();
+        }
+
+        function showModal() {
+            if (!currentQuote) return;
+
+            const modalContent = document.getElementById('modalContent');
+            const responsesToShow = selectedResponseIndex !== null 
+                ? [currentQuote.responses[selectedResponseIndex]].filter(Boolean)
+                : currentQuote.responses;
+
+            const title = selectedResponseIndex !== null 
+                ? `Quote #${currentQuote.id} - Response ${selectedResponseIndex + 1}`
+                : `Quote #${currentQuote.id} - All Responses (${currentQuote.responses.length})`;
+
+            modalContent.innerHTML = `
+                <div style="display: flex; justify-between; align-items: center; margin-bottom: 20px;">
+                    <h2>${title}</h2>
+                    ${selectedResponseIndex !== null ? 
+                        `<button class="btn btn-secondary" onclick="viewAllResponses(${currentQuote.id})">View All Responses</button>` 
+                        : ''
+                    }
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <h3>Quote Information</h3>
+                    <p><strong>User:</strong> ${currentQuote.user_name} (${currentQuote.user_email})</p>
+                    <p><strong>Route:</strong> ${currentQuote.departure_country} → ${currentQuote.arrival_country}</p>
+                    <p><strong>Product:</strong> ${currentQuote.product_description}</p>
+                    <p><strong>Status:</strong> <span class="status-badge status-${currentQuote.status}">${currentQuote.status}</span></p>
+                </div>
+
+                <h3>Company Responses</h3>
+                ${responsesToShow.map((response, index) => `
+                    <div class="response-card">
+                        <div style="display: flex; justify-between; align-items: start; margin-bottom: 10px;">
+                            <div>
+                                <h4>${response.company_name}</h4>
+                                <p style="color: #666; margin: 0;">${response.company_email}</p>
+                                ${selectedResponseIndex === null ? 
+                                    `<p style="color: #007bff; font-size: 12px; margin: 5px 0 0 0;">Response #${currentQuote.responses.indexOf(response) + 1}</p>` 
+                                    : ''
+                                }
+                            </div>
+                            <div style="text-align: right;">
+                                <p style="font-size: 18px; font-weight: bold; color: #28a745; margin: 0;">$${response.price}</p>
+                                <p style="color: #666; margin: 5px 0 0 0;">${response.transit_time}</p>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            ${response.user_response_status ? 
+                                `<span class="status-badge status-${response.user_response_status}">${response.user_response_status}</span>` 
+                                : '<span class="status-badge status-pending">pending</span>'
+                            }
+                            ${response.payment_status ? 
+                                `<span class="status-badge status-${response.payment_status}">Payment: ${response.payment_status}</span>` 
+                                : ''
+                            }
+                        </div>
+                        
+                        ${response.user_response_status === 'accepted' && response.payment_status === 'verified' ? 
+                            `<div style="margin-top: 10px; padding: 10px; background: #d4edda; border-radius: 4px; color: #155724;">
+                                💰 <strong>Revenue: $${response.price}</strong>
+                            </div>` 
+                            : ''
+                        }
+                    </div>
+                `).join('')}
+
+                <div style="margin-top: 20px; padding: 15px; background: #e8f5e8; border-radius: 8px;">
+                    <div style="display: flex; justify-between; align-items: center;">
+                        <span style="font-weight: bold; color: #155724;">
+                            ${selectedResponseIndex !== null 
+                                ? `Revenue from Response ${selectedResponseIndex + 1}:` 
+                                : 'Total Revenue from this Quote:'
+                            }
+                        </span>
+                        <span style="font-size: 20px; font-weight: bold; color: #28a745;">
+                            $${selectedResponseIndex !== null 
+                                ? (responsesToShow[0]?.user_response_status === 'accepted' && responsesToShow[0]?.payment_status === 'verified' 
+                                   ? responsesToShow[0].price 
+                                   : '0.00')
+                                : currentQuote.responses
+                                    .filter(r => r.user_response_status === 'accepted' && r.payment_status === 'verified')
+                                    .reduce((sum, r) => sum + parseFloat(r.price), 0)
+                                    .toFixed(2)
+                            }
+                        </span>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('quoteModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('quoteModal').style.display = 'none';
+            currentQuote = null;
+            selectedResponseIndex = null;
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('quoteModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        // Load quotes on page load
+        document.addEventListener('DOMContentLoaded', loadQuotes);
+    </script>
+</body>
+</html>

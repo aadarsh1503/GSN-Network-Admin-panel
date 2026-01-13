@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Cloudinary Image</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .image-container { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        img { max-width: 500px; border: 2px solid #000; }
+        .info { background: #f0f0f0; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Testing Dispute #24 Image</h1>
+    
+    <div class="image-container">
+        <h3>Dispute #24 Image URL:</h3>
+        <div class="info">
+            URL: https://res.cloudinary.com/ds1dt3qub/image/upload/v1767286376/dispute_attachments/a26nr4fzjqxxmnr6h1a8.png
+        </div>
+        
+        <img id="testImage" 
+             src="https://res.cloudinary.com/ds1dt3qub/image/upload/v1767286376/dispute_attachments/a26nr4fzjqxxmnr6h1a8.png" 
+             alt="Dispute #24 Attachment">
+        
+        <div id="imageInfo" class="info">
+            Loading image...
+        </div>
+    </div>
+    
+    <div class="image-container">
+        <h3>Test with Different Cloudinary Transformations:</h3>
+        
+        <h4>Original Size:</h4>
+        <img src="https://res.cloudinary.com/ds1dt3qub/image/upload/v1767286376/dispute_attachments/a26nr4fzjqxxmnr6h1a8.png" 
+             alt="Original" style="border: 1px solid red;">
+        
+        <h4>Scaled to 200px width:</h4>
+        <img src="https://res.cloudinary.com/ds1dt3qub/image/upload/w_200/v1767286376/dispute_attachments/a26nr4fzjqxxmnr6h1a8.png" 
+             alt="Scaled" style="border: 1px solid blue;">
+        
+        <h4>With quality enhancement:</h4>
+        <img src="https://res.cloudinary.com/ds1dt3qub/image/upload/q_auto,f_auto/v1767286376/dispute_attachments/a26nr4fzjqxxmnr6h1a8.png" 
+             alt="Enhanced" style="border: 1px solid green;">
+    </div>
+    
+    <script>
+        const img = document.getElementById('testImage');
+        const info = document.getElementById('imageInfo');
+        
+        img.onload = function() {
+            info.innerHTML = `
+                <strong>Image loaded successfully!</strong><br>
+                Natural Width: ${this.naturalWidth}px<br>
+                Natural Height: ${this.naturalHeight}px<br>
+                File Size: Loading...<br>
+                <button onclick="openInNewTab()">Open in New Tab</button>
+            `;
+            
+            // Try to get file size
+            fetch(this.src, { method: 'HEAD' })
+                .then(response => {
+                    const size = response.headers.get('content-length');
+                    if (size) {
+                        info.innerHTML = info.innerHTML.replace('File Size: Loading...', `File Size: ${(size/1024).toFixed(2)} KB`);
+                    }
+                })
+                .catch(e => console.log('Could not get file size'));
+        };
+        
+        img.onerror = function() {
+            info.innerHTML = '<strong style="color: red;">❌ Image failed to load!</strong>';
+        };
+        
+        function openInNewTab() {
+            window.open(img.src, '_blank');
+        }
+        
+        // Test all images
+        const allImages = document.querySelectorAll('img');
+        allImages.forEach((image, index) => {
+            image.onload = () => {
+                console.log(`Image ${index + 1} loaded: ${image.naturalWidth}x${image.naturalHeight}`);
+            };
+            image.onerror = () => {
+                console.error(`Image ${index + 1} failed to load`);
+            };
+        });
+    </script>
+</body>
+</html>

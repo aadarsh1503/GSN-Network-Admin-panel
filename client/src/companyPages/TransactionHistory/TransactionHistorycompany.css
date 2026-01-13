@@ -1,0 +1,81 @@
+/* Modern Transaction History Styles - Minimal and Clean */
+
+/* Only essential custom styles to avoid conflicts with Tailwind */
+
+/* Enhanced hover effects for buttons */
+.transaction-view-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Custom focus styles for form inputs */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none !important;
+  border-color: #CDA435 !important;
+  box-shadow: 0 0 0 3px rgba(205, 164, 53, 0.1) !important;
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Enhanced table responsiveness */
+.table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .table-container {
+    border-radius: 0.75rem;
+  }
+  
+  .mobile-hide-text {
+    display: none;
+  }
+}
+
+@media (min-width: 640px) {
+  .mobile-hide-text {
+    display: inline;
+  }
+}
+
+/* Ensure gradient buttons work properly */
+.gradient-btn {
+  background: linear-gradient(to right, #CDA435, #D9B95B);
+  color: white;
+  border: none;
+}
+
+.gradient-btn:hover {
+  background: linear-gradient(to right, #B8941F, #C4A647);
+  transform: translateY(-2px);
+}
+
+/* Print styles */
+@media print {
+  .fixed,
+  .sticky {
+    position: static !important;
+  }
+  
+  .shadow-xl,
+  .shadow-2xl {
+    box-shadow: none !important;
+  }
+  
+  .backdrop-blur-sm {
+    backdrop-filter: none !important;
+  }
+}

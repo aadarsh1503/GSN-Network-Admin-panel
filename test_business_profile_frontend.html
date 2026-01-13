@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Profile Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        button {
+            background-color: #CDA435;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #B8941F;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏢 Business Profile API Test</h1>
+        <p>Test the business profile functionality and API endpoints</p>
+
+        <!-- Login Section -->
+        <div class="test-section info">
+            <h3>🔐 Step 1: Login as Business User</h3>
+            <p>First, login with a business account to get authentication token</p>
+            <input type="email" id="loginEmail" placeholder="Business Email" value="ksacargo@gvscargo.com">
+            <input type="password" id="loginPassword" placeholder="Password" value="password123">
+            <button onclick="loginBusiness()">Login as Business</button>
+            <div id="loginResult" class="result"></div>
+        </div>
+
+        <!-- Profile Fetch Section -->
+        <div class="test-section">
+            <h3>📋 Step 2: Fetch Business Profile</h3>
+            <p>Retrieve the current business profile data</p>
+            <button onclick="fetchProfile()">Fetch Profile</button>
+            <div id="profileResult" class="result"></div>
+        </div>
+
+        <!-- Profile Update Section -->
+        <div class="test-section">
+            <h3>✏️ Step 3: Update Business Profile</h3>
+            <p>Test updating profile information</p>
+            <input type="text" id="updateName" placeholder="Business Name">
+            <input type="text" id="updatePhone" placeholder="Phone Number">
+            <input type="text" id="updateCategory" placeholder="Category">
+            <textarea id="updateAbout" placeholder="About Company" rows="3"></textarea>
+            <button onclick="updateProfile()">Update Profile</button>
+            <div id="updateResult" class="result"></div>
+        </div>
+
+        <!-- Password Change Section -->
+        <div class="test-section">
+            <h3>🔒 Step 4: Change Password</h3>
+            <p>Test password change functionality</p>
+            <input type="password" id="currentPassword" placeholder="Current Password">
+            <input type="password" id="newPassword" placeholder="New Password">
+            <button onclick="changePassword()">Change Password</button>
+            <div id="passwordResult" class="result"></div>
+        </div>
+
+        <!-- Frontend Test Section -->
+        <div class="test-section success">
+            <h3>🌐 Step 5: Test Frontend</h3>
+            <p>Open the business profile page in the React application</p>
+            <button onclick="openBusinessProfile()">Open Business Profile Page</button>
+            <p><strong>Manual Test:</strong> Navigate to <a href="http://localhost:5173/business/profile" target="_blank">http://localhost:5173/business/profile</a></p>
+        </div>
+    </div>
+
+    <script>
+        let authToken = '';
+        const API_BASE = 'http://localhost:5000';
+
+        async function loginBusiness() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const resultDiv = document.getElementById('loginResult');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/user/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.token;
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Login successful!\nToken: ${authToken.substring(0, 50)}...\nUser: ${data.user.name}\nRole: ${data.user.role}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Login failed: ${data.message}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function fetchProfile() {
+            const resultDiv = document.getElementById('profileResult');
+
+            if (!authToken) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ Please login first';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/business/profile`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Profile fetched successfully!\n\n${JSON.stringify(data, null, 2)}`;
+                    
+                    // Pre-fill update form
+                    document.getElementById('updateName').value = data.name || '';
+                    document.getElementById('updatePhone').value = data.phone || '';
+                    document.getElementById('updateCategory').value = data.category || '';
+                    document.getElementById('updateAbout').value = data.about_company || '';
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Failed to fetch profile: ${data.message}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function updateProfile() {
+            const resultDiv = document.getElementById('updateResult');
+
+            if (!authToken) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ Please login first';
+                return;
+            }
+
+            const updateData = {
+                name: document.getElementById('updateName').value,
+                phone: document.getElementById('updatePhone').value,
+                category: document.getElementById('updateCategory').value,
+                about_company: document.getElementById('updateAbout').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/api/business/profile`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Profile updated successfully!\n${data.message}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Failed to update profile: ${data.message}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function changePassword() {
+            const resultDiv = document.getElementById('passwordResult');
+
+            if (!authToken) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ Please login first';
+                return;
+            }
+
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+
+            if (!currentPassword || !newPassword) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ Please enter both current and new passwords';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/business/change-password`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ currentPassword, newPassword })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Password changed successfully!\n${data.message}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Failed to change password: ${data.message}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        function openBusinessProfile() {
+            window.open('http://localhost:5173/business/profile', '_blank');
+        }
+
+        // Auto-populate with test credentials
+        window.onload = function() {
+            console.log('Business Profile Test Page Loaded');
+            console.log('Server should be running on http://localhost:5000');
+            console.log('Client should be running on http://localhost:5173');
+        };
+    </script>
+</body>
+</html>

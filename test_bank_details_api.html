@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Bank Details API</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { margin-top: 20px; padding: 15px; border-radius: 4px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test Bank Details API</h1>
+        
+        <div class="form-group">
+            <label>Test Type:</label>
+            <select id="testType">
+                <option value="company">Company Bank Details</option>
+                <option value="admin">Admin Bank Details</option>
+            </select>
+        </div>
+
+        <form id="bankDetailsForm">
+            <div class="form-group">
+                <label for="bank_name">Bank Name *</label>
+                <input type="text" id="bank_name" name="bank_name" required value="Test Bank">
+            </div>
+
+            <div class="form-group">
+                <label for="branch_name">Branch Name *</label>
+                <input type="text" id="branch_name" name="branch_name" required value="Test Branch">
+            </div>
+
+            <div class="form-group">
+                <label for="account_holder_name">Account Holder Name *</label>
+                <input type="text" id="account_holder_name" name="account_holder_name" required value="Test Company Ltd">
+            </div>
+
+            <div class="form-group">
+                <label for="account_number">Account Number *</label>
+                <input type="text" id="account_number" name="account_number" required value="1234567890">
+            </div>
+
+            <div class="form-group">
+                <label for="iban_number">IBAN Number *</label>
+                <input type="text" id="iban_number" name="iban_number" required value="GB29NWBK60161331926819">
+            </div>
+
+            <div class="form-group">
+                <label for="swift_code">SWIFT Code *</label>
+                <input type="text" id="swift_code" name="swift_code" required value="NWBKGB2L">
+            </div>
+
+            <div class="form-group">
+                <label for="payment_instructions">Payment Instructions</label>
+                <textarea id="payment_instructions" name="payment_instructions" rows="3">Please include reference number in payment description</textarea>
+            </div>
+
+            <button type="submit">Create Bank Details</button>
+        </form>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        
+        // Mock authentication token (you'll need to replace this with a real token)
+        const mockToken = 'your-jwt-token-here';
+
+        document.getElementById('bankDetailsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const testType = document.getElementById('testType').value;
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            data.is_active = true;
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="info">Testing bank details creation...</div>';
+            
+            try {
+                const endpoint = testType === 'admin' ? '/bank-details/admin' : '/bank-details';
+                
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${mockToken}`
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h3>✅ Success!</h3>
+                            <p>Bank details created successfully</p>
+                            <pre>${JSON.stringify(result, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h3>❌ Error</h3>
+                            <p>Status: ${response.status}</p>
+                            <p>Message: ${result.message || 'Unknown error'}</p>
+                            <pre>${JSON.stringify(result, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Network Error</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        });
+
+        // Test without authentication first
+        async function testWithoutAuth() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="info">Testing API availability...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/bank-details/active`);
+                const result = await response.json();
+                
+                if (response.status === 401) {
+                    resultDiv.innerHTML = `
+                        <div class="info">
+                            <h3>ℹ️ API is working</h3>
+                            <p>Authentication required (expected behavior)</p>
+                            <p>Status: ${response.status}</p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h3>✅ API Response</h3>
+                            <p>Status: ${response.status}</p>
+                            <pre>${JSON.stringify(result, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Connection Error</h3>
+                        <p>Cannot connect to server: ${error.message}</p>
+                        <p>Make sure the server is running on port 5000</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Test API availability on page load
+        testWithoutAuth();
+    </script>
+</body>
+</html>

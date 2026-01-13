@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Bank Details in Quote Response</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .error { color: red; }
+        .success { color: green; }
+        .info { color: blue; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        input { padding: 8px; margin: 5px; width: 200px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test Bank Details in Quote Response</h1>
+        
+        <div class="section">
+            <h3>Login</h3>
+            <input type="email" id="email" placeholder="Email" value="aadarshchauhan35@gmail.com">
+            <input type="password" id="password" placeholder="Password" value="222333">
+            <button onclick="login()">Login</button>
+            <div id="loginResult"></div>
+        </div>
+
+        <div class="section">
+            <h3>Test Bank Details API</h3>
+            <button onclick="testBankDetailsAPI()">Test /api/bank-details</button>
+            <div id="bankDetailsResult"></div>
+        </div>
+
+        <div class="section">
+            <h3>Test Available Quotes API</h3>
+            <button onclick="testAvailableQuotesAPI()">Test /api/quotes/available</button>
+            <div id="quotesResult"></div>
+        </div>
+
+        <div class="section">
+            <h3>Debug Information</h3>
+            <div id="debugInfo"></div>
+        </div>
+    </div>
+
+    <script>
+        let authToken = '';
+        const API_BASE = 'http://localhost:5000';
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.token;
+                    document.getElementById('loginResult').innerHTML = 
+                        `<div class="success">✅ Login successful! User: ${data.user.name} (${data.user.role})</div>`;
+                    
+                    // Store token for debugging
+                    localStorage.setItem('token', authToken);
+                } else {
+                    document.getElementById('loginResult').innerHTML = 
+                        `<div class="error">❌ Login failed: ${data.message}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('loginResult').innerHTML = 
+                    `<div class="error">❌ Login error: ${error.message}</div>`;
+            }
+        }
+
+        async function testBankDetailsAPI() {
+            if (!authToken) {
+                document.getElementById('bankDetailsResult').innerHTML = 
+                    '<div class="error">❌ Please login first</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/bank-details`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                
+                document.getElementById('bankDetailsResult').innerHTML = `
+                    <div class="info">📊 Bank Details API Response:</div>
+                    <div><strong>Status:</strong> ${response.status}</div>
+                    <div><strong>Response:</strong></div>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    <div><strong>Array Check:</strong> ${Array.isArray(data) ? '✅ Is Array' : '❌ Not Array'}</div>
+                    <div><strong>Length:</strong> ${Array.isArray(data) ? data.length : 'N/A'}</div>
+                    ${Array.isArray(data) && data.length > 0 ? `
+                        <div><strong>First Item:</strong></div>
+                        <pre>${JSON.stringify(data[0], null, 2)}</pre>
+                        <div><strong>Active Items:</strong> ${data.filter(item => item.is_active).length}</div>
+                    ` : ''}
+                `;
+            } catch (error) {
+                document.getElementById('bankDetailsResult').innerHTML = 
+                    `<div class="error">❌ Bank Details API error: ${error.message}</div>`;
+            }
+        }
+
+        async function testAvailableQuotesAPI() {
+            if (!authToken) {
+                document.getElementById('quotesResult').innerHTML = 
+                    '<div class="error">❌ Please login first</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/quotes/available`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                
+                document.getElementById('quotesResult').innerHTML = `
+                    <div class="info">📊 Available Quotes API Response:</div>
+                    <div><strong>Status:</strong> ${response.status}</div>
+                    <div><strong>Has Quotes:</strong> ${data.quotes ? data.quotes.length : 0} quotes</div>
+                    <div><strong>Can Respond:</strong> ${data.canRespond ? '✅ Yes' : '❌ No'}</div>
+                    <div><strong>Has Active Subscription:</strong> ${data.hasActiveSubscription ? '✅ Yes' : '❌ No'}</div>
+                    ${data.quotes && data.quotes.length > 0 ? `
+                        <div><strong>First Quote:</strong></div>
+                        <pre>${JSON.stringify(data.quotes[0], null, 2)}</pre>
+                    ` : ''}
+                `;
+            } catch (error) {
+                document.getElementById('quotesResult').innerHTML = 
+                    `<div class="error">❌ Available Quotes API error: ${error.message}</div>`;
+            }
+        }
+
+        // Auto-login on page load if we have stored credentials
+        window.onload = function() {
+            const storedToken = localStorage.getItem('token');
+            if (storedToken) {
+                authToken = storedToken;
+                document.getElementById('loginResult').innerHTML = 
+                    '<div class="info">🔄 Using stored token</div>';
+            }
+            
+            document.getElementById('debugInfo').innerHTML = `
+                <div><strong>Current URL:</strong> ${window.location.href}</div>
+                <div><strong>API Base:</strong> ${API_BASE}</div>
+                <div><strong>Stored Token:</strong> ${storedToken ? 'Present' : 'None'}</div>
+            `;
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Sidebar Logo Issue</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        
+        .logo-test {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .logo-preview {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 2px solid #CDA435;
+            object-fit: cover;
+        }
+        
+        .logo-fallback {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(to bottom right, #CDA435, #B8941F);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Sidebar Logo Debug Tool</h1>
+    
+    <div class="test-container">
+        <h2>📋 Issue Analysis</h2>
+        <div class="warning">
+            <strong>Problem:</strong> Logo shows in profile but not in sidebar
+        </div>
+        <div class="info">
+            <strong>Possible Causes:</strong>
+            <ul>
+                <li>API call not returning logo in sidebar context</li>
+                <li>Event listener not triggering</li>
+                <li>Logo URL not accessible</li>
+                <li>React state not updating properly</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>🧪 Test 1: Check Business Profile API</h2>
+        <button onclick="testBusinessProfileAPI()">Test /api/business/profile</button>
+        <div id="profileApiResult"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>🧪 Test 2: Test Logo URL Accessibility</h2>
+        <button onclick="testLogoURL()">Test Logo URL</button>
+        <div id="logoUrlResult"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>🧪 Test 3: Test Event System</h2>
+        <button onclick="testEventSystem()">Trigger Profile Update Event</button>
+        <div id="eventResult"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>🧪 Test 4: Manual Logo Display Test</h2>
+        <input type="text" id="testLogoUrl" placeholder="Enter logo URL to test display" style="width: 400px; padding: 8px;" />
+        <button onclick="testLogoDisplay()">Test Logo Display</button>
+        <div id="logoDisplayResult"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>🧪 Test 5: Check Browser Console</h2>
+        <div class="info">
+            <strong>Instructions:</strong>
+            <ol>
+                <li>Open browser developer tools (F12)</li>
+                <li>Go to Console tab</li>
+                <li>Navigate to a business page (dashboard, etc.)</li>
+                <li>Look for any errors related to profile fetching</li>
+                <li>Check if businessProfile state is being set</li>
+            </ol>
+        </div>
+        <button onclick="logCurrentState()">Log Current State</button>
+        <div id="consoleResult"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        let currentLogoUrl = null;
+        
+        function getAuthHeaders() {
+            const token = localStorage.getItem('token');
+            return {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+        }
+
+        async function testBusinessProfileAPI() {
+            try {
+                const response = await fetch(`${API_BASE}/business/profile`, {
+                    headers: getAuthHeaders()
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                currentLogoUrl = data.logo;
+                
+                document.getElementById('profileApiResult').innerHTML = `
+                    <div class="success">
+                        <strong>✅ API Response:</strong>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                        <strong>Logo URL:</strong> ${data.logo || 'NULL/EMPTY'}
+                        <br><strong>Logo Status:</strong> ${data.logo ? '✅ Present' : '❌ Missing'}
+                    </div>
+                `;
+                
+                console.log('Business Profile API Response:', data);
+            } catch (error) {
+                document.getElementById('profileApiResult').innerHTML = `
+                    <div class="error">
+                        <strong>❌ API Error:</strong> ${error.message}
+                    </div>
+                `;
+                console.error('API Error:', error);
+            }
+        }
+
+        async function testLogoURL() {
+            if (!currentLogoUrl) {
+                document.getElementById('logoUrlResult').innerHTML = `
+                    <div class="warning">
+                        <strong>⚠️ No Logo URL:</strong> Run the profile API test first
+                    </div>
+                `;
+                return;
+            }
+
+            try {
+                // Test if logo URL is accessible
+                const img = new Image();
+                img.onload = function() {
+                    document.getElementById('logoUrlResult').innerHTML = `
+                        <div class="success">
+                            <strong>✅ Logo URL Accessible:</strong>
+                            <br>URL: ${currentLogoUrl}
+                            <br>Dimensions: ${this.width}x${this.height}
+                            <div class="logo-test">
+                                <img src="${currentLogoUrl}" class="logo-preview" alt="Logo Test" />
+                                <span>Logo loads successfully</span>
+                            </div>
+                        </div>
+                    `;
+                };
+                img.onerror = function() {
+                    document.getElementById('logoUrlResult').innerHTML = `
+                        <div class="error">
+                            <strong>❌ Logo URL Not Accessible:</strong>
+                            <br>URL: ${currentLogoUrl}
+                            <br>Error: Image failed to load
+                        </div>
+                    `;
+                };
+                img.src = currentLogoUrl;
+            } catch (error) {
+                document.getElementById('logoUrlResult').innerHTML = `
+                    <div class="error">
+                        <strong>❌ Logo Test Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function testEventSystem() {
+            // Listen for the event
+            let eventReceived = false;
+            
+            const eventListener = () => {
+                eventReceived = true;
+                document.getElementById('eventResult').innerHTML = `
+                    <div class="success">
+                        <strong>✅ Event Received:</strong> businessProfileUpdated event was triggered and received
+                    </div>
+                `;
+            };
+            
+            window.addEventListener('businessProfileUpdated', eventListener);
+            
+            // Trigger the event
+            setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('businessProfileUpdated'));
+                
+                // Check if event was received
+                setTimeout(() => {
+                    if (!eventReceived) {
+                        document.getElementById('eventResult').innerHTML = `
+                            <div class="error">
+                                <strong>❌ Event Not Received:</strong> Event system may not be working
+                            </div>
+                        `;
+                    }
+                    
+                    // Clean up
+                    window.removeEventListener('businessProfileUpdated', eventListener);
+                }, 100);
+            }, 100);
+        }
+
+        function testLogoDisplay() {
+            const testUrl = document.getElementById('testLogoUrl').value;
+            
+            if (!testUrl) {
+                alert('Please enter a logo URL to test');
+                return;
+            }
+
+            const img = new Image();
+            img.onload = function() {
+                document.getElementById('logoDisplayResult').innerHTML = `
+                    <div class="success">
+                        <strong>✅ Manual Logo Test:</strong>
+                        <div class="logo-test">
+                            <img src="${testUrl}" class="logo-preview" alt="Manual Test" />
+                            <div>
+                                <strong>URL:</strong> ${testUrl}<br>
+                                <strong>Size:</strong> ${this.width}x${this.height}<br>
+                                <strong>Status:</strong> ✅ Loads successfully
+                            </div>
+                        </div>
+                    </div>
+                `;
+            };
+            img.onerror = function() {
+                document.getElementById('logoDisplayResult').innerHTML = `
+                    <div class="error">
+                        <strong>❌ Manual Logo Test Failed:</strong>
+                        <br>URL: ${testUrl}
+                        <br>Error: Image failed to load
+                    </div>
+                `;
+            };
+            img.src = testUrl;
+        }
+
+        function logCurrentState() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            console.log('=== SIDEBAR LOGO DEBUG STATE ===');
+            console.log('Token present:', !!token);
+            console.log('User data:', user ? JSON.parse(user) : null);
+            console.log('Current logo URL:', currentLogoUrl);
+            console.log('Window location:', window.location.href);
+            
+            document.getElementById('consoleResult').innerHTML = `
+                <div class="info">
+                    <strong>📝 State logged to console</strong>
+                    <br>Check browser console for detailed information
+                    <br>Token: ${token ? '✅ Present' : '❌ Missing'}
+                    <br>User: ${user ? '✅ Present' : '❌ Missing'}
+                </div>
+            `;
+        }
+
+        // Auto-run tests on load
+        window.onload = function() {
+            console.log('🔍 Sidebar Logo Debug Tool Ready');
+            
+            // Check if user is logged in
+            const token = localStorage.getItem('token');
+            if (!token) {
+                document.body.innerHTML = `
+                    <div class="error" style="margin: 20px;">
+                        <strong>❌ Not Logged In:</strong> Please log in as a business user first.
+                        <br><br>
+                        <a href="http://localhost:5173/login" style="color: #007bff;">Go to Login</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Auto-run profile API test
+            testBusinessProfileAPI();
+        };
+
+        // Listen for profile update events
+        window.addEventListener('businessProfileUpdated', () => {
+            console.log('🔄 Profile update event received in debug tool');
+        });
+    </script>
+</body>
+</html>

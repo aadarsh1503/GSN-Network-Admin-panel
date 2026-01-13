@@ -15,7 +15,7 @@ const CompanyHeader = ({ onMenuClick }) => {
   const [showRestrictionModal, setShowRestrictionModal] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
-  const { unreadCount, messageUnreadCount } = useNotifications();
+  const { unreadCount, messageUnreadCount, markAsRead } = useNotifications();
   const { isLogoutModalOpen, openLogoutModal, closeLogoutModal } = useLogoutModal();
 
   // State for user and logo
@@ -90,7 +90,7 @@ const CompanyHeader = ({ onMenuClick }) => {
       <div className="header-left flex items-center gap-4">
         <button
           onClick={onMenuClick}
-          className="p-2 rounded-full text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="p-2 rounded-full text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
           aria-label="Toggle sidebar"
         >
           <FiMenu size={24} />
@@ -116,12 +116,12 @@ const CompanyHeader = ({ onMenuClick }) => {
       <div className="header-center hidden lg:flex items-center gap-4">
         <a href="/company/member-directory" className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">Member Directory</a>
         {/* <a href="/company/freight-quotes" className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">Quotes</a> */}
-        <button 
+        {/* <button 
           onClick={handleQuoteRequestClick}
-          className="px-5 py-2 text-sm font-medium text-white bg-amber-500 border border-amber-500 rounded-lg hover:bg-amber-600 transition-colors"
+          className="px-5 py-2 text-sm font-medium text-white bg-[#CDA435] border border-[#CDA435] rounded-lg hover:bg-[#B8941F] transition-colors"
         >
           Request Quote
-        </button>
+        </button> */}
       </div>
 
       {/* Right Section */}
@@ -141,7 +141,11 @@ const CompanyHeader = ({ onMenuClick }) => {
 
         {/* Notifications Button */}
         <button 
-          onClick={() => navigate('/company/notification-company')}
+          onClick={() => {
+            // Mark notifications as read when clicking the button
+            markAsRead('all');
+            navigate('/company/notification-company');
+          }}
           className="relative p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-colors"
         >
           <FiBell size={20} />

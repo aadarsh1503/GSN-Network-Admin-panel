@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navbar Logout Modal Fix Test</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        
+        /* Simulate navbar with high z-index */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: #111;
+            color: white;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        
+        /* Simulate dropdown */
+        .dropdown {
+            position: relative;
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            color: black;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            min-width: 200px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+        
+        /* Simulate modal with very high z-index */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        .content {
+            margin-top: 80px;
+            padding: 20px;
+            height: 2000px;
+            background: linear-gradient(to bottom, #f0f0f0, #e0e0e0);
+        }
+        
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        .logout-btn {
+            background: #dc3545;
+        }
+        
+        .logout-btn:hover {
+            background: #c82333;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <div class="navbar">
+        <div>GSN Logo</div>
+        <div class="dropdown">
+            <button onclick="toggleDropdown()">User Menu ▼</button>
+            <div id="dropdown-menu" class="dropdown-menu hidden">
+                <div>Welcome, User!</div>
+                <hr>
+                <button onclick="goToDashboard()">Dashboard</button>
+                <button onclick="goToProfile()">Profile</button>
+                <hr>
+                <button class="logout-btn" onclick="showLogoutModal()">Logout</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="content">
+        <h1>Main Content Area</h1>
+        <p>This simulates the main page content. Scroll down to see more content.</p>
+        <p>The navbar logout modal should appear properly without being cut off.</p>
+        
+        <h2>Test Instructions:</h2>
+        <ol>
+            <li>Click on "User Menu" in the navbar</li>
+            <li>Click "Logout" from the dropdown</li>
+            <li>The logout confirmation modal should appear fully visible</li>
+            <li>The modal should not be cut off or clipped</li>
+        </ol>
+        
+        <h2>Panel Logout Test:</h2>
+        <button class="logout-btn" onclick="showLogoutModal()">Test Panel Logout (Should work fine)</button>
+        
+        <div style="height: 1000px; background: repeating-linear-gradient(45deg, #f9f9f9, #f9f9f9 10px, #e9e9e9 10px, #e9e9e9 20px);">
+            <p>Lots of content to test scrolling...</p>
+        </div>
+    </div>
+    
+    <!-- Logout Modal -->
+    <div id="logout-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2>🚪 Confirm Logout</h2>
+            <p>Are you sure you want to logout from your account?</p>
+            <p><strong>User:</strong> Test User</p>
+            <div style="margin-top: 20px;">
+                <button onclick="hideLogoutModal()">Cancel</button>
+                <button class="logout-btn" onclick="confirmLogout()">Confirm Logout</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function toggleDropdown() {
+            const dropdown = document.getElementById('dropdown-menu');
+            dropdown.classList.toggle('hidden');
+        }
+        
+        function showLogoutModal() {
+            // Hide dropdown first
+            document.getElementById('dropdown-menu').classList.add('hidden');
+            // Show modal
+            document.getElementById('logout-modal').classList.remove('hidden');
+        }
+        
+        function hideLogoutModal() {
+            document.getElementById('logout-modal').classList.add('hidden');
+        }
+        
+        function confirmLogout() {
+            alert('Logout confirmed! (In real app, this would redirect to login)');
+            hideLogoutModal();
+        }
+        
+        function goToDashboard() {
+            alert('Navigate to Dashboard');
+            toggleDropdown();
+        }
+        
+        function goToProfile() {
+            alert('Navigate to Profile');
+            toggleDropdown();
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.querySelector('.dropdown');
+            const dropdownMenu = document.getElementById('dropdown-menu');
+            
+            if (!dropdown.contains(event.target)) {
+                dropdownMenu.classList.add('hidden');
+            }
+        });
+        
+        // Close modal when clicking backdrop
+        document.getElementById('logout-modal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                hideLogoutModal();
+            }
+        });
+    </script>
+</body>
+</html>

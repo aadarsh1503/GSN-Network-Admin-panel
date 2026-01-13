@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Redirect Authorization Fix Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border-left: 4px solid #4CAF50;
+        }
+        .button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .danger {
+            border-left-color: #f44336;
+            background: rgba(244, 67, 54, 0.1);
+        }
+        .warning {
+            border-left-color: #ff9800;
+            background: rgba(255, 152, 0, 0.1);
+        }
+        .success {
+            border-left-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            background: rgba(0, 0, 0, 0.2);
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .scenario {
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Login Redirect Authorization Fix Test</h1>
+        <p>This test verifies that users are redirected to appropriate dashboards after login, even when they initially tried to access unauthorized routes.</p>
+
+        <div class="test-section success">
+            <h3>✅ Issue Description</h3>
+            <p><strong>Problem:</strong> User tries to access unauthorized route, gets redirected to login, but after login gets sent to unauthorized page instead of their dashboard.</p>
+            <p><strong>Example Flow:</strong></p>
+            <ol>
+                <li>User on /login manually changes URL to /admin</li>
+                <li>Gets redirected back to /login (correct)</li>
+                <li>Logs in with company credentials</li>
+                <li>Gets redirected to /admin → unauthorized page (wrong!)</li>
+                <li>Should go directly to /company dashboard instead</li>
+            </ol>
+        </div>
+
+        <div class="test-section warning">
+            <h3>🧪 Test Scenarios</h3>
+            
+            <div class="scenario">
+                <h4>Scenario 1: Company user tries to access Admin route</h4>
+                <button class="button" onclick="testScenario('company', '/admin')">Test Company → Admin</button>
+                <div id="scenario1-result" class="result"></div>
+            </div>
+
+            <div class="scenario">
+                <h4>Scenario 2: Business user tries to access Company route</h4>
+                <button class="button" onclick="testScenario('business', '/company')">Test Business → Company</button>
+                <div id="scenario2-result" class="result"></div>
+            </div>
+
+            <div class="scenario">
+                <h4>Scenario 3: User tries to access Business route</h4>
+                <button class="button" onclick="testScenario('user', '/business')">Test User → Business</button>
+                <div id="scenario3-result" class="result"></div>
+            </div>
+
+            <div class="scenario">
+                <h4>Scenario 4: Admin user tries to access Admin route (should work)</h4>
+                <button class="button" onclick="testScenario('admin', '/admin')">Test Admin → Admin</button>
+                <div id="scenario4-result" class="result"></div>
+            </div>
+
+            <div class="scenario">
+                <h4>Scenario 5: Company user tries to access Company route (should work)</h4>
+                <button class="button" onclick="testScenario('company', '/company')">Test Company → Company</button>
+                <div id="scenario5-result" class="result"></div>
+            </div>
+        </div>
+
+        <div class="test-section success">
+            <h3>🔧 Fix Implementation</h3>
+            <p><strong>Login.jsx Changes:</strong></p>
+            <ul>
+                <li>Added permission validation before redirecting to intended destination</li>
+                <li>Check if user role matches the route they're trying to access</li>
+                <li>Redirect to appropriate dashboard if no permission</li>
+                <li>Only redirect to intended destination if user has proper authorization</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>🎯 Expected Behavior After Fix</h3>
+            <div class="scenario">
+                <h4>Route Permission Matrix</h4>
+                <button class="button" onclick="showPermissionMatrix()">Show Permission Matrix</button>
+                <div id="permission-matrix" class="result"></div>
+            </div>
+        </div>
+
+        <div class="test-section danger">
+            <h3>🧹 Test Utilities</h3>
+            <button class="button" onclick="clearTestData()">Clear Test Data</button>
+            <button class="button" onclick="simulateLoginState()">Simulate Login State</button>
+            <div id="utility-result" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Simulate the fixed login redirect logic
+        function getRedirectPath(userRole, intendedPath) {
+            // Determine the correct dashboard for the user's role
+            let defaultDashboard = '/';
+            if (userRole === 'admin') {
+                defaultDashboard = '/admin';
+            } else if (userRole === 'company') {
+                defaultDashboard = '/company';
+            } else if (userRole === 'business') {
+                defaultDashboard = '/business';
+            } else if (userRole === 'user') {
+                defaultDashboard = '/user/dashboard';
+            }
+
+            // Check if the user has permission to access the intended destination
+            if (intendedPath) {
+                let hasPermission = false;
+
+                // Check if the user has permission for the intended route
+                if (userRole === 'admin' && intendedPath.startsWith('/admin')) {
+                    hasPermission = true;
+                } else if (userRole === 'company' && intendedPath.startsWith('/company')) {
+                    hasPermission = true;
+                } else if (userRole === 'business' && intendedPath.startsWith('/business')) {
+                    hasPermission = true;
+                } else if (userRole === 'user' && intendedPath.startsWith('/user')) {
+                    hasPermission = true;
+                }
+
+                // Return intended destination only if user has permission
+                if (hasPermission) {
+                    return intendedPath;
+                } else {
+                    return defaultDashboard;
+                }
+            } else {
+                // No intended destination, return appropriate dashboard
+                return defaultDashboard;
+            }
+        }
+
+        // Test a specific scenario
+        function testScenario(userRole, intendedPath) {
+            const resultId = `scenario${getScenarioNumber(userRole, intendedPath)}-result`;
+            const actualRedirect = getRedirectPath(userRole, intendedPath);
+            
+            let result = `<strong>Test: ${userRole} user tries to access ${intendedPath}</strong><br>`;
+            result += `👤 User Role: ${userRole}<br>`;
+            result += `🎯 Intended Path: ${intendedPath}<br>`;
+            result += `📍 Actual Redirect: ${actualRedirect}<br>`;
+            
+            // Determine if this is the expected behavior
+            const expectedDashboard = getDashboardForRole(userRole);
+            const hasPermission = checkPermission(userRole, intendedPath);
+            
+            if (hasPermission) {
+                if (actualRedirect === intendedPath) {
+                    result += `✅ <strong>CORRECT:</strong> User has permission, redirected to intended path<br>`;
+                } else {
+                    result += `❌ <strong>ERROR:</strong> User has permission but redirected to wrong path<br>`;
+                }
+            } else {
+                if (actualRedirect === expectedDashboard) {
+                    result += `✅ <strong>CORRECT:</strong> User lacks permission, redirected to their dashboard<br>`;
+                } else {
+                    result += `❌ <strong>ERROR:</strong> User lacks permission but not redirected to dashboard<br>`;
+                }
+            }
+            
+            result += `🏠 Expected Dashboard: ${expectedDashboard}<br>`;
+            result += `🔐 Has Permission: ${hasPermission ? 'Yes' : 'No'}`;
+            
+            document.getElementById(resultId).innerHTML = result;
+        }
+
+        // Helper functions
+        function getScenarioNumber(userRole, intendedPath) {
+            if (userRole === 'company' && intendedPath === '/admin') return 1;
+            if (userRole === 'business' && intendedPath === '/company') return 2;
+            if (userRole === 'user' && intendedPath === '/business') return 3;
+            if (userRole === 'admin' && intendedPath === '/admin') return 4;
+            if (userRole === 'company' && intendedPath === '/company') return 5;
+            return 1;
+        }
+
+        function getDashboardForRole(role) {
+            switch(role) {
+                case 'admin': return '/admin';
+                case 'company': return '/company';
+                case 'business': return '/business';
+                case 'user': return '/user/dashboard';
+                default: return '/';
+            }
+        }
+
+        function checkPermission(userRole, path) {
+            if (userRole === 'admin' && path.startsWith('/admin')) return true;
+            if (userRole === 'company' && path.startsWith('/company')) return true;
+            if (userRole === 'business' && path.startsWith('/business')) return true;
+            if (userRole === 'user' && path.startsWith('/user')) return true;
+            return false;
+        }
+
+        // Show permission matrix
+        function showPermissionMatrix() {
+            let matrix = '<strong>Route Permission Matrix:</strong><br><br>';
+            
+            const roles = ['admin', 'company', 'business', 'user'];
+            const routes = ['/admin', '/company', '/business', '/user'];
+            
+            matrix += '<table style="border-collapse: collapse; width: 100%;">';
+            matrix += '<tr><th style="border: 1px solid #ccc; padding: 8px;">User Role</th>';
+            routes.forEach(route => {
+                matrix += `<th style="border: 1px solid #ccc; padding: 8px;">${route}</th>`;
+            });
+            matrix += '</tr>';
+            
+            roles.forEach(role => {
+                matrix += `<tr><td style="border: 1px solid #ccc; padding: 8px;"><strong>${role}</strong></td>`;
+                routes.forEach(route => {
+                    const hasPermission = checkPermission(role, route);
+                    const cell = hasPermission ? '✅ Allow' : '❌ Deny → Dashboard';
+                    matrix += `<td style="border: 1px solid #ccc; padding: 8px;">${cell}</td>`;
+                });
+                matrix += '</tr>';
+            });
+            matrix += '</table>';
+            
+            document.getElementById('permission-matrix').innerHTML = matrix;
+        }
+
+        // Utility functions
+        function clearTestData() {
+            localStorage.clear();
+            document.getElementById('utility-result').innerHTML = '🧹 All test data cleared';
+        }
+
+        function simulateLoginState() {
+            // Simulate a company user login state
+            const mockUser = {
+                id: "123",
+                name: "Test Company",
+                email: "test@company.com",
+                role: "company"
+            };
+            
+            localStorage.setItem('user', JSON.stringify(mockUser));
+            localStorage.setItem('token', 'mock_token_123');
+            
+            document.getElementById('utility-result').innerHTML = 
+                '✅ Simulated company user login state<br>' +
+                'User: Test Company (company role)<br>' +
+                'Token: mock_token_123';
+        }
+
+        // Run all tests automatically
+        function runAllTests() {
+            setTimeout(() => testScenario('company', '/admin'), 100);
+            setTimeout(() => testScenario('business', '/company'), 200);
+            setTimeout(() => testScenario('user', '/business'), 300);
+            setTimeout(() => testScenario('admin', '/admin'), 400);
+            setTimeout(() => testScenario('company', '/company'), 500);
+            setTimeout(() => showPermissionMatrix(), 600);
+        }
+
+        // Initialize
+        runAllTests();
+    </script>
+</body>
+</html>

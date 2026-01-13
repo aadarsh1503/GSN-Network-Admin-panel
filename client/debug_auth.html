@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auth Debug</title>
+</head>
+<body>
+    <h1>Authentication Debug</h1>
+    <div id="results"></div>
+    
+    <script>
+        function log(message) {
+            document.getElementById('results').innerHTML += '<p>' + message + '</p>';
+            console.log(message);
+        }
+        
+        // Check localStorage
+        const token = localStorage.getItem('token');
+        const user = localStorage.getItem('user');
+        
+        log('Token exists: ' + (token ? 'Yes' : 'No'));
+        log('User data: ' + (user || 'None'));
+        
+        if (user) {
+            try {
+                const userData = JSON.parse(user);
+                log('User role: ' + userData.role);
+                log('User name: ' + userData.name);
+            } catch (e) {
+                log('Error parsing user data: ' + e.message);
+            }
+        }
+        
+        if (token) {
+            log('Token: ' + token.substring(0, 50) + '...');
+            
+            // Test API call
+            fetch('http://localhost:5000/api/disputes/my-disputes', {
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            })
+            .then(response => {
+                log('API Response status: ' + response.status);
+                return response.json();
+            })
+            .then(data => {
+                log('API Response: ' + JSON.stringify(data));
+            })
+            .catch(error => {
+                log('API Error: ' + error.message);
+            });
+        }
+    </script>
+</body>
+</html>

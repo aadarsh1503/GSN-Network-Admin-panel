@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Disputes Company Search Enhancement</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        
+        .demo-dropdown {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 20px 0;
+        }
+        
+        .demo-input {
+            width: 100%;
+            padding: 12px 40px 12px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .demo-input:focus {
+            outline: none;
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+        }
+        
+        .demo-dropdown-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-height: 240px;
+            overflow-y: auto;
+            z-index: 10;
+            margin-top: 4px;
+        }
+        
+        .demo-dropdown-header {
+            padding: 8px 12px;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .demo-dropdown-item {
+            padding: 12px;
+            border-bottom: 1px solid #f3f4f6;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+        
+        .demo-dropdown-item:hover {
+            background-color: #fef3c7;
+        }
+        
+        .demo-dropdown-item:last-child {
+            border-bottom: none;
+        }
+        
+        .company-name {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+        
+        .company-email {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+        
+        .company-id {
+            display: inline-block;
+            background: #fef3c7;
+            color: #d97706;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .company-location {
+            font-size: 11px;
+            color: #9ca3af;
+            margin-top: 4px;
+        }
+        
+        .selected-company {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .feature-list li:before {
+            content: "✅";
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Business Disputes Company Search Enhancement</h1>
+    
+    <div class="test-container">
+        <h2>🎯 Enhancement Overview</h2>
+        <div class="success">
+            <strong>Problem Solved:</strong> When there are 1000+ companies, finding the right one in a dropdown becomes impossible.
+        </div>
+        <div class="info">
+            <strong>Solution:</strong> Replaced simple dropdown with searchable, filterable company selection with enhanced UX.
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>✨ New Features</h2>
+        <ul class="feature-list">
+            <li><strong>Real-time Search:</strong> Type to filter companies by name, email, or ID</li>
+            <li><strong>Smart Filtering:</strong> Searches across multiple fields simultaneously</li>
+            <li><strong>Visual Feedback:</strong> Shows search results count and highlights</li>
+            <li><strong>Company Details:</strong> Displays name, email, ID, and location</li>
+            <li><strong>Easy Selection:</strong> Click to select, clear button to reset</li>
+            <li><strong>Responsive Design:</strong> Works on all screen sizes</li>
+            <li><strong>Keyboard Navigation:</strong> Accessible and user-friendly</li>
+            <li><strong>Loading States:</strong> Disabled during form submission</li>
+        </ul>
+    </div>
+
+    <div class="test-container">
+        <h2>🎨 Interactive Demo</h2>
+        <p>Try searching for companies in the enhanced dropdown below:</p>
+        
+        <div class="demo-dropdown">
+            <input 
+                type="text" 
+                class="demo-input" 
+                placeholder="Search for a logistics company..."
+                id="companySearch"
+                autocomplete="off"
+            />
+            <div class="demo-dropdown-list" id="dropdownList" style="display: none;">
+                <div class="demo-dropdown-header">
+                    <span id="resultsCount">0 companies found</span>
+                </div>
+                <div id="companyList"></div>
+            </div>
+        </div>
+        
+        <div id="selectedCompany" style="display: none;" class="selected-company">
+            <div>
+                <span>✅ Selected: </span>
+                <strong id="selectedName"></strong>
+            </div>
+            <button onclick="clearSelection()" style="background: none; border: none; color: #6b7280; cursor: pointer;">✕</button>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>🔧 Technical Implementation</h2>
+        <div class="info">
+            <strong>Key Changes Made:</strong>
+            <ul>
+                <li>Added <code>companySearchTerm</code> and <code>showCompanyDropdown</code> state</li>
+                <li>Created <code>filteredCompanies</code> computed property for real-time filtering</li>
+                <li>Implemented <code>handleCompanySelect</code> and <code>clearCompanySelection</code> functions</li>
+                <li>Replaced simple select with custom searchable dropdown component</li>
+                <li>Added visual feedback and company information display</li>
+                <li>Integrated with existing form validation and submission logic</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>📊 Performance Benefits</h2>
+        <div class="success">
+            <strong>Before:</strong>
+            <ul>
+                <li>❌ Scrolling through 1000+ companies in dropdown</li>
+                <li>❌ No search functionality</li>
+                <li>❌ Poor user experience</li>
+                <li>❌ Time-consuming company selection</li>
+            </ul>
+        </div>
+        
+        <div class="success">
+            <strong>After:</strong>
+            <ul>
+                <li>✅ Instant search and filtering</li>
+                <li>✅ Type-ahead functionality</li>
+                <li>✅ Visual company information</li>
+                <li>✅ Quick and efficient selection</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>🧪 Testing Instructions</h2>
+        <div class="warning">
+            <strong>To test the enhancement:</strong>
+            <ol>
+                <li>Navigate to <code>http://localhost:5173/business/disputes</code></li>
+                <li>Click "File Dispute" button</li>
+                <li>In the modal, click on the "Logistics Company" field</li>
+                <li>Start typing a company name to see real-time filtering</li>
+                <li>Try searching by email or company ID</li>
+                <li>Click on a company to select it</li>
+                <li>Use the clear button (X) to reset selection</li>
+                <li>Test with different search terms</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>🎯 User Experience Improvements</h2>
+        <div class="info">
+            <ul>
+                <li><strong>Faster Selection:</strong> Find companies in seconds instead of minutes</li>
+                <li><strong>Better Visibility:</strong> See company details before selecting</li>
+                <li><strong>Error Prevention:</strong> Clear visual feedback prevents wrong selections</li>
+                <li><strong>Accessibility:</strong> Keyboard navigation and screen reader friendly</li>
+                <li><strong>Mobile Friendly:</strong> Works well on touch devices</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Demo data - simulating companies
+        const demoCompanies = [
+            { id: 1, name: "ABC Logistics Ltd", email: "contact@abclogistics.com", city: "New York", country: "USA" },
+            { id: 2, name: "Global Shipping Co", email: "info@globalship.com", city: "London", country: "UK" },
+            { id: 3, name: "Express Transport Inc", email: "support@expresstrans.com", city: "Toronto", country: "Canada" },
+            { id: 4, name: "Fast Delivery Services", email: "hello@fastdelivery.com", city: "Sydney", country: "Australia" },
+            { id: 5, name: "International Freight", email: "contact@intlfreight.com", city: "Dubai", country: "UAE" },
+            { id: 6, name: "Ocean Cargo Solutions", email: "info@oceancargo.com", city: "Singapore", country: "Singapore" },
+            { id: 7, name: "Air Express Worldwide", email: "support@airexpress.com", city: "Frankfurt", country: "Germany" },
+            { id: 8, name: "Continental Logistics", email: "contact@continental.com", city: "Paris", country: "France" },
+            { id: 9, name: "Pacific Shipping Lines", email: "info@pacificship.com", city: "Los Angeles", country: "USA" },
+            { id: 10, name: "Euro Transport Group", email: "hello@eurotrans.com", city: "Amsterdam", country: "Netherlands" }
+        ];
+
+        let selectedCompany = null;
+
+        const searchInput = document.getElementById('companySearch');
+        const dropdownList = document.getElementById('dropdownList');
+        const companyList = document.getElementById('companyList');
+        const resultsCount = document.getElementById('resultsCount');
+        const selectedCompanyDiv = document.getElementById('selectedCompany');
+        const selectedName = document.getElementById('selectedName');
+
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            
+            if (searchTerm.length === 0) {
+                dropdownList.style.display = 'none';
+                return;
+            }
+
+            const filtered = demoCompanies.filter(company =>
+                company.name.toLowerCase().includes(searchTerm) ||
+                company.email.toLowerCase().includes(searchTerm) ||
+                company.id.toString().includes(searchTerm)
+            );
+
+            displayResults(filtered, searchTerm);
+        });
+
+        searchInput.addEventListener('focus', () => {
+            if (searchInput.value.length > 0) {
+                dropdownList.style.display = 'block';
+            }
+        });
+
+        function displayResults(companies, searchTerm) {
+            resultsCount.textContent = `${companies.length} compan${companies.length !== 1 ? 'ies' : 'y'} found${searchTerm ? ` for "${searchTerm}"` : ''}`;
+            
+            if (companies.length === 0) {
+                companyList.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: #6b7280;">
+                        <div style="font-size: 24px; margin-bottom: 8px;">🏢</div>
+                        <div>No companies found</div>
+                        <div style="font-size: 12px; margin-top: 4px;">Try adjusting your search term "${searchTerm}"</div>
+                    </div>
+                `;
+            } else {
+                companyList.innerHTML = companies.map(company => `
+                    <div class="demo-dropdown-item" onclick="selectCompany(${company.id})">
+                        <div class="company-name">${company.name}</div>
+                        <div class="company-email">${company.email}</div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                            <div class="company-location">📍 ${company.city}, ${company.country}</div>
+                            <div class="company-id">ID: ${company.id}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            dropdownList.style.display = 'block';
+        }
+
+        function selectCompany(companyId) {
+            selectedCompany = demoCompanies.find(c => c.id === companyId);
+            searchInput.value = selectedCompany.name;
+            selectedName.textContent = selectedCompany.name;
+            selectedCompanyDiv.style.display = 'flex';
+            dropdownList.style.display = 'none';
+        }
+
+        function clearSelection() {
+            selectedCompany = null;
+            searchInput.value = '';
+            selectedCompanyDiv.style.display = 'none';
+            dropdownList.style.display = 'none';
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.demo-dropdown')) {
+                dropdownList.style.display = 'none';
+            }
+        });
+
+        console.log('🔍 Business Disputes Company Search Enhancement Demo Ready');
+        console.log('✨ Features: Real-time search, filtering, visual feedback');
+        console.log('🎯 Solves: Company selection in large lists (1000+ companies)');
+    </script>
+</body>
+</html>

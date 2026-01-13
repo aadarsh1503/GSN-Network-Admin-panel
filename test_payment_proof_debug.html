@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Payment Proof Issue</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        .warning { background-color: #fff3cd; border-color: #ffeaa7; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; font-size: 12px; }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 3px; cursor: pointer; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        .btn-success { background-color: #28a745; color: white; }
+        input { padding: 8px; margin: 5px; border: 1px solid #ddd; border-radius: 3px; width: 300px; }
+        .form-group { margin: 10px 0; }
+        label { display: inline-block; width: 150px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Debug Payment Proof Issue - Quote 84</h1>
+        <p>This tool helps debug why payment proof upload is failing with "already uploaded" error.</p>
+
+        <!-- Login Section -->
+        <div class="test-section">
+            <h3>🔐 Step 1: Business User Login</h3>
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" id="loginEmail" value="subodhchauhan1309@gmail.com" />
+            </div>
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" id="loginPassword" value="222333" />
+            </div>
+            <button class="btn-primary" onclick="login()">Login</button>
+            <div id="loginResult"></div>
+        </div>
+
+        <!-- Check Quote Responses -->
+        <div class="test-section">
+            <h3>📋 Step 2: Check Quote 84 Responses</h3>
+            <button class="btn-primary" onclick="checkQuoteResponses()">Check Quote Responses</button>
+            <div id="quoteResponsesResult"></div>
+        </div>
+
+        <!-- Test Payment Upload -->
+        <div class="test-section">
+            <h3>💳 Step 3: Test Payment Upload (Dry Run)</h3>
+            <div class="form-group">
+                <label>Quote Response ID:</label>
+                <input type="number" id="quoteResponseId" placeholder="Enter from step 2" />
+            </div>
+            <button class="btn-primary" onclick="testPaymentUpload()">Test Upload (No File)</button>
+            <div id="paymentUploadResult"></div>
+        </div>
+
+        <!-- Database Cleanup Option -->
+        <div class="test-section warning">
+            <h3>🧹 Step 4: Cleanup Option (If Needed)</h3>
+            <p><strong>⚠️ Warning:</strong> This will remove existing payment proof data for Quote 84.</p>
+            <p>Only use this if you confirm there's old/corrupted data preventing new uploads.</p>
+            <button class="btn-danger" onclick="cleanupPaymentData()" disabled>Cleanup Payment Data</button>
+            <div id="cleanupResult"></div>
+            <p><em>Button will be enabled after checking the data above.</em></p>
+        </div>
+
+        <!-- Manual Fix Instructions -->
+        <div class="test-section info">
+            <h3>🔧 Manual Fix Instructions</h3>
+            <p>If the issue persists, you can manually clean the database:</p>
+            <pre>
+-- Connect to your MySQL database and run:
+
+-- Check existing payment proofs for quote 84
+SELECT * FROM payment_proofs WHERE quote_id = 84;
+
+-- Check payment verifications
+SELECT * FROM payment_verifications WHERE quote_id = 84;
+
+-- Check user quote status
+SELECT * FROM user_quote_status WHERE quote_id = 84;
+
+-- If you find old data, clean it up:
+DELETE FROM payment_verifications WHERE quote_id = 84;
+DELETE FROM payment_proofs WHERE quote_id = 84;
+UPDATE user_quote_status SET payment_proof_id = NULL, payment_verification_status = NULL WHERE quote_id = 84;
+            </pre>
+        </div>
+    </div>
+
+    <script>
+        let authToken = '';
+        let foundResponses = [];
+
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.token;
+                    document.getElementById('loginResult').innerHTML = 
+                        `<div class="success">✅ Login successful! User: ${data.user.name} (ID: ${data.user.id})</div>`;
+                } else {
+                    document.getElementById('loginResult').innerHTML = 
+                        `<div class="error">❌ Login failed: ${data.message}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('loginResult').innerHTML = 
+                    `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function checkQuoteResponses() {
+            if (!authToken) {
+                document.getElementById('quoteResponsesResult').innerHTML = 
+                    '<div class="error">❌ Please login first</div>';
+                return;
+            }
+
+            try {
+                // First get the debug info
+                const debugResponse = await fetch('http://localhost:5000/api/enhanced-quotes/84/debug-payment-proofs', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const debugData = await debugResponse.json();
+                
+                // Then get the quote responses
+                const response = await fetch('http://localhost:5000/api/enhanced-quotes/84/responses-with-bank-details', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    foundResponses = data;
+                    let result = `<div class="success">✅ Found ${data.length} quote responses:</div>`;
+                    
+                    // Show debug information
+                    if (debugResponse.ok) {
+                        result += '<div class="info"><strong>🔍 Debug Information:</strong><pre>';
+                        result += `Current User ID: ${debugData.currentUserId}\n`;
+                        result += `Total Payment Proofs: ${debugData.summary.totalPaymentProofs}\n`;
+                        result += `User's Payment Proofs: ${debugData.summary.userHasPaymentProofs}\n`;
+                        result += `Payment Verifications: ${debugData.summary.totalVerifications}\n`;
+                        result += `User Status Records: ${debugData.summary.totalUserStatus}\n`;
+                        
+                        if (debugData.paymentProofs.length > 0) {
+                            result += '\nExisting Payment Proofs:\n';
+                            debugData.paymentProofs.forEach((proof, index) => {
+                                result += `  ${index + 1}. User ${proof.user_id} -> Company ${proof.company_id} (Response ${proof.quote_response_id})\n`;
+                            });
+                        }
+                        result += '</pre></div>';
+                        
+                        if (debugData.summary.userHasPaymentProofs > 0) {
+                            result += '<div class="warning">🚨 ISSUE FOUND: You have existing payment proofs that are blocking new uploads!</div>';
+                            document.querySelector('button[onclick="cleanupPaymentData()"]').disabled = false;
+                        }
+                    }
+                    
+                    result += '<div class="info"><strong>📋 Quote Responses:</strong><pre>';
+                    data.forEach((resp, index) => {
+                        result += `Response ${index + 1}:\n`;
+                        result += `  ID: ${resp.id}\n`;
+                        result += `  Company: ${resp.company_name}\n`;
+                        result += `  Price: ${resp.price}\n`;
+                        result += `  Payment Proof Uploaded: ${resp.payment_proof_uploaded || 'false'}\n`;
+                        result += `  Payment Status: ${resp.payment_status || 'none'}\n\n`;
+                    });
+                    result += '</pre></div>';
+                    
+                    if (data.length > 0) {
+                        document.getElementById('quoteResponseId').value = data[0].id;
+                        result += '<div class="info">💡 First response ID has been filled in Step 3.</div>';
+                    }
+                    
+                    document.getElementById('quoteResponsesResult').innerHTML = result;
+                } else {
+                    document.getElementById('quoteResponsesResult').innerHTML = 
+                        `<div class="error">❌ Failed to fetch quote responses: ${data.message}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('quoteResponsesResult').innerHTML = 
+                    `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testPaymentUpload() {
+            if (!authToken) {
+                document.getElementById('paymentUploadResult').innerHTML = 
+                    '<div class="error">❌ Please login first</div>';
+                return;
+            }
+
+            const quoteResponseId = document.getElementById('quoteResponseId').value;
+            if (!quoteResponseId) {
+                document.getElementById('paymentUploadResult').innerHTML = 
+                    '<div class="error">❌ Please enter a quote response ID</div>';
+                return;
+            }
+
+            try {
+                // Create a minimal FormData to test the endpoint
+                const formData = new FormData();
+                formData.append('quote_id', '84');
+                formData.append('quote_response_id', quoteResponseId);
+                formData.append('payment_date', '2026-01-11');
+                formData.append('payment_notes', 'Test upload');
+                
+                // Create a dummy file
+                const dummyFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
+                formData.append('payment_proof', dummyFile);
+
+                const response = await fetch('http://localhost:5000/api/enhanced-quotes/upload-payment-proof', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('paymentUploadResult').innerHTML = 
+                        `<div class="success">✅ Upload test successful! This means no existing data is blocking uploads.</div>`;
+                } else {
+                    let result = `<div class="error">❌ Upload test failed: ${data.message}</div>`;
+                    
+                    if (data.message.includes('already uploaded')) {
+                        result += '<div class="warning">🚨 CONFIRMED: There is existing payment proof data blocking new uploads.</div>';
+                        result += '<div class="info">💡 You can use the cleanup option below to remove old data.</div>';
+                        document.querySelector('button[onclick="cleanupPaymentData()"]').disabled = false;
+                    }
+                    
+                    document.getElementById('paymentUploadResult').innerHTML = result;
+                }
+            } catch (error) {
+                document.getElementById('paymentUploadResult').innerHTML = 
+                    `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function cleanupPaymentData() {
+            if (!confirm('⚠️ Are you sure you want to cleanup payment proof data for Quote 84? This will remove all existing payment proofs and allow new uploads.')) {
+                return;
+            }
+
+            if (!authToken) {
+                document.getElementById('cleanupResult').innerHTML = 
+                    '<div class="error">❌ Please login first</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:5000/api/enhanced-quotes/84/cleanup-payment-proofs', {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('cleanupResult').innerHTML = 
+                        `<div class="success">✅ Cleanup successful!<br>
+                        - Deleted ${data.deletedProofs} payment proofs<br>
+                        - Deleted ${data.deletedVerifications} verifications<br>
+                        - Updated ${data.updatedStatusRecords} status records<br><br>
+                        You can now try uploading payment proof again.</div>`;
+                    
+                    // Refresh the quote responses to show updated status
+                    setTimeout(() => {
+                        checkQuoteResponses();
+                    }, 1000);
+                } else {
+                    document.getElementById('cleanupResult').innerHTML = 
+                        `<div class="error">❌ Cleanup failed: ${data.message}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('cleanupResult').innerHTML = 
+                    `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

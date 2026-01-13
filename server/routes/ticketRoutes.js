@@ -8,7 +8,10 @@ import {
     getAllTickets,
     getTicketsByStatus,
     updateTicketStatus,
-    getTicketDetails
+    getTicketDetails,
+    deleteTicket,
+    getCompanyTickets,
+    respondToCompanyTicket
 } from '../controllers/ticketController.js';
 
 // User routes
@@ -16,9 +19,14 @@ router.post('/create', protect, createTicket);
 router.get('/my-tickets', protect, getMyTickets);
 router.get('/:id', protect, getTicketDetails);
 
+// Company routes
+router.get('/company/received', protect, authorize('company'), getCompanyTickets);
+router.put('/company/:id/respond', protect, authorize('company'), respondToCompanyTicket);
+
 // Admin routes
 router.get('/admin/all', protect, authorize('admin'), getAllTickets);
 router.get('/admin/status/:status', protect, authorize('admin'), getTicketsByStatus);
 router.put('/:id/status', protect, authorize('admin'), updateTicketStatus);
+router.delete('/admin/:id', protect, authorize('admin'), deleteTicket);
 
 export default router;

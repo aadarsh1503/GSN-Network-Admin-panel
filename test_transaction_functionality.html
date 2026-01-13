@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction Functionality Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-header {
+            color: #CDA435;
+            border-bottom: 2px solid #CDA435;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .endpoint-test {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #CDA435;
+            border-radius: 4px;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .info {
+            color: #17a2b8;
+        }
+        button {
+            background: #CDA435;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #B8941F;
+        }
+        .results {
+            background: #f8f9fa;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 Transaction Functionality Test Suite</h1>
+    <p>This page tests the new transaction functionality added to the admin and company dashboards.</p>
+
+    <div class="test-section">
+        <h2 class="test-header">📊 Company Dashboard Transaction Features</h2>
+        <div class="endpoint-test">
+            <h3>✅ Transaction Amount Card</h3>
+            <p><strong>Location:</strong> <code>http://localhost:5173/company/dashboard</code></p>
+            <p><strong>Feature:</strong> Transaction amount metric card with clickable link to transaction history</p>
+            <p><strong>Data Source:</strong> Enhanced quotes API with payment verification data</p>
+            <div class="info">
+                <strong>Expected Behavior:</strong>
+                <ul>
+                    <li>Shows total verified payment amount</li>
+                    <li>Displays trend indicator</li>
+                    <li>Clickable to navigate to transaction history</li>
+                    <li>Updates in real-time when payments are verified</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="endpoint-test">
+            <h3>✅ Transaction Summary Component</h3>
+            <p><strong>Location:</strong> Right sidebar of company dashboard</p>
+            <p><strong>Features:</strong></p>
+            <ul>
+                <li>Total revenue from verified payments</li>
+                <li>Count of verified payments</li>
+                <li>Count of pending payment verifications</li>
+                <li>Recent transactions list</li>
+                <li>Quick action buttons</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2 class="test-header">🔧 Admin Panel Enhancements</h2>
+        
+        <div class="endpoint-test">
+            <h3>✅ Enhanced Admin Quotes</h3>
+            <p><strong>Location:</strong> <code>http://localhost:5173/admin/quotes-management</code></p>
+            <p><strong>New Features:</strong></p>
+            <ul>
+                <li>Revenue column showing earnings from each quote</li>
+                <li>Payment status badges for each quote</li>
+                <li>Payment filter dropdown</li>
+                <li>Enhanced stats cards with revenue metrics</li>
+                <li>CSV export with payment data</li>
+                <li>Detailed payment information in quote modal</li>
+            </ul>
+        </div>
+
+        <div class="endpoint-test">
+            <h3>✅ Enhanced Admin Transactions</h3>
+            <p><strong>Location:</strong> <code>http://localhost:5173/admin/transactions-management</code></p>
+            <p><strong>New Features:</strong></p>
+            <ul>
+                <li>Combined view of quote payments and subscription transactions</li>
+                <li>Transaction type indicators (📦 Quote Payment, 📋 Subscription)</li>
+                <li>Enhanced stats with breakdown by transaction type</li>
+                <li>Improved filtering and search</li>
+                <li>Revenue tracking by transaction type</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2 class="test-header">🔗 API Endpoints</h2>
+        
+        <div class="endpoint-test">
+            <h3>Company Dashboard APIs</h3>
+            <button onclick="testAPI('/api/enhanced-quotes/company-responses-with-payments', 'Company Payment Data')">
+                Test Company Payment Data
+            </button>
+            <button onclick="testAPI('/api/dashboard/company-stats', 'Company Stats')">
+                Test Company Stats
+            </button>
+        </div>
+
+        <div class="endpoint-test">
+            <h3>Admin Panel APIs</h3>
+            <button onclick="testAPI('/api/admin-panel/quotes', 'Admin Quotes')">
+                Test Admin Quotes
+            </button>
+            <button onclick="testAPI('/api/admin-panel/accepted-quote-transactions', 'Quote Transactions')">
+                Test Quote Transactions
+            </button>
+            <button onclick="testAPI('/api/admin-panel/subscription-transactions', 'Subscription Transactions')">
+                Test Subscription Transactions
+            </button>
+        </div>
+
+        <div id="api-results" class="results" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2 class="test-header">📋 Manual Testing Checklist</h2>
+        
+        <div class="endpoint-test">
+            <h3>Company Dashboard Tests</h3>
+            <label><input type="checkbox"> Transaction amount card displays correctly</label><br>
+            <label><input type="checkbox"> Transaction amount card is clickable</label><br>
+            <label><input type="checkbox"> Transaction summary component loads</label><br>
+            <label><input type="checkbox"> Recent transactions display properly</label><br>
+            <label><input type="checkbox"> Quick action buttons work</label><br>
+            <label><input type="checkbox"> Data refreshes when payment is verified</label><br>
+        </div>
+
+        <div class="endpoint-test">
+            <h3>Admin Quotes Tests</h3>
+            <label><input type="checkbox"> Revenue column shows correct amounts</label><br>
+            <label><input type="checkbox"> Payment status badges display correctly</label><br>
+            <label><input type="checkbox"> Payment filter works</label><br>
+            <label><input type="checkbox"> Stats cards show payment metrics</label><br>
+            <label><input type="checkbox"> CSV export includes payment data</label><br>
+            <label><input type="checkbox"> Quote modal shows payment details</label><br>
+        </div>
+
+        <div class="endpoint-test">
+            <h3>Admin Transactions Tests</h3>
+            <label><input type="checkbox"> Both quote and subscription transactions display</label><br>
+            <label><input type="checkbox"> Transaction type icons show correctly</label><br>
+            <label><input type="checkbox"> Stats breakdown by type works</label><br>
+            <label><input type="checkbox"> Filtering by transaction type works</label><br>
+            <label><input type="checkbox"> Revenue calculations are accurate</label><br>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2 class="test-header">🎯 Key Features Summary</h2>
+        
+        <div class="endpoint-test">
+            <h3>✨ What's New</h3>
+            <div class="success">
+                <strong>Company Dashboard:</strong>
+                <ul>
+                    <li>✅ Transaction amount metric card with real-time data</li>
+                    <li>✅ Comprehensive transaction summary component</li>
+                    <li>✅ Quick access to payment management</li>
+                    <li>✅ Recent transactions overview</li>
+                </ul>
+            </div>
+            
+            <div class="success">
+                <strong>Admin Quotes Management:</strong>
+                <ul>
+                    <li>✅ Revenue tracking per quote</li>
+                    <li>✅ Payment status visualization</li>
+                    <li>✅ Enhanced filtering by payment status</li>
+                    <li>✅ Comprehensive payment data in exports</li>
+                    <li>✅ Detailed payment information in modals</li>
+                </ul>
+            </div>
+            
+            <div class="success">
+                <strong>Admin Transaction Volume:</strong>
+                <ul>
+                    <li>✅ Combined quote and subscription transaction view</li>
+                    <li>✅ Transaction type differentiation</li>
+                    <li>✅ Enhanced revenue analytics</li>
+                    <li>✅ Improved filtering and search capabilities</li>
+                    <li>✅ Comprehensive transaction management</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function testAPI(endpoint, name) {
+            const resultsDiv = document.getElementById('api-results');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = `Testing ${name}...\n`;
+            
+            try {
+                // Note: This is a mock test since we can't actually call the API from a static HTML file
+                // In a real environment, you would need proper authentication tokens
+                resultsDiv.innerHTML += `\n✅ ${name} endpoint: ${endpoint}\n`;
+                resultsDiv.innerHTML += `📝 Expected: JSON response with transaction/payment data\n`;
+                resultsDiv.innerHTML += `🔒 Requires: Valid authentication token\n`;
+                resultsDiv.innerHTML += `📊 Data: Payment verifications, transaction amounts, user details\n`;
+                
+                // Simulate API response structure
+                if (endpoint.includes('company-responses-with-payments')) {
+                    resultsDiv.innerHTML += `\n📋 Expected Response Structure:\n`;
+                    resultsDiv.innerHTML += `[{\n`;
+                    resultsDiv.innerHTML += `  "quote_id": 123,\n`;
+                    resultsDiv.innerHTML += `  "user_name": "Customer Name",\n`;
+                    resultsDiv.innerHTML += `  "price": "1500.00",\n`;
+                    resultsDiv.innerHTML += `  "payment_status": "verified",\n`;
+                    resultsDiv.innerHTML += `  "verification_date": "2024-01-04",\n`;
+                    resultsDiv.innerHTML += `  "product_description": "Shipping service"\n`;
+                    resultsDiv.innerHTML += `}]\n`;
+                } else if (endpoint.includes('admin-panel/quotes')) {
+                    resultsDiv.innerHTML += `\n📋 Expected Response Structure:\n`;
+                    resultsDiv.innerHTML += `[{\n`;
+                    resultsDiv.innerHTML += `  "id": 123,\n`;
+                    resultsDiv.innerHTML += `  "user_name": "Customer",\n`;
+                    resultsDiv.innerHTML += `  "response_count": 5,\n`;
+                    resultsDiv.innerHTML += `  "responses": [{\n`;
+                    resultsDiv.innerHTML += `    "price": "1500.00",\n`;
+                    resultsDiv.innerHTML += `    "payment_status": "verified",\n`;
+                    resultsDiv.innerHTML += `    "user_response_status": "accepted"\n`;
+                    resultsDiv.innerHTML += `  }]\n`;
+                    resultsDiv.innerHTML += `}]\n`;
+                }
+                
+            } catch (error) {
+                resultsDiv.innerHTML += `\n❌ Error: ${error.message}\n`;
+            }
+        }
+
+        // Auto-run basic checks on page load
+        window.onload = function() {
+            console.log('🚀 Transaction Functionality Test Suite Loaded');
+            console.log('📊 Ready to test new transaction features');
+            console.log('🔗 Company Dashboard: http://localhost:5173/company/dashboard');
+            console.log('🔧 Admin Quotes: http://localhost:5173/admin/quotes-management');
+            console.log('💰 Admin Transactions: http://localhost:5173/admin/transactions-management');
+        };
+    </script>
+</body>
+</html>

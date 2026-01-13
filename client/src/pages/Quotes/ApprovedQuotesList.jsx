@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { FiEye, FiEdit, FiChevronUp, FiChevronDown } from 'react-icons/fi';
+import { FiEye, FiEdit, FiChevronUp, FiChevronDown, FiTrash2 } from 'react-icons/fi';
 import api from '../../utils/api';
+import ConfirmationModal from '../../components/Modal/ConfirmationModal';
 
 const ApprovedQuotesList = () => {
   const [quotes, setQuotes] = useState([]);
@@ -12,6 +13,11 @@ const ApprovedQuotesList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'created_at', direction: 'descending' });
+  
+  // Delete confirmation
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [quoteToDelete, setQuoteToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchApprovedQuotes();
@@ -20,10 +26,28 @@ const ApprovedQuotesList = () => {
   const fetchApprovedQuotes = async () => {
     try {
       setLoading(true);
-      const data = await api.get('/api/quotes/status/approved');
-      setQuotes(data);
+      // Try to get approved quotes first, if none found, get running quotes as they might be "active"
+      let data = await api.get('/api/quotes/status/approved');
+      
+      // If no approved quotes, try running quotes (which might be the "active" ones)
+      if (!data || data.length === 0) {
+        console.log('No approved quotes found, checking running quotes...');
+        data = await api.get('/api/quotes/status/running');
+      }
+      
+      // If still no data, try all quotes with status that could be considered "active"
+      if (!data || data.length === 0) {
+        console.log('No running quotes found, getting all active quotes...');
+        const allQuotes = await api.get('/api/quotes/all');
+        data = allQuotes.filter(quote => 
+          ['approved', 'running', 'pending'].includes(quote.status)
+        );
+      }
+      
+      setQuotes(data || []);
       setError(null);
     } catch (err) {
+      console.error('Error fetching quotes:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -70,6 +94,25 @@ const ApprovedQuotesList = () => {
     setSortConfig({ key, direction });
   };
 
+  const handleDeleteQuote = async () => {
+    if (!quoteToDelete) return;
+    
+    try {
+      setIsDeleting(true);
+      await api.delete(`/api/quotes/${quoteToDelete.id}`);
+      
+      // Remove from local state
+      setQuotes(prev => prev.filter(quote => quote.id !== quoteToDelete.id));
+      
+      setShowDeleteModal(false);
+      setQuoteToDelete(null);
+    } catch (error) {
+      console.error('Error deleting quote:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const SortableHeader = ({ children, sortKey }) => (
     <th className="py-3 px-4 text-left font-semibold cursor-pointer" onClick={() => handleSort(sortKey)}>
       <div className="flex items-center">
@@ -87,14 +130,14 @@ const ApprovedQuotesList = () => {
   const startEntry = (currentPage - 1) * itemsPerPage + 1;
   const endEntry = Math.min(startEntry + itemsPerPage - 1, sortedQuotes.length);
 
-  if (loading) return <div className="text-center py-8">Loading approved quotes...</div>;
+  if (loading) return <div className="text-center py-8">Loading active quotes...</div>;
   if (error) return <div className="text-red-500 text-center py-8">Error: {error}</div>;
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-gray-800">Approved Quotes</h2>
+        <h2 className="text-2xl font-semibold text-gray-800">Active Quotes</h2>
         <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
           Total: {quotes.length}
         </div>
@@ -120,7 +163,7 @@ const ApprovedQuotesList = () => {
           <input 
             id="search"
             type="text" 
-            placeholder="Search approved quotes..."
+            placeholder="Search active quotes..."
             value={searchTerm}
             onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
             className="border border-gray-300 rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-yellow-500"
@@ -139,6 +182,7 @@ const ApprovedQuotesList = () => {
               <SortableHeader sortKey="departure_country">From</SortableHeader>
               <SortableHeader sortKey="arrival_country">To</SortableHeader>
               <SortableHeader sortKey="shipping_mode">Mode</SortableHeader>
+              <SortableHeader sortKey="status">Status</SortableHeader>
               <SortableHeader sortKey="arrival_date">Arrival Date</SortableHeader>
               <SortableHeader sortKey="created_at">Submitted</SortableHeader>
               <th className="py-3 px-4 text-left font-semibold">Actions</th>
@@ -147,7 +191,7 @@ const ApprovedQuotesList = () => {
           <tbody className="text-gray-700">
             {paginatedQuotes.length === 0 ? (
               <tr>
-                <td colSpan="9" className="text-center py-8 text-gray-500">No approved quotes found</td>
+                <td colSpan="9" className="text-center py-8 text-gray-500">No active quotes found</td>
               </tr>
             ) : (
               paginatedQuotes.map((quote) => (
@@ -178,6 +222,16 @@ const ApprovedQuotesList = () => {
                   </td>
                   <td className="py-3 px-4 capitalize">{quote.shipping_mode}</td>
                   <td className="py-3 px-4">
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      quote.status === 'approved' ? 'bg-green-100 text-green-800' :
+                      quote.status === 'running' ? 'bg-blue-100 text-blue-800' :
+                      quote.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {quote.status}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4">
                     {new Date(quote.arrival_date).toLocaleDateString()}
                   </td>
                   <td className="py-3 px-4">
@@ -190,6 +244,16 @@ const ApprovedQuotesList = () => {
                         title="View Details"
                       >
                         <FiEye />
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setQuoteToDelete(quote);
+                          setShowDeleteModal(true);
+                        }}
+                        className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-md transition duration-300"
+                        title="Delete Quote"
+                      >
+                        <FiTrash2 />
                       </button>
                     </div>
                   </td>
@@ -225,6 +289,22 @@ const ApprovedQuotesList = () => {
           </button>
         </div>
       </div>
+      
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setQuoteToDelete(null);
+        }}
+        onConfirm={handleDeleteQuote}
+        title="Delete Quote"
+        message={`Are you sure you want to delete quote #${quoteToDelete?.id}? This action will permanently remove the quote and cannot be undone.`}
+        confirmText="Delete Quote"
+        cancelText="Cancel"
+        type="danger"
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

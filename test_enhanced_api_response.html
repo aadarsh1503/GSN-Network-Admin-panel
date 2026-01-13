@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced API Response Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        .warning { background-color: #fff3cd; border-color: #ffeaa7; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .highlight-issue {
+            background-color: #ffcccc;
+            font-weight: bold;
+        }
+        .highlight-correct {
+            background-color: #ccffcc;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Enhanced API Response Test</h1>
+        <p>Testing what the enhanced API is actually returning for Quote 66/70 issue</p>
+        
+        <div class="test-section warning">
+            <h3>🚨 Current Issue</h3>
+            <ul>
+                <li><strong>Quote 66</strong> in database showing as <strong>Quote #70</strong> on company panel</li>
+                <li><strong>Quote 65</strong> in database showing as <strong>Quote #69</strong> on company panel</li>
+                <li>Pattern: Quote ID + 4 = Displayed ID (Response ID)</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 Login as Company</h3>
+            <div>
+                <label>Email: </label>
+                <input type="email" id="loginEmail" value="aadarshchauhan35@gmail.com" placeholder="Company email">
+            </div>
+            <div style="margin-top: 10px;">
+                <label>Password: </label>
+                <input type="password" id="loginPassword" value="123456" placeholder="Password">
+            </div>
+            <button onclick="loginAsCompany()">Login as Company</button>
+            <div id="loginResults"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 Test Enhanced API Response</h3>
+            <button onclick="testEnhancedAPI()">Test Enhanced API</button>
+            <div id="enhancedResults"></div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:5000';
+        let authToken = null;
+
+        async function loginAsCompany() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const resultsDiv = document.getElementById('loginResults');
+            
+            resultsDiv.innerHTML = '<p>🔄 Logging in...</p>';
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.token;
+                    localStorage.setItem('token', authToken);
+                    
+                    resultsDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ Login Successful</h4>
+                            <p><strong>Company:</strong> ${data.user.name}</p>
+                            <p><strong>Email:</strong> ${data.user.email}</p>
+                            <p><strong>ID:</strong> ${data.user.id}</p>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="error">
+                            <h4>❌ Login Failed</h4>
+                            <p>${data.message}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Login Error</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function testEnhancedAPI() {
+            const resultsDiv = document.getElementById('enhancedResults');
+            resultsDiv.innerHTML = '<p>🔄 Testing Enhanced API...</p>';
+
+            try {
+                const token = authToken || localStorage.getItem('token');
+                if (!token) {
+                    resultsDiv.innerHTML = '<div class="error">❌ Please login first</div>';
+                    return;
+                }
+
+                const response = await fetch(`${BASE_URL}/api/enhanced-quotes/company-responses-with-payments`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const quotes = await response.json();
+                
+                let html = `
+                    <div class="success">
+                        <h4>✅ Enhanced API Response</h4>
+                        <p><strong>Total Quotes:</strong> ${quotes.length}</p>
+                    </div>
+                `;
+
+                if (quotes.length > 0) {
+                    // Create detailed analysis table
+                    html += `
+                        <h4>📋 Detailed ID Analysis:</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Quote ID (q.id)</th>
+                                    <th>Response ID (qr.id)</th>
+                                    <th>Frontend Sees (id field)</th>
+                                    <th>Customer</th>
+                                    <th>Route</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+
+                    quotes.forEach(quote => {
+                        // Check what the frontend actually sees as 'id'
+                        const frontendId = quote.id;
+                        const responseId = quote.response_id;
+                        const quoteId = quote.quote_id || 'N/A';
+                        
+                        // Determine if this is the issue
+                        const isIssue = (frontendId === responseId) && (frontendId !== quoteId);
+                        const rowClass = isIssue ? 'highlight-issue' : 'highlight-correct';
+                        
+                        html += `
+                            <tr class="${rowClass}">
+                                <td>${quoteId}</td>
+                                <td>${responseId}</td>
+                                <td><strong>${frontendId}</strong> ${isIssue ? '❌ WRONG' : '✅ CORRECT'}</td>
+                                <td>${quote.user_email || 'N/A'}</td>
+                                <td>${quote.departure_country} → ${quote.arrival_country}</td>
+                                <td>${quote.status}</td>
+                            </tr>
+                        `;
+                    });
+
+                    html += `
+                            </tbody>
+                        </table>
+                    `;
+
+                    // Analysis summary
+                    const issueQuotes = quotes.filter(q => q.id === q.response_id && q.id !== q.quote_id);
+                    if (issueQuotes.length > 0) {
+                        html += `
+                            <div class="error">
+                                <h4>❌ Issue Confirmed</h4>
+                                <p><strong>${issueQuotes.length}</strong> quotes are showing response ID instead of quote ID</p>
+                                <p>The enhanced API is still returning the wrong ID field!</p>
+                            </div>
+                        `;
+                    } else {
+                        html += `
+                            <div class="success">
+                                <h4>✅ Issue Fixed</h4>
+                                <p>All quotes are showing correct quote IDs</p>
+                            </div>
+                        `;
+                    }
+
+                    // Show raw data for debugging
+                    html += `
+                        <h4>📋 Raw API Response (First Quote):</h4>
+                        <pre>${JSON.stringify(quotes[0], null, 2)}</pre>
+                    `;
+                }
+
+                resultsDiv.innerHTML = html;
+
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Enhanced API Test Failed</h4>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Auto-load token if available
+        window.addEventListener('load', function() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                authToken = token;
+                console.log('🔍 Token loaded from localStorage');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,4 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { 
+  FaBell, FaUsers, FaImage, FaPaperPlane, FaCheck, FaTimes,
+  FaUserTie, FaBuilding, FaGlobe, FaCloudUploadAlt, FaSpinner
+} from 'react-icons/fa';
 import axios from 'axios';
 
 const SendNotifications = () => {

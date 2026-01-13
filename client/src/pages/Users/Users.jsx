@@ -5,6 +5,7 @@ import { FaPen, FaEye, FaTimes, FaSave } from 'react-icons/fa';
 import { FaArrowUp, FaArrowDown } from 'react-icons/fa6';
 import { api } from '../../utils/api';
 import { adminToast } from '../../utils/adminToast';
+import StatusConfirmationModal from '../../components/Modal/StatusConfirmationModal';
 
 // --- Custom Toggle Switch Component ---
 const ToggleSwitch = ({ checked, onChange }) => {
@@ -30,6 +31,13 @@ function User() {
   const [viewingUser, setViewingUser] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
   const [editForm, setEditForm] = useState({});
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    type: '',
+    userId: null,
+    currentValue: null,
+    userName: ''
+  });
 
   useEffect(() => {
     fetchUsers();
@@ -100,31 +108,69 @@ function User() {
     }
   };
 
-  const handleStatusChange = async (userId) => {
+  const handleStatusChange = (userId, userName) => {
+    const user = users.find(u => u.id === userId);
+    setConfirmModal({
+      isOpen: true,
+      type: user.status ? 'deactivate' : 'activate',
+      userId,
+      currentValue: user.status,
+      userName
+    });
+  };
+
+  const confirmStatusChange = async () => {
+    const { userId, currentValue } = confirmModal;
+    
     try {
-      const user = users.find(u => u.id === userId);
       await api.put(`/api/user/company-status/${userId}`, {
         type: 'status',
-        value: !user.status
+        value: !currentValue
       });
+      
+      // Show toast BEFORE state update to prevent dismissal
+      adminToast.success(`User ${!currentValue ? 'activated' : 'deactivated'} successfully`);
+      
+      // Then update UI
       setUsers(users.map(u => u.id === userId ? { ...u, status: !u.status } : u));
-      adminToast.success(`User ${!user.status ? 'activated' : 'deactivated'} successfully`);
+      
     } catch (error) {
       adminToast.error('Failed to update user status');
+    } finally {
+      setConfirmModal({ isOpen: false, type: '', userId: null, currentValue: null, userName: '' });
     }
   };
 
-  const handleBlacklistToggle = async (userId) => {
+  const handleBlacklistToggle = (userId, userName) => {
+    const user = users.find(u => u.id === userId);
+    setConfirmModal({
+      isOpen: true,
+      type: user.onBlacklist ? 'unblacklist' : 'blacklist',
+      userId,
+      currentValue: user.onBlacklist,
+      userName
+    });
+  };
+
+  const confirmBlacklistToggle = async () => {
+    const { userId, currentValue } = confirmModal;
+    
     try {
-      const user = users.find(u => u.id === userId);
       await api.put(`/api/user/company-status/${userId}`, {
         type: 'blacklist',
-        value: !user.onBlacklist
+        value: !currentValue
       });
+      
+      // Show toast BEFORE state update to prevent dismissal
+      adminToast.success(`User ${!currentValue ? 'added to' : 'removed from'} blacklist`);
+      
+      // Then update UI
       setUsers(users.map(u => u.id === userId ? { ...u, onBlacklist: !u.onBlacklist } : u));
-      adminToast.success(`User ${!user.onBlacklist ? 'added to' : 'removed from'} blacklist`);
+      
     } catch (error) {
       adminToast.error('Failed to update blacklist status');
+    } finally {
+      setConfirmModal({ isOpen: false, type: '', userId: null, currentValue: null, userName: '' });
     }
   };
   
@@ -236,8 +282,8 @@ function User() {
                       <td className="p-3 font-medium text-gray-900">{user.name}</td>
                       <td className="p-3">{user.email}</td>
                       <td className="p-3">{user.mobile}</td>
-                      <td className="p-3"><ToggleSwitch checked={user.onBlacklist} onChange={() => handleBlacklistToggle(user.id)} /></td>
-                      <td className="p-3"><ToggleSwitch checked={user.status} onChange={() => handleStatusChange(user.id)} /></td>
+                      <td className="p-3"><ToggleSwitch checked={user.onBlacklist} onChange={() => handleBlacklistToggle(user.id, user.name)} /></td>
+                      <td className="p-3"><ToggleSwitch checked={user.status} onChange={() => handleStatusChange(user.id, user.name)} /></td>
                       <td className="p-3">
                         <div className="flex space-x-2">
                           <button onClick={() => handleEditUser(user)} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"><FaPen /></button>
@@ -357,6 +403,37 @@ function User() {
           </div>
         </div>
       )}
+
+      {/* Status Confirmation Modal */}
+      <StatusConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ isOpen: false, type: '', userId: null, currentValue: null, userName: '' })}
+        onConfirm={confirmModal.type === 'activate' || confirmModal.type === 'deactivate' ? confirmStatusChange : confirmBlacklistToggle}
+        title={
+          confirmModal.type === 'activate' ? 'Activate User' :
+          confirmModal.type === 'deactivate' ? 'Deactivate User' :
+          confirmModal.type === 'blacklist' ? 'Add to Blacklist' :
+          confirmModal.type === 'unblacklist' ? 'Remove from Blacklist' : 'Confirm Action'
+        }
+        message={
+          confirmModal.type === 'activate' ? 
+            `Are you sure you want to activate "${confirmModal.userName}"? This will allow them to access the platform.` :
+          confirmModal.type === 'deactivate' ? 
+            `Are you sure you want to deactivate "${confirmModal.userName}"? This will prevent them from accessing the platform.` :
+          confirmModal.type === 'blacklist' ? 
+            `Are you sure you want to add "${confirmModal.userName}" to the blacklist? This will restrict their access and activities.` :
+          confirmModal.type === 'unblacklist' ? 
+            `Are you sure you want to remove "${confirmModal.userName}" from the blacklist? This will restore their normal access.` :
+            'Please confirm this action.'
+        }
+        confirmText={
+          confirmModal.type === 'activate' ? 'Activate' :
+          confirmModal.type === 'deactivate' ? 'Deactivate' :
+          confirmModal.type === 'blacklist' ? 'Add to Blacklist' :
+          confirmModal.type === 'unblacklist' ? 'Remove from Blacklist' : 'Confirm'
+        }
+        type={confirmModal.type}
+      />
     </div>
   );
 }

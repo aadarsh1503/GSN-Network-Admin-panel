@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Help - Support Tickets Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        button {
+            background-color: #CDA435;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #B8941F;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .ticket-form {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            border: 2px solid #CDA435;
+            border-radius: 8px;
+            background-color: #fff8e1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏢 Business Help - Support Tickets Test</h1>
+        <p>Test the business help section support ticket functionality</p>
+
+        <!-- Login Section -->
+        <div class="test-section info">
+            <h3>🔐 Step 1: Login as Business User</h3>
+            <input type="email" id="loginEmail" placeholder="Business Email" value="ksacargo@gvscargo.com">
+            <input type="password" id="loginPassword" placeholder="Password" value="password123">
+            <button onclick="loginBusiness()">Login as Business</button>
+            <div id="loginResult" class="result"></div>
+        </div>
+
+        <!-- Support Tickets Test -->
+        <div class="test-section">
+            <h3>🎫 Step 2: Test Support Tickets</h3>
+            <button onclick="fetchTickets()">Fetch Existing Tickets</button>
+            <button onclick="showTicketForm()">Create New Ticket</button>
+            
+            <div id="ticketForm" class="ticket-form">
+                <h4>Create Support Ticket</h4>
+                <input type="text" id="ticketSubject" placeholder="Ticket Subject" value="Test Business Support Issue">
+                <select id="ticketCategory">
+                    <option value="general">General</option>
+                    <option value="quotes">Quote Issues</option>
+                    <option value="technical">Technical</option>
+                    <option value="account">Account</option>
+                    <option value="billing">Billing</option>
+                    <option value="feature">Feature Request</option>
+                </select>
+                <select id="ticketPriority">
+                    <option value="low">Low</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="high">High</option>
+                </select>
+                <textarea id="ticketMessage" rows="4" placeholder="Describe your issue in detail...">I need help with requesting quotes for my business. The system is not working as expected.</textarea>
+                <button onclick="submitTicket()">Submit Ticket</button>
+                <button onclick="hideTicketForm()">Cancel</button>
+            </div>
+            
+            <div id="ticketsResult" class="result"></div>
+        </div>
+
+        <!-- Frontend Test -->
+        <div class="test-section success">
+            <h3>🌐 Step 3: Test Frontend</h3>
+            <p>Open the business help page to test the complete functionality</p>
+            <button onclick="openBusinessHelp()">Open Business Help Page</button>
+            <p><strong>Manual Test:</strong> Navigate to <a href="http://localhost:5173/business/help" target="_blank">http://localhost:5173/business/help</a></p>
+            
+            <div style="margin-top: 15px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+                <h4>What to Test:</h4>
+                <ul>
+                    <li>✅ Help page loads with company logo and contact info</li>
+                    <li>✅ FAQ section displays business-specific questions</li>
+                    <li>✅ Search functionality works in FAQs</li>
+                    <li>✅ Support ticket form opens and submits successfully</li>
+                    <li>✅ Existing tickets display with proper formatting</li>
+                    <li>✅ Ticket numbers are shown correctly</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let authToken = '';
+        const API_BASE = 'http://localhost:5000';
+
+        async function loginBusiness() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const resultDiv = document.getElementById('loginResult');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/user/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.token;
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Login successful!\nUser: ${data.user.name}\nRole: ${data.user.role}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Login failed: ${data.message}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function fetchTickets() {
+            if (!authToken) {
+                alert('Please login first');
+                return;
+            }
+
+            const resultDiv = document.getElementById('ticketsResult');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/business/help/tickets`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const tickets = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Tickets fetched successfully!\n\nFound ${tickets.length} tickets:\n\n${JSON.stringify(tickets, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Failed to fetch tickets: ${tickets.message}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        function showTicketForm() {
+            document.getElementById('ticketForm').style.display = 'block';
+        }
+
+        function hideTicketForm() {
+            document.getElementById('ticketForm').style.display = 'none';
+        }
+
+        async function submitTicket() {
+            if (!authToken) {
+                alert('Please login first');
+                return;
+            }
+
+            const resultDiv = document.getElementById('ticketsResult');
+            
+            const ticketData = {
+                subject: document.getElementById('ticketSubject').value,
+                message: document.getElementById('ticketMessage').value,
+                category: document.getElementById('ticketCategory').value,
+                priority: document.getElementById('ticketPriority').value
+            };
+
+            if (!ticketData.subject || !ticketData.message) {
+                alert('Please fill in subject and message');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/business/help/ticket`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(ticketData)
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Ticket submitted successfully!\n\nTicket ID: ${result.ticketId}\nTicket Number: ${result.ticketNumber}\nMessage: ${result.message}`;
+                    
+                    // Hide form and refresh tickets
+                    hideTicketForm();
+                    setTimeout(fetchTickets, 1000);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Failed to submit ticket: ${result.message}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        function openBusinessHelp() {
+            window.open('http://localhost:5173/business/help', '_blank');
+        }
+
+        // Auto-login for convenience
+        window.onload = function() {
+            console.log('Business Help Test Page Loaded');
+        };
+    </script>
+</body>
+</html>

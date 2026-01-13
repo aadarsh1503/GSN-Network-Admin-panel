@@ -1,20 +1,27 @@
 import { useState, useEffect, Fragment } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Listbox, Transition } from '@headlessui/react';
 import PhoneInput from 'react-phone-input-2';
 import toast from 'react-hot-toast';
 import 'react-phone-input-2/lib/style.css';
 import { api } from '../../utils/api';
+import { submitPendingQuote, hasPendingQuote } from '../../utils/pendingQuote';
 
 // Importing icons for a better UI
 import { User, Phone, Mail, Lock, Building, ChevronDown, Check, Loader2, Eye, EyeOff } from 'lucide-react';
 
 const RegisterPage = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Get redirect path and message from location state
+    const from = location.state?.from || null;
+    const redirectMessage = location.state?.message;
+    const preSelectedRole = location.state?.preSelectedRole;
 
     // --- State Management ---
     const [formData, setFormData] = useState({
-        role: 'Company',
+        role: preSelectedRole || 'Company', // Use pre-selected role if available
         name: '',
         phone: '',
         email: '',
@@ -27,10 +34,84 @@ const RegisterPage = () => {
     });
 
     const [countries, setCountries] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [categoriesLoading, setCategoriesLoading] = useState(false);
     const [initialCountry, setInitialCountry] = useState('us');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [isCheckingAuth, setIsCheckingAuth] = useState(true); // Loading state for auth check
+
+    // Check if user is already logged in
+    useEffect(() => {
+        const checkAuthStatus = () => {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            if (token && user) {
+                try {
+                    const userData = JSON.parse(user);
+                    console.log('User already logged in, redirecting...', userData);
+                    
+                    // Redirect based on user role
+                    if (userData.role === 'admin') {
+                        navigate('/admin', { replace: true });
+                    } else if (userData.role === 'company') {
+                        navigate('/company', { replace: true });
+                    } else if (userData.role === 'business') {
+                        navigate('/business', { replace: true });
+                    } else if (userData.role === 'user') {
+                        navigate('/user/dashboard', { replace: true });
+                    } else {
+                        // If role is unknown, clear storage and allow registration
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user');
+                        setIsCheckingAuth(false);
+                    }
+                } catch (error) {
+                    console.error('Error parsing user data:', error);
+                    // Clear invalid data and allow registration
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    setIsCheckingAuth(false);
+                }
+            } else {
+                setIsCheckingAuth(false);
+            }
+        };
+
+        checkAuthStatus();
+    }, [navigate]);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            if (!formData.role) return;
+            
+            setCategoriesLoading(true);
+            try {
+                const endpoint = formData.role === 'Company' 
+                    ? '/api/logistics-categories' 
+                    : '/api/business-categories';
+                
+                const response = await api.get(endpoint);
+                setCategories(response.map(cat => cat.name));
+                
+                // Reset category selection when role changes
+                setFormData(prevState => ({
+                    ...prevState,
+                    category: ''
+                }));
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+                toast.error('Failed to load categories');
+                setCategories([]);
+            } finally {
+                setCategoriesLoading(false);
+            }
+        };
+
+        fetchCategories();
+    }, [formData.role]);
 
     useEffect(() => {
         const fetchUserCountry = async () => {
@@ -74,15 +155,6 @@ const RegisterPage = () => {
         fetchCountries();
     }, []);
 
-    const categories = [
-        'Freight Forwarders', 'Third-Party Logistics Providers (3PLs)', 'Courier and Parcel Delivery Services',
-        'Warehousing and Distribution', 'Transportation Service', 'Supply Chain Management', 'Inventory Management',
-        'Cold Chain Logistics', 'Reverse Logistics', 'E-commerce Logistics', 'Cross-border Logistics',
-        'Specialized Logistics', 'Technology and Software Providers', 'Packaging and Labeling Services',
-        'Last-Mile Delivery and Urban Logistics', 'Air Cargo and Freight Services', 'Rail and Intermodal Logistics',
-        'Freight Brokerage', 'Drone and Autonomous Vehicle Logistics', 'Custom Brokerage'
-    ];
-    
     const roles = ['Company', 'Business'];
 
     const handleChange = (e) => {
@@ -120,18 +192,110 @@ const RegisterPage = () => {
                 role: formData.role.toLowerCase(),
             });
 
-            // --- SUCCESS FLOW: Show message and redirect to login ---
-            if (data.accountStatus === 'pending_approval') {
+            // --- SUCCESS FLOW: Handle different account statuses ---
+            if (data.accountStatus === 'active') {
+                // Account created and active (for business users)
+                toast.success(data.message || 'Registration successful! Welcome to GSN.');
+                
+                if (data.token) {
+                    // Token provided - user is automatically logged in
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    // Check if there's a pending quote to submit
+                    if (hasPendingQuote()) {
+                        const quoteResult = await submitPendingQuote();
+                        if (quoteResult.success) {
+                            toast.success('Your quote request has been submitted!');
+                        }
+                    }
+                    
+                    // Redirect to intended destination
+                    navigate(from || '/business/dashboard', { replace: true });
+                } else {
+                    // No token provided - attempt manual login
+                    try {
+                        const loginData = await api.post('/api/user/login', {
+                            email: formData.email,
+                            password: formData.password
+                        });
+                        
+                        // Store authentication data
+                        localStorage.setItem('token', loginData.token);
+                        localStorage.setItem('user', JSON.stringify(loginData.user));
+                        
+                        // Check if there's a pending quote to submit
+                        if (hasPendingQuote()) {
+                            const quoteResult = await submitPendingQuote();
+                            if (quoteResult.success) {
+                                toast.success('Your quote request has been submitted!');
+                            }
+                        }
+                        
+                        // Redirect to intended destination
+                        navigate(from || '/business/dashboard', { replace: true });
+                        
+                    } catch (loginError) {
+                        console.error('Auto-login failed:', loginError);
+                        toast.error('Registration successful, but auto-login failed. Please login manually.');
+                        
+                        // Fallback to login page
+                        setTimeout(() => {
+                            navigate('/login', { 
+                                state: { 
+                                    from,
+                                    email: formData.email,
+                                    message: 'Registration successful! Please login with your credentials.'
+                                }
+                            });
+                        }, 2000);
+                    }
+                }
+            } else if (data.accountStatus === 'pending_approval') {
+                // Account created but needs admin approval (for company users)
                 toast.success(data.message || 'Account created! Your account is pending admin approval.');
+                
+                // Clear any pending quote data since user can't login yet
+                localStorage.removeItem('pendingQuote');
                 
                 // Navigate to login page after a short delay
                 setTimeout(() => {
-                    navigate('/login');
+                    navigate('/login', {
+                        state: {
+                            from,
+                            email: formData.email,
+                            message: 'Registration successful! Please login once your account is approved.'
+                        }
+                    });
                 }, 3000);
+            } else if (data.token) {
+                // Fallback: Account created and token provided (legacy flow)
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                
+                toast.success('Registration successful! Welcome to GSN.');
+                
+                // Check if there's a pending quote to submit
+                if (hasPendingQuote()) {
+                    const quoteResult = await submitPendingQuote();
+                    if (quoteResult.success) {
+                        toast.success('Your quote request has been submitted!');
+                    }
+                }
+                
+                // Redirect to intended destination
+                const redirectPath = data.user.role === 'business' ? '/business/dashboard' : '/company/dashboard';
+                navigate(from || redirectPath, { replace: true });
             } else {
                 // Fallback for other success cases
                 toast.success('Account created successfully!');
-                navigate('/login');
+                navigate('/login', {
+                    state: {
+                        from,
+                        email: formData.email,
+                        message: 'Registration successful! Please login with your credentials.'
+                    }
+                });
             } 
 
         } catch (err) {
@@ -140,6 +304,18 @@ const RegisterPage = () => {
             setLoading(false);
         }
     };
+
+    // Show loading spinner while checking authentication
+    if (isCheckingAuth) {
+        return (
+            <div className="bg-stone-50 min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#CDA435] mx-auto mb-4"></div>
+                    <p className="text-xl text-gray-600">Checking authentication...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="bg-stone-50 mt-20 min-h-screen font-sans">
@@ -160,15 +336,34 @@ const RegisterPage = () => {
                     <h2 className="text-3xl font-bold text-gray-800 mb-2">Create Your Account!</h2>
                     <div className="w-24 h-1.5 bg-[#CDA435] rounded-full mb-8"></div>
                     
+                    {redirectMessage && (
+                        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p className="text-sm text-blue-800">
+                                <strong>{redirectMessage}</strong>
+                            </p>
+                            <p className="text-xs text-blue-600 mt-1">
+                                Business accounts are for business entities requesting quotes. Company accounts are for logistics providers offering quotes to customers.
+                            </p>
+                        </div>
+                    )}
+                    
                     <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                         
-                        <CustomSelect
-                            label="I am a *"
-                            value={formData.role}
-                            onChange={(val) => handleChange({ target: { name: 'role', value: val } })}
-                            options={roles}
-                            placeholder="Select a Role"
-                        />
+                        <div>
+                            <CustomSelect
+                                label="I am a *"
+                                value={formData.role}
+                                onChange={(val) => handleChange({ target: { name: 'role', value: val } })}
+                                options={roles}
+                                placeholder="Select a Role"
+                            />
+                            {preSelectedRole && (
+                                <p className="text-xs text-blue-600 mt-1 flex items-center">
+                                    <span className="inline-block w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                                    {preSelectedRole} account pre-selected for you
+                                </p>
+                            )}
+                        </div>
 
                         <InputWithIcon id="name" name="name" type="text" value={formData.name} onChange={handleChange} placeholder="Enter Your Full Name" required icon={<User className="w-5 h-5 text-gray-400" />} />
                         
@@ -194,6 +389,8 @@ const RegisterPage = () => {
                             onChange={(val) => handleChange({ target: { name: 'category', value: val } })}
                             options={categories}
                             placeholder="Select a Category"
+                            loading={categoriesLoading}
+                            disabled={!formData.role || categoriesLoading}
                         />
                         
                         <CustomSelect

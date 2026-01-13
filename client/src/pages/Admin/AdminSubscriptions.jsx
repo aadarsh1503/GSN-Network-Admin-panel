@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { FaEye, FaSearch, FaFilter } from 'react-icons/fa';
+import { useState, useEffect } from 'react';
+import { 
+  FaEye, FaSearch, FaFilter, FaCreditCard, FaUsers, FaCalendarAlt, 
+  FaChartPie, FaDollarSign, FaClock, FaCheckCircle, FaTimes 
+} from 'react-icons/fa';
 import { api } from '../../utils/api';
 import { adminToast } from '../../utils/adminToast';
 
@@ -68,109 +71,278 @@ const AdminSubscriptions = () => {
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
-  if (loading) return <div className="p-10 text-center">Loading subscriptions...</div>;
+  const getSubscriptionStats = () => {
+    const activeSubscriptions = filteredSubscriptions.filter(s => s.status === 'active');
+    const expiredSubscriptions = filteredSubscriptions.filter(s => s.status === 'expired');
+    const cancelledSubscriptions = filteredSubscriptions.filter(s => s.status === 'cancelled');
+    const paidSubscriptions = filteredSubscriptions.filter(s => s.payment_status === 'paid');
+    
+    const totalRevenue = paidSubscriptions.reduce((sum, s) => sum + parseFloat(s.amount_paid || 0), 0);
+    const monthlyRevenue = paidSubscriptions
+      .filter(s => {
+        const startDate = new Date(s.start_date);
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+        return startDate.getMonth() === currentMonth && startDate.getFullYear() === currentYear;
+      })
+      .reduce((sum, s) => sum + parseFloat(s.amount_paid || 0), 0);
+
+    return {
+      total: filteredSubscriptions.length,
+      active: activeSubscriptions.length,
+      expired: expiredSubscriptions.length,
+      cancelled: cancelledSubscriptions.length,
+      totalRevenue,
+      monthlyRevenue,
+      paidCount: paidSubscriptions.length
+    };
+  };
+
+  const stats = getSubscriptionStats();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600 font-medium">Loading subscriptions...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-gray-100 min-h-screen p-4 sm:p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="bg-white rounded-lg shadow">
-          {/* Header */}
-          <div className="p-6 border-b">
-            <h2 className="text-2xl font-semibold">Subscription Management</h2>
-            <p className="text-gray-600 mt-1">View and manage all user subscriptions</p>
-          </div>
-
-          {/* Filters */}
-          <div className="p-4 border-b bg-gray-50">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="relative">
-                <FaSearch className="absolute left-3 top-3 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search users, plans, transactions..."
-                  className="w-full pl-10 p-2 border rounded-md"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-purple-50 p-4 sm:p-1">
+      <div className="max-w-6xl mx-auto space-y-6">
+        
+        {/* Header Section */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                <FaCreditCard className="text-white text-xl" />
               </div>
-              <select
-                className="p-2 border rounded-md"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-              >
-                <option value="">All Status</option>
-                <option value="active">Active</option>
-                <option value="expired">Expired</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-              <select
-                className="p-2 border rounded-md"
-                value={paymentFilter}
-                onChange={(e) => setPaymentFilter(e.target.value)}
-              >
-                <option value="">All Payments</option>
-                <option value="paid">Paid</option>
-                <option value="pending">Pending</option>
-                <option value="failed">Failed</option>
-              </select>
-              <button
-                onClick={() => {
-                  setSearchTerm('');
-                  setStatusFilter('');
-                  setPaymentFilter('');
-                }}
-                className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
-              >
-                Reset Filters
-              </button>
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+                  Subscription Management
+                </h1>
+                <p className="text-slate-600 mt-1">View and manage all user subscriptions</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2 text-sm text-slate-600">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span>Live Data</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Dashboard */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-500 text-sm font-medium">Total Subscriptions</p>
+                <p className="text-3xl font-bold text-slate-800 mt-1">{stats.total}</p>
+              </div>
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex items-center justify-center">
+                <FaUsers className="text-purple-600" />
+              </div>
             </div>
           </div>
 
-          {/* Table */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-500 text-sm font-medium">Total Revenue</p>
+                <p className="text-3xl font-bold text-emerald-600 mt-1">${stats.totalRevenue.toFixed(2)}</p>
+              </div>
+              <div className="w-10 h-10 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-lg flex items-center justify-center">
+                <FaDollarSign className="text-emerald-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-500 text-sm font-medium">Active Plans</p>
+                <p className="text-2xl font-bold text-green-600 mt-1">{stats.active}</p>
+              </div>
+              <div className="w-10 h-10 bg-gradient-to-br from-green-100 to-green-200 rounded-lg flex items-center justify-center">
+                <FaCheckCircle className="text-green-600" />
+              </div>
+            </div>
+          </div>
+
+          {/* <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-500 text-sm font-medium">Monthly Revenue</p>
+                <p className="text-2xl font-bold text-blue-600 mt-1">${stats.monthlyRevenue.toFixed(2)}</p>
+              </div>
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center">
+                <FaChartPie className="text-blue-600" />
+              </div>
+            </div>
+          </div> */}
+
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-500 text-sm font-medium">Expired</p>
+                <p className="text-2xl font-bold text-red-600 mt-1">{stats.expired}</p>
+              </div>
+              <div className="w-10 h-10 bg-gradient-to-br from-red-100 to-red-200 rounded-lg flex items-center justify-center">
+                <FaClock className="text-red-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-500 text-sm font-medium">Cancelled</p>
+                <p className="text-2xl font-bold text-gray-600 mt-1">{stats.cancelled}</p>
+              </div>
+              <div className="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
+                <FaTimes className="text-gray-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Filters Section */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="w-8 h-8 bg-gradient-to-br from-slate-500 to-slate-600 rounded-lg flex items-center justify-center">
+              <FaFilter className="text-white text-sm" />
+            </div>
+            <h3 className="text-lg font-semibold text-slate-800">Filters & Search</h3>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="relative">
+              <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search users, plans, transactions..."
+                className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            
+            <select
+              className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="">All Status</option>
+              <option value="active">Active</option>
+              <option value="expired">Expired</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+            
+            <select
+              className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+              value={paymentFilter}
+              onChange={(e) => setPaymentFilter(e.target.value)}
+            >
+              <option value="">All Payments</option>
+              <option value="paid">Paid</option>
+              <option value="pending">Pending</option>
+              <option value="failed">Failed</option>
+            </select>
+            
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setStatusFilter('');
+                setPaymentFilter('');
+              }}
+              className="bg-gradient-to-r from-slate-500 to-slate-600 text-white px-6 py-3 rounded-xl hover:from-slate-600 hover:to-slate-700 transition-all duration-300 font-medium"
+            >
+              Reset Filters
+            </button>
+          </div>
+        </div>
+
+        {/* Subscriptions Table */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b">
+              <thead className="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
                 <tr>
-                  <th className="p-3 text-left">ID</th>
-                  <th className="p-3 text-left">User</th>
-                  <th className="p-3 text-left">Plan</th>
-                  <th className="p-3 text-left">Amount</th>
-                  <th className="p-3 text-left">Start Date</th>
-                  <th className="p-3 text-left">End Date</th>
-                  <th className="p-3 text-left">Status</th>
-                  <th className="p-3 text-left">Payment</th>
-                  <th className="p-3 text-left">Actions</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">ID</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">User</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Plan</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Amount</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Start Date</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">End Date</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Status</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Payment</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-200">
                 {filteredSubscriptions.length > 0 ? (
                   filteredSubscriptions.map((sub) => (
-                    <tr key={sub.id} className="border-b hover:bg-gray-50">
-                      <td className="p-3">{sub.id}</td>
-                      <td className="p-3">
-                        <div>
-                          <div className="font-medium">{sub.user_name}</div>
-                          <div className="text-sm text-gray-500">{sub.user_email}</div>
+                    <tr key={sub.id} className="hover:bg-slate-50/50 transition-colors duration-200">
+                      <td className="px-6 py-4">
+                        <span className="font-mono text-sm text-slate-600">{sub.id}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-purple-200 rounded-full flex items-center justify-center">
+                            <span className="text-purple-600 font-semibold text-sm">
+                              {sub.user_name?.charAt(0)?.toUpperCase() || 'U'}
+                            </span>
+                          </div>
+                          <div>
+                            <div className="font-medium text-slate-800">{sub.user_name}</div>
+                            <div className="text-sm text-slate-500">{sub.user_email}</div>
+                          </div>
                         </div>
                       </td>
-                      <td className="p-3">{sub.plan_name}</td>
-                      <td className="p-3">${sub.amount_paid}</td>
-                      <td className="p-3">{new Date(sub.start_date).toLocaleDateString()}</td>
-                      <td className="p-3">{new Date(sub.end_date).toLocaleDateString()}</td>
-                      <td className="p-3">
-                        <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadge(sub.status)}`}>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center">
+                            <FaCreditCard className="text-blue-600 text-sm" />
+                          </div>
+                          <span className="font-medium text-slate-700">{sub.plan_name}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-lg font-bold text-emerald-600">${sub.amount_paid}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-2 text-sm text-slate-600">
+                          <FaCalendarAlt className="text-slate-400" />
+                          <span>{new Date(sub.start_date).toLocaleDateString()}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-2 text-sm text-slate-600">
+                          <FaCalendarAlt className="text-slate-400" />
+                          <span>{new Date(sub.end_date).toLocaleDateString()}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(sub.status)}`}>
                           {sub.status}
                         </span>
                       </td>
-                      <td className="p-3">
-                        <span className={`px-2 py-1 rounded-full text-xs ${getPaymentBadge(sub.payment_status)}`}>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getPaymentBadge(sub.payment_status)}`}>
                           {sub.payment_status}
                         </span>
                       </td>
-                      <td className="p-3">
+                      <td className="px-6 py-4">
                         <button
                           onClick={() => handleViewDetails(sub)}
-                          className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                          className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-all duration-200"
                           title="View Details"
                         >
                           <FaEye />
@@ -180,8 +352,14 @@ const AdminSubscriptions = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="9" className="text-center p-4 text-gray-500">
-                      No subscriptions found
+                    <td colSpan="9" className="text-center py-12">
+                      <div className="flex flex-col items-center space-y-3">
+                        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center">
+                          <FaCreditCard className="text-slate-400 text-xl" />
+                        </div>
+                        <p className="text-slate-500 font-medium">No subscriptions found</p>
+                        <p className="text-slate-400 text-sm">Try adjusting your search filters</p>
+                      </div>
                     </td>
                   </tr>
                 )}
@@ -189,73 +367,147 @@ const AdminSubscriptions = () => {
             </table>
           </div>
 
-          {/* Summary */}
-          <div className="p-4 bg-gray-50 border-t">
-            <div className="text-sm text-gray-600">
-              Showing {filteredSubscriptions.length} of {subscriptions.length} subscriptions
+          {/* Summary Footer */}
+          <div className="bg-gradient-to-r from-slate-50 to-slate-100 border-t border-slate-200 px-6 py-4">
+            <div className="flex items-center justify-between text-sm text-slate-600">
+              <div className="flex items-center space-x-2">
+                <FaCreditCard className="text-slate-400" />
+                <span>Showing {filteredSubscriptions.length} of {subscriptions.length} subscriptions</span>
+              </div>
+              <div className="flex items-center space-x-4">
+                <span>Active: {stats.active}</span>
+                <span>•</span>
+                <span>Revenue: ${stats.totalRevenue.toFixed(2)}</span>
+              </div>
             </div>
           </div>
         </div>
+
+        {/* View Details Modal */}
+        {viewingSubscription && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full border border-white/20 max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center">
+                      <FaEye className="text-white" />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900">Subscription Details</h3>
+                  </div>
+                  <button
+                    onClick={() => setViewingSubscription(null)}
+                    className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all duration-200"
+                  >
+                    <FaTimes />
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Subscription Info */}
+                  <div className="bg-slate-50 rounded-xl p-6">
+                    <h4 className="text-lg font-semibold text-slate-800 mb-4 flex items-center space-x-2">
+                      <FaCreditCard className="text-purple-600" />
+                      <span>Subscription Information</span>
+                    </h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-600">Subscription ID</label>
+                        <p className="mt-1 font-mono text-slate-800">{viewingSubscription.id}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-600">Transaction ID</label>
+                        <p className="mt-1 font-mono text-slate-800">{viewingSubscription.transaction_id || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-600">Plan Details</label>
+                        <p className="mt-1 font-semibold text-slate-800">{viewingSubscription.plan_name}</p>
+                        <p className="text-sm text-slate-500">Duration: {viewingSubscription.duration_months} months</p>
+                        <p className="text-sm text-slate-500">Price: ${viewingSubscription.plan_price}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* User Info */}
+                  <div className="bg-slate-50 rounded-xl p-6">
+                    <h4 className="text-lg font-semibold text-slate-800 mb-4 flex items-center space-x-2">
+                      <FaUsers className="text-blue-600" />
+                      <span>User Information</span>
+                    </h4>
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-200 rounded-full flex items-center justify-center">
+                          <span className="text-purple-600 font-bold">
+                            {viewingSubscription.user_name?.charAt(0)?.toUpperCase() || 'U'}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="font-semibold text-slate-800">{viewingSubscription.user_name}</p>
+                          <p className="text-sm text-slate-500">{viewingSubscription.user_email}</p>
+                          <p className="text-sm text-slate-500">{viewingSubscription.user_phone}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Financial Info */}
+                  <div className="bg-slate-50 rounded-xl p-6">
+                    <h4 className="text-lg font-semibold text-slate-800 mb-4 flex items-center space-x-2">
+                      <FaDollarSign className="text-emerald-600" />
+                      <span>Financial Details</span>
+                    </h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-600">Amount Paid</label>
+                        <p className="mt-1 text-2xl font-bold text-emerald-600">${viewingSubscription.amount_paid}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-600">Payment Status</label>
+                        <span className={`inline-block mt-1 px-3 py-1 rounded-full text-sm font-medium ${getPaymentBadge(viewingSubscription.payment_status)}`}>
+                          {viewingSubscription.payment_status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Status & Dates */}
+                  <div className="bg-slate-50 rounded-xl p-6">
+                    <h4 className="text-lg font-semibold text-slate-800 mb-4 flex items-center space-x-2">
+                      <FaCalendarAlt className="text-blue-600" />
+                      <span>Status & Timeline</span>
+                    </h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-600">Status</label>
+                        <span className={`inline-block mt-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusBadge(viewingSubscription.status)}`}>
+                          {viewingSubscription.status}
+                        </span>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-600">Start Date</label>
+                        <p className="mt-1 text-slate-800">{new Date(viewingSubscription.start_date).toLocaleDateString()}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-600">End Date</label>
+                        <p className="mt-1 text-slate-800">{new Date(viewingSubscription.end_date).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex justify-end">
+                  <button
+                    onClick={() => setViewingSubscription(null)}
+                    className="px-6 py-3 bg-gradient-to-r from-slate-500 to-slate-600 text-white rounded-xl hover:from-slate-600 hover:to-slate-700 transition-all duration-300 font-medium"
+                  >
+                    Close Details
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* View Details Modal */}
-      {viewingSubscription && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold mb-4">Subscription Details</h3>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Subscription ID</label>
-                <p className="mt-1">{viewingSubscription.id}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Transaction ID</label>
-                <p className="mt-1">{viewingSubscription.transaction_id || 'N/A'}</p>
-              </div>
-              <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700">User Information</label>
-                <p className="mt-1">{viewingSubscription.user_name}</p>
-                <p className="text-sm text-gray-500">{viewingSubscription.user_email}</p>
-                <p className="text-sm text-gray-500">{viewingSubscription.user_phone}</p>
-              </div>
-              <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700">Plan Details</label>
-                <p className="mt-1 font-medium">{viewingSubscription.plan_name}</p>
-                <p className="text-sm text-gray-500">Duration: {viewingSubscription.duration_months} months</p>
-                <p className="text-sm text-gray-500">Price: ${viewingSubscription.plan_price}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Amount Paid</label>
-                <p className="mt-1 text-lg font-bold text-green-600">${viewingSubscription.amount_paid}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Status</label>
-                <span className={`inline-block mt-1 px-3 py-1 rounded-full text-sm ${getStatusBadge(viewingSubscription.status)}`}>
-                  {viewingSubscription.status}
-                </span>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Start Date</label>
-                <p className="mt-1">{new Date(viewingSubscription.start_date).toLocaleDateString()}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">End Date</label>
-                <p className="mt-1">{new Date(viewingSubscription.end_date).toLocaleDateString()}</p>
-              </div>
-            </div>
-
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={() => setViewingSubscription(null)}
-                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -149,15 +149,50 @@ const getCompanyDashboardStats = async (req, res) => {
         );
 
         // Get recent quotes available for response (last 30 days)
-        const [availableQuotes] = await db.execute(`
-            SELECT COUNT(*) as available_quotes
-            FROM quotes q
-            WHERE q.status IN ('pending', 'approved') 
-            AND q.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-            AND q.id NOT IN (
-                SELECT quote_id FROM quote_responses WHERE company_id = ?
-            )
+        // Filter by company's location - show quotes that are either from or to the company's country
+        const [companyLocation] = await db.execute(`
+            SELECT country FROM users WHERE id = ?
         `, [companyId]);
+
+        const companyCountry = companyLocation[0]?.country;
+
+        let availableQuotesQuery;
+        let queryParams;
+
+        if (companyCountry) {
+            // Filter quotes based on company's country
+            availableQuotesQuery = `
+                SELECT COUNT(*) as available_quotes
+                FROM quotes q
+                WHERE q.status IN ('pending', 'approved') 
+                AND q.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+                AND (q.departure_country = ? OR q.arrival_country = ?)
+                AND q.id NOT IN (
+                    SELECT quote_id FROM quote_responses WHERE company_id = ?
+                )
+                AND q.id NOT IN (
+                    SELECT quote_id FROM user_quote_status WHERE status = 'accepted'
+                )
+            `;
+            queryParams = [companyCountry, companyCountry, companyId];
+        } else {
+            // Fallback to original query if no country specified
+            availableQuotesQuery = `
+                SELECT COUNT(*) as available_quotes
+                FROM quotes q
+                WHERE q.status IN ('pending', 'approved') 
+                AND q.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+                AND q.id NOT IN (
+                    SELECT quote_id FROM quote_responses WHERE company_id = ?
+                )
+                AND q.id NOT IN (
+                    SELECT quote_id FROM user_quote_status WHERE status = 'accepted'
+                )
+            `;
+            queryParams = [companyId];
+        }
+
+        const [availableQuotes] = await db.execute(availableQuotesQuery, queryParams);
 
         res.status(200).json({
             responses: responseStats[0],

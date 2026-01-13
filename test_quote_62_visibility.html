@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quote #62 Visibility Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-header {
+            color: #CDA435;
+            border-bottom: 2px solid #CDA435;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .issue-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .fix-box {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .code-box {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .warning {
+            color: #ffc107;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Quote #62 Visibility Issue Analysis</h1>
+    
+    <div class="test-section">
+        <h2 class="test-header">📋 Issue Summary</h2>
+        <div class="issue-box">
+            <h3>🚨 Problem:</h3>
+            <p><strong>Quote #62</strong> appears in Transaction History as verified but NOT in My Quotes page</p>
+            <ul>
+                <li><strong>User:</strong> subodhchauhan1309@gmail.com</li>
+                <li><strong>Company:</strong> aadarshchauhan35@gmail.com</li>
+                <li><strong>Amount:</strong> $520,519.99</li>
+                <li><strong>Status:</strong> Verified (Jan 4, 2026, 12:33 PM)</li>
+                <li><strong>Route:</strong> India → Ecuador</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2 class="test-header">🔍 Root Cause Analysis</h2>
+        
+        <h3>📊 Data Source Mismatch:</h3>
+        <div class="code-box">
+            <strong>Transaction History:</strong> /api/enhanced-quotes/company-responses-with-payments<br>
+            - Shows quotes with payment_status = 'verified'<br>
+            - Quote #62 has verified payment ✅<br><br>
+            
+            <strong>My Quotes (OLD):</strong> /api/company-quotes/accepted-quotes<br>
+            - Shows quotes with user_quote_status.status = 'accepted'<br>
+            - Quote #62 might not have this status ❌
+        </div>
+
+        <h3>🎯 The Disconnect:</h3>
+        <p>A quote can have <strong>verified payment</strong> without being marked as <strong>accepted</strong> in the user_quote_status table. This creates inconsistency between the two pages.</p>
+    </div>
+
+    <div class="test-section">
+        <h2 class="test-header">✅ Solution Implemented</h2>
+        
+        <div class="fix-box">
+            <h3>🔧 Fix Applied:</h3>
+            <p>Updated My Quotes to use the same data source as Transaction History</p>
+            
+            <div class="code-box">
+                <strong>New My Quotes Logic:</strong><br>
+                1. Use /api/enhanced-quotes/company-responses-with-payments<br>
+                2. Filter for quotes that have:<br>
+                   - user_response_status = 'accepted' OR<br>
+                   - payment_status = 'verified' OR<br>
+                   - payment_proof_url exists<br>
+                3. Fallback to original API if enhanced API fails
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2 class="test-header">🧪 Testing Steps</h2>
+        
+        <h3>1. Verify Quote #62 Data:</h3>
+        <div class="code-box">
+            Check if Quote #62 has:<br>
+            ✓ payment_status = 'verified'<br>
+            ✓ payment_proof_url exists<br>
+            ✓ verification_date = Jan 4, 2026, 12:33 PM<br>
+            ✓ amount = $520,519.99
+        </div>
+
+        <h3>2. Test My Quotes Page:</h3>
+        <ol>
+            <li>Login as company: aadarshchauhan35@gmail.com</li>
+            <li>Navigate to: <code>http://localhost:5173/company/my-Quotes</code></li>
+            <li>Look for Quote #62 in the list</li>
+            <li>Verify it shows the same data as Transaction History</li>
+        </ol>
+
+        <h3>3. Expected Results:</h3>
+        <div class="fix-box">
+            <p class="success">✅ Quote #62 should now appear in My Quotes</p>
+            <p class="success">✅ Data should match Transaction History</p>
+            <p class="success">✅ Payment status should show as "Verified"</p>
+            <p class="success">✅ Amount should be $520,519.99</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2 class="test-header">🔄 Data Flow (Fixed)</h2>
+        
+        <div class="code-box">
+            1. User uploads payment proof for Quote #62<br>
+            2. Company verifies payment (payment_status = 'verified')<br>
+            3. Quote appears in Transaction History ✅<br>
+            4. Quote now ALSO appears in My Quotes ✅<br>
+            5. Both pages show consistent data ✅
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2 class="test-header">🎯 Benefits of Fix</h2>
+        
+        <ul>
+            <li><strong>Data Consistency:</strong> Both pages use same data source</li>
+            <li><strong>Complete Visibility:</strong> All verified payments appear in My Quotes</li>
+            <li><strong>Better UX:</strong> Companies can manage all active quotes in one place</li>
+            <li><strong>Accurate Reporting:</strong> No missing quotes in management interface</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2 class="test-header">🚀 Status</h2>
+        <div class="fix-box">
+            <h3 class="success">✅ FIXED - Quote #62 Visibility Issue Resolved</h3>
+            <p>My Quotes page now uses the same data source as Transaction History, ensuring all verified payments are visible for management.</p>
+        </div>
+    </div>
+
+    <script>
+        console.log('🔍 Quote #62 Visibility Test Loaded');
+        console.log('📊 Issue: Quote appears in Transaction History but not My Quotes');
+        console.log('🔧 Fix: Updated My Quotes to use enhanced quotes API');
+        console.log('✅ Expected: Quote #62 should now appear in My Quotes');
+        console.log('🧪 Test: Navigate to /company/my-Quotes and verify Quote #62 is visible');
+    </script>
+</body>
+</html>

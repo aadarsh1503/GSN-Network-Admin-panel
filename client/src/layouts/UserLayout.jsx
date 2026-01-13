@@ -10,18 +10,21 @@ import {
   FaBars,
   FaTimes,
   FaExclamationTriangle,
-  FaQuestionCircle
+  FaQuestionCircle,
+  FaFileInvoiceDollar,
+  FaTicketAlt
 } from 'react-icons/fa';
 import { useNotifications } from '../contexts/NotificationContext';
 import LogoutConfirmationModal from '../components/Modal/LogoutConfirmationModal';
 import { useLogoutModal } from '../hooks/useLogoutModal';
+import { api } from '../utils/api';
 
 const UserLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const { unreadCount, messageUnreadCount } = useNotifications();
+  const { unreadCount, messageUnreadCount, forceResetUnreadCount } = useNotifications();
   const { isLogoutModalOpen, openLogoutModal, closeLogoutModal } = useLogoutModal();
 
   useEffect(() => {
@@ -30,7 +33,31 @@ const UserLayout = () => {
     if (userData) {
       setUser(JSON.parse(userData));
     }
+    
+    // Fetch fresh user data to get the latest logo
+    fetchUserProfile();
   }, []);
+
+  // Reset notification count when navigating to notifications page
+  useEffect(() => {
+    if (location.pathname === '/user/notifications') {
+      forceResetUnreadCount();
+    }
+  }, [location.pathname, forceResetUnreadCount]);
+
+  const fetchUserProfile = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        const data = await api.get('/api/user/me');
+        setUser(data.user);
+        // Update localStorage with fresh data
+        localStorage.setItem('user', JSON.stringify(data.user));
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
 
   const handleLogout = () => {
     openLogoutModal();
@@ -58,9 +85,19 @@ const UserLayout = () => {
       label: 'Notifications'
     },
     {
+      path: '/user/invoices',
+      icon: FaFileInvoiceDollar,
+      label: 'Invoices'
+    },
+    {
       path: '/user/disputes',
       icon: FaExclamationTriangle,
       label: 'Disputes'
+    },
+    {
+      path: '/user/tickets',
+      icon: FaTicketAlt,
+      label: 'Tickets'
     },
     {
       path: '/user/profile',
@@ -101,8 +138,21 @@ const UserLayout = () => {
         {/* User Info */}
         <div className="p-6 border-b">
           <div className="flex items-center">
-            <div className="w-10 h-10 bg-[#CDA435] rounded-full flex items-center justify-center text-white font-semibold">
-              {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+            <div className="w-10 h-10 bg-[#CDA435] rounded-full flex items-center justify-center text-white font-semibold overflow-hidden">
+              {user?.logo ? (
+                <img 
+                  src={user.logo} 
+                  alt="User Logo" 
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+              ) : null}
+              <div className={`w-full h-full bg-[#CDA435] flex items-center justify-center text-white font-semibold ${user?.logo ? 'hidden' : ''}`}>
+                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+              </div>
             </div>
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-900">{user?.name || 'User'}</p>
@@ -130,11 +180,11 @@ const UserLayout = () => {
                   <Icon className="mr-3" size={18} />
                   {item.label}
                 </div>
-                {item.label === 'Notifications' && unreadCount > 0 && (
+                {/* {item.label === 'Notifications' && unreadCount > 0 && (
                   <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
-                )}
+                )} */}
                 {item.label === 'Messages' && messageUnreadCount > 0 && (
                   <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
                     {messageUnreadCount > 99 ? '99+' : messageUnreadCount}

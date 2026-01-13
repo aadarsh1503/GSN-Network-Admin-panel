@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simplified Business Profile Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        button {
+            background-color: #CDA435;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #B8941F;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .form-full {
+            grid-column: 1 / -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏢 Simplified Business Profile Test</h1>
+        <p>Test the simplified business profile for quote requesters</p>
+
+        <!-- Login Section -->
+        <div class="test-section info">
+            <h3>🔐 Step 1: Login as Business User</h3>
+            <p>Login with a business account to test the profile functionality</p>
+            <div class="form-grid">
+                <input type="email" id="loginEmail" placeholder="Business Email" value="ksacargo@gvscargo.com">
+                <input type="password" id="loginPassword" placeholder="Password" value="password123">
+            </div>
+            <button onclick="loginBusiness()">Login as Business</button>
+            <div id="loginResult" class="result"></div>
+        </div>
+
+        <!-- Profile Test Section -->}
+        <div class="test-section">
+            <h3>📋 Step 2: Test Profile Operations</h3>
+            <p>Test fetching and updating the simplified business profile</p>
+            
+            <div style="margin-bottom: 20px;">
+                <button onclick="fetchProfile()">Fetch Current Profile</button>
+                <button onclick="testProfileUpdate()">Test Profile Update</button>
+            </div>
+
+            <div id="profileForm" style="display: none;">
+                <h4>Update Profile Information:</h4>
+                <div class="form-grid">
+                    <div>
+                        <label>Business Name *</label>
+                        <input type="text" id="businessName" placeholder="Business Name">
+                    </div>
+                    <div>
+                        <label>Email *</label>
+                        <input type="email" id="businessEmail" placeholder="Email Address">
+                    </div>
+                    <div>
+                        <label>Phone *</label>
+                        <input type="tel" id="businessPhone" placeholder="Phone Number">
+                    </div>
+                    <div>
+                        <label>Business Category *</label>
+                        <select id="businessCategory">
+                            <option value="">Select category</option>
+                            <option value="Manufacturing">Manufacturing</option>
+                            <option value="Trading">Trading</option>
+                            <option value="Import/Export">Import/Export</option>
+                            <option value="E-commerce">E-commerce</option>
+                            <option value="Retail">Retail</option>
+                            <option value="Wholesale">Wholesale</option>
+                            <option value="Agriculture">Agriculture</option>
+                            <option value="Textiles">Textiles</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Automotive">Automotive</option>
+                            <option value="Healthcare">Healthcare</option>
+                            <option value="Food & Beverages">Food & Beverages</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Country *</label>
+                        <input type="text" id="businessCountry" placeholder="Country">
+                    </div>
+                    <div>
+                        <label>State</label>
+                        <input type="text" id="businessState" placeholder="State/Province">
+                    </div>
+                    <div>
+                        <label>City</label>
+                        <input type="text" id="businessCity" placeholder="City">
+                    </div>
+                    <div>
+                        <label>Website</label>
+                        <input type="url" id="businessWebsite" placeholder="https://www.example.com">
+                    </div>
+                    <div class="form-full">
+                        <label>About Business *</label>
+                        <textarea id="businessAbout" rows="4" placeholder="Describe your business and what products/services you need logistics for..."></textarea>
+                    </div>
+                </div>
+                <button onclick="updateProfile()">Update Profile</button>
+            </div>
+
+            <div id="profileResult" class="result"></div>
+        </div>
+
+        <!-- Frontend Test Section -->
+        <div class="test-section success">
+            <h3>🌐 Step 3: Test Frontend</h3>
+            <p>Open the simplified business profile page in the React application</p>
+            <button onclick="openBusinessProfile()">Open Business Profile Page</button>
+            <p><strong>Manual Test:</strong> Navigate to <a href="http://localhost:5173/business/profile" target="_blank">http://localhost:5173/business/profile</a></p>
+            
+            <div style="margin-top: 15px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+                <h4>What to Test in the Frontend:</h4>
+                <ul>
+                    <li>✅ Profile loads with current business data</li>
+                    <li>✅ Edit mode enables/disables form fields correctly</li>
+                    <li>✅ Profile completion percentage updates dynamically</li>
+                    <li>✅ Form validation works (required fields)</li>
+                    <li>✅ Save functionality updates the profile</li>
+                    <li>✅ Cancel functionality resets changes</li>
+                    <li>✅ Password change modal works</li>
+                    <li>✅ Logo upload functionality (if implemented)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let authToken = '';
+        const API_BASE = 'http://localhost:5000';
+
+        async function loginBusiness() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const resultDiv = document.getElementById('loginResult');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/user/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.token;
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Login successful!\nUser: ${data.user.name}\nRole: ${data.user.role}\nToken: ${authToken.substring(0, 30)}...`;
+                    
+                    // Auto-fetch profile after login
+                    setTimeout(fetchProfile, 1000);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Login failed: ${data.message}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function fetchProfile() {
+            const resultDiv = document.getElementById('profileResult');
+
+            if (!authToken) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ Please login first';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/business/profile`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Profile fetched successfully!\n\n${JSON.stringify(data, null, 2)}`;
+                    
+                    // Pre-fill form
+                    document.getElementById('businessName').value = data.name || '';
+                    document.getElementById('businessEmail').value = data.email || '';
+                    document.getElementById('businessPhone').value = data.phone || '';
+                    document.getElementById('businessCategory').value = data.category || '';
+                    document.getElementById('businessCountry').value = data.country || '';
+                    document.getElementById('businessState').value = data.state || '';
+                    document.getElementById('businessCity').value = data.city || '';
+                    document.getElementById('businessWebsite').value = data.website || '';
+                    document.getElementById('businessAbout').value = data.about_company || '';
+                    
+                    document.getElementById('profileForm').style.display = 'block';
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Failed to fetch profile: ${data.message}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function testProfileUpdate() {
+            if (!authToken) {
+                alert('Please login first');
+                return;
+            }
+            
+            // Show form for manual testing
+            document.getElementById('profileForm').style.display = 'block';
+            document.getElementById('profileResult').className = 'result info';
+            document.getElementById('profileResult').textContent = 'ℹ️ Form is ready for testing. Fill in the details and click "Update Profile"';
+        }
+
+        async function updateProfile() {
+            const resultDiv = document.getElementById('profileResult');
+
+            if (!authToken) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ Please login first';
+                return;
+            }
+
+            const updateData = {
+                name: document.getElementById('businessName').value,
+                email: document.getElementById('businessEmail').value,
+                phone: document.getElementById('businessPhone').value,
+                category: document.getElementById('businessCategory').value,
+                country: document.getElementById('businessCountry').value,
+                state: document.getElementById('businessState').value,
+                city: document.getElementById('businessCity').value,
+                website: document.getElementById('businessWebsite').value,
+                about_company: document.getElementById('businessAbout').value
+            };
+
+            // Basic validation
+            if (!updateData.name || !updateData.email || !updateData.phone || !updateData.category || !updateData.country || !updateData.about_company) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ Please fill in all required fields (marked with *)';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/business/profile`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Profile updated successfully!\n${data.message}\n\nUpdated data:\n${JSON.stringify(updateData, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Failed to update profile: ${data.message}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        function openBusinessProfile() {
+            window.open('http://localhost:5173/business/profile', '_blank');
+        }
+
+        // Auto-populate with test credentials
+        window.onload = function() {
+            console.log('Simplified Business Profile Test Page Loaded');
+            console.log('Server should be running on http://localhost:5000');
+            console.log('Client should be running on http://localhost:5173');
+        };
+    </script>
+</body>
+</html>

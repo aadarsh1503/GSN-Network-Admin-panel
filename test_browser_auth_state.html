@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser Auth State Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .info { background-color: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-danger { background-color: #dc3545; color: white; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Browser Authentication State Debug</h1>
+    
+    <div class="result info">
+        <h3>Current Browser State</h3>
+        <div id="currentState"></div>
+    </div>
+    
+    <div class="result">
+        <h3>Actions</h3>
+        <button class="btn-primary" onclick="checkAuthState()">🔍 Check Auth State</button>
+        <button class="btn-success" onclick="generateFreshToken()">🔄 Generate Fresh Token</button>
+        <button class="btn-primary" onclick="testApiCall()">🧪 Test API Call</button>
+        <button class="btn-danger" onclick="clearAuth()">🗑️ Clear Auth Data</button>
+    </div>
+    
+    <div id="results"></div>
+
+    <script>
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = message;
+            results.appendChild(div);
+        }
+
+        function checkAuthState() {
+            addResult('<h3>🔍 Checking Authentication State</h3>');
+            
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            if (!token) {
+                addResult('❌ No token found in localStorage', 'error');
+                return;
+            }
+            
+            addResult(`✅ Token found: ${token.substring(0, 50)}...`, 'success');
+            
+            // Parse token payload
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const currentTime = Date.now() / 1000;
+                const isExpired = payload.exp < currentTime;
+                
+                addResult(`
+                    <h4>Token Details:</h4>
+                    <pre>
+User ID: ${payload.id}
+Email: ${payload.email}
+Role: ${payload.role}
+Issued: ${new Date(payload.iat * 1000).toLocaleString()}
+Expires: ${new Date(payload.exp * 1000).toLocaleString()}
+Is Expired: ${isExpired ? '❌ YES' : '✅ NO'}
+                    </pre>
+                `, isExpired ? 'error' : 'success');
+                
+            } catch (error) {
+                addResult(`❌ Error parsing token: ${error.message}`, 'error');
+            }
+            
+            if (user) {
+                try {
+                    const userData = JSON.parse(user);
+                    addResult(`
+                        <h4>User Data:</h4>
+                        <pre>${JSON.stringify(userData, null, 2)}</pre>
+                    `, 'info');
+                } catch (error) {
+                    addResult(`❌ Error parsing user data: ${error.message}`, 'error');
+                }
+            } else {
+                addResult('⚠️ No user data found in localStorage', 'warning');
+            }
+        }
+
+        async function generateFreshToken() {
+            addResult('<h3>🔄 Generating Fresh Token</h3>');
+            
+            // Try to login with a test company account
+            const testCredentials = {
+                email: 'aadarshchauhan35@gmail.com',
+                password: 'password123'
+            };
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/user/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testCredentials)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Store the new token
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    addResult('✅ Fresh token generated and stored!', 'success');
+                    addResult(`New token: ${data.token.substring(0, 50)}...`, 'info');
+                    
+                    // Update current state display
+                    updateCurrentState();
+                    
+                } else {
+                    const errorData = await response.json();
+                    addResult(`❌ Login failed: ${errorData.message}`, 'error');
+                }
+                
+            } catch (error) {
+                addResult(`❌ Error generating token: ${error.message}`, 'error');
+            }
+        }
+
+        async function testApiCall() {
+            addResult('<h3>🧪 Testing API Call</h3>');
+            
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                addResult('❌ No token available for testing', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/quotes/available', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                addResult(`📊 API Response Status: ${response.status}`, response.ok ? 'success' : 'error');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult(`✅ API call successful! Received ${data.quotes?.length || 0} quotes`, 'success');
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    addResult(`❌ API call failed: ${errorData.message || 'Unknown error'}`, 'error');
+                }
+                
+            } catch (error) {
+                addResult(`❌ Error during API call: ${error.message}`, 'error');
+            }
+        }
+
+        function clearAuth() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            addResult('🗑️ Authentication data cleared', 'warning');
+            updateCurrentState();
+        }
+
+        function updateCurrentState() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            let stateHtml = '';
+            
+            if (token) {
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    const isExpired = payload.exp < (Date.now() / 1000);
+                    
+                    stateHtml += `
+                        <p><strong>Token:</strong> ${isExpired ? '❌ Expired' : '✅ Valid'}</p>
+                        <p><strong>User:</strong> ${payload.email} (${payload.role})</p>
+                        <p><strong>Expires:</strong> ${new Date(payload.exp * 1000).toLocaleString()}</p>
+                    `;
+                } catch (error) {
+                    stateHtml += '<p><strong>Token:</strong> ❌ Invalid format</p>';
+                }
+            } else {
+                stateHtml += '<p><strong>Token:</strong> ❌ Not found</p>';
+            }
+            
+            if (user) {
+                try {
+                    const userData = JSON.parse(user);
+                    stateHtml += `<p><strong>User Data:</strong> ✅ Available (${userData.email})</p>`;
+                } catch (error) {
+                    stateHtml += '<p><strong>User Data:</strong> ❌ Invalid format</p>';
+                }
+            } else {
+                stateHtml += '<p><strong>User Data:</strong> ❌ Not found</p>';
+            }
+            
+            document.getElementById('currentState').innerHTML = stateHtml;
+        }
+
+        // Initialize on page load
+        window.onload = function() {
+            updateCurrentState();
+            addResult('🚀 Page loaded. Click "Check Auth State" to see detailed information.', 'info');
+        };
+    </script>
+</body>
+</html>

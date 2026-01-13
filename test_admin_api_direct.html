@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Admin API Direct</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .company-data {
+            background: #e8f5e8;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border-left: 4px solid #28a745;
+        }
+        .no-company {
+            background: #fff3cd;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border-left: 4px solid #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Direct Admin API Test</h1>
+        <p>Testing the admin quotes API directly to see what data is being returned</p>
+        
+        <div class="test-section info">
+            <h3>📋 Test Purpose</h3>
+            <p>This test will call the admin quotes API directly and show exactly what data is being returned, including company information.</p>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 API Test</h3>
+            <button onclick="testAdminAPI()">Test Admin Quotes API (No Auth)</button>
+            <button onclick="testWithAuth()">Test with Authentication</button>
+            <button onclick="clearResults()">Clear Results</button>
+            <div id="apiResults"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Company Data Analysis</h3>
+            <div id="companyAnalysis"></div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:5000';
+
+        async function testAdminAPI() {
+            const resultsDiv = document.getElementById('apiResults');
+            const analysisDiv = document.getElementById('companyAnalysis');
+            
+            resultsDiv.innerHTML = '<p>🔄 Testing Admin API without authentication...</p>';
+            analysisDiv.innerHTML = '';
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/admin-panel/quotes`);
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        resultsDiv.innerHTML = `
+                            <div class="error">
+                                <h4>❌ Authentication Required</h4>
+                                <p>The API requires authentication. Status: ${response.status}</p>
+                                <p>Try the "Test with Authentication" button if you have admin credentials.</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const quotes = await response.json();
+                
+                displayResults(quotes, resultsDiv, analysisDiv);
+
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ API Test Failed</h4>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <p>Make sure the server is running on port 5000</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function testWithAuth() {
+            const resultsDiv = document.getElementById('apiResults');
+            const analysisDiv = document.getElementById('companyAnalysis');
+            
+            // Try to get token from localStorage (if user is logged in)
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ No Authentication Token</h4>
+                        <p>No token found in localStorage. Please login to the admin panel first.</p>
+                        <p>Steps:</p>
+                        <ol>
+                            <li>Open the admin panel in another tab</li>
+                            <li>Login as admin</li>
+                            <li>Come back and try this test again</li>
+                        </ol>
+                    </div>
+                `;
+                return;
+            }
+
+            resultsDiv.innerHTML = '<p>🔄 Testing Admin API with authentication...</p>';
+            analysisDiv.innerHTML = '';
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/admin-panel/quotes`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const quotes = await response.json();
+                
+                displayResults(quotes, resultsDiv, analysisDiv);
+
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Authenticated API Test Failed</h4>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <p>The token might be expired or invalid.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function displayResults(quotes, resultsDiv, analysisDiv) {
+            let html = `
+                <div class="success">
+                    <h4>✅ API Response Success</h4>
+                    <p><strong>Total Quotes:</strong> ${quotes.length}</p>
+                </div>
+            `;
+
+            if (quotes.length > 0) {
+                // Show sample quote structure
+                html += `
+                    <h4>📋 Sample Quote Structure:</h4>
+                    <pre>${JSON.stringify(quotes[0], null, 2)}</pre>
+                `;
+
+                // Analyze company data
+                const quotesWithCompany = quotes.filter(q => q.company_name);
+                const quotesWithoutCompany = quotes.filter(q => !q.company_name);
+
+                let analysisHtml = `
+                    <h4>📊 Company Data Analysis:</h4>
+                    <p><strong>Total Quotes:</strong> ${quotes.length}</p>
+                    <p><strong>Quotes with Company:</strong> ${quotesWithCompany.length}</p>
+                    <p><strong>Quotes without Company:</strong> ${quotesWithoutCompany.length}</p>
+                `;
+
+                if (quotesWithCompany.length > 0) {
+                    analysisHtml += '<h4>🏢 Quotes with Company Data:</h4>';
+                    quotesWithCompany.forEach((quote, index) => {
+                        analysisHtml += `
+                            <div class="company-data">
+                                <strong>Quote ${quote.id}:</strong> ${quote.user_name} → ${quote.company_name}<br>
+                                <small>Company Email: ${quote.company_email}</small><br>
+                                <small>Price: $${quote.accepted_price || '0.00'}</small><br>
+                                <small>Product: ${quote.product_description}</small>
+                            </div>
+                        `;
+                    });
+                } else {
+                    analysisHtml += `
+                        <div class="no-company">
+                            <strong>⚠️ No Company Data Found</strong><br>
+                            This means either:<br>
+                            • No quotes have been accepted by companies<br>
+                            • The backend query is not returning company data<br>
+                            • There's an issue with the database joins
+                        </div>
+                    `;
+                }
+
+                // Show first few quotes without company for comparison
+                if (quotesWithoutCompany.length > 0) {
+                    analysisHtml += '<h4>❌ Sample Quotes without Company:</h4>';
+                    quotesWithoutCompany.slice(0, 3).forEach((quote, index) => {
+                        analysisHtml += `
+                            <div class="no-company">
+                                <strong>Quote ${quote.id}:</strong> ${quote.user_name}<br>
+                                <small>Product: ${quote.product_description}</small><br>
+                                <small>Responses: ${quote.response_count}, Accepted: ${quote.accepted_count}</small>
+                            </div>
+                        `;
+                    });
+                }
+
+                analysisDiv.innerHTML = analysisHtml;
+            } else {
+                html += '<p>⚠️ No quotes found in response</p>';
+            }
+
+            resultsDiv.innerHTML = html;
+        }
+
+        function clearResults() {
+            document.getElementById('apiResults').innerHTML = '';
+            document.getElementById('companyAnalysis').innerHTML = '';
+        }
+
+        // Auto-run test on page load
+        window.addEventListener('load', function() {
+            console.log('🔍 Admin API Direct Test loaded');
+            console.log('Click "Test Admin Quotes API" to see what data is being returned');
+        });
+    </script>
+</body>
+</html>

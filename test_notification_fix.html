@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notification System Fix Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .feature-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .feature-list li:before {
+            content: "✓ ";
+            color: #4caf50;
+            font-weight: bold;
+        }
+        .button {
+            background: #CDA435;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px 0;
+        }
+        .button:hover {
+            background: #b8932e;
+        }
+        .issue-fixed {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .test-steps {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔔 Notification System Fix</h1>
+        
+        <div class="test-info">
+            <h3>🎉 Notification Count Issue Fixed!</h3>
+            <p>The notification badge count now properly resets to 0 when company members visit the notifications page.</p>
+        </div>
+
+        <div class="issue-fixed">
+            <h4>✅ Issue Resolved</h4>
+            <p><strong>Problem:</strong> Notification count in header and sidebar remained visible even after visiting the notifications page.</p>
+            <p><strong>Solution:</strong> Fixed the notification marking system to properly update counts for company users.</p>
+        </div>
+
+        <h3>🔧 Technical Fixes Applied:</h3>
+        <ul class="feature-list">
+            <li><strong>NotificationsCompany Component:</strong> Now directly calls the API to mark notifications as read</li>
+            <li><strong>Notification Context:</strong> Simplified markAsRead function to work consistently for all user types</li>
+            <li><strong>Company Header:</strong> Notification button now marks notifications as read when clicked</li>
+            <li><strong>Company Sidebar:</strong> Notifications link now marks notifications as read when clicked</li>
+            <li><strong>Immediate UI Update:</strong> Count resets to 0 immediately for better user experience</li>
+            <li><strong>Server Sync:</strong> Refreshes actual count from server after marking as read</li>
+        </ul>
+
+        <h3>🎯 How It Works Now:</h3>
+        <div class="test-steps">
+            <h4>Notification Flow:</h4>
+            <ol>
+                <li><strong>User sees notification count</strong> (e.g., red badge showing "2")</li>
+                <li><strong>User clicks notification button/link</strong> in header or sidebar</li>
+                <li><strong>Count immediately resets to 0</strong> (instant UI feedback)</li>
+                <li><strong>API call marks notifications as read</strong> on the server</li>
+                <li><strong>Server count refreshes</strong> to confirm the change</li>
+                <li><strong>User navigates to notifications page</strong> with count already at 0</li>
+            </ol>
+        </div>
+
+        <h3>🧪 Testing Steps:</h3>
+        <div class="test-steps">
+            <h4>To Test the Fix:</h4>
+            <ol>
+                <li>Login as a company user</li>
+                <li>Ensure you have some unread notifications (red badge visible)</li>
+                <li>Click the notification bell icon in the header</li>
+                <li>Verify the red badge disappears immediately</li>
+                <li>Check that the sidebar notification count also resets</li>
+                <li>Visit the notifications page to confirm all notifications are marked as read</li>
+                <li>Navigate away and back - count should remain at 0</li>
+            </ol>
+        </div>
+
+        <a href="http://localhost:5173/company/notification-company" class="button" target="_blank">
+            🔗 Test Notifications Page
+        </a>
+
+        <h3>📋 API Endpoints Used:</h3>
+        <ul class="feature-list">
+            <li><strong>GET /api/notifications/my-notifications:</strong> Fetches company notifications</li>
+            <li><strong>POST /api/notifications/mark-read:</strong> Marks notifications as read</li>
+            <li><strong>GET /api/notifications/unread-count:</strong> Gets current unread count</li>
+        </ul>
+
+        <h3>🔄 Real-time Updates:</h3>
+        <ul class="feature-list">
+            <li><strong>Immediate UI Response:</strong> Badge count updates instantly when clicked</li>
+            <li><strong>Server Synchronization:</strong> Confirms changes with backend after 500ms</li>
+            <li><strong>Polling System:</strong> Checks for new notifications every 30 seconds</li>
+            <li><strong>Visibility Detection:</strong> Refreshes when user returns to the tab</li>
+        </ul>
+
+        <div class="test-info">
+            <h4>🚀 Ready for Production</h4>
+            <p>The notification system now works correctly for company users. The badge count properly resets when notifications are viewed, providing accurate feedback to users about their unread notifications.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -20,16 +20,32 @@ class AdminNotificationService {
     sessionStorage.setItem(this.sessionKey, 'true');
   }
 
-  // Get new registrations since last check
+  // Get new registrations since last check (only unseen ones)
   async getNewRegistrations() {
     try {
-      console.log('🔍 Checking for new registrations since:', this.lastChecked);
+      console.log('🔍 Checking for new unseen registrations since:', this.lastChecked);
       const response = await api.get(`/api/admin/new-registrations?since=${this.lastChecked}`);
-      console.log('📊 New registrations found:', response.length);
+      console.log('📊 New unseen registrations found:', response.length);
       return response;
     } catch (error) {
       console.error('❌ Error fetching new registrations:', error);
       return [];
+    }
+  }
+
+  // Mark specific registrations as seen by admin
+  async markRegistrationsAsSeen(userIds) {
+    try {
+      if (!userIds || userIds.length === 0) return;
+      
+      console.log('✅ Marking registrations as seen:', userIds);
+      await api.post('/api/admin/mark-toast-seen', {
+        userIds: userIds,
+        toastType: 'registration'
+      });
+      console.log('✅ Successfully marked registrations as seen');
+    } catch (error) {
+      console.error('❌ Error marking registrations as seen:', error);
     }
   }
 

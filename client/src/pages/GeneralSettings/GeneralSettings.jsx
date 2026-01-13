@@ -250,13 +250,13 @@ const GeneralSettings = () => {
               name="admin_logo"
               onChange={(e) => handleFileChange(e, setLogo)}
             />
-            <FileInput
+            {/* <FileInput
               label="Favicon Icon"
               dimensions="50h X 50w"
               currentImage={favicon}
               name="favicon"
               onChange={(e) => handleFileChange(e, setFavicon)}
-            />
+            /> */}
           </div>
 
           {/* Contact Information Section */}

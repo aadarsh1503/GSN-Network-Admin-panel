@@ -16,10 +16,35 @@ import { useLogoutModal } from '../hooks/useLogoutModal';
 // --- AdminHeader Component (Receives isFullscreen and toggleFullscreen) ---
 const AdminHeader = ({ toggleSidebar, toggleFullscreen, isFullscreen }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [adminUnreadCount, setAdminUnreadCount] = useState(0);
   const dropdownRef = React.useRef(null);
   const toggleDropdown = () => setIsDropdownOpen(prevState => !prevState);
-  const { unreadCount, messageUnreadCount } = useNotifications();
+  const { messageUnreadCount } = useNotifications();
   const { isLogoutModalOpen, openLogoutModal, closeLogoutModal } = useLogoutModal();
+
+  // Fetch admin notifications unread count
+  const fetchAdminUnreadCount = async () => {
+    try {
+      const response = await fetch('/api/admin/unread-notifications-count', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setAdminUnreadCount(data.count || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching admin unread count:', error);
+    }
+  };
+
+  // Fetch unread count on component mount and periodically
+  React.useEffect(() => {
+    fetchAdminUnreadCount();
+    const interval = setInterval(fetchAdminUnreadCount, 30000); // Check every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
 
   React.useEffect(() => {
     const handleClickOutside = (event) => {
@@ -57,14 +82,14 @@ const AdminHeader = ({ toggleSidebar, toggleFullscreen, isFullscreen }) => {
         <button onClick={toggleFullscreen} className="text-gray-500 text-xl transition-transform duration-300 hover:scale-110">
           {isFullscreen ? <FiMinimize2 /> : <FiMaximize2 />}
         </button>
-        <button className="relative text-gray-500 text-xl">
+        <Link to="/admin/notifications" className="relative text-gray-500 text-xl transition-transform duration-300 hover:scale-110">
           <FiBell />
-          {unreadCount > 0 && (
+          {adminUnreadCount > 0 && (
             <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
-              {unreadCount > 99 ? '99+' : unreadCount}
+              {adminUnreadCount > 99 ? '99+' : adminUnreadCount}
             </span>
           )}
-        </button>
+        </Link>
         <button className="relative text-gray-500 text-xl">
           <FiMail />
           {messageUnreadCount > 0 && (
@@ -87,7 +112,7 @@ const AdminHeader = ({ toggleSidebar, toggleFullscreen, isFullscreen }) => {
           </button>
 
           <div 
-            className={`absolute right-0 mt-3 w-64 bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 ease-in-out z-10
+            className={`absolute z-100 right-0 mt-3 w-64 bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 ease-in-out z-10
               ${isDropdownOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
           >
             <div className="p-6 text-center border-b">
@@ -97,8 +122,8 @@ const AdminHeader = ({ toggleSidebar, toggleFullscreen, isFullscreen }) => {
             </div>
             <div className="p-4 space-y-1" onClick={handleLinkClick}>
                 <Link to="/admin/user-Profile" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"><FiUser className="mr-3" /> Profile</Link>
+                <Link to="/admin/messages" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"><FiMessageSquare className="mr-3" /> Messages</Link>
                 <Link to="/" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"><FiHome className="mr-3" /> Website</Link>
-                <Link to="/messages" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"><FiMessageSquare className="mr-3" /> Message</Link>
             </div>
             <div className="p-4 border-t">
                 <button 
@@ -164,7 +189,7 @@ const AdminContent = () => {
     <div className="flex bg-slate-50 min-h-screen">
       <Sidebar isSidebarOpen={isSidebarOpen} />
       
-      <main className={`w-full p-6 transition-all duration-500 ease-in-out ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+      <main className={`w-full p-6 transition-all duration-500 ease-in-out ${isSidebarOpen ? 'ml-72' : 'ml-0'}`}>
         <AdminHeader 
           toggleSidebar={toggleSidebar}
           toggleFullscreen={toggleFullscreen}
@@ -176,20 +201,18 @@ const AdminContent = () => {
       {/* Toast Container for Admin Notifications */}
       <ToastContainer
         position="top-right"
-        autoClose={5000}
+        autoClose={3000}
         hideProgressBar={false}
         newestOnTop={true}
-        closeOnClick
+        closeOnClick={true}
         rtl={false}
         pauseOnFocusLoss={false}
-        draggable
-        pauseOnHover={false}
+        draggable={true}
+        pauseOnHover={true}
         theme="light"
-        className="admin-toast-container"
-        toastClassName="admin-toast"
-        bodyClassName="admin-toast-body"
-        progressClassName="admin-toast-progress"
         limit={5}
+        enableMultiContainer={true}
+        containerId="admin-toasts"
       />
     </div>
   );

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Business Logo Upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        
+        .upload-test {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .upload-test.dragover {
+            border-color: #007bff;
+            background-color: #f8f9ff;
+        }
+        
+        input[type="file"] {
+            margin: 10px 0;
+        }
+        
+        .logo-preview {
+            max-width: 200px;
+            max-height: 200px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Business Logo Upload Debug Tool</h1>
+    
+    <div class="test-container">
+        <h2>📋 Debug Steps</h2>
+        <div class="info">
+            <strong>Issue:</strong> Logo uploads but doesn't show in profile or sidebar
+        </div>
+        <div class="warning">
+            <strong>Possible Causes:</strong>
+            <ul>
+                <li>Backend not updating logo field in database</li>
+                <li>Frontend not refreshing profile data after upload</li>
+                <li>Image URL not being returned correctly</li>
+                <li>Database schema issue with logo field</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>🧪 Test 1: Check Current Profile Data</h2>
+        <button onclick="testGetProfile()">Get Current Profile</button>
+        <div id="profileResult"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>🧪 Test 2: Test Logo Upload</h2>
+        <div class="upload-test">
+            <input type="file" id="logoFile" accept="image/*" />
+            <br>
+            <button onclick="testLogoUpload()">Upload Logo</button>
+        </div>
+        <div id="uploadResult"></div>
+        <img id="logoPreview" class="logo-preview" style="display: none;" />
+    </div>
+
+    <div class="test-container">
+        <h2>🧪 Test 3: Check Database Update</h2>
+        <button onclick="testProfileAfterUpload()">Check Profile After Upload</button>
+        <div id="profileAfterResult"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>🧪 Test 4: Manual Profile Update</h2>
+        <input type="text" id="logoUrl" placeholder="Enter logo URL to test" style="width: 300px; padding: 8px;" />
+        <button onclick="testManualUpdate()">Update Logo URL</button>
+        <div id="manualUpdateResult"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        
+        function getAuthHeaders() {
+            const token = localStorage.getItem('token');
+            return {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+        }
+
+        async function testGetProfile() {
+            try {
+                const response = await fetch(`${API_BASE}/business/profile`, {
+                    headers: getAuthHeaders()
+                });
+                
+                const data = await response.json();
+                
+                document.getElementById('profileResult').innerHTML = `
+                    <div class="success">
+                        <strong>✅ Profile Data Retrieved:</strong>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                        <strong>Logo Field:</strong> ${data.logo || 'NULL/EMPTY'}
+                    </div>
+                `;
+                
+                console.log('Profile data:', data);
+            } catch (error) {
+                document.getElementById('profileResult').innerHTML = `
+                    <div class="error">
+                        <strong>❌ Error:</strong> ${error.message}
+                    </div>
+                `;
+                console.error('Error:', error);
+            }
+        }
+
+        async function testLogoUpload() {
+            const fileInput = document.getElementById('logoFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select a file first');
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('image', file);
+
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_BASE}/upload/image`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+                
+                document.getElementById('uploadResult').innerHTML = `
+                    <div class="success">
+                        <strong>✅ Upload Response:</strong>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+                
+                // Show preview if URL is returned
+                if (data.url) {
+                    const preview = document.getElementById('logoPreview');
+                    preview.src = data.url;
+                    preview.style.display = 'block';
+                }
+                
+                console.log('Upload response:', data);
+            } catch (error) {
+                document.getElementById('uploadResult').innerHTML = `
+                    <div class="error">
+                        <strong>❌ Upload Error:</strong> ${error.message}
+                    </div>
+                `;
+                console.error('Upload error:', error);
+            }
+        }
+
+        async function testProfileAfterUpload() {
+            // Wait a moment then check profile
+            setTimeout(async () => {
+                await testGetProfile();
+                
+                // Copy result to after upload section
+                const profileResult = document.getElementById('profileResult').innerHTML;
+                document.getElementById('profileAfterResult').innerHTML = profileResult;
+            }, 1000);
+        }
+
+        async function testManualUpdate() {
+            const logoUrl = document.getElementById('logoUrl').value;
+            
+            if (!logoUrl) {
+                alert('Please enter a logo URL');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/business/profile`, {
+                    method: 'PUT',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        logo: logoUrl
+                    })
+                });
+
+                const data = await response.json();
+                
+                document.getElementById('manualUpdateResult').innerHTML = `
+                    <div class="success">
+                        <strong>✅ Manual Update Response:</strong>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+                
+                // Check profile after update
+                setTimeout(testGetProfile, 500);
+                
+            } catch (error) {
+                document.getElementById('manualUpdateResult').innerHTML = `
+                    <div class="error">
+                        <strong>❌ Manual Update Error:</strong> ${error.message}
+                    </div>
+                `;
+                console.error('Manual update error:', error);
+            }
+        }
+
+        // Auto-run profile check on load
+        window.onload = function() {
+            console.log('🔍 Business Logo Upload Debug Tool Ready');
+            
+            // Check if user is logged in
+            const token = localStorage.getItem('token');
+            if (!token) {
+                document.body.innerHTML = `
+                    <div class="error" style="margin: 20px;">
+                        <strong>❌ Not Logged In:</strong> Please log in as a business user first.
+                        <br><br>
+                        <a href="http://localhost:5173/login" style="color: #007bff;">Go to Login</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Auto-check current profile
+            testGetProfile();
+        };
+    </script>
+</body>
+</html>

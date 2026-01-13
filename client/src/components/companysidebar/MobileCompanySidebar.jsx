@@ -1,4 +1,3 @@
-import React from 'react';
 import { FiX } from 'react-icons/fi';
 import CompanySidebarContent from './CompanySidebarContent';
 
@@ -13,9 +12,9 @@ const MobileCompanySidebar = ({ isOpen, onClose }) => {
         onClick={onClose}
       ></div>
 
-      {/* Mobile Sidebar Panel */}
+      {/* Mobile Sidebar Panel - Updated width from w-64 to w-80 */}
       <aside
-        className={`fixed top-0 right-0 h-full w-64 bg-white shadow-lg z-50 transition-transform duration-300 ease-in-out md:hidden ${
+        className={`fixed top-0 right-0 h-full w-80 bg-white shadow-lg z-50 transition-transform duration-300 ease-in-out md:hidden ${
           isOpen ? 'transform-none' : 'translate-x-full'
         }`}
       >

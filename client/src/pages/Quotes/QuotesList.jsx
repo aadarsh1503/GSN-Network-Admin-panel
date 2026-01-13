@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { FiEye, FiEdit, FiChevronUp, FiChevronDown, FiFilter } from 'react-icons/fi';
+import { FiEye, FiEdit, FiChevronUp, FiChevronDown, FiFilter, FiUpload } from 'react-icons/fi';
 import api from '../../utils/api';
+import PaymentUpload from '../../components/PaymentUpload/PaymentUpload';
 
 const QuotesList = () => {
   const [quotes, setQuotes] = useState([]);
@@ -20,6 +21,8 @@ const QuotesList = () => {
   const [newStatus, setNewStatus] = useState('');
   const [viewingQuote, setViewingQuote] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [paymentQuote, setPaymentQuote] = useState(null);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   useEffect(() => {
     fetchQuotes();
@@ -79,6 +82,20 @@ const QuotesList = () => {
   const closeViewModal = () => {
     setIsViewModalOpen(false);
     setViewingQuote(null);
+  };
+
+  const openPaymentModal = (quote) => {
+    setPaymentQuote(quote);
+    setIsPaymentModalOpen(true);
+  };
+
+  const closePaymentModal = () => {
+    setIsPaymentModalOpen(false);
+    setPaymentQuote(null);
+  };
+
+  const handlePaymentSuccess = () => {
+    fetchQuotes(); // Refresh quotes after payment upload
   };
 
   // Data processing
@@ -149,12 +166,15 @@ const QuotesList = () => {
       approved: 'bg-green-100 text-green-800',
       rejected: 'bg-red-100 text-red-800',
       running: 'bg-blue-100 text-blue-800',
-      closed: 'bg-gray-100 text-gray-800'
+      closed: 'bg-gray-100 text-gray-800',
+      'payment_pending': 'bg-orange-100 text-orange-800',
+      'payment_uploaded': 'bg-purple-100 text-purple-800',
+      'payment_verified': 'bg-green-100 text-green-800'
     };
 
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[status] || 'bg-gray-100 text-gray-800'}`}>
-        {status?.charAt(0).toUpperCase() + status?.slice(1)}
+        {status?.replace('_', ' ').charAt(0).toUpperCase() + status?.replace('_', ' ').slice(1)}
       </span>
     );
   };
@@ -183,6 +203,9 @@ const QuotesList = () => {
             <option value="rejected">Rejected</option>
             <option value="running">Running</option>
             <option value="closed">Closed</option>
+            <option value="payment_pending">Payment Pending</option>
+            <option value="payment_uploaded">Payment Uploaded</option>
+            <option value="payment_verified">Payment Verified</option>
           </select>
         </div>
       </div>
@@ -227,6 +250,7 @@ const QuotesList = () => {
               <SortableHeader sortKey="arrival_country">To</SortableHeader>
               <SortableHeader sortKey="shipping_mode">Mode</SortableHeader>
               <SortableHeader sortKey="status">Status</SortableHeader>
+              <SortableHeader sortKey="amount">Amount</SortableHeader>
               <SortableHeader sortKey="created_at">Date</SortableHeader>
               <th className="py-3 px-4 text-left font-semibold">Actions</th>
             </tr>
@@ -234,7 +258,7 @@ const QuotesList = () => {
           <tbody className="text-gray-700">
             {paginatedQuotes.length === 0 ? (
               <tr>
-                <td colSpan="9" className="text-center py-8 text-gray-500">No quotes found</td>
+                <td colSpan="10" className="text-center py-8 text-gray-500">No quotes found</td>
               </tr>
             ) : (
               paginatedQuotes.map((quote) => (
@@ -256,6 +280,9 @@ const QuotesList = () => {
                   <td className="py-3 px-4 capitalize">{quote.shipping_mode}</td>
                   <td className="py-3 px-4">{getStatusBadge(quote.status)}</td>
                   <td className="py-3 px-4">
+                    {quote.amount ? `$${parseFloat(quote.amount).toFixed(2)}` : 'N/A'}
+                  </td>
+                  <td className="py-3 px-4">
                     {new Date(quote.created_at).toLocaleDateString()}
                   </td>
                   <td className="py-3 px-4">
@@ -274,6 +301,15 @@ const QuotesList = () => {
                       >
                         <FiEye />
                       </button>
+                      {quote.status === 'payment_pending' && quote.amount && (
+                        <button 
+                          onClick={() => openPaymentModal(quote)}
+                          className="bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-md transition duration-300"
+                          title="Upload Payment Proof"
+                        >
+                          <FiUpload />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -330,6 +366,9 @@ const QuotesList = () => {
                 <option value="rejected">Rejected</option>
                 <option value="running">Running</option>
                 <option value="closed">Closed</option>
+                <option value="payment_pending">Payment Pending</option>
+                <option value="payment_uploaded">Payment Uploaded</option>
+                <option value="payment_verified">Payment Verified</option>
               </select>
             </div>
             <div className="flex justify-end space-x-4">
@@ -460,6 +499,17 @@ const QuotesList = () => {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Payment Upload Modal */}
+      {isPaymentModalOpen && paymentQuote && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+          <PaymentUpload 
+            quote={paymentQuote}
+            onClose={closePaymentModal}
+            onSuccess={handlePaymentSuccess}
+          />
         </div>
       )}
     </div>

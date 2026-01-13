@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { 
   FiLogOut, FiX, FiShield, FiZap, FiUser, FiHome, 
   FiCheck, FiAlertTriangle 
 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
+import { performLogout } from '../../utils/logout';
 
 const LogoutConfirmationModal = ({ 
   isOpen, 
@@ -16,6 +18,20 @@ const LogoutConfirmationModal = ({
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [countdown, setCountdown] = useState(0);
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
 
   // Auto-close countdown (optional feature)
   useEffect(() => {
@@ -34,16 +50,16 @@ const LogoutConfirmationModal = ({
       if (onConfirm) {
         await onConfirm();
       } else {
-        // Default logout logic
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        localStorage.removeItem('pendingQuote'); // Clear any pending quotes
+        // Use the utility function for consistent logout
+        performLogout({
+          clearPendingQuote: true,
+          redirectTo: '/login',
+          dispatchEvent: true,
+          navigate: navigate
+        });
         
-        // Small delay for better UX
+        // Small delay for better UX before redirect
         await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        // Redirect to login
-        navigate('/login');
       }
     } catch (error) {
       console.error('Logout error:', error);
@@ -73,6 +89,15 @@ const LogoutConfirmationModal = ({
           gradient: 'from-blue-500 to-cyan-600',
           glowColor: 'blue-500/20'
         };
+      case 'business':
+        return {
+          color: 'purple',
+          icon: <FiZap className="w-8 h-8" />,
+          title: 'Business Logout',
+          description: 'You are about to logout from the business panel',
+          gradient: 'from-purple-500 to-indigo-600',
+          glowColor: 'purple-500/20'
+        };
       default:
         return {
           color: 'green',
@@ -89,13 +114,13 @@ const LogoutConfirmationModal = ({
   
   if (!isOpen) return null;
 
-  return (
+  const modalContent = (
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+        className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
         style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}
       >
         {/* Backdrop blur effect */}
@@ -288,6 +313,9 @@ const LogoutConfirmationModal = ({
       </motion.div>
     </AnimatePresence>
   );
+
+  // Render modal using portal to document.body to avoid parent container clipping
+  return createPortal(modalContent, document.body);
 };
 
 export default LogoutConfirmationModal;

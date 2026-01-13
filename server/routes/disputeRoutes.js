@@ -15,7 +15,10 @@ import {
     companyRespondToDispute,
     companyStatusChangeRequest,
     userCloseDispute,
-    getUserCompanies
+    getUserCompanies,
+    getDisputeMessages,
+    sendDisputeMessage,
+    addDisputeAttachment
 } from '../controllers/disputeController.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
 
@@ -46,6 +49,16 @@ router.put('/user-close/:id', protect, userCloseDispute);
 
 // Get companies that user has interacted with (for dispute filing)
 router.get('/user-companies', protect, getUserCompanies);
+
+// Add attachment to dispute
+router.post('/attachments', protect, addDisputeAttachment);
+
+// ==================== DISPUTE MESSAGING ROUTES ====================
+// Get messages for a specific dispute
+router.get('/:id/messages', protect, getDisputeMessages);
+
+// Send message in dispute context
+router.post('/:id/messages', protect, sendDisputeMessage);
 
 // ==================== ADMIN ROUTES ====================
 // All admin routes require authentication and admin role

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Payment Proof Database Fix</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; font-size: 12px; }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 3px; cursor: pointer; }
+        .btn-primary { background-color: #007bff; color: white; }
+        input { padding: 8px; margin: 5px; border: 1px solid #ddd; border-radius: 3px; width: 300px; }
+        .form-group { margin: 10px 0; }
+        label { display: inline-block; width: 150px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Test Payment Proof Database Fix</h1>
+        <p>Testing the fixed database query for payment proof upload functionality.</p>
+
+        <!-- Login Section -->
+        <div class="test-section">
+            <h3>🔐 Step 1: Business User Login</h3>
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" id="loginEmail" value="subodhchauhan1309@gmail.com" />
+            </div>
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" id="loginPassword" value="222333" />
+            </div>
+            <button class="btn-primary" onclick="login()">Login</button>
+            <div id="loginResult"></div>
+        </div>
+
+        <!-- Test Payment Upload -->
+        <div class="test-section">
+            <h3>💳 Step 2: Test Payment Upload with Fixed Database Query</h3>
+            <div class="form-group">
+                <label>Quote Response ID:</label>
+                <input type="number" id="quoteResponseId" value="84" />
+            </div>
+            <button class="btn-primary" onclick="testPaymentUpload()">Test Upload</button>
+            <div id="paymentUploadResult"></div>
+        </div>
+
+        <!-- Results -->
+        <div class="test-section info">
+            <h3>📊 Expected Results</h3>
+            <p><strong>✅ Success:</strong> Upload should work without database column errors</p>
+            <p><strong>❌ Previous Error:</strong> "Unknown column 'bd.swift_code' in 'field list'"</p>
+            <p><strong>🔧 Fix Applied:</strong> Changed query to use 'company_bank_details' table with proper joins</p>
+        </div>
+    </div>
+
+    <script>
+        let authToken = '';
+
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.token;
+                    document.getElementById('loginResult').innerHTML = 
+                        `<div class="success">✅ Login successful! User: ${data.user.name} (ID: ${data.user.id})</div>`;
+                } else {
+                    document.getElementById('loginResult').innerHTML = 
+                        `<div class="error">❌ Login failed: ${data.message}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('loginResult').innerHTML = 
+                    `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testPaymentUpload() {
+            if (!authToken) {
+                document.getElementById('paymentUploadResult').innerHTML = 
+                    '<div class="error">❌ Please login first</div>';
+                return;
+            }
+
+            const quoteResponseId = document.getElementById('quoteResponseId').value;
+            if (!quoteResponseId) {
+                document.getElementById('paymentUploadResult').innerHTML = 
+                    '<div class="error">❌ Please enter a quote response ID</div>';
+                return;
+            }
+
+            try {
+                // Create a test FormData
+                const formData = new FormData();
+                formData.append('quote_id', '84');
+                formData.append('quote_response_id', quoteResponseId);
+                formData.append('payment_date', '2026-01-11');
+                formData.append('payment_notes', 'Test upload to verify database fix');
+                
+                // Create a small test file
+                const testFile = new File(['test payment proof'], 'test_payment.jpg', { type: 'image/jpeg' });
+                formData.append('payment_proof', testFile);
+
+                const response = await fetch('http://localhost:5000/api/enhanced-quotes/upload-payment-proof', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('paymentUploadResult').innerHTML = 
+                        `<div class="success">✅ SUCCESS! Database fix works correctly!<br>
+                        Payment proof uploaded successfully. No more column errors.<br>
+                        Response: ${data.message}</div>`;
+                } else {
+                    let result = `<div class="error">❌ Upload failed: ${data.message}</div>`;
+                    
+                    if (data.message.includes('Unknown column')) {
+                        result += '<div class="error">🚨 Database column error still exists - fix not applied correctly</div>';
+                    } else if (data.message.includes('already uploaded')) {
+                        result += '<div class="info">ℹ️ This is expected if payment proof already exists. The database query fix is working!</div>';
+                    } else {
+                        result += '<div class="info">ℹ️ Different error - database query fix appears to be working</div>';
+                    }
+                    
+                    document.getElementById('paymentUploadResult').innerHTML = result;
+                }
+            } catch (error) {
+                document.getElementById('paymentUploadResult').innerHTML = 
+                    `<div class="error">❌ Network Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

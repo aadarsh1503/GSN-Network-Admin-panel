@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Frontend Issue</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .debug-section { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .success { color: #4caf50; }
+        .error { color: #f44336; }
+        .warning { color: #ff9800; }
+        button { padding: 10px 20px; margin: 10px 5px; cursor: pointer; }
+        .code-block { background: #f0f0f0; padding: 10px; border-radius: 5px; font-family: monospace; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Debug Frontend Issue</h1>
+        
+        <div class="debug-section">
+            <h2>🚀 Instructions</h2>
+            <p>1. Open the admin quotes page: <a href="http://localhost:5174/admin/all-company-quotes" target="_blank">http://localhost:5174/admin/all-company-quotes</a></p>
+            <p>2. Open browser developer tools (F12)</p>
+            <p>3. Check the Console tab for debug messages</p>
+            <p>4. Look for the frontend debug messages I added</p>
+        </div>
+
+        <div class="debug-section">
+            <h2>🔍 What to Look For</h2>
+            <p>In the browser console, you should see messages like:</p>
+            <div class="code-block">🔍 [FRONTEND DEBUG] Fetching quotes from API...
+✅ [FRONTEND DEBUG] Received quotes data: {totalQuotes: 34, sampleQuote: {...}}
+📊 [FRONTEND DEBUG] First 3 quotes analysis:
+--- Frontend Quote 1 (ID: 67) ---
+👤 Customer: adaersh (adaersha@gmail.com)
+🏢 Company Name: Problem
+📧 Company Email: problem@gmail.com
+💰 Accepted Price: 22.00</div>
+        </div>
+
+        <div class="debug-section">
+            <h2>🎯 Expected vs Actual</h2>
+            <p><strong>Expected:</strong> Company names and emails should show in the table</p>
+            <p><strong>Actual:</strong> You're seeing "No company assigned"</p>
+            <p><strong>Debug:</strong> Check if the console shows company data but the table doesn't display it</p>
+        </div>
+
+        <div class="debug-section">
+            <h2>🔧 Quick Test</h2>
+            <button onclick="testDirectAPI()">Test API Directly</button>
+            <div id="results"></div>
+        </div>
+    </div>
+
+    <script>
+        async function testDirectAPI() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>🔄 Testing...</p>';
+
+            try {
+                // Test the same API the frontend uses
+                const loginResponse = await fetch('http://localhost:5000/api/user/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'admin@gmail.com',
+                        password: 'admin123'
+                    })
+                });
+
+                const loginData = await loginResponse.json();
+                const token = loginData.token;
+
+                const quotesResponse = await fetch('http://localhost:5000/api/admin-panel/quotes', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const quotes = await quotesResponse.json();
+                
+                const quotesWithCompany = quotes.filter(q => q.company_name);
+                const quotesWithoutCompany = quotes.filter(q => !q.company_name);
+
+                resultsDiv.innerHTML = `
+                    <div class="success">
+                        <h3>✅ API Test Results</h3>
+                        <p><strong>Total Quotes:</strong> ${quotes.length}</p>
+                        <p><strong>With Company:</strong> ${quotesWithCompany.length}</p>
+                        <p><strong>Without Company:</strong> ${quotesWithoutCompany.length}</p>
+                        
+                        <h4>Sample Quote with Company:</h4>
+                        ${quotesWithCompany.length > 0 ? `
+                            <p><strong>ID:</strong> ${quotesWithCompany[0].id}</p>
+                            <p><strong>Company:</strong> ${quotesWithCompany[0].company_name}</p>
+                            <p><strong>Email:</strong> ${quotesWithCompany[0].company_email}</p>
+                            <p><strong>Price:</strong> $${quotesWithCompany[0].accepted_price}</p>
+                        ` : '<p>No quotes with company data found</p>'}
+                    </div>
+                `;
+
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
