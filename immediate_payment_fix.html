@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Immediate Payment Management Fix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        .info { background-color: #d1ecf1; border: 1px solid #bee5eb; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 10px;
+        }
+        button:hover {
+            background: #1e7e34;
+        }
+        .secondary {
+            background: #007bff;
+        }
+        .secondary:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Immediate Payment Management Fix</h1>
+        <p>Click the button below to fix the authentication issue right now.</p>
+        
+        <div id="status">
+            <div class="info">
+                <p><strong>Issue:</strong> Your account role is "company" but the system is rejecting access.</p>
+                <p><strong>Solution:</strong> Refresh your authentication data from the server.</p>
+            </div>
+        </div>
+        
+        <button onclick="fixNow()" id="fixButton">🔧 Fix Payment Access Now</button>
+        <button onclick="testAccess()" class="secondary" id="testButton">🧪 Test Access</button>
+        
+        <div id="results"></div>
+        
+        <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 5px; text-align: left;">
+            <h3>What this does:</h3>
+            <ol>
+                <li>Gets fresh user data from the server</li>
+                <li>Updates your browser's authentication data</li>
+                <li>Tests the payment management API</li>
+                <li>Redirects you to the payment page if successful</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        async function fixNow() {
+            const results = document.getElementById('results');
+            const fixButton = document.getElementById('fixButton');
+            
+            fixButton.disabled = true;
+            fixButton.textContent = '🔄 Fixing...';
+            
+            results.innerHTML = '<div class="info"><p>🔄 Refreshing authentication data...</p></div>';
+            
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                results.innerHTML = '<div class="error"><p>❌ No authentication token found. Please <a href="/login">log in</a> first.</p></div>';
+                fixButton.disabled = false;
+                fixButton.textContent = '🔧 Fix Payment Access Now';
+                return;
+            }
+            
+            try {
+                // Step 1: Get fresh user data
+                const response = await fetch('/api/user/me', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+                }
+                
+                const userData = await response.json();
+                
+                // Step 2: Update localStorage
+                localStorage.setItem('user', JSON.stringify(userData));
+                
+                results.innerHTML += '<div class="success"><p>✅ User data refreshed successfully!</p></div>';
+                results.innerHTML += `<div class="info"><p>User: ${userData.name} (${userData.role})</p></div>`;
+                
+                // Step 3: Test payment API
+                results.innerHTML += '<div class="info"><p>🧪 Testing payment management access...</p></div>';
+                
+                const paymentResponse = await fetch('/api/enhanced-quotes/company-responses-with-payments', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (paymentResponse.ok) {
+                    const paymentData = await paymentResponse.json();
+                    results.innerHTML += `
+                        <div class="success">
+                            <h3>🎉 SUCCESS!</h3>
+                            <p>✅ Payment management access is now working!</p>
+                            <p>Found ${Array.isArray(paymentData) ? paymentData.length : 0} payment records</p>
+                        </div>
+                    `;
+                    
+                    // Auto-redirect after 3 seconds
+                    let countdown = 3;
+                    const countdownInterval = setInterval(() => {
+                        results.innerHTML += `<div class="info"><p>Redirecting to payment management in ${countdown} seconds...</p></div>`;
+                        countdown--;
+                        
+                        if (countdown <= 0) {
+                            clearInterval(countdownInterval);
+                            window.location.href = '/company/payment-management';
+                        }
+                    }, 1000);
+                    
+                } else {
+                    const errorData = await paymentResponse.json();
+                    results.innerHTML += `
+                        <div class="error">
+                            <p>❌ Payment API still not working</p>
+                            <p>Status: ${paymentResponse.status}</p>
+                            <p>Error: ${errorData.message}</p>
+                            <p><strong>Your account may need role verification. Please contact support.</strong></p>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                results.innerHTML += `
+                    <div class="error">
+                        <p>❌ Fix failed</p>
+                        <p>Error: ${error.message}</p>
+                        <p><strong>Please try logging out and logging back in.</strong></p>
+                    </div>
+                `;
+            } finally {
+                fixButton.disabled = false;
+                fixButton.textContent = '🔧 Fix Payment Access Now';
+            }
+        }
+
+        async function testAccess() {
+            const results = document.getElementById('results');
+            const testButton = document.getElementById('testButton');
+            
+            testButton.disabled = true;
+            testButton.textContent = '🧪 Testing...';
+            
+            results.innerHTML = '<div class="info"><p>🧪 Testing current access...</p></div>';
+            
+            const token = localStorage.getItem('token');
+            const userString = localStorage.getItem('user');
+            
+            if (!token || !userString) {
+                results.innerHTML += '<div class="error"><p>❌ Missing authentication data</p></div>';
+                testButton.disabled = false;
+                testButton.textContent = '🧪 Test Access';
+                return;
+            }
+            
+            try {
+                const user = JSON.parse(userString);
+                results.innerHTML += `<div class="info"><p>Current user: ${user.name} (${user.role})</p></div>`;
+                
+                const response = await fetch('/api/enhanced-quotes/company-responses-with-payments', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    results.innerHTML += `
+                        <div class="success">
+                            <p>✅ Access is working!</p>
+                            <p>Found ${Array.isArray(data) ? data.length : 0} payment records</p>
+                            <p><a href="/company/payment-management">Go to Payment Management</a></p>
+                        </div>
+                    `;
+                } else {
+                    const errorData = await response.json();
+                    results.innerHTML += `
+                        <div class="error">
+                            <p>❌ Access denied</p>
+                            <p>Status: ${response.status}</p>
+                            <p>Error: ${errorData.message}</p>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                results.innerHTML += `
+                    <div class="error">
+                        <p>❌ Test failed</p>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                testButton.disabled = false;
+                testButton.textContent = '🧪 Test Access';
+            }
+        }
+
+        // Auto-run test on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show current status
+            const userString = localStorage.getItem('user');
+            if (userString) {
+                try {
+                    const user = JSON.parse(userString);
+                    document.getElementById('status').innerHTML += `
+                        <div class="info">
+                            <p><strong>Current User:</strong> ${user.name} (${user.role})</p>
+                        </div>
+                    `;
+                } catch (e) {
+                    document.getElementById('status').innerHTML += `
+                        <div class="error">
+                            <p><strong>Issue:</strong> User data is corrupted</p>
+                        </div>
+                    `;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

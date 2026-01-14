@@ -21,6 +21,23 @@ import TransactionSummary from '../TransactionSummary/TransactionSummary';
 import ProfileCompletionModal from '../../components/Modal/ProfileCompletionModal';
 import { useProfileCompletion } from '../../hooks/useProfileCompletion';
 
+// Persistent logging function for company dashboard
+const persistentLog = (message, type = 'info') => {
+    const timestamp = new Date().toISOString();
+    const logEntry = `[${timestamp}] COMPANY_DASHBOARD: ${message}`;
+    
+    try {
+        const logs = JSON.parse(localStorage.getItem('auth_debug_logs') || '[]');
+        logs.unshift(logEntry);
+        if (logs.length > 50) logs.splice(50);
+        localStorage.setItem('auth_debug_logs', JSON.stringify(logs));
+    } catch (e) {
+        console.error('Failed to store debug log:', e);
+    }
+    
+    console.log(logEntry);
+};
+
 // Website color palette matching the Admin Dashboard
 const COLORS = {
   primary: '#CDA435', // signature yellow
@@ -440,12 +457,16 @@ const Dashboard = () => {
   const { shouldShowPrompt, isModalOpen, closeModal, markProfileCompleted, dismissPermanently } = useProfileCompletion('company', user.id);
 
   useEffect(() => {
+    persistentLog('🎯 CompanyDashboard useEffect triggered', 'info');
+    persistentLog('👤 Current user from localStorage: ' + JSON.stringify(user), 'info');
+    
     fetchDashboardData();
     checkForNewNotifications();
   }, []);
 
   const checkForNewNotifications = async () => {
     try {
+      persistentLog('🔔 Checking for new notifications', 'info');
       await fetchNotifications();
       
       // Check for recent quote notifications (last 30 minutes)
@@ -456,6 +477,8 @@ const Dashboard = () => {
                (notif.title.includes('Quote Accepted') || notif.title.includes('Quote Not Selected'));
       });
 
+      persistentLog(`🔔 Found ${recentQuoteNotifications.length} recent notifications`, 'info');
+
       // Show toast for recent notifications with a delay to avoid overwhelming
       recentQuoteNotifications.forEach((notif, index) => {
         setTimeout(() => {
@@ -463,6 +486,7 @@ const Dashboard = () => {
         }, index * 2000); // 2 second delay between each notification
       });
     } catch (error) {
+      persistentLog(`❌ Error checking notifications: ${error.message}`, 'error');
       console.error('Error checking notifications:', error);
     }
   };
@@ -530,33 +554,65 @@ const Dashboard = () => {
   };
 
   const fetchDashboardData = async () => {
+    persistentLog('🚀 Starting fetchDashboardData', 'info');
+    
     try {
+      persistentLog('📡 Making parallel API calls for dashboard data', 'info');
+      
       const [statsData, subData, profileData] = await Promise.all([
-        api.get('/api/dashboard/company-stats'),
-        api.get('/api/subscriptions/my-subscription'),
-        api.get('/api/company/profile')
+        api.get('/api/dashboard/company-stats').then(data => {
+          persistentLog('✅ /api/dashboard/company-stats success', 'success');
+          return data;
+        }).catch(error => {
+          persistentLog(`❌ /api/dashboard/company-stats failed: ${error.message}`, 'error');
+          throw error;
+        }),
+        api.get('/api/subscriptions/my-subscription').then(data => {
+          persistentLog('✅ /api/subscriptions/my-subscription success', 'success');
+          return data;
+        }).catch(error => {
+          persistentLog(`❌ /api/subscriptions/my-subscription failed: ${error.message}`, 'error');
+          throw error;
+        }),
+        api.get('/api/company/profile').then(data => {
+          persistentLog('✅ /api/company/profile success', 'success');
+          return data;
+        }).catch(error => {
+          persistentLog(`❌ /api/company/profile failed: ${error.message}`, 'error');
+          throw error;
+        })
       ]);
+      
+      persistentLog('📊 Setting dashboard data', 'info');
       setStats(statsData);
       setSubscription(subData);
       setUserProfile(profileData);
       
       // Fetch transaction amount from payment verifications
+      persistentLog('💰 Fetching transaction amount', 'info');
       await fetchTransactionAmount();
+      
+      persistentLog('✅ fetchDashboardData completed successfully', 'success');
     } catch (error) {
+      persistentLog(`❌ fetchDashboardData failed: ${error.message}`, 'error');
       console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
+      persistentLog('🏁 fetchDashboardData finished (loading set to false)', 'info');
     }
   };
 
   const fetchTransactionAmount = async () => {
     try {
+      persistentLog('💰 Starting fetchTransactionAmount', 'info');
       console.log('Fetching transaction amount...');
       let totalAmount = 0;
       
       // Try to get data from the enhanced quotes API
       try {
+        persistentLog('📡 Trying enhanced quotes API', 'info');
         const data = await api.get('/api/enhanced-quotes/company-responses-with-payments');
+        persistentLog('✅ Enhanced quotes API success', 'success');
         console.log('Enhanced quotes data received:', data);
         
         if (Array.isArray(data) && data.length > 0) {
@@ -575,16 +631,20 @@ const Dashboard = () => {
             return sum + price;
           }, 0);
           
+          persistentLog(`💰 Total from enhanced quotes: ${totalAmount}`, 'info');
           console.log('Total from enhanced quotes:', totalAmount);
         }
       } catch (enhancedError) {
+        persistentLog(`❌ Enhanced quotes API failed: ${enhancedError.message}`, 'error');
         console.log('Enhanced quotes API failed, trying alternative...', enhancedError);
       }
       
       // If no amount found, try the company quotes API as fallback
       if (totalAmount === 0) {
         try {
+          persistentLog('📡 Trying company quotes transactions API', 'info');
           const companyData = await api.get('/api/company-quotes/transactions');
+          persistentLog('✅ Company quotes transactions API success', 'success');
           console.log('Company quotes data received:', companyData);
           
           if (Array.isArray(companyData) && companyData.length > 0) {
@@ -597,18 +657,22 @@ const Dashboard = () => {
               return sum + amount;
             }, 0);
             
+            persistentLog(`💰 Total from company quotes: ${totalAmount}`, 'info');
             console.log('Total from company quotes:', totalAmount);
           }
         } catch (companyError) {
+          persistentLog(`❌ Company quotes transactions API failed: ${companyError.message}`, 'error');
           console.log('Company quotes API also failed:', companyError);
         }
       }
       
-      // If still no amount, try to get from my quotes
+      // If still no amount, try to get from my quote responses
       if (totalAmount === 0) {
         try {
-          const myQuotesData = await api.get('/api/company-quotes/my-quotes');
-          console.log('My quotes data received:', myQuotesData);
+          persistentLog('📡 Trying my quote responses API', 'info');
+          const myQuotesData = await api.get('/api/company-quotes/my-responses');
+          persistentLog('✅ My quote responses API success', 'success');
+          console.log('My quote responses data received:', myQuotesData);
           
           if (Array.isArray(myQuotesData) && myQuotesData.length > 0) {
             const acceptedQuotes = myQuotesData.filter(item => 
@@ -620,13 +684,16 @@ const Dashboard = () => {
               return sum + price;
             }, 0);
             
-            console.log('Total from my quotes:', totalAmount);
+            persistentLog(`💰 Total from my quote responses: ${totalAmount}`, 'info');
+            console.log('Total from my quote responses:', totalAmount);
           }
         } catch (myQuotesError) {
-          console.log('My quotes API also failed:', myQuotesError);
+          persistentLog(`❌ My quote responses API failed: ${myQuotesError.message}`, 'error');
+          console.log('My quote responses API also failed:', myQuotesError);
         }
       }
       
+      persistentLog(`💰 Final transaction amount: ${totalAmount}`, 'success');
       console.log('Final transaction amount calculated:', totalAmount);
       
       setTransactionAmount(totalAmount);
@@ -728,14 +795,14 @@ const Dashboard = () => {
         </div>
 
         {/* Secondary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-          <MetricCard
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* <MetricCard
             title="Total Reviews"
             value={stats?.reviews?.total_reviews || 0}
             previousValue={Math.max(0, (stats?.reviews?.total_reviews || 0) - 1)}
             icon={Star}
             color="purple"
-          />
+          /> */}
           <MetricCard
             title="Available Quotes"
             value={stats?.availableQuotes || 0}
@@ -757,13 +824,13 @@ const Dashboard = () => {
             icon={BarChart3}
             color="red"
           />
-          <MetricCard
+          {/* <MetricCard
             title="Avg Rating"
             value={stats?.reviews?.average_rating || 'N/A'}
             icon={Award}
             color="yellow"
             animate={false}
-          />
+          /> */}
         </div>
 
         {/* Main Content Grid */}

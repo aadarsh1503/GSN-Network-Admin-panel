@@ -15,6 +15,7 @@ import {
     getCompanyProfile,
     getCompanies,
     toggleCompanyStatus,
+    getBlacklistedCompanies,
     getBusinessUsers,
     getRegularUsers,
     changePassword,
@@ -52,6 +53,7 @@ router.get('/company-profile', protect, authorize('company'), getCompanyProfile)
 // Only 'admin' can see list of companies and ban them
 router.get('/companies', protect, authorize('admin'), getCompanies);
 router.put('/company-status/:id', protect, authorize('admin'), toggleCompanyStatus);
+router.get('/blacklisted-companies', protect, authorize('company'), getBlacklistedCompanies);
 router.get('/business-owners', protect, authorize('admin'), getBusinessUsers);
 router.get('/regular-users', protect, authorize('admin'), getRegularUsers);
 

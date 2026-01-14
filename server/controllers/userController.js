@@ -58,7 +58,7 @@ const loginUser = async (req, res) => {
         jwt.sign(
             payload,
             process.env.JWT_SECRET,
-            { expiresIn: '1h' },
+            { expiresIn: '24h' }, // Changed from 1h to 24h
             (err, token) => {
                 if (err) throw err;
                 res.status(200).json({
@@ -516,16 +516,30 @@ const getCompanies = async (req, res) => {
 // @access  Private/Admin
 const toggleCompanyStatus = async (req, res) => {
     const { id } = req.params;
-    const { type, value } = req.body; // type will be 'blacklist' or 'status', value is boolean
+    const { type, value, reason } = req.body; // type will be 'blacklist' or 'status', value is boolean, reason for blacklist
 
     try {
         let sql = '';
         let sqlValue = value ? 1 : 0; // Convert boolean to MySQL TinyInt
+        let params = [];
 
         if (type === 'blacklist') {
-            sql = 'UPDATE users SET is_blacklisted = ? WHERE id = ?';
+            if (value && !reason) {
+                return res.status(400).json({ message: 'Blacklist reason is required' });
+            }
+            
+            if (value) {
+                // Blacklisting - set reason and date
+                sql = 'UPDATE users SET is_blacklisted = ?, blacklist_reason = ?, blacklist_date = NOW() WHERE id = ?';
+                params = [sqlValue, reason, id];
+            } else {
+                // Unblacklisting - clear reason and date
+                sql = 'UPDATE users SET is_blacklisted = ?, blacklist_reason = NULL, blacklist_date = NULL WHERE id = ?';
+                params = [sqlValue, id];
+            }
         } else if (type === 'status') {
             sql = 'UPDATE users SET status = ? WHERE id = ?';
+            params = [sqlValue, id];
         } else {
             return res.status(400).json({ message: 'Invalid update type' });
         }
@@ -539,7 +553,7 @@ const toggleCompanyStatus = async (req, res) => {
         
         const user = userRows[0];
 
-        await db.execute(sql, [sqlValue, id]);
+        await db.execute(sql, params);
 
         // 🚀 SEND EMAILS FOR ALL STATUS CHANGES (NON-BLOCKING)
         try {
@@ -665,6 +679,48 @@ const toggleCompanyStatus = async (req, res) => {
         res.status(500).json({ message: 'Server error updating status' });
     }
 };
+
+// @desc    Get all blacklisted companies
+// @route   GET /api/user/blacklisted-companies
+// @access  Private/Company
+const getBlacklistedCompanies = async (req, res) => {
+    try {
+        const sql = `
+            SELECT 
+                id, 
+                name, 
+                email, 
+                phone AS mobile, 
+                role, 
+                is_blacklisted AS onBlacklist, 
+                blacklist_reason,
+                blacklist_date,
+                status,
+                country,
+                city,
+                category,
+                created_at
+            FROM users 
+            WHERE role = 'company' AND is_blacklisted = 1
+            ORDER BY blacklist_date DESC
+        `;
+        
+        const [rows] = await db.execute(sql);
+        
+        // Convert MySQL 1/0 to Javascript true/false
+        const companies = rows.map(row => ({
+            ...row,
+            onBlacklist: Boolean(row.onBlacklist),
+            status: Boolean(row.status)
+        }));
+        
+        res.status(200).json(companies);
+    } catch (error) {
+        console.error('Error fetching blacklisted companies:', error);
+        res.status(500).json({ message: 'Server error fetching blacklisted companies' });
+    }
+};
+
 const getBusinessUsers = async (req, res) => {
     try {
         // Fetch only users where role is 'business'
@@ -1327,6 +1383,7 @@ export {
     getCompanyProfile,
     getCompanies,      
     toggleCompanyStatus,
+    getBlacklistedCompanies,
     getBusinessUsers,
     getRegularUsers,
     changePassword,

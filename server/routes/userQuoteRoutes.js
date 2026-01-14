@@ -15,9 +15,9 @@ import {
 
 const router = express.Router();
 
-// All routes require authentication and 'user' role
+// All routes require authentication and 'user' or 'admin' role
 router.use(protect);
-router.use(authorize('user'));
+router.use(authorize('user', 'admin'));
 
 // User quote management routes
 router.get('/my-quotes', getUserQuotes);

@@ -1,11 +1,10 @@
-// src/components/BusinessOwners.jsx
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { FaPen, FaEye, FaTimes } from 'react-icons/fa';
 import { FaArrowUp, FaArrowDown } from 'react-icons/fa6';
 import { api } from '../../utils/api';
 import { adminToast } from '../../utils/adminToast';
-import StatusConfirmationModal from '../../components/Modal/StatusConfirmationModal'; 
+import StatusConfirmationModal from '../../components/Modal/StatusConfirmationModal';
+import BlacklistReasonModal from '../../components/Modal/BlacklistReasonModal'; 
 
 // Custom Toggle Switch Component
 const ToggleSwitch = ({ checked, onChange }) => {
@@ -33,6 +32,11 @@ function CompanyOwners() {
     type: '',
     userId: null,
     currentValue: null,
+    userName: ''
+  });
+  const [blacklistModal, setBlacklistModal] = useState({
+    isOpen: false,
+    userId: null,
     userName: ''
   });
 
@@ -96,13 +100,48 @@ function CompanyOwners() {
 
   // 3. Handle Blacklist Toggle with Confirmation
   const handleBlacklistToggle = (userId, currentBlacklistStatus, userName) => {
-    setConfirmModal({
-      isOpen: true,
-      type: currentBlacklistStatus ? 'unblacklist' : 'blacklist',
-      userId,
-      currentValue: currentBlacklistStatus,
-      userName
-    });
+    if (!currentBlacklistStatus) {
+      // Opening blacklist modal - need reason
+      setBlacklistModal({
+        isOpen: true,
+        userId,
+        userName
+      });
+    } else {
+      // Unblacklisting - use confirmation modal
+      setConfirmModal({
+        isOpen: true,
+        type: 'unblacklist',
+        userId,
+        currentValue: currentBlacklistStatus,
+        userName
+      });
+    }
+  };
+
+  const confirmBlacklistWithReason = async (reason) => {
+    const { userId } = blacklistModal;
+    
+    try {
+        await api.put(`/api/user/company-status/${userId}`, { 
+          type: 'blacklist', 
+          value: true,
+          reason: reason
+        });
+        
+        adminToast.success('Company added to blacklist successfully');
+        
+        const updatedUsers = users.map(user =>
+          user.id === userId ? { ...user, onBlacklist: true } : user
+        );
+        setUsers(updatedUsers);
+        
+    } catch (error) {
+        console.error("Error updating blacklist:", error);
+        adminToast.error("Failed to update blacklist status");
+    } finally {
+      setBlacklistModal({ isOpen: false, userId: null, userName: '' });
+    }
   };
 
   const confirmBlacklistToggle = async () => {
@@ -114,10 +153,8 @@ function CompanyOwners() {
           value: !currentValue 
         });
         
-        // Show toast BEFORE state update to prevent dismissal
         adminToast.success(`User ${!currentValue ? 'added to' : 'removed from'} blacklist`);
         
-        // Then update UI
         const updatedUsers = users.map(user =>
           user.id === userId ? { ...user, onBlacklist: !currentValue } : user
         );
@@ -998,6 +1035,14 @@ const handleEditUser = async (user) => {
           confirmModal.type === 'unblacklist' ? 'Remove from Blacklist' : 'Confirm'
         }
         type={confirmModal.type}
+      />
+
+      {/* Blacklist Reason Modal */}
+      <BlacklistReasonModal
+        isOpen={blacklistModal.isOpen}
+        onClose={() => setBlacklistModal({ isOpen: false, userId: null, userName: '' })}
+        onConfirm={confirmBlacklistWithReason}
+        userName={blacklistModal.userName}
       />
     </div>
   );

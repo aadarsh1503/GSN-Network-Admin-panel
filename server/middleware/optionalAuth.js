@@ -22,7 +22,6 @@ const optionalAuth = async (req, res, next) => {
             }
         } catch (error) {
             // If token is invalid, just continue without user (don't fail)
-            console.log('Optional auth failed:', error.message);
         }
     }
 

@@ -105,6 +105,7 @@ import SuggestionCompany from "./companyPages/Suggestion/Suggestion";
 import NotificationsCompany from "./companyPages/NotificationsCompany/NotificationsCompany";
 import ChangePasswordPage from "./companyPages/ChangePasswordPage/ChangePasswordPage";
 import MyQuoteResponses from "./companyPages/MyQuoteResponses/MyQuoteResponses";
+import BlacklistedCompanies from "./companyPages/BlacklistedCompanies/BlacklistedCompanies";
 
 // --- User Pages ---
 import UserLayout from "./layouts/UserLayout";
@@ -314,6 +315,7 @@ function App() {
           <Route path="disputes" element={<CompanyDisputes />} />
           <Route path="change-Password" element={<ChangePasswordPage />} />
           <Route path="my-quote-responses" element={<MyQuoteResponses />} />
+          <Route path="blacklisted-companies" element={<BlacklistedCompanies />} />
           <Route path="help" element={<CompanyHelp />} />
         </Route>
 

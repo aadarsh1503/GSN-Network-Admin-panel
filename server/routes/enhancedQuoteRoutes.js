@@ -109,15 +109,15 @@ router.post('/respond', authenticateToken, authorizeRoles('company'), async (req
     }
 });
 
-// @desc    Get quote responses with bank details for users
-// @route   GET /api/enhanced-quotes/:quoteId/responses-with-bank-details
-// @access  Private/User,Business
-router.get('/:quoteId/responses-with-bank-details', authenticateToken, authorizeRoles('user', 'business'), getQuoteResponsesWithBankDetails);
+// @desc    Get company's quote responses with payment status
+// @route   GET /api/enhanced-quotes/company-responses-with-payments
+// @access  Private/Company,Business
+router.get('/company-responses-with-payments', authenticateToken, authorizeRoles('company', 'business'), getCompanyResponsesWithPayments);
 
-// @desc    Get quote responses with bank details for admin (any quote)
-// @route   GET /api/enhanced-quotes/admin/:quoteId/responses-with-bank-details
+// @desc    Get all companies' quote responses with payment status (Admin only)
+// @route   GET /api/enhanced-quotes/all-company-responses-with-payments
 // @access  Private/Admin
-router.get('/admin/:quoteId/responses-with-bank-details', authenticateToken, authorizeRoles('admin'), getQuoteResponsesWithBankDetailsAdmin);
+router.get('/all-company-responses-with-payments', authenticateToken, authorizeRoles('admin'), getAllCompanyResponsesWithPayments);
 
 // @desc    Get comprehensive admin quotes with company details and payment status
 // @route   GET /api/enhanced-quotes/admin/comprehensive-quotes
@@ -129,15 +129,15 @@ router.get('/admin/comprehensive-quotes', authenticateToken, authorizeRoles('adm
 // @access  Private/Admin
 router.get('/admin/comprehensive-quotes/:status', authenticateToken, authorizeRoles('admin'), getComprehensiveAdminQuotesByStatus);
 
-// @desc    Get company's quote responses with payment status
-// @route   GET /api/enhanced-quotes/company-responses-with-payments
-// @access  Private/Company
-router.get('/company-responses-with-payments', authenticateToken, authorizeRoles('company'), getCompanyResponsesWithPayments);
-
-// @desc    Get all companies' quote responses with payment status (Admin only)
-// @route   GET /api/enhanced-quotes/all-company-responses-with-payments
+// @desc    Get quote responses with bank details for admin (any quote)
+// @route   GET /api/enhanced-quotes/admin/:quoteId/responses-with-bank-details
 // @access  Private/Admin
-router.get('/all-company-responses-with-payments', authenticateToken, authorizeRoles('admin'), getAllCompanyResponsesWithPayments);
+router.get('/admin/:quoteId/responses-with-bank-details', authenticateToken, authorizeRoles('admin'), getQuoteResponsesWithBankDetailsAdmin);
+
+// @desc    Get quote responses with bank details for users
+// @route   GET /api/enhanced-quotes/:quoteId/responses-with-bank-details
+// @access  Private/User,Business
+router.get('/:quoteId/responses-with-bank-details', authenticateToken, authorizeRoles('user', 'business'), getQuoteResponsesWithBankDetails);
 
 // @desc    Update quote response with new bank details
 // @route   PUT /api/enhanced-quotes/update-response-bank-details

@@ -18,12 +18,21 @@ export const removeToken = () => {
 
 // Check if token is expired
 export const isTokenExpired = (token) => {
-  if (!token) return true;
+  if (!token) {
+    return true;
+  }
   
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return true;
+    }
+    
+    const payload = JSON.parse(atob(parts[1]));
     const currentTime = Date.now() / 1000;
-    return payload.exp < currentTime;
+    const isExpired = payload.exp < currentTime;
+    
+    return isExpired;
   } catch (error) {
     return true;
   }
@@ -31,6 +40,19 @@ export const isTokenExpired = (token) => {
 
 // Handle authentication failures and redirect
 const handleAuthFailure = (error) => {
+  // Add persistent logging to track when this is called
+  const timestamp = new Date().toISOString();
+  const logEntry = `[${timestamp}] AUTH_FAILURE: ${error.message} - Current path: ${window.location.pathname}`;
+  
+  try {
+    const logs = JSON.parse(localStorage.getItem('auth_debug_logs') || '[]');
+    logs.unshift(logEntry);
+    if (logs.length > 50) logs.splice(50);
+    localStorage.setItem('auth_debug_logs', JSON.stringify(logs));
+  } catch (e) {
+    // Silent fail for logging
+  }
+  
   removeToken();
   
   // Only redirect if we're not already on login/public pages
@@ -88,9 +110,30 @@ export const apiRequest = async (endpoint, options = {}) => {
       
       // Handle token validation errors
       if (response.status === 401 || response.status === 403) {
-        const error = new Error('Authentication failed: ' + (errorData.message || 'Please login again'));
-        handleAuthFailure(error);
-        return; // This won't be reached due to redirect, but good practice
+        // Check if this is a token validation error vs a role authorization error
+        const isTokenError = errorData.message && (
+          errorData.message.includes('token') || 
+          errorData.message.includes('expired') ||
+          errorData.message.includes('invalid') ||
+          errorData.message.includes('not found')
+        );
+        
+        const isRoleError = errorData.message && errorData.message.includes('not authorized to access this route');
+        
+        if (isTokenError) {
+          // Only clear localStorage for actual token issues
+          const error = new Error('Authentication failed: ' + (errorData.message || 'Please login again'));
+          handleAuthFailure(error);
+          return;
+        } else if (isRoleError) {
+          // For role errors, just throw the error without clearing localStorage
+          throw new Error(errorData.message || `Access denied: ${response.status}`);
+        } else {
+          // For other 401/403 errors, be cautious and clear localStorage
+          const error = new Error('Authentication failed: ' + (errorData.message || 'Please login again'));
+          handleAuthFailure(error);
+          return;
+        }
       }
       
       throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
@@ -182,7 +225,7 @@ export const quotesAPI = {
 export const userAPI = {
   login: (credentials) => api.post('/api/user/login', credentials),
   register: (userData) => api.post('/api/user/register', userData),
-  getProfile: () => api.get('/api/user/profile'),
+  getProfile: () => api.get('/api/user/me'),
 };
 
 export default api;

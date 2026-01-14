@@ -46,13 +46,14 @@ const Hero = () => {
           </h1>
 
           {/* Call to Action Button */}
+          <a href='/quote'>
           <button 
-            className="bg-[#bca142] text-white font-semibold text-lg px-10 py-4 rounded-md 
+            className="bg-[#bca142] cursor-pointer text-white font-semibold text-lg px-10 py-4 rounded-md 
                        hover:bg-[#a98f3b] transition-colors duration-200"
           >
             Submit a FREE Freight Quote Request
           </button>
-          
+          </a>
         </div>
       </div>
       <FeaturesSection />

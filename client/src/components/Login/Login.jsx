@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { submitPendingQuote, hasPendingQuote } from '../../utils/pendingQuote';
 import toast from 'react-hot-toast';
-import { api } from '../../utils/api';
+import { api, isTokenExpired } from '../../utils/api';
 import { Eye, EyeOff } from 'lucide-react';
 
 const LoginPage = () => {
@@ -21,32 +21,63 @@ const LoginPage = () => {
 
     // Check if user is already logged in
     useEffect(() => {
+        // Only run auth check if we're actually on the login page AND the component is mounted
+        if (location.pathname !== '/login') {
+            setIsCheckingAuth(false);
+            return;
+        }
+
+        // Don't run if we're in the middle of a login process
+        const isLoggingIn = sessionStorage.getItem('isLoggingIn');
+        if (isLoggingIn) {
+            setIsCheckingAuth(false);
+            return;
+        }
+
         const checkAuthStatus = () => {
+            // Don't redirect if we just came from a failed login attempt
+            const justLoggedIn = sessionStorage.getItem('justLoggedIn');
+            
+            if (justLoggedIn) {
+                sessionStorage.removeItem('justLoggedIn');
+                setIsCheckingAuth(false);
+                return;
+            }
+
             const token = localStorage.getItem('token');
             const user = localStorage.getItem('user');
             
             if (token && user) {
                 try {
                     const userData = JSON.parse(user);
-                    console.log('User already logged in, redirecting...', userData);
+                    const tokenExpired = isTokenExpired(token);
                     
-                    // Redirect based on user role
-                    if (userData.role === 'admin') {
-                        navigate('/admin', { replace: true });
-                    } else if (userData.role === 'company') {
-                        navigate('/company', { replace: true });
-                    } else if (userData.role === 'business') {
-                        navigate('/business', { replace: true });
-                    } else if (userData.role === 'user') {
-                        navigate('/user/dashboard', { replace: true });
+                    if (!tokenExpired) {
+                        // Set a flag to prevent multiple redirects
+                        sessionStorage.setItem('isLoggingIn', 'true');
+                        
+                        // Redirect based on user role
+                        if (userData.role === 'admin') {
+                            navigate('/admin', { replace: true });
+                        } else if (userData.role === 'company') {
+                            navigate('/company', { replace: true });
+                        } else if (userData.role === 'business') {
+                            navigate('/business', { replace: true });
+                        } else if (userData.role === 'user') {
+                            navigate('/user/dashboard', { replace: true });
+                        } else {
+                            // If role is unknown, clear storage and allow login
+                            localStorage.removeItem('token');
+                            localStorage.removeItem('user');
+                            sessionStorage.removeItem('isLoggingIn');
+                            setIsCheckingAuth(false);
+                        }
                     } else {
-                        // If role is unknown, clear storage and allow login
                         localStorage.removeItem('token');
                         localStorage.removeItem('user');
                         setIsCheckingAuth(false);
                     }
                 } catch (error) {
-                    console.error('Error parsing user data:', error);
                     // Clear invalid data and allow login
                     localStorage.removeItem('token');
                     localStorage.removeItem('user');
@@ -58,7 +89,7 @@ const LoginPage = () => {
         };
 
         checkAuthStatus();
-    }, [navigate]);
+    }, [navigate, location.pathname]);
 
     // Pre-fill email if coming from registration
     useEffect(() => {
@@ -87,11 +118,26 @@ const LoginPage = () => {
             const data = await api.post('/api/user/login', { email, password });
 
             // --- SUCCESSFUL LOGIN ---
-            console.log('Login successful:', data);
-
+            
             // Optional: Store the token for future authenticated requests
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
+
+            // Force a small delay to ensure localStorage is updated
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // Verify the data was actually stored
+            const storedToken = localStorage.getItem('token');
+            const storedUser = localStorage.getItem('user');
+            
+            if (!storedToken || !storedUser) {
+                setError('Authentication storage failed. Please try again.');
+                return;
+            }
+
+            // Set flags to prevent redirect loops and multiple auth checks
+            sessionStorage.setItem('justLoggedIn', 'true');
+            sessionStorage.setItem('isLoggingIn', 'true');
 
             // Check if there's a pending quote to submit
             if (hasPendingQuote()) {
@@ -146,7 +192,6 @@ const LoginPage = () => {
 
         } catch (err) {
             // Display error message to the user
-            console.error('Login error:', err.message);
             setError(err.message);
         }
     };

@@ -1,7 +1,7 @@
 // src/components/CompanyHeader.js
 
 import React, { useState, useEffect, useRef } from 'react';
-import { FiMenu, FiBell, FiMail } from 'react-icons/fi';
+import { FiMenu, FiBell, FiMail, FiAlertTriangle } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import ProfileDropdown from './ProfileDropdown';
 import { useNotifications } from '../../contexts/NotificationContext';
@@ -115,13 +115,10 @@ const CompanyHeader = ({ onMenuClick }) => {
       {/* Center */}
       <div className="header-center hidden lg:flex items-center gap-4">
         <a href="/company/member-directory" className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">Member Directory</a>
-        {/* <a href="/company/freight-quotes" className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">Quotes</a> */}
-        {/* <button 
-          onClick={handleQuoteRequestClick}
-          className="px-5 py-2 text-sm font-medium text-white bg-[#CDA435] border border-[#CDA435] rounded-lg hover:bg-[#B8941F] transition-colors"
-        >
-          Request Quote
-        </button> */}
+        <a href="/company/blacklisted-companies" className="px-5 py-2 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-red-600 border border-red-600 rounded-lg hover:from-red-600 hover:to-red-700 transition-colors flex items-center gap-2">
+          <FiAlertTriangle size={16} />
+          Blacklisted Companies
+        </a>
       </div>
 
       {/* Right Section */}

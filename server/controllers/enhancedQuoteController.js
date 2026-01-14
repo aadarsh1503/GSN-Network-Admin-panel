@@ -165,69 +165,70 @@ const getCompanyResponsesWithPayments = async (req, res) => {
 
     try {
         const [responses] = await db.execute(`
-            SELECT q.id,
-                   qr.id as response_id,
-                   qr.quote_id,
-                   qr.company_id,
-                   qr.price,
-                   qr.transit_time,
-                   qr.inclusions,
-                   qr.value_added_services,
-                   qr.valid_until,
-                   qr.terms,
-                   qr.notes,
-                   qr.status as response_status,
-                   qr.created_at as response_created_at,
-                   qr.updated_at as response_updated_at,
-                   qr.requires_payment_proof,
-                   qr.payment_amount,
-                   qr.payment_currency,
-                   q.product_description,
-                   q.departure_country,
-                   q.arrival_country,
-                   q.shipping_mode,
-                   q.arrival_date,
-                   q.status,
-                   q.created_at,
-                   q.updated_at,
-                   -- Customer information
-                   u.name as user_name,
-                   u.email as user_email,
-                   u.phone as user_phone,
-                   -- Company information (the logged-in company)
-                   c.name as company_name,
-                   c.email as company_email,
-                   c.phone as company_phone,
-                   -- Bank details
-                   cbd.bank_name,
-                   cbd.account_holder_name,
-                   cbd.account_number,
-                   cbd.routing_number,
-                   cbd.swift_code,
-                   cbd.ifsc_code,
-                   -- Quote status and payment info
-                   uqs.status as user_response_status,
-                   uqs.accepted_at,
-                   uqs.payment_verification_status,
-                   pp.file_name as payment_proof_file,
-                   pp.upload_date as payment_proof_date,
-                   pp.notes as payment_notes,
-                   pp.file_path as payment_proof_url,
-                   CASE WHEN pp.id IS NOT NULL THEN 1 ELSE 0 END as payment_proof_uploaded,
-                   CASE WHEN qr.requires_payment_proof = 1 THEN 1 ELSE 0 END as has_payment_proof,
-                   pv.id as payment_verification_id,
-                   pv.verification_status as payment_status,
-                   pv.verification_date,
-                   pv.company_notes as payment_company_notes
+            SELECT 
+                qr.id,
+                qr.quote_id,
+                qr.company_id,
+                qr.price,
+                qr.status,
+                qr.created_at,
+                qr.updated_at,
+                
+                -- Quote details
+                q.user_id,
+                q.product_description,
+                q.departure_country,
+                q.arrival_country,
+                q.shipping_mode,
+                q.arrival_date,
+                q.status as quote_status,
+                
+                -- User details
+                u.name as user_name,
+                u.email as user_email,
+                u.phone as user_phone,
+                
+                -- Company details
+                c.name as company_name,
+                c.email as company_email,
+                
+                -- User response status (fixed column name)
+                uqs.status as user_response_status,
+                uqs.payment_proof_id,
+                uqs.payment_verification_status,
+                
+                -- Payment proof details
+                pp.file_path as payment_proof_url,
+                pp.upload_date as payment_proof_date,
+                pp.notes as payment_notes,
+                pp.file_name as payment_proof_filename,
+                CASE WHEN pp.id IS NOT NULL THEN 1 ELSE 0 END as payment_proof_uploaded,
+                CASE WHEN pp.id IS NOT NULL THEN 1 ELSE 0 END as has_payment_proof,
+                
+                -- Payment verification details
+                pv.verification_status as payment_status,
+                pv.company_notes as verification_notes,
+                pv.verification_date as verification_date,
+                pv.id as payment_verification_id,
+                
+                -- Bank details
+                cbd.bank_name,
+                cbd.account_holder_name,
+                cbd.account_number,
+                cbd.swift_code,
+                cbd.iban_number,
+                cbd.branch_name,
+                cbd.payment_instructions
+                
             FROM quote_responses qr
             JOIN quotes q ON qr.quote_id = q.id
+            JOIN users u ON q.user_id = u.id
             JOIN users c ON qr.company_id = c.id
-            LEFT JOIN users u ON q.user_id = u.id
+            LEFT JOIN user_quote_status uqs ON qr.id = uqs.quote_response_id
+            LEFT JOIN payment_proofs pp ON uqs.payment_proof_id = pp.id
+            LEFT JOIN payment_verifications pv ON pp.id = pv.payment_proof_id
             LEFT JOIN quote_response_bank_details qrbd ON qr.id = qrbd.quote_response_id
             LEFT JOIN company_bank_details cbd ON qrbd.company_bank_details_id = cbd.id
-            LEFT JOIN user_quote_status uqs ON (qr.id = uqs.quote_response_id AND uqs.user_id = u.id)
-            LEFT JOIN payment_proofs pp ON (uqs.payment_proof_id = pp.id AND pp.company_id = qr.company_id)
-            LEFT JOIN payment_verifications pv ON (pp.id = pv.payment_proof_id AND pv.company_id = qr.company_id)
             WHERE qr.company_id = ?
             ORDER BY qr.created_at DESC
         `, [companyId]);

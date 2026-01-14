@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Company Authentication Issue</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .warning { background-color: #fff3cd; border-color: #ffeaa7; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .fix-button {
+            background: #28a745;
+            font-weight: bold;
+        }
+        .fix-button:hover {
+            background: #1e7e34;
+        }
+        .danger-button {
+            background: #dc3545;
+        }
+        .danger-button:hover {
+            background: #c82333;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        h2 {
+            color: #555;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+        .step {
+            margin: 15px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Fix Company Authentication Issue</h1>
+        <p style="text-align: center; color: #666;">
+            This tool helps fix the "User role 'company' is not authorized to access this route" error.
+        </p>
+        
+        <div id="currentStatus" class="section">
+            <h2>Current Status</h2>
+            <div id="statusInfo">Checking...</div>
+        </div>
+
+        <div id="quickFixes" class="section">
+            <h2>Quick Fixes</h2>
+            <div class="step">
+                <strong>Step 1:</strong> Refresh your user data from the server
+                <br>
+                <button onclick="refreshUserData()" class="fix-button">🔄 Refresh User Data</button>
+            </div>
+            
+            <div class="step">
+                <strong>Step 2:</strong> Test the payment management API
+                <br>
+                <button onclick="testPaymentAPI()">🧪 Test Payment API</button>
+            </div>
+            
+            <div class="step">
+                <strong>Step 3:</strong> If still not working, clear auth and re-login
+                <br>
+                <button onclick="clearAuthAndRelogin()" class="danger-button">🚨 Clear Auth & Re-login</button>
+            </div>
+        </div>
+
+        <div id="results" class="section">
+            <h2>Results</h2>
+            <div id="resultsContent">No actions performed yet.</div>
+        </div>
+
+        <div id="instructions" class="section info">
+            <h2>Manual Instructions</h2>
+            <p><strong>If the automatic fixes don't work:</strong></p>
+            <ol>
+                <li>Log out of your account completely</li>
+                <li>Clear your browser cache and cookies</li>
+                <li>Log back in with your company account credentials</li>
+                <li>Navigate to the payment management page</li>
+            </ol>
+            <p><strong>If you're still having issues:</strong></p>
+            <ul>
+                <li>Make sure your account was registered as a "company" user</li>
+                <li>Contact support if your account role needs to be updated</li>
+                <li>Check if there are any browser console errors</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Check current authentication status
+        function checkCurrentStatus() {
+            const token = localStorage.getItem('token');
+            const userString = localStorage.getItem('user');
+            const user = userString ? JSON.parse(userString) : null;
+            
+            const statusInfo = document.getElementById('statusInfo');
+            
+            let html = '';
+            
+            if (!token) {
+                html += '<div class="error"><p>❌ No authentication token found</p></div>';
+            } else {
+                // Check if token is expired
+                try {
+                    const parts = token.split('.');
+                    const payload = JSON.parse(atob(parts[1]));
+                    const isExpired = payload.exp < Date.now() / 1000;
+                    
+                    if (isExpired) {
+                        html += '<div class="error"><p>❌ Authentication token is expired</p></div>';
+                    } else {
+                        html += '<div class="success"><p>✅ Authentication token is valid</p></div>';
+                    }
+                } catch (e) {
+                    html += '<div class="error"><p>❌ Authentication token is invalid</p></div>';
+                }
+            }
+            
+            if (!user) {
+                html += '<div class="error"><p>❌ No user data found</p></div>';
+            } else {
+                if (user.role === 'company') {
+                    html += '<div class="success"><p>✅ User role is "company"</p></div>';
+                } else {
+                    html += `<div class="error"><p>❌ User role is "${user.role}" (should be "company")</p></div>`;
+                }
+                html += `<div class="info"><p>User: ${user.name} (${user.email})</p></div>`;
+            }
+            
+            statusInfo.innerHTML = html;
+        }
+
+        // Refresh user data from server
+        async function refreshUserData() {
+            const resultsContent = document.getElementById('resultsContent');
+            resultsContent.innerHTML += '<p>🔄 Refreshing user data from server...</p>';
+            
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                resultsContent.innerHTML += '<div class="error"><p>❌ No token found - cannot refresh user data</p></div>';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/user/me', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const userData = await response.json();
+                    localStorage.setItem('user', JSON.stringify(userData));
+                    
+                    resultsContent.innerHTML += `
+                        <div class="success">
+                            <p>✅ User data refreshed successfully!</p>
+                            <p>Name: ${userData.name}</p>
+                            <p>Email: ${userData.email}</p>
+                            <p>Role: ${userData.role}</p>
+                        </div>
+                    `;
+                    
+                    checkCurrentStatus();
+                    
+                    if (userData.role === 'company') {
+                        resultsContent.innerHTML += '<div class="success"><p>🎉 Your role is now correctly set to "company". Try accessing the payment management page again!</p></div>';
+                    } else {
+                        resultsContent.innerHTML += `<div class="error"><p>⚠️ Your account role is "${userData.role}", not "company". You may need to contact support to update your account type.</p></div>`;
+                    }
+                } else {
+                    const errorData = await response.json();
+                    resultsContent.innerHTML += `
+                        <div class="error">
+                            <p>❌ Failed to refresh user data</p>
+                            <p>Error: ${errorData.message}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultsContent.innerHTML += `
+                    <div class="error">
+                        <p>❌ Network error while refreshing user data</p>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Test the payment management API
+        async function testPaymentAPI() {
+            const resultsContent = document.getElementById('resultsContent');
+            resultsContent.innerHTML += '<p>🧪 Testing payment management API...</p>';
+            
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                resultsContent.innerHTML += '<div class="error"><p>❌ No token found - cannot test API</p></div>';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/enhanced-quotes/company-responses-with-payments', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resultsContent.innerHTML += `
+                        <div class="success">
+                            <p>✅ Payment management API is working!</p>
+                            <p>Returned ${Array.isArray(data) ? data.length : 0} payment records</p>
+                            <p>You should now be able to access the payment management page.</p>
+                        </div>
+                    `;
+                } else {
+                    const errorData = await response.json();
+                    resultsContent.innerHTML += `
+                        <div class="error">
+                            <p>❌ Payment management API failed</p>
+                            <p>Status: ${response.status}</p>
+                            <p>Error: ${errorData.message}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultsContent.innerHTML += `
+                    <div class="error">
+                        <p>❌ Network error testing payment API</p>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Clear authentication and redirect to login
+        function clearAuthAndRelogin() {
+            if (confirm('This will log you out and redirect to the login page. Continue?')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                localStorage.removeItem('auth_debug_logs');
+                
+                const resultsContent = document.getElementById('resultsContent');
+                resultsContent.innerHTML += `
+                    <div class="info">
+                        <p>🔄 Authentication data cleared</p>
+                        <p>Redirecting to login page in 3 seconds...</p>
+                    </div>
+                `;
+                
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 3000);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            checkCurrentStatus();
+        });
+    </script>
+</body>
+</html>

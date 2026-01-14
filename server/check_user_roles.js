@@ -3,36 +3,38 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-async function checkUserRoles() {
-  try {
-    const connection = await mysql.createConnection({
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME
-    });
-    
-    console.log('Checking user roles and counts...');
-    
-    // Check distinct roles
-    const [roles] = await connection.execute('SELECT DISTINCT role, COUNT(*) as count FROM users GROUP BY role');
-    console.log('User roles in database:');
-    roles.forEach(role => {
-      console.log(`- ${role.role}: ${role.count} users`);
-    });
-    
-    // Check status distribution
-    const [statusData] = await connection.execute('SELECT role, status, COUNT(*) as count FROM users GROUP BY role, status ORDER BY role, status');
-    console.log('\nUser status distribution:');
-    statusData.forEach(item => {
-      console.log(`- ${item.role} (status ${item.status}): ${item.count} users`);
-    });
-    
-    await connection.end();
-    
-  } catch (error) {
-    console.error('Error:', error.message);
-  }
+const db = mysql.createPool({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
+});
+
+async function checkRoles() {
+    try {
+        const [roles] = await db.execute('SELECT DISTINCT role, COUNT(*) as count FROM users GROUP BY role ORDER BY count DESC');
+        console.log('📊 User Roles in Database:');
+        console.log('==========================');
+        roles.forEach(r => {
+            console.log(`${r.role}: ${r.count} users`);
+        });
+        
+        console.log('\n📋 Sample Users by Role:');
+        console.log('========================');
+        for (const roleData of roles) {
+            const [users] = await db.execute('SELECT id, name, email FROM users WHERE role = ? LIMIT 3', [roleData.role]);
+            console.log(`\n${roleData.role.toUpperCase()} Users:`);
+            users.forEach(u => {
+                console.log(`  ID: ${u.id} | Name: ${u.name} | Email: ${u.email}`);
+            });
+        }
+        
+        await db.end();
+        process.exit(0);
+    } catch (error) {
+        console.error('Error:', error.message);
+        process.exit(1);
+    }
 }
 
-checkUserRoles();
+checkRoles();

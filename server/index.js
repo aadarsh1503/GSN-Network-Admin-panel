@@ -38,6 +38,7 @@ import uploadRoutes from './routes/uploadRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import enhancedQuoteRoutes from './routes/enhancedQuoteRoutes.js';
 import emailQueueRoutes from './routes/emailQueueRoutes.js';
+import debugRoutes from './routes/debugRoutes.js';
 // ==========================================================
 // CONFIGURE DOTENV AT THE VERY TOP
 dotenv.config();
@@ -88,12 +89,13 @@ app.use('/api/bank-details', bankDetailsRoutes);
 app.use('/api/notifications', realTimeNotificationRoutes);
 app.use('/api/business', businessRoutes);
 app.use('/api/business-directory', businessDirectoryRoutes);
-app.use('/api', businessRoutes); // Mount business directory routes at /api level for public access
 app.use('/api/business-quotes', businessQuoteRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/enhanced-quotes', enhancedQuoteRoutes);
+app.use('/api', businessRoutes); // Mount business directory routes at /api level for public access
 app.use('/api/email-queue', emailQueueRoutes);
+app.use('/api/debug', debugRoutes);
 
 // Start the server
 app.listen(PORT, () => {

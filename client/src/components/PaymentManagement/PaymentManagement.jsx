@@ -26,32 +26,18 @@ const PaymentManagement = () => {
       // Use enhanced API to get company's payment verifications
       const response = await api.get('/api/enhanced-quotes/company-responses-with-payments');
       
-      console.log('Raw API response:', response); // Debug log
-      
       // Filter for payment proofs that need verification (regardless of acceptance status)
       const pendingPayments = response.filter(item => {
         const hasPaymentProof = item.payment_proof_uploaded === 1 || item.payment_proof_url;
         const needsVerification = !item.payment_status || item.payment_status === 'pending' || item.payment_status === null;
-        
-        console.log(`Quote Response ${item.id}:`, {
-          hasPaymentProof,
-          needsVerification,
-          user_response_status: item.user_response_status,
-          payment_proof_uploaded: item.payment_proof_uploaded,
-          payment_status: item.payment_status,
-          payment_verification_id: item.payment_verification_id // Debug log
-        }); // Debug log
-        
         return hasPaymentProof && needsVerification;
       });
-      
-      console.log('Filtered pending payments:', pendingPayments); // Debug log
       
       setPendingPayments(pendingPayments || []);
     } catch (error) {
       console.error('Error fetching pending payments:', error);
-      toast.error('Failed to fetch pending payments');
-      setPendingPayments([]); // Ensure pendingPayments is always an array
+      toast.error('Failed to fetch pending payments: ' + error.message);
+      setPendingPayments([]);
     } finally {
       setLoading(false);
     }
@@ -59,8 +45,6 @@ const PaymentManagement = () => {
 
   const handleVerifyPayment = async (paymentVerificationId, status, notes = '') => {
     try {
-      console.log('Verifying payment with ID:', paymentVerificationId, 'Status:', status); // Debug log
-      
       if (!paymentVerificationId) {
         toast.error('Payment verification ID is missing');
         return;
@@ -68,7 +52,7 @@ const PaymentManagement = () => {
 
       setIsProcessing(true);
 
-      await api.put(`/api/payments/verify-enhanced/${paymentVerificationId}`, {
+      await api.put(`http://localhost:5000/api/payments/verify-enhanced/${paymentVerificationId}`, {
         verification_status: status,
         company_notes: notes
       });
@@ -88,16 +72,12 @@ const PaymentManagement = () => {
   };
 
   const handleImageClick = (imageUrl) => {
-    console.log('Image clicked, opening:', imageUrl);
     if (imageUrl) {
       const newWindow = window.open(imageUrl, '_blank');
       if (!newWindow) {
-        console.error('Popup blocked or failed to open');
         // Fallback: try to open in same tab
         window.location.href = imageUrl;
       }
-    } else {
-      console.error('No image URL provided');
     }
   };
 

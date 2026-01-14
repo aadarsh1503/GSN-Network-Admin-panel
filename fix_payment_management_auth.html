@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Payment Management Authentication</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .section {
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .warning { background-color: #fff3cd; border-color: #ffeaa7; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 8px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .fix-button {
+            background: #28a745;
+            font-weight: bold;
+        }
+        .fix-button:hover {
+            background: #1e7e34;
+        }
+        .danger-button {
+            background: #dc3545;
+        }
+        .danger-button:hover {
+            background: #c82333;
+        }
+        .step {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            border-radius: 0 5px 5px 0;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            font-size: 12px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #555;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 8px;
+        }
+        .progress {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 20px;
+            margin: 10px 0;
+        }
+        .progress-bar {
+            background: #28a745;
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Fix Payment Management Authentication</h1>
+        <p class="subtitle">Comprehensive solution for the "User role 'company' is not authorized" error</p>
+        
+        <div id="diagnosis" class="section">
+            <h2>🔍 Diagnosis</h2>
+            <div id="diagnosisContent">
+                <p>The backend authentication is working correctly. The issue is with your browser's authentication state.</p>
+                <p><strong>Root Cause:</strong> Token/user data mismatch between browser storage and server database.</p>
+            </div>
+        </div>
+
+        <div id="currentStatus" class="section">
+            <h2>📊 Current Status</h2>
+            <div id="statusContent">Checking...</div>
+        </div>
+
+        <div id="automaticFix" class="section">
+            <h2>🚀 Automatic Fix</h2>
+            <div class="step">
+                <strong>Step 1:</strong> Clear corrupted authentication data
+                <br>
+                <button onclick="clearAuthData()" class="fix-button">🗑️ Clear Auth Data</button>
+                <span id="step1Status"></span>
+            </div>
+            
+            <div class="step">
+                <strong>Step 2:</strong> Re-authenticate with fresh token
+                <br>
+                <button onclick="reAuthenticate()" class="fix-button">🔑 Re-authenticate</button>
+                <span id="step2Status"></span>
+            </div>
+            
+            <div class="step">
+                <strong>Step 3:</strong> Test payment management access
+                <br>
+                <button onclick="testPaymentAccess()" class="fix-button">🧪 Test Access</button>
+                <span id="step3Status"></span>
+            </div>
+            
+            <div class="step">
+                <strong>Complete Fix:</strong> Run all steps automatically
+                <br>
+                <button onclick="runCompleteFix()" class="fix-button" style="font-size: 18px; padding: 15px 30px;">🎯 Complete Auto-Fix</button>
+            </div>
+        </div>
+
+        <div id="progress" class="section" style="display: none;">
+            <h2>🔄 Progress</h2>
+            <div class="progress">
+                <div id="progressBar" class="progress-bar" style="width: 0%"></div>
+            </div>
+            <div id="progressText">Starting...</div>
+        </div>
+
+        <div id="results" class="section">
+            <h2>📋 Results</h2>
+            <div id="resultsContent">No actions performed yet.</div>
+        </div>
+
+        <div id="manualFix" class="section info">
+            <h2>🛠️ Manual Fix (If Automatic Fails)</h2>
+            <ol>
+                <li><strong>Complete Logout:</strong> Log out from all tabs/windows</li>
+                <li><strong>Clear Browser Data:</strong> Clear cookies, localStorage, and cache for this site</li>
+                <li><strong>Close Browser:</strong> Close all browser windows completely</li>
+                <li><strong>Restart Browser:</strong> Open browser and navigate to the site</li>
+                <li><strong>Fresh Login:</strong> Log in again with your company credentials</li>
+                <li><strong>Test Access:</strong> Try accessing payment management</li>
+            </ol>
+            <p><strong>If still failing:</strong> Contact support - your account may need role verification.</p>
+        </div>
+    </div>
+
+    <script>
+        let fixInProgress = false;
+
+        function updateResults(html) {
+            document.getElementById('resultsContent').innerHTML += html;
+        }
+
+        function updateProgress(percent, text) {
+            document.getElementById('progress').style.display = 'block';
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('progressText').textContent = text;
+        }
+
+        function setStepStatus(step, status, isSuccess = true) {
+            const element = document.getElementById(`step${step}Status`);
+            element.innerHTML = isSuccess ? `<span style="color: green;">✅ ${status}</span>` : `<span style="color: red;">❌ ${status}</span>`;
+        }
+
+        // Check current authentication status
+        function checkCurrentStatus() {
+            const token = localStorage.getItem('token');
+            const userString = localStorage.getItem('user');
+            const user = userString ? JSON.parse(userString) : null;
+            
+            const statusContent = document.getElementById('statusContent');
+            
+            let html = '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">';
+            
+            // Token status
+            html += '<div>';
+            html += '<h3>🔑 Token Status</h3>';
+            if (!token) {
+                html += '<div class="error"><p>❌ No token found</p></div>';
+            } else {
+                try {
+                    const parts = token.split('.');
+                    const payload = JSON.parse(atob(parts[1]));
+                    const isExpired = payload.exp < Date.now() / 1000;
+                    
+                    if (isExpired) {
+                        html += '<div class="error"><p>❌ Token expired</p></div>';
+                    } else {
+                        const timeLeft = Math.floor((payload.exp - Date.now() / 1000) / 60);
+                        html += `<div class="success"><p>✅ Token valid (${timeLeft} min left)</p></div>`;
+                    }
+                } catch (e) {
+                    html += '<div class="error"><p>❌ Token corrupted</p></div>';
+                }
+            }
+            html += '</div>';
+            
+            // User status
+            html += '<div>';
+            html += '<h3>👤 User Status</h3>';
+            if (!user) {
+                html += '<div class="error"><p>❌ No user data</p></div>';
+            } else {
+                if (user.role === 'company') {
+                    html += `<div class="success"><p>✅ Role: ${user.role}</p><p>Name: ${user.name}</p><p>Email: ${user.email}</p></div>`;
+                } else {
+                    html += `<div class="error"><p>❌ Role: ${user.role} (should be "company")</p><p>Name: ${user.name}</p><p>Email: ${user.email}</p></div>`;
+                }
+            }
+            html += '</div>';
+            
+            html += '</div>';
+            
+            statusContent.innerHTML = html;
+        }
+
+        // Clear authentication data
+        function clearAuthData() {
+            if (fixInProgress) return;
+            
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('auth_debug_logs');
+            sessionStorage.clear();
+            
+            setStepStatus(1, 'Auth data cleared');
+            updateResults('<div class="success"><p>✅ Step 1: Authentication data cleared</p></div>');
+            checkCurrentStatus();
+        }
+
+        // Re-authenticate by redirecting to login
+        function reAuthenticate() {
+            if (fixInProgress) return;
+            
+            setStepStatus(2, 'Redirecting to login...');
+            updateResults('<div class="info"><p>🔄 Step 2: Redirecting to login page for fresh authentication...</p></div>');
+            
+            setTimeout(() => {
+                window.location.href = '/login?returnTo=' + encodeURIComponent('/company/payment-management');
+            }, 2000);
+        }
+
+        // Test payment management access
+        async function testPaymentAccess() {
+            if (fixInProgress) return;
+            
+            updateResults('<p>🧪 Step 3: Testing payment management access...</p>');
+            
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                setStepStatus(3, 'No token - please login first', false);
+                updateResults('<div class="error"><p>❌ No token found - please complete re-authentication first</p></div>');
+                return;
+            }
+            
+            // First test basic auth
+            try {
+                updateResults('<p>🔍 Testing basic authentication...</p>');
+                const authResponse = await fetch('/api/debug/auth-state', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (authResponse.ok) {
+                    const authData = await authResponse.json();
+                    updateResults(`
+                        <div class="success">
+                            <p>✅ Basic authentication working</p>
+                            <p>User: ${authData.user.name} (${authData.user.role})</p>
+                        </div>
+                    `);
+                    
+                    // Update localStorage with fresh user data
+                    localStorage.setItem('user', JSON.stringify(authData.user));
+                    
+                    // Now test company-specific auth
+                    updateResults('<p>🔍 Testing company role authorization...</p>');
+                    const companyResponse = await fetch('/api/debug/test-company-auth', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (companyResponse.ok) {
+                        updateResults('<div class="success"><p>✅ Company role authorization working</p></div>');
+                        
+                        // Finally test the actual payment API
+                        updateResults('<p>🔍 Testing payment management API...</p>');
+                        const paymentResponse = await fetch('/api/enhanced-quotes/company-responses-with-payments', {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                        if (paymentResponse.ok) {
+                            const data = await paymentResponse.json();
+                            setStepStatus(3, 'Access granted!');
+                            updateResults(`
+                                <div class="success">
+                                    <h3>🎉 SUCCESS!</h3>
+                                    <p>✅ Payment management access is now working!</p>
+                                    <p>Found ${Array.isArray(data) ? data.length : 0} payment records</p>
+                                    <p><strong>You can now access the payment management page!</strong></p>
+                                </div>
+                            `);
+                            
+                            // Redirect to payment management after 3 seconds
+                            setTimeout(() => {
+                                if (confirm('Success! Redirect to payment management page now?')) {
+                                    window.location.href = '/company/payment-management';
+                                }
+                            }, 3000);
+                            
+                        } else {
+                            const errorData = await paymentResponse.json();
+                            setStepStatus(3, 'Payment API failed', false);
+                            updateResults(`
+                                <div class="error">
+                                    <p>❌ Payment management API still failing</p>
+                                    <p>Status: ${paymentResponse.status}</p>
+                                    <p>Error: ${errorData.message}</p>
+                                </div>
+                            `);
+                        }
+                    } else {
+                        const companyError = await companyResponse.json();
+                        setStepStatus(3, 'Company auth failed', false);
+                        updateResults(`
+                            <div class="error">
+                                <p>❌ Company role authorization failed</p>
+                                <p>Status: ${companyResponse.status}</p>
+                                <p>Error: ${companyError.message}</p>
+                                <p><strong>Your account role may need to be updated to "company"</strong></p>
+                            </div>
+                        `);
+                    }
+                } else {
+                    const authError = await authResponse.json();
+                    setStepStatus(3, 'Auth failed', false);
+                    updateResults(`
+                        <div class="error">
+                            <p>❌ Basic authentication failed</p>
+                            <p>Status: ${authResponse.status}</p>
+                            <p>Error: ${authError.message}</p>
+                            <p><strong>Please try logging out and logging back in</strong></p>
+                        </div>
+                    `);
+                }
+            } catch (error) {
+                setStepStatus(3, 'Network error', false);
+                updateResults(`
+                    <div class="error">
+                        <p>❌ Step 3: Network error</p>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `);
+            }
+        }
+
+        // Run complete automatic fix
+        async function runCompleteFix() {
+            if (fixInProgress) return;
+            
+            fixInProgress = true;
+            updateResults('<h3>🚀 Starting Complete Auto-Fix Process...</h3>');
+            
+            // Step 1: Clear auth data
+            updateProgress(20, 'Clearing authentication data...');
+            clearAuthData();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Step 2: Check if we need to re-authenticate
+            updateProgress(40, 'Checking authentication status...');
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                updateProgress(60, 'Redirecting for re-authentication...');
+                updateResults('<div class="info"><p>🔄 No valid token found. Redirecting to login for fresh authentication...</p></div>');
+                
+                setTimeout(() => {
+                    window.location.href = '/login?returnTo=' + encodeURIComponent('/company/payment-management');
+                }, 2000);
+                return;
+            }
+            
+            // Step 3: Test access
+            updateProgress(80, 'Testing payment management access...');
+            await testPaymentAccess();
+            
+            updateProgress(100, 'Auto-fix process completed!');
+            fixInProgress = false;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            checkCurrentStatus();
+            
+            // Auto-refresh status every 30 seconds
+            setInterval(checkCurrentStatus, 30000);
+        });
+    </script>
+</body>
+</html>

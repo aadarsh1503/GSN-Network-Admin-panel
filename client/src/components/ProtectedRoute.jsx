@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { getToken, isTokenExpired, removeToken } from '../utils/api';
 
@@ -12,46 +12,62 @@ import { getToken, isTokenExpired, removeToken } from '../utils/api';
  * @returns {React.ReactElement} Either the children component or a Navigate component for redirection.
  */
 const ProtectedRoute = ({ children, allowedRoles }) => {
-    // The useLocation hook gives us information about the current URL.
-    // We use it to remember where the user was trying to go before being redirected to login.
     const location = useLocation();
+    const [isChecking, setIsChecking] = useState(true);
+    const [authState, setAuthState] = useState({ token: null, user: null, isValid: false });
     
-    // Get token and user data from localStorage
-    const token = getToken();
-    const userString = localStorage.getItem('user');
-    const user = userString ? JSON.parse(userString) : null;
+    useEffect(() => {
+        const checkAuth = async () => {
+            // Add a small delay to ensure localStorage is updated after login
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            const token = getToken();
+            const userString = localStorage.getItem('user');
+            const user = userString ? JSON.parse(userString) : null;
+
+            setAuthState({ token, user, isValid: !!(token && !isTokenExpired(token) && user) });
+            setIsChecking(false);
+        };
+        
+        checkAuth();
+    }, [location.pathname, allowedRoles]);
+    
+    if (isChecking) {
+        return (
+            <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                height: '100vh' 
+            }}>
+                <div>Checking authentication...</div>
+            </div>
+        );
+    }
 
     // --- LOGIC CHECK 1: Is there a valid token? ---
-    // Check if token exists and is not expired
-    if (!token || isTokenExpired(token)) {
-        // Clear all authentication data if token is invalid/expired
+    if (!authState.token || isTokenExpired(authState.token)) {
         removeToken();
-        // Redirect to login page
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
     // --- LOGIC CHECK 2: Is the user logged in at all? ---
-    // If no user object exists, they are not authenticated.
-    if (!user) {
-        // Clear potentially corrupted data and redirect to login
+    if (!authState.user) {
         removeToken();
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
     // --- LOGIC CHECK 3: Does the logged-in user have the correct role? ---
-    // We check if the user's role (e.g., 'admin') is included in the list of allowed roles.
-    const isAuthorized = allowedRoles.includes(user.role);
+    const isAuthorized = allowedRoles.includes(authState.user.role);
 
     if (!isAuthorized) {
-        // This is JSX. If the user is logged in but doesn't have the right role,
-        // we redirect them to a dedicated "/unauthorized" page.
         return <Navigate to="/unauthorized" replace />;
     }
-
-    // --- SUCCESS ---
-    // If all checks pass, the user is authenticated and authorized.
-    // We simply render the 'children' components that were passed into this ProtectedRoute.
-    // For example, <AdminLayout /> or <CompanyLayout />.
+    
+    // Clear the login flags since we've successfully authenticated
+    sessionStorage.removeItem('isLoggingIn');
+    sessionStorage.removeItem('justLoggedIn');
+    
     return children;
 };
 

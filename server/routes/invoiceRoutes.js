@@ -9,9 +9,9 @@ import {
 
 const router = express.Router();
 
-// All routes require authentication and 'company' role
+// All routes require authentication and 'company' or 'admin' role
 router.use(protect);
-router.use(authorize('company'));
+router.use(authorize('company', 'admin'));
 
 // Invoice routes
 router.get('/', getCompanyInvoices);
