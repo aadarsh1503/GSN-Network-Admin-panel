@@ -1,0 +1,90 @@
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║          🌍 SHARE YOUR PROJECT OVER INTERNET 🌍              ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────┐
+│  STEP 1: INSTALL NGROK (One Time Only)                      │
+└──────────────────────────────────────────────────────────────┘
+
+  1. Download: https://ngrok.com/download
+  2. Extract ngrok.exe to: D:\GSN NETWORK\
+  3. Sign up: https://dashboard.ngrok.com/signup
+  4. Get token: https://dashboard.ngrok.com/get-started/your-authtoken
+  5. Run in PowerShell:
+     
+     .\ngrok config add-authtoken YOUR_TOKEN_HERE
+
+┌──────────────────────────────────────────────────────────────┐
+│  STEP 2: START SERVERS (Every Time)                         │
+└──────────────────────────────────────────────────────────────┘
+
+  Terminal 1:
+  ┌────────────────────────────────────────────────────────────┐
+  │ cd server                                                  │
+  │ npm start                                                  │
+  └────────────────────────────────────────────────────────────┘
+
+  Terminal 2:
+  ┌────────────────────────────────────────────────────────────┐
+  │ cd client                                                  │
+  │ npm run dev                                                │
+  └────────────────────────────────────────────────────────────┘
+
+  Terminal 3:
+  ┌────────────────────────────────────────────────────────────┐
+  │ .\ngrok http 5173                                          │
+  └────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────┐
+│  STEP 3: SHARE THE LINK                                     │
+└──────────────────────────────────────────────────────────────┘
+
+  Look for this in Terminal 3:
+  
+  Forwarding    https://abc123.ngrok-free.app -> localhost:5173
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                COPY AND SHARE THIS URL!
+
+╔══════════════════════════════════════════════════════════════╗
+║  AUTOMATIC MODE (After ngrok is installed)                  ║
+╚══════════════════════════════════════════════════════════════╝
+
+  Just double-click:  start_with_ngrok.bat
+  
+  It will:
+  ✓ Start backend server
+  ✓ Start frontend server  
+  ✓ Start ngrok tunnel
+  ✓ Show you the URL to share
+
+╔══════════════════════════════════════════════════════════════╗
+║  IMPORTANT NOTES                                             ║
+╚══════════════════════════════════════════════════════════════╝
+
+  ✓ Works from anywhere (not just same WiFi)
+  ✓ Free to use
+  ✓ Keep all terminals open while sharing
+  ✗ URL changes every time you restart ngrok
+  ✗ Free plan shows ngrok banner (users click "Visit Site")
+
+╔══════════════════════════════════════════════════════════════╗
+║  HELP FILES                                                  ║
+╚══════════════════════════════════════════════════════════════╝
+
+  📄 INSTALL_NGROK_STEPS.md       - How to install ngrok
+  📄 SHARE_OVER_INTERNET_SIMPLE.md - Simple sharing guide
+  📄 INTERNET_SHARING_WITH_NGROK.md - Detailed guide
+  🔧 install_ngrok.bat            - Auto-install helper
+  🚀 start_with_ngrok.bat         - Auto-start everything
+
+╔══════════════════════════════════════════════════════════════╗
+║  CURRENT STATUS                                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+  ❌ ngrok is NOT installed yet
+  
+  Next step: Open INSTALL_NGROK_STEPS.md and follow the guide!
+
+═══════════════════════════════════════════════════════════════
