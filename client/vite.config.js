@@ -13,7 +13,7 @@ export default defineConfig({
   // server: {
   //   proxy: {
   //     '/api': {
-  //       target: 'https://gsn-network-admin-panel-1.onrender.com',
+  //       target: 'http://localhost:5000',
   //       changeOrigin: true,
   //       secure: false,
   //       timeout: 0, // Disable timeout for SSE
