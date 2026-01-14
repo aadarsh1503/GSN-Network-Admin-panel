@@ -351,7 +351,7 @@ export const GlobalNotificationProvider = ({ children }) => {
 
     try {
       // Use the correct backend URL for SSE connection
-      const API_BASE_URL = 'http://localhost:5000';
+      const API_BASE_URL = '';
       const eventSource = new EventSource(`${API_BASE_URL}/api/notifications/stream?token=${token}&lastEventId=${lastEventId || ''}`);
       
       eventSource.onopen = () => {

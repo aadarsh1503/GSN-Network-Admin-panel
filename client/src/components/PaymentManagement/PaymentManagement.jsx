@@ -52,7 +52,7 @@ const PaymentManagement = () => {
 
       setIsProcessing(true);
 
-      await api.put(`http://localhost:5000/api/payments/verify-enhanced/${paymentVerificationId}`, {
+      await api.put(`/api/payments/verify-enhanced/${paymentVerificationId}`, {
         verification_status: status,
         company_notes: notes
       });

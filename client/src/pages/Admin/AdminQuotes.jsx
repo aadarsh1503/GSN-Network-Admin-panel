@@ -24,10 +24,10 @@ const AdminQuotes = () => {
   const fetchQuotes = async () => {
     try {
       setLoading(true);
-      console.log('🚨 [FRONTEND DEBUG] === STARTING FETCH QUOTES ===');
-      console.log('🔍 [FRONTEND DEBUG] Fetching quotes from API...');
-      console.log('🌐 [FRONTEND DEBUG] API Base URL:', 'http://localhost:5000');
-      console.log('📡 [FRONTEND DEBUG] Endpoint:', '/api/admin-panel/quotes');
+      // console.log('🚨 [FRONTEND DEBUG] === STARTING FETCH QUOTES ===');
+      // console.log('🔍 [FRONTEND DEBUG] Fetching quotes from API...');
+      // console.log('🌐 [FRONTEND DEBUG] API Base URL:', 'http://localhost:5000');
+      // console.log('📡 [FRONTEND DEBUG] Endpoint:', '/api/admin-panel/quotes');
       
       // Add cache busting to ensure fresh data
       const timestamp = Date.now();
