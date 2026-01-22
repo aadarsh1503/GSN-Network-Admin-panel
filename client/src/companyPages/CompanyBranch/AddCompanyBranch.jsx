@@ -1,8 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '../../utils/api';
+import { fetchCountries, fetchStates, fetchCities } from '../../utils/locationData';
 
 const AddCompanyBranch = () => {
   const [loading, setLoading] = useState(false);
+  
+  // Location data states
+  const [countries, setCountries] = useState([]);
+  const [states, setStates] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [loadingCountries, setLoadingCountries] = useState(false);
+  const [loadingStates, setLoadingStates] = useState(false);
+  const [loadingCities, setLoadingCities] = useState(false);
   
   // State to hold all form data
   const [formData, setFormData] = useState({
@@ -24,12 +33,74 @@ const AddCompanyBranch = () => {
     telephone: ''
   });
 
-  const handleChange = (e) => {
+  // Load countries on component mount
+  useEffect(() => {
+    loadCountries();
+  }, []);
+
+  const loadCountries = async () => {
+    setLoadingCountries(true);
+    try {
+      const countriesData = await fetchCountries();
+      setCountries(countriesData);
+    } catch (error) {
+      console.error('Error loading countries:', error);
+    } finally {
+      setLoadingCountries(false);
+    }
+  };
+
+  const handleChange = async (e) => {
     const { name, value } = e.target;
     setFormData(prevState => ({
       ...prevState,
       [name]: value
     }));
+
+    // Handle cascading dropdowns
+    if (name === 'country') {
+      // Reset state and city when country changes
+      setFormData(prevState => ({
+        ...prevState,
+        [name]: value,
+        state: '',
+        city: ''
+      }));
+      setStates([]);
+      setCities([]);
+      
+      if (value) {
+        setLoadingStates(true);
+        try {
+          const statesData = await fetchStates(value);
+          setStates(statesData);
+        } catch (error) {
+          console.error('Error loading states:', error);
+        } finally {
+          setLoadingStates(false);
+        }
+      }
+    } else if (name === 'state') {
+      // Reset city when state changes
+      setFormData(prevState => ({
+        ...prevState,
+        [name]: value,
+        city: ''
+      }));
+      setCities([]);
+      
+      if (value && formData.country) {
+        setLoadingCities(true);
+        try {
+          const citiesData = await fetchCities(formData.country, value);
+          setCities(citiesData);
+        } catch (error) {
+          console.error('Error loading cities:', error);
+        } finally {
+          setLoadingCities(false);
+        }
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -45,6 +116,9 @@ const AddCompanyBranch = () => {
           branchAddress: '', skype: '', facebook: '', twitter: '', instagram: '',
           whatsapp: '', linkedin: '', mapLocation: '', website: '', telephone: ''
       });
+      // Reset location dropdowns
+      setStates([]);
+      setCities([]);
     } catch (error) {
       console.error("Error:", error);
       alert(error.message || 'Something went wrong. Please try again.');
@@ -85,25 +159,77 @@ const AddCompanyBranch = () => {
           {/* Country */}
           <div>
             <label htmlFor="country" className={labelClasses}>Country</label>
-            <select id="country" name="country" value={formData.country} onChange={handleChange} className={inputClasses}>
-              <option value="">Select Country</option>
-              <option value="India">India</option>
-              <option value="USA">United States</option>
-              <option value="UK">United Kingdom</option>
-              <option value="Canada">Canada</option>
+            <select 
+              id="country" 
+              name="country" 
+              value={formData.country} 
+              onChange={handleChange} 
+              className={inputClasses}
+              disabled={loadingCountries}
+            >
+              <option value="">
+                {loadingCountries ? 'Loading countries...' : 'Select Country'}
+              </option>
+              {countries.map((country) => (
+                <option key={country.code} value={country.name}>
+                  {country.name}
+                </option>
+              ))}
             </select>
           </div>
 
           {/* State */}
           <div>
             <label htmlFor="state" className={labelClasses}>State</label>
-            <input type="text" id="state" name="state" value={formData.state} onChange={handleChange} className={inputClasses} placeholder="State" />
+            <select 
+              id="state" 
+              name="state" 
+              value={formData.state} 
+              onChange={handleChange} 
+              className={inputClasses}
+              disabled={!formData.country || loadingStates}
+            >
+              <option value="">
+                {!formData.country 
+                  ? 'Select country first' 
+                  : loadingStates 
+                    ? 'Loading states...' 
+                    : 'Select State'
+                }
+              </option>
+              {states.map((state) => (
+                <option key={state} value={state}>
+                  {state}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* City */}
           <div>
             <label htmlFor="city" className={labelClasses}>City</label>
-            <input type="text" id="city" name="city" value={formData.city} onChange={handleChange} className={inputClasses} placeholder="City" />
+            <select 
+              id="city" 
+              name="city" 
+              value={formData.city} 
+              onChange={handleChange} 
+              className={inputClasses}
+              disabled={!formData.state || loadingCities}
+            >
+              <option value="">
+                {!formData.state 
+                  ? 'Select state first' 
+                  : loadingCities 
+                    ? 'Loading cities...' 
+                    : 'Select City'
+                }
+              </option>
+              {cities.map((city) => (
+                <option key={city} value={city}>
+                  {city}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Company Branch Address */}

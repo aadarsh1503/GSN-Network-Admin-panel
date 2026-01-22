@@ -39,6 +39,7 @@ import paymentRoutes from './routes/paymentRoutes.js';
 import enhancedQuoteRoutes from './routes/enhancedQuoteRoutes.js';
 import emailQueueRoutes from './routes/emailQueueRoutes.js';
 import debugRoutes from './routes/debugRoutes.js';
+import geoRoutes from './routes/geoRoutes.js';
 // ==========================================================
 // CONFIGURE DOTENV AT THE VERY TOP
 dotenv.config();
@@ -56,6 +57,20 @@ const PORT = process.env.PORT || 5001;
 app.use(cors()); // Enable CORS for all routes
 app.use(express.json()); // Middleware to parse JSON bodies
 app.use('/uploads', express.static('uploads')); // Serve uploaded files
+
+// Mount public routes FIRST (before any auth middleware)
+app.use('/api/geo', geoRoutes);
+console.log('✅ Public geo routes mounted at /api/geo (No Auth Required)');
+
+// Add a simple test route to verify public access works
+app.get('/api/test-public', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Public endpoint working - no auth required',
+    timestamp: new Date().toISOString()
+  });
+});
+console.log('✅ Test public route mounted at /api/test-public');
 
 // Mount the user routes
 app.use('/api/user', userRoutes);
@@ -96,6 +111,8 @@ app.use('/api/enhanced-quotes', enhancedQuoteRoutes);
 app.use('/api', businessRoutes); // Mount business directory routes at /api level for public access
 app.use('/api/email-queue', emailQueueRoutes);
 app.use('/api/debug', debugRoutes);
+
+console.log('📍 All routes mounted successfully');
 
 // Start the server
 app.listen(PORT, () => {

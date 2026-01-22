@@ -580,17 +580,17 @@ const AllTicketsList = () => {
           ) : (
             <>
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-[800px]">
                   <thead className="bg-gradient-to-r from-yellow-50 to-amber-50">
                     <tr>
-                      <SortableHeader sortKey="ticket_number">Ticket Info</SortableHeader>
-                      <SortableHeader sortKey="user_name">User Profile</SortableHeader>
+                      <SortableHeader sortKey="ticket_number">Ticket</SortableHeader>
+                      <SortableHeader sortKey="user_name">User</SortableHeader>
                       <SortableHeader sortKey="recipient_type">Recipient</SortableHeader>
-                      <SortableHeader sortKey="subject">Subject & Category</SortableHeader>
+                      <SortableHeader sortKey="subject">Subject</SortableHeader>
                       <SortableHeader sortKey="priority">Priority</SortableHeader>
                       <SortableHeader sortKey="status">Status</SortableHeader>
-                      <SortableHeader sortKey="created_at">Created</SortableHeader>
-                      <th className="py-4 px-6 text-left font-semibold">Actions</th>
+                      <SortableHeader sortKey="created_at">Date</SortableHeader>
+                      <th className="py-4 px-4 text-left font-semibold">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -598,105 +598,125 @@ const AllTicketsList = () => {
                       <tr key={ticket.id} className={`hover:bg-gradient-to-r hover:from-yellow-50/50 hover:to-amber-50/50 transition-all duration-300 ${
                         ticket.user_role === 'admin' ? 'bg-red-50/30' : ''
                       }`}>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center space-x-3">
-                            <div className="p-2 bg-gradient-to-r from-yellow-100 to-amber-100 rounded-lg">
-                              <FiMail className="text-yellow-600" size={16} />
+                        <td className="px-4 py-3">
+                          <div className="flex items-center space-x-2">
+                            <div className="p-1 bg-gradient-to-r from-yellow-100 to-amber-100 rounded-lg flex-shrink-0">
+                              <FiMail className="text-yellow-600" size={12} />
                             </div>
-                            <div>
-                              <div className="text-sm font-bold text-gray-900">{ticket.ticket_number}</div>
-                              <div className="text-xs text-gray-500">
-                                {new Date(ticket.created_at).toLocaleDateString()}
+                            <div className="min-w-0">
+                              <div className="text-xs font-bold text-gray-900 truncate">{ticket.ticket_number}</div>
+                              <div className="text-xs text-gray-500 truncate">
+                                {new Date(ticket.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                               </div>
                               {ticket.user_role === 'admin' && (
-                                <div className="text-xs text-red-600 font-bold mt-1">⚠️ ADMIN TICKET</div>
+                                <div className="text-xs text-red-600 font-bold">⚠️</div>
                               )}
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center space-x-3">
-                            <div className="p-2 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-lg">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center space-x-2">
+                            <div className="p-1 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-lg flex-shrink-0">
                               {getUserTypeIcon(ticket.user_role)}
                             </div>
-                            <div>
-                              <div className="text-sm font-semibold text-gray-900">{ticket.user_name}</div>
-                              <div className="text-xs text-gray-500 mb-1">{ticket.user_email}</div>
-                              {getUserTypeBadge(ticket.user_role)}
+                            <div className="min-w-0 flex-1">
+                              <div className="text-xs font-semibold text-gray-900 truncate" title={ticket.user_name}>{ticket.user_name}</div>
+                              <div className="text-xs text-gray-500 truncate" title={ticket.user_email}>{ticket.user_email}</div>
+                              <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium ${
+                                ticket.user_role === 'user' ? 'bg-blue-100 text-blue-800' :
+                                ticket.user_role === 'business' ? 'bg-purple-100 text-purple-800' :
+                                ticket.user_role === 'company' ? 'bg-green-100 text-green-800' :
+                                'bg-red-100 text-red-800'
+                              }`}>
+                                {ticket.user_role === 'user' ? 'User' :
+                                 ticket.user_role === 'business' ? 'Biz' :
+                                 ticket.user_role === 'company' ? 'Co' : 'Admin'}
+                              </span>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center space-x-3">
-                            <div className="p-2 bg-gradient-to-r from-yellow-100 to-amber-100 rounded-lg">
-                              {ticket.recipient_type === 'company' ? <FiHome className="text-green-600" size={16} /> : <FiShield className="text-red-600" size={16} />}
+                        <td className="px-4 py-3">
+                          <div className="flex items-center space-x-2">
+                            <div className="p-1 bg-gradient-to-r from-yellow-100 to-amber-100 rounded-lg flex-shrink-0">
+                              {ticket.recipient_type === 'company' ? <FiHome className="text-green-600" size={12} /> : <FiShield className="text-red-600" size={12} />}
                             </div>
-                            <div>
-                              <div className="text-sm font-semibold text-gray-900">
+                            <div className="min-w-0 flex-1">
+                              <div className="text-xs font-semibold text-gray-900 truncate" title={ticket.recipient_type === 'company' && ticket.company_name ? ticket.company_name : ticket.recipient_name}>
                                 {ticket.recipient_type === 'company' && ticket.company_name 
                                   ? ticket.company_name 
                                   : ticket.recipient_name
                                 }
                               </div>
-                              {ticket.recipient_type === 'company' && ticket.company_email && (
-                                <div className="text-xs text-gray-500 mb-1">{ticket.company_email}</div>
-                              )}
-                              {getRecipientBadge(ticket.recipient_type)}
-                              {ticket.recipient_type === 'company' && (
-                                <div className="text-xs text-green-600 font-medium mt-1">Company Support Ticket</div>
-                              )}
+                              <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium ${
+                                ticket.recipient_type === 'company' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                              }`}>
+                                {ticket.recipient_type === 'company' ? 'Company' : 'Admin'}
+                              </span>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <div>
-                            <div className="text-sm font-medium text-gray-900 max-w-xs truncate" title={ticket.subject}>
+                        <td className="px-4 py-3">
+                          <div className="min-w-0">
+                            <div className="text-xs font-medium text-gray-900 truncate mb-1" title={ticket.subject}>
                               {ticket.subject}
                             </div>
-                            <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-lg mt-1 inline-block capitalize">
+                            <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-lg inline-block capitalize truncate max-w-full">
                               {ticket.category}
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          {getPriorityBadge(ticket.priority)}
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex items-center px-2 py-1 text-xs font-bold rounded-full ${
+                            ticket.priority === 'low' ? 'bg-green-100 text-green-800' :
+                            ticket.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                            ticket.priority === 'high' ? 'bg-orange-100 text-orange-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {ticket.priority?.charAt(0).toUpperCase()}
+                          </span>
                         </td>
-                        <td className="px-6 py-4">
-                          {getStatusBadge(ticket.status)}
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex items-center px-2 py-1 text-xs font-bold rounded-full ${
+                            ticket.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            ticket.status === 'answered' ? 'bg-blue-100 text-blue-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {ticket.status?.charAt(0).toUpperCase()}
+                          </span>
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {new Date(ticket.created_at).toLocaleDateString()}
+                        <td className="px-4 py-3">
+                          <div className="text-xs font-medium text-gray-900 truncate">
+                            {new Date(ticket.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                           </div>
-                          <div className="text-xs text-gray-500">
-                            {new Date(ticket.created_at).toLocaleTimeString()}
+                          <div className="text-xs text-gray-500 truncate">
+                            {new Date(ticket.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center space-x-2">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center space-x-1">
                             <button
                               onClick={() => openDetailsModal(ticket)}
-                              className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                              className="p-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex-shrink-0"
                               title="View Details"
                             >
-                              <FiEye size={16} />
+                              <FiEye size={12} />
                             </button>
                             <button
                               onClick={() => openResponseModal(ticket)}
-                              className="p-2 bg-gradient-to-r from-yellow-500 to-amber-600 text-white rounded-lg hover:from-yellow-600 hover:to-amber-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
-                              title="Respond to Ticket"
+                              className="p-1.5 bg-gradient-to-r from-yellow-500 to-amber-600 text-white rounded-lg hover:from-yellow-600 hover:to-amber-700 transition-all duration-300 transform hover:scale-105 shadow-lg flex-shrink-0"
+                              title="Respond"
                             >
-                              <FiMessageSquare size={16} />
+                              <FiMessageSquare size={12} />
                             </button>
                             <button
                               onClick={() => {
                                 setTicketToDelete(ticket);
                                 setShowDeleteModal(true);
                               }}
-                              className="p-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:from-red-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
-                              title="Delete Ticket"
+                              className="p-1.5 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:from-red-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex-shrink-0"
+                              title="Delete"
                             >
-                              <FiTrash2 size={16} />
+                              <FiTrash2 size={12} />
                             </button>
                           </div>
                         </td>

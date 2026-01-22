@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { toast } from 'react-toastify';
-import api from '../../utils/api';
+import toast from 'react-hot-toast';
+import { api } from '../../utils/api';
 import './PaymentUpload.css';
 
 const PaymentUpload = ({ quote, onClose, onSuccess }) => {
@@ -87,13 +87,37 @@ const PaymentUpload = ({ quote, onClose, onSuccess }) => {
       formData.append('payment_date', paymentDate);
       formData.append('payment_notes', paymentNotes);
 
-      await api.post('/api/enhanced-quotes/upload-payment-proof', formData, {
+      // Debug logging
+      console.log('📤 Uploading payment proof with data:', {
+        quote_id: quote.quote_id,
+        quote_response_id: quote.id,
+        payment_date: paymentDate,
+        file_name: paymentFile.name,
+        file_size: paymentFile.size
+      });
+
+      const response = await api.post('/api/enhanced-quotes/upload-payment-proof', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
 
-      toast.success('Payment proof uploaded successfully! The company will verify your payment before work begins.');
+      console.log('✅ Payment proof upload response:', response);
+
+      // Check if response exists and has data
+      if (!response) {
+        throw new Error('No response received from server');
+      }
+
+      // Show success message based on async processing
+      if (response.async) {
+        toast.success('Payment proof uploaded successfully! Email notifications are being sent. The company will verify your payment shortly.', {
+          duration: 6000
+        });
+      } else {
+        toast.success('Payment proof uploaded successfully! The company will verify your payment before work begins.');
+      }
+      
       onSuccess && onSuccess();
       onClose && onClose();
     } catch (error) {
@@ -251,7 +275,14 @@ const PaymentUpload = ({ quote, onClose, onSuccess }) => {
             className="btn-upload" 
             disabled={uploading || !paymentFile}
           >
-            {uploading ? 'Uploading...' : 'Accept Quote & Upload Proof'}
+            {uploading ? (
+              <div className="flex items-center space-x-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                <span>Uploading & Processing...</span>
+              </div>
+            ) : (
+              'Accept Quote & Upload Proof'
+            )}
           </button>
         </div>
       </form>

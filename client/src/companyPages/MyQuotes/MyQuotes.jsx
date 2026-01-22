@@ -6,7 +6,7 @@ import {
   FiUser, FiMail, FiPhone, FiMapPin, FiPackage, FiClock,
   FiCheckCircle, FiXCircle, FiAlertCircle, FiEdit3, FiStar,
   FiCreditCard, FiFileText, FiArrowLeft, FiFilter, FiSearch,
-  FiRefreshCw, FiX
+  FiRefreshCw, FiX, FiShield
 } from 'react-icons/fi';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
@@ -315,8 +315,8 @@ const MyQuotes = () => {
     // For approved quotes, show the approval status prominently
     if (quote.status === 'approved' && quote.payment_status === 'verified') {
       return (
-        <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-          ✅ Quote Approved & Payment Verified
+        <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-300">
+          ✅ Auto-Approved (Payment Verified)
         </span>
       );
     }
@@ -500,51 +500,340 @@ const MyQuotes = () => {
               <div className="bg-white rounded-2xl shadow-xl border-2 border-gray-200 p-6">
                 <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
                   <FiFileText className="text-[#CDA435]" />
-                  Quote Information
+                  Complete Quote Information
                 </h3>
                 
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                    <FiDollarSign className="text-[#CDA435] text-lg" />
-                    <div>
-                      <p className="text-sm text-gray-500">Your Price</p>
-                      <p className="font-bold text-xl text-[#CDA435]">${selectedQuote.price}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                    <FiTruck className="text-[#CDA435] text-lg" />
-                    <div>
-                      <p className="text-sm text-gray-500">Shipping Mode</p>
-                      <p className="font-medium text-gray-800">{selectedQuote.shipping_mode}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                    <FiCalendar className="text-[#CDA435] text-lg" />
-                    <div>
-                      <p className="text-sm text-gray-500">Delivery Date</p>
-                      <p className="font-medium text-gray-800">{new Date(selectedQuote.arrival_date).toLocaleDateString()}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
-                    <FiPackage className="text-[#CDA435] text-lg mt-1" />
-                    <div>
-                      <p className="text-sm text-gray-500">Product Description</p>
-                      <p className="font-medium text-gray-800">{selectedQuote.product_description}</p>
-                    </div>
-                  </div>
-
-                  {selectedQuote.accepted_at && (
-                    <div className="flex items-center gap-3 p-3 bg-green-50 rounded-xl border border-green-200">
-                      <FiCheckCircle className="text-green-500 text-lg" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Basic Quote Details */}
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-gray-700 border-b pb-2">Basic Details</h4>
+                    
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                      <FiDollarSign className="text-[#CDA435] text-lg" />
                       <div>
-                        <p className="text-sm text-green-600">Accepted On</p>
-                        <p className="font-medium text-green-800">{new Date(selectedQuote.accepted_at).toLocaleDateString()}</p>
+                        <p className="text-sm text-gray-500">Your Quote Price</p>
+                        <p className="font-bold text-xl text-[#CDA435]">${selectedQuote.price}</p>
                       </div>
                     </div>
-                  )}
+
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                      <FiTruck className="text-[#CDA435] text-lg" />
+                      <div>
+                        <p className="text-sm text-gray-500">Shipping Mode</p>
+                        <p className="font-medium text-gray-800">{selectedQuote.shipping_mode}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                      <FiCalendar className="text-[#CDA435] text-lg" />
+                      <div>
+                        <p className="text-sm text-gray-500">Delivery Date</p>
+                        <p className="font-medium text-gray-800">{new Date(selectedQuote.arrival_date).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+
+                    {selectedQuote.transit_time && (
+                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                        <FiClock className="text-[#CDA435] text-lg" />
+                        <div>
+                          <p className="text-sm text-gray-500">Transit Time</p>
+                          <p className="font-medium text-gray-800">{selectedQuote.transit_time}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedQuote.valid_until && (
+                      <div className="flex items-center gap-3 p-3 bg-amber-50 rounded-xl border border-amber-200">
+                        <FiCalendar className="text-amber-600 text-lg" />
+                        <div>
+                          <p className="text-sm text-amber-600">Quote Valid Until</p>
+                          <p className="font-medium text-amber-800">{new Date(selectedQuote.valid_until).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Product & Cargo Details */}
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-gray-700 border-b pb-2">Cargo Details</h4>
+                    
+                    <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
+                      <FiPackage className="text-[#CDA435] text-lg mt-1" />
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-500">Product Description</p>
+                        <p className="font-medium text-gray-800">{selectedQuote.product_description}</p>
+                      </div>
+                    </div>
+
+                    {selectedQuote.quantity && (
+                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                        <FiPackage className="text-[#CDA435] text-lg" />
+                        <div>
+                          <p className="text-sm text-gray-500">Quantity</p>
+                          <p className="font-medium text-gray-800">{selectedQuote.quantity}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedQuote.weight && (
+                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                        <FiPackage className="text-[#CDA435] text-lg" />
+                        <div>
+                          <p className="text-sm text-gray-500">Weight</p>
+                          <p className="font-medium text-gray-800">{selectedQuote.weight}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedQuote.packing && (
+                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                        <FiPackage className="text-[#CDA435] text-lg" />
+                        <div>
+                          <p className="text-sm text-gray-500">Packing Type</p>
+                          <p className="font-medium text-gray-800">{selectedQuote.packing}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedQuote.incoterms && (
+                      <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl border border-blue-200">
+                        <FiFileText className="text-blue-600 text-lg" />
+                        <div>
+                          <p className="text-sm text-blue-600">Incoterms</p>
+                          <p className="font-medium text-blue-800">{selectedQuote.incoterms}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Dimensions Section */}
+                {(selectedQuote.length || selectedQuote.width || selectedQuote.height || selectedQuote.dimension_unit) && (
+                  <div className="mt-6 p-4 bg-green-50 rounded-xl border border-green-200">
+                    <h4 className="font-semibold text-green-700 mb-3 flex items-center gap-2">
+                      <FiPackage className="text-green-600" />
+                      Cargo Dimensions
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      {selectedQuote.length && (
+                        <div className="text-center p-2 bg-white rounded-lg border border-green-200">
+                          <p className="text-xs text-green-600">Length</p>
+                          <p className="font-bold text-green-800">{selectedQuote.length}</p>
+                        </div>
+                      )}
+                      {selectedQuote.width && (
+                        <div className="text-center p-2 bg-white rounded-lg border border-green-200">
+                          <p className="text-xs text-green-600">Width</p>
+                          <p className="font-bold text-green-800">{selectedQuote.width}</p>
+                        </div>
+                      )}
+                      {selectedQuote.height && (
+                        <div className="text-center p-2 bg-white rounded-lg border border-green-200">
+                          <p className="text-xs text-green-600">Height</p>
+                          <p className="font-bold text-green-800">{selectedQuote.height}</p>
+                        </div>
+                      )}
+                      {selectedQuote.dimension_unit && (
+                        <div className="text-center p-2 bg-white rounded-lg border border-green-200">
+                          <p className="text-xs text-green-600">Unit</p>
+                          <p className="font-bold text-green-800">{selectedQuote.dimension_unit}</p>
+                        </div>
+                      )}
+                    </div>
+                    {(!selectedQuote.length && !selectedQuote.width && !selectedQuote.height) && selectedQuote.dimension_unit && (
+                      <div className="text-center p-3 bg-white rounded-lg border border-green-200">
+                        <p className="text-sm text-green-700">Dimensions not specified, Unit: {selectedQuote.dimension_unit}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Route Details */}
+                <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                  <h4 className="font-semibold text-blue-700 mb-3 flex items-center gap-2">
+                    <FiMapPin className="text-blue-600" />
+                    Route Information
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Departure Details */}
+                    <div className="space-y-3">
+                      <h5 className="font-medium text-blue-800">Departure</h5>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-4">
+                            <Flag code={getCountryCode(selectedQuote.departure_country)} className="w-full h-full object-cover rounded" />
+                          </div>
+                          <span className="font-medium text-blue-800">{selectedQuote.departure_country}</span>
+                        </div>
+                        {selectedQuote.departure_state && (
+                          <p className="text-sm text-blue-700 ml-8">State: {selectedQuote.departure_state}</p>
+                        )}
+                        {selectedQuote.departure_city && (
+                          <p className="text-sm text-blue-700 ml-8">City: {selectedQuote.departure_city}</p>
+                        )}
+                        {selectedQuote.departure_type && (
+                          <p className="text-sm text-blue-700 ml-8">Type: {selectedQuote.departure_type}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Arrival Details */}
+                    <div className="space-y-3">
+                      <h5 className="font-medium text-blue-800">Arrival</h5>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-4">
+                            <Flag code={getCountryCode(selectedQuote.arrival_country)} className="w-full h-full object-cover rounded" />
+                          </div>
+                          <span className="font-medium text-blue-800">{selectedQuote.arrival_country}</span>
+                        </div>
+                        {selectedQuote.arrival_state && (
+                          <p className="text-sm text-blue-700 ml-8">State: {selectedQuote.arrival_state}</p>
+                        )}
+                        {selectedQuote.arrival_city && (
+                          <p className="text-sm text-blue-700 ml-8">City: {selectedQuote.arrival_city}</p>
+                        )}
+                        {selectedQuote.arrival_type && (
+                          <p className="text-sm text-blue-700 ml-8">Type: {selectedQuote.arrival_type}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Special Requirements */}
+                {(selectedQuote.is_stackable || selectedQuote.is_hazardous || selectedQuote.has_insurance || selectedQuote.cargo_type) && (
+                  <div className="mt-6 p-4 bg-purple-50 rounded-xl border border-purple-200">
+                    <h4 className="font-semibold text-purple-700 mb-3 flex items-center gap-2">
+                      <FiAlertCircle className="text-purple-600" />
+                      Special Requirements & Cargo Type
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                      {selectedQuote.cargo_type && (
+                        <div className="flex items-center gap-2 p-3 bg-white rounded-lg border border-purple-200">
+                          <FiPackage className="text-purple-600" />
+                          <div>
+                            <p className="text-xs text-purple-600">Cargo Type</p>
+                            <p className="text-sm font-medium text-purple-800">{selectedQuote.cargo_type}</p>
+                          </div>
+                        </div>
+                      )}
+                      {selectedQuote.is_stackable === 1 && (
+                        <div className="flex items-center gap-2 p-3 bg-white rounded-lg border border-purple-200">
+                          <FiCheckCircle className="text-green-600" />
+                          <span className="text-sm font-medium text-purple-800">📦 Stackable Cargo</span>
+                        </div>
+                      )}
+                      {selectedQuote.is_hazardous === 1 && (
+                        <div className="flex items-center gap-2 p-3 bg-white rounded-lg border border-purple-200">
+                          <FiAlertCircle className="text-red-600" />
+                          <span className="text-sm font-medium text-purple-800">⚠️ Hazardous Materials</span>
+                        </div>
+                      )}
+                      {selectedQuote.has_insurance === 1 && (
+                        <div className="flex items-center gap-2 p-3 bg-white rounded-lg border border-purple-200">
+                          <FiShield className="text-blue-600" />
+                          <span className="text-sm font-medium text-purple-800">🛡️ Insurance Required</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Show if no special requirements */}
+                    {!selectedQuote.cargo_type && !selectedQuote.is_stackable && !selectedQuote.is_hazardous && !selectedQuote.has_insurance && (
+                      <div className="text-center p-3 bg-white rounded-lg border border-purple-200">
+                        <p className="text-sm text-purple-700">No special requirements specified</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Your Quote Response Details */}
+                {(selectedQuote.inclusions || selectedQuote.value_added_services || selectedQuote.terms || selectedQuote.response_notes) && (
+                  <div className="mt-6 p-4 bg-yellow-50 rounded-xl border border-yellow-200">
+                    <h4 className="font-semibold text-yellow-700 mb-3 flex items-center gap-2">
+                      <FiStar className="text-yellow-600" />
+                      Your Quote Response Details
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {selectedQuote.inclusions && (
+                        <div className="p-3 bg-white rounded-lg border border-yellow-200">
+                          <h5 className="font-medium text-yellow-800 mb-2 flex items-center gap-2">
+                            <FiCheckCircle className="text-green-600" />
+                            Inclusions
+                          </h5>
+                          <p className="text-sm text-yellow-700">{selectedQuote.inclusions}</p>
+                        </div>
+                      )}
+                      {selectedQuote.value_added_services && (
+                        <div className="p-3 bg-white rounded-lg border border-yellow-200">
+                          <h5 className="font-medium text-yellow-800 mb-2 flex items-center gap-2">
+                            <FiStar className="text-yellow-600" />
+                            Value Added Services
+                          </h5>
+                          <p className="text-sm text-yellow-700">{selectedQuote.value_added_services}</p>
+                        </div>
+                      )}
+                      {selectedQuote.terms && (
+                        <div className="p-3 bg-white rounded-lg border border-yellow-200">
+                          <h5 className="font-medium text-yellow-800 mb-2 flex items-center gap-2">
+                            <FiShield className="text-blue-600" />
+                            Terms & Conditions
+                          </h5>
+                          <p className="text-sm text-yellow-700">{selectedQuote.terms}</p>
+                        </div>
+                      )}
+                      {selectedQuote.response_notes && (
+                        <div className="p-3 bg-white rounded-lg border border-yellow-200">
+                          <h5 className="font-medium text-yellow-800 mb-2 flex items-center gap-2">
+                            <FiFileText className="text-gray-600" />
+                            Additional Notes
+                          </h5>
+                          <p className="text-sm text-yellow-700">{selectedQuote.response_notes}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Customer's Additional Notes */}
+                {selectedQuote.customer_notes && (
+                  <div className="mt-6 p-4 bg-indigo-50 rounded-xl border border-indigo-200">
+                    <h4 className="font-semibold text-indigo-700 mb-3 flex items-center gap-2">
+                      <FiMessageSquare className="text-indigo-600" />
+                      Customer's Additional Notes
+                    </h4>
+                    <div className="p-3 bg-white rounded-lg border border-indigo-200">
+                      <p className="text-sm text-indigo-700 leading-relaxed">{selectedQuote.customer_notes}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Timeline Information */}
+                <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                  <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <FiClock className="text-gray-600" />
+                    Timeline
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {selectedQuote.quote_created_at && (
+                      <div className="text-center p-2 bg-white rounded-lg border border-gray-200">
+                        <p className="text-xs text-gray-600">Quote Created</p>
+                        <p className="font-medium text-gray-800">{new Date(selectedQuote.quote_created_at).toLocaleDateString()}</p>
+                      </div>
+                    )}
+                    {selectedQuote.accepted_at && (
+                      <div className="text-center p-2 bg-white rounded-lg border border-gray-200">
+                        <p className="text-xs text-gray-600">Accepted</p>
+                        <p className="font-medium text-gray-800">{new Date(selectedQuote.accepted_at).toLocaleDateString()}</p>
+                      </div>
+                    )}
+                    {selectedQuote.updated_at && (
+                      <div className="text-center p-2 bg-white rounded-lg border border-gray-200">
+                        <p className="text-xs text-gray-600">Last Updated</p>
+                        <p className="font-medium text-gray-800">{new Date(selectedQuote.updated_at).toLocaleDateString()}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -1096,154 +1385,127 @@ const MyQuotes = () => {
               <table className="min-w-full">
                 <thead className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white">
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm font-semibold">Quote ID</th>
-                    {/* <th className="px-6 py-4 text-left text-sm font-semibold">Company</th> */}
-                    <th className="px-6 py-4 text-left text-sm font-semibold">Customer</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold">Route</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold">Product</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold">Price</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold">Shipping Mode</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold">Delivery Date</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold">Payment Status</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Quote ID</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Customer</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Route</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Product</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Price</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Status</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredQuotes.map((quote) => (
                     <tr key={quote.id} className="hover:bg-gray-50 transition-colors">
                       {/* Quote ID */}
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="p-2 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-lg text-white mr-3">
                             <FiFileText className="text-sm" />
                           </div>
-                          <span className="text-sm font-medium text-gray-900">#{quote.id}</span>
+                          <div>
+                            <span className="text-sm font-bold text-gray-900">#{quote.id}</span>
+                            {quote.created_at && (
+                              <p className="text-xs text-gray-500">{new Date(quote.created_at).toLocaleDateString()}</p>
+                            )}
+                          </div>
                         </div>
                       </td>
 
-                      {/* Company */}
-                      {/* <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="bg-blue-50 p-2 rounded-lg border border-blue-200">
-                          <div className="text-sm font-medium text-blue-900 flex items-center gap-1">
-                            <FiUser className="text-blue-600 text-xs" />
-                            {companyProfile?.name || 'Your Company'}
-                          </div>
-                          <div className="text-xs text-blue-600 flex items-center gap-1">
-                            <FiMail className="text-blue-500 text-xs" />
-                            {companyProfile?.email || 'N/A'}
-                          </div>
-                        </div>
-                      </td> */}
-
-                      {/* Customer */}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="bg-purple-50 p-2 rounded-lg border border-purple-200">
-                          <div className="text-sm font-medium text-purple-900 flex items-center gap-1">
-                            <FiUser className="text-purple-600 text-xs" />
+                      {/* Customer Info - Compact */}
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900 flex items-center gap-1">
+                            <FiUser className="text-gray-400 text-xs" />
                             {quote.user_name || 'N/A'}
                           </div>
-                          <div className="text-xs text-purple-600 flex items-center gap-1">
-                            <FiMail className="text-purple-500 text-xs" />
+                          <div className="text-xs text-gray-500 flex items-center gap-1">
+                            <FiMail className="text-gray-400 text-xs" />
                             {quote.user_email || 'N/A'}
                           </div>
                         </div>
                       </td>
 
-                      {/* Route */}
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      {/* Route - Compact */}
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center space-x-2">
                           <div className="w-5 h-4 flex-shrink-0">
                             <Flag code={getCountryCode(quote.departure_country)} className="w-full h-full object-cover rounded" />
                           </div>
-                          <span className="text-xs text-gray-600">{quote.departure_country}</span>
-                          <span className="text-gray-400">→</span>
+                          <span className="text-xs font-medium text-gray-800">{quote.departure_country}</span>
+                          <FiArrowLeft className="text-[#CDA435] rotate-180 text-xs" />
                           <div className="w-5 h-4 flex-shrink-0">
                             <Flag code={getCountryCode(quote.arrival_country)} className="w-full h-full object-cover rounded" />
                           </div>
-                          <span className="text-xs text-gray-600">{quote.arrival_country}</span>
+                          <span className="text-xs font-medium text-gray-800">{quote.arrival_country}</span>
                         </div>
                       </td>
 
-                      {/* Product */}
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900 max-w-xs truncate" title={quote.product_description}>
-                          {quote.product_description}
+                      {/* Product - Compact */}
+                      <td className="px-4 py-3">
+                        <div className="max-w-[200px]">
+                          <div className="text-sm font-medium text-gray-900 truncate" title={quote.product_description}>
+                            {quote.product_description?.length > 40 
+                              ? `${quote.product_description.substring(0, 40)}...` 
+                              : quote.product_description}
+                          </div>
+                          <div className="text-xs text-gray-500 flex items-center gap-2">
+                            <FiTruck className="text-gray-400" />
+                            {quote.shipping_mode}
+                          </div>
                         </div>
                       </td>
 
-                      {/* Price */}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-lg font-bold text-green-600">${quote.price}</span>
-                      </td>
-
-                      {/* Shipping Mode */}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <FiTruck className="text-[#CDA435] mr-2" />
-                          <span className="text-sm text-gray-900">{quote.shipping_mode}</span>
+                      {/* Price - Compact */}
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-center">
+                          <span className="text-lg font-bold text-green-600">${quote.price}</span>
+                          <div className="text-xs text-gray-500 flex items-center justify-center gap-1">
+                            <FiCalendar className="text-gray-400" />
+                            {new Date(quote.arrival_date).toLocaleDateString()}
+                          </div>
                         </div>
                       </td>
 
-                      {/* Delivery Date */}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <FiCalendar className="text-[#CDA435] mr-2" />
-                          <span className="text-sm text-gray-900">{new Date(quote.arrival_date).toLocaleDateString()}</span>
-                        </div>
-                      </td>
-
-                      {/* Status */}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <select
-                          value={quote.status}
-                          onChange={(e) => handleStatusChange(quote.id, e.target.value)}
-                          disabled={statusUpdatingId === quote.id}
-                          className={`px-3 py-1 text-xs font-bold rounded-full border-2 focus:ring-2 focus:ring-[#CDA435] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${
-                            quote.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
-                            quote.status === 'approved' ? 'bg-green-100 text-green-800 border-green-300' :
-                            quote.status === 'rejected' ? 'bg-red-100 text-red-800 border-red-300' :
-                            quote.status === 'running' ? 'bg-blue-100 text-blue-800 border-blue-300' :
-                            'bg-gray-100 text-gray-800 border-gray-300'
-                          }`}
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="approved">Approved</option>
-                          <option value="rejected">Rejected</option>
-                          <option value="running">Running</option>
-                          <option value="closed">Closed</option>
-                        </select>
-                        {statusUpdatingId === quote.id && (
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#CDA435] mt-1"></div>
-                        )}
-                      </td>
-
-                      {/* Payment Status */}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="max-w-xs">
-                          {getPaymentStatusBadge(quote)}
-                          {quote.payment_status === 'verified' && quote.verification_date && (
-                            <div className="text-xs text-green-600 mt-1">
-                              Verified: {new Date(quote.verification_date).toLocaleDateString()}
-                            </div>
+                      {/* Status - Compact */}
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="space-y-2">
+                          <select
+                            value={quote.status}
+                            onChange={(e) => handleStatusChange(quote.id, e.target.value)}
+                            disabled={statusUpdatingId === quote.id}
+                            className={`px-3 py-1 text-xs font-bold rounded-full border-2 focus:ring-2 focus:ring-[#CDA435] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${
+                              quote.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
+                              quote.status === 'approved' ? 'bg-green-100 text-green-800 border-green-300' :
+                              quote.status === 'rejected' ? 'bg-red-100 text-red-800 border-red-300' :
+                              quote.status === 'running' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                              'bg-gray-100 text-gray-800 border-gray-300'
+                            }`}
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                            <option value="running">Running</option>
+                            <option value="closed">Closed</option>
+                          </select>
+                          {statusUpdatingId === quote.id && (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#CDA435] mx-auto"></div>
                           )}
-                          {quote.accepted_at && (
-                            <div className="text-xs text-green-600 mt-1">
-                              Accepted: {new Date(quote.accepted_at).toLocaleDateString()}
-                            </div>
-                          )}
+                          <div className="text-xs">
+                            {getPaymentStatusBadge(quote)}
+                          </div>
                         </div>
                       </td>
 
                       {/* Actions */}
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <button
                           onClick={() => handleViewDetails(quote)}
-                          className="gradient-btn quotes-btn flex items-center gap-2 px-3 py-2 text-white rounded-lg transition-all duration-200 text-sm font-medium"
-                          title="View Quote Details"
+                          className="gradient-btn quotes-btn flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-all duration-200 text-sm font-medium hover:shadow-lg transform hover:-translate-y-0.5"
+                          title="View Complete Quote Details"
                         >
                           <FiEye className="text-sm" />
-                          <span className="mobile-hide-text">View</span>
+                          View Details
                         </button>
                       </td>
                     </tr>

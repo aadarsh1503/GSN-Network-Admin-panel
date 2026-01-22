@@ -8,12 +8,14 @@ const SendEmails = () => {
   const [formData, setFormData] = useState({
     userType: "",
     subject: "",
+    emailMethod: "sendy" // Default to Sendy
   });
 
   const [editorContent, setEditorContent] = useState("");
   const [loading, setLoading] = useState(false);
   const [emailStats, setEmailStats] = useState(null);
   const [userCounts, setUserCounts] = useState({});
+  const [sendySubscriberCount, setSendySubscriberCount] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
   const wrapperRef = useRef(null);
 
@@ -30,6 +32,7 @@ const SendEmails = () => {
       
       setEmailStats(data.emailStats);
       setUserCounts(data.userCounts);
+      setSendySubscriberCount(data.sendySubscriberCount || 0);
       
       console.log('✅ User counts set:', data.userCounts);
     } catch (error) {
@@ -125,18 +128,36 @@ const SendEmails = () => {
         userType: formData.userType,
         subject: formData.subject,
         body: editorContent,
+        emailMethod: formData.emailMethod
       };
+
+      console.log('📧 Sending email request:', emailData);
 
       const result = await api.post('/api/admin/send-emails', emailData);
       
-      adminToast.success(`Email sent successfully to ${result.successful} users!`);
+      console.log('✅ Email response:', result);
       
-      if (result.failed > 0) {
-        adminToast.error(`${result.failed} emails failed to send`);
+      if (formData.emailMethod === 'sendy') {
+        adminToast.success(result.message || 'Campaign sent successfully via Sendy!');
+        
+        if (result.subscriptionResults) {
+          const { successful, failed } = result.subscriptionResults;
+          if (successful > 0) {
+            adminToast.success(`✅ Added ${successful} users to Sendy list`);
+          }
+          if (failed > 0) {
+            adminToast.error(`❌ ${failed} users failed to be added to list`);
+          }
+        }
+      } else {
+        adminToast.success(`Email sent successfully to ${result.successful} users!`);
+        if (result.failed > 0) {
+          adminToast.error(`${result.failed} emails failed to send`);
+        }
       }
 
       // Reset form
-      setFormData({ userType: "", subject: "" });
+      setFormData({ userType: "", subject: "", emailMethod: "sendy" });
       setEditorContent("");
       
       // Clear editor content
@@ -202,7 +223,7 @@ const SendEmails = () => {
 
           {/* User Statistics Cards */}
           {Object.keys(userCounts).length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
               {Object.entries(userCounts).map(([type, count]) => (
                 <div key={type} className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border border-yellow-200">
                   <div className="flex items-center justify-between">
@@ -216,6 +237,19 @@ const SendEmails = () => {
                   </div>
                 </div>
               ))}
+              
+              {/* Sendy Subscriber Count */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      Sendy Subscribers
+                    </p>
+                    <p className="text-2xl font-bold text-gray-900">{sendySubscriberCount}</p>
+                  </div>
+                  <FiMail className="h-8 w-8 text-blue-600" />
+                </div>
+              </div>
             </div>
           )}
 
@@ -235,6 +269,86 @@ const SendEmails = () => {
         {/* Email Form */}
         <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
           <form onSubmit={handleSubmit}>
+            {/* Email Method Selection */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Email Delivery Method *
+              </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div 
+                  className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                    formData.emailMethod === 'sendy' 
+                      ? 'border-blue-500 bg-blue-50' 
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => setFormData(prev => ({ ...prev, emailMethod: 'sendy' }))}
+                >
+                  <div className="flex items-center">
+                    <input
+                      type="radio"
+                      name="emailMethod"
+                      value="sendy"
+                      checked={formData.emailMethod === 'sendy'}
+                      onChange={handleChange}
+                      className="mr-3"
+                    />
+                    <div>
+                      <h3 className="font-semibold text-gray-900">Sendy (Recommended)</h3>
+                      <p className="text-sm text-gray-600">Professional email campaigns with analytics</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">Better Deliverability</span>
+                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Analytics</span>
+                        <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded">Cost Effective</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div 
+                  className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                    formData.emailMethod === 'smtp' 
+                      ? 'border-yellow-500 bg-yellow-50' 
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => setFormData(prev => ({ ...prev, emailMethod: 'smtp' }))}
+                >
+                  <div className="flex items-center">
+                    <input
+                      type="radio"
+                      name="emailMethod"
+                      value="smtp"
+                      checked={formData.emailMethod === 'smtp'}
+                      onChange={handleChange}
+                      className="mr-3"
+                    />
+                    <div>
+                      <h3 className="font-semibold text-gray-900">SMTP (Direct)</h3>
+                      <p className="text-sm text-gray-600">Direct email sending via server</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded">Immediate</span>
+                        <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded">Basic</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {formData.emailMethod === 'sendy' && (
+                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <p className="text-sm text-blue-800">
+                    <strong>Sendy Campaign Process:</strong> 
+                    <br />1. Selected users will be added to your Sendy subscriber list
+                    <br />2. A professional email campaign will be created and sent
+                    <br />3. You'll get detailed analytics in your Sendy dashboard
+                  </p>
+                  <p className="text-xs text-blue-600 mt-2">
+                    Current Sendy subscribers: {sendySubscriberCount} | 
+                    This method provides better deliverability and professional analytics.
+                  </p>
+                </div>
+              )}
+            </div>
+
             {/* User Type and Subject */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
               <div>
@@ -341,7 +455,7 @@ const SendEmails = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    setFormData({ userType: "", subject: "" });
+                    setFormData({ userType: "", subject: "", emailMethod: "sendy" });
                     setEditorContent("");
                     if (wrapperRef.current?.shadowRoot) {
                       const editorDiv = wrapperRef.current.shadowRoot.querySelector('div');
@@ -363,12 +477,12 @@ const SendEmails = () => {
                   {loading ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Sending...
+                      {formData.emailMethod === 'sendy' ? 'Sending via Sendy...' : 'Sending via SMTP...'}
                     </>
                   ) : (
                     <>
                       <FiSend className="mr-2" />
-                      Send Emails
+                      {formData.emailMethod === 'sendy' ? 'Send via Sendy' : 'Send via SMTP'}
                     </>
                   )}
                 </button>

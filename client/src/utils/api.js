@@ -1,6 +1,6 @@
 // API utility with proper token handling and loading states
 
-const API_BASE_URL = 'https://gsn-network-admin-panel-1.onrender.com';
+const API_BASE_URL = 'http://localhost:5000';
 
 // Token management
 export const getToken = () => {
@@ -16,7 +16,7 @@ export const removeToken = () => {
   localStorage.removeItem('user');
 };
 
-// Check if token is expired
+// Check if token is expired or will expire soon (within 30 minutes)
 export const isTokenExpired = (token) => {
   if (!token) {
     return true;
@@ -35,6 +35,63 @@ export const isTokenExpired = (token) => {
     return isExpired;
   } catch (error) {
     return true;
+  }
+};
+
+// Check if token will expire soon (within 30 minutes)
+export const isTokenExpiringSoon = (token) => {
+  if (!token) {
+    return true;
+  }
+  
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return true;
+    }
+    
+    const payload = JSON.parse(atob(parts[1]));
+    const currentTime = Date.now() / 1000;
+    const thirtyMinutesFromNow = currentTime + (30 * 60); // 30 minutes in seconds
+    
+    return payload.exp < thirtyMinutesFromNow;
+  } catch (error) {
+    return true;
+  }
+};
+
+// Refresh token function
+export const refreshAuthToken = async () => {
+  const currentToken = getToken();
+  
+  if (!currentToken || isTokenExpired(currentToken)) {
+    throw new Error('No valid token to refresh');
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/user/refresh-token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${currentToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to refresh token');
+    }
+
+    const data = await response.json();
+    
+    // Update stored token and user data
+    setToken(data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    
+    return data.token;
+  } catch (error) {
+    // If refresh fails, clear tokens and redirect to login
+    removeToken();
+    throw error;
   }
 };
 
@@ -67,15 +124,30 @@ const handleAuthFailure = (error) => {
   throw error;
 };
 
-// API request wrapper with proper error handling
+// API request wrapper with proper error handling and automatic token refresh
 export const apiRequest = async (endpoint, options = {}) => {
-  const token = getToken();
+  let token = getToken();
   
-  // Check token validity before making request
-  if (token && isTokenExpired(token)) {
-    const error = new Error('Authentication failed: Your session has expired. Please login again.');
-    handleAuthFailure(error);
-    return; // This won't be reached due to redirect, but good practice
+  // Check if token needs refreshing (expired or expiring soon)
+  if (token && (isTokenExpired(token) || isTokenExpiringSoon(token))) {
+    try {
+      // Only refresh if token is not completely expired
+      if (!isTokenExpired(token)) {
+        console.log('🔄 Token expiring soon, refreshing...');
+        token = await refreshAuthToken();
+        console.log('✅ Token refreshed successfully');
+      } else {
+        // Token is completely expired, redirect to login
+        const error = new Error('Authentication failed: Your session has expired. Please login again.');
+        handleAuthFailure(error);
+        return;
+      }
+    } catch (refreshError) {
+      console.error('❌ Token refresh failed:', refreshError);
+      const error = new Error('Authentication failed: Unable to refresh session. Please login again.');
+      handleAuthFailure(error);
+      return;
+    }
   }
 
   const config = {
@@ -226,6 +298,45 @@ export const userAPI = {
   login: (credentials) => api.post('/api/user/login', credentials),
   register: (userData) => api.post('/api/user/register', userData),
   getProfile: () => api.get('/api/user/me'),
+};
+
+// Public API methods (no authentication required)
+export const publicAPI = {
+  // Geo location service - no auth required
+  getCountry: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/geo/country`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // Don't include credentials for public endpoints
+        credentials: 'omit'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Geo API Error:', error);
+      throw new Error(`Geo service failed: ${error.message}`);
+    }
+  },
+  
+  // Other public endpoints can be added here
+  getCountries: async () => {
+    try {
+      const response = await fetch('https://restcountries.com/v3.1/all?fields=name');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.map(c => c.name.common).sort();
+    } catch (error) {
+      throw new Error(`Countries service failed: ${error.message}`);
+    }
+  }
 };
 
 export default api;

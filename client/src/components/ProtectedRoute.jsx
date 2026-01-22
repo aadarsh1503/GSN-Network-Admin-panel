@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { getToken, isTokenExpired, removeToken } from '../utils/api';
+import activityTracker from '../utils/activityTracker';
 
 /**
  * A wrapper component that protects routes from unauthorized access.
@@ -25,7 +26,16 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
             const userString = localStorage.getItem('user');
             const user = userString ? JSON.parse(userString) : null;
 
-            setAuthState({ token, user, isValid: !!(token && !isTokenExpired(token) && user) });
+            const isValid = !!(token && !isTokenExpired(token) && user);
+            setAuthState({ token, user, isValid });
+            
+            // Start activity tracking if user is authenticated
+            if (isValid && !activityTracker.isActive) {
+                activityTracker.startTracking();
+            } else if (!isValid && activityTracker.isActive) {
+                activityTracker.stopTracking();
+            }
+            
             setIsChecking(false);
         };
         
@@ -47,12 +57,14 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
     // --- LOGIC CHECK 1: Is there a valid token? ---
     if (!authState.token || isTokenExpired(authState.token)) {
+        activityTracker.stopTracking(); // Stop tracking on logout
         removeToken();
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
     // --- LOGIC CHECK 2: Is the user logged in at all? ---
     if (!authState.user) {
+        activityTracker.stopTracking(); // Stop tracking on logout
         removeToken();
         return <Navigate to="/login" state={{ from: location }} replace />;
     }

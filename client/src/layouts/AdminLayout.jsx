@@ -12,6 +12,7 @@ import { useNotifications } from '../contexts/NotificationContext';
 import { AdminNotificationProvider, useAdminNotifications } from '../contexts/AdminNotificationContext';
 import LogoutConfirmationModal from '../components/Modal/LogoutConfirmationModal';
 import { useLogoutModal } from '../hooks/useLogoutModal';
+import sseService from '../services/sseService';
 
 // --- AdminHeader Component (Receives isFullscreen and toggleFullscreen) ---
 const AdminHeader = ({ toggleSidebar, toggleFullscreen, isFullscreen }) => {
@@ -183,13 +184,29 @@ const AdminContent = () => {
   // Check for new registrations only once on component mount (admin login)
   useEffect(() => {
     checkNewRegistrationsOnMount();
+    
+    // Connect to SSE for real-time notifications
+    console.log('🔌 Connecting to SSE for real-time admin notifications');
+    const connected = sseService.connect();
+    
+    if (connected) {
+      console.log('✅ SSE connection initiated for admin');
+    } else {
+      console.error('❌ Failed to initiate SSE connection');
+    }
+
+    // Cleanup on unmount
+    return () => {
+      console.log('🔌 Disconnecting SSE on admin layout unmount');
+      sseService.disconnect();
+    };
   }, [checkNewRegistrationsOnMount]);
 
   return (
     <div className="flex bg-slate-50 min-h-screen">
       <Sidebar isSidebarOpen={isSidebarOpen} />
       
-      <main className={`w-full p-6 transition-all duration-500 ease-in-out ${isSidebarOpen ? 'ml-72' : 'ml-0'}`}>
+      <main className={`w-full p-6 transition-all duration-500 ease-in-out ${isSidebarOpen ? 'ml-68' : 'ml-0'}`}>
         <AdminHeader 
           toggleSidebar={toggleSidebar}
           toggleFullscreen={toggleFullscreen}
@@ -197,23 +214,6 @@ const AdminContent = () => {
         />
         <Outlet />
       </main>
-      
-      {/* Toast Container for Admin Notifications */}
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={true}
-        closeOnClick={true}
-        rtl={false}
-        pauseOnFocusLoss={false}
-        draggable={true}
-        pauseOnHover={true}
-        theme="light"
-        limit={5}
-        enableMultiContainer={true}
-        containerId="admin-toasts"
-      />
     </div>
   );
 };
@@ -223,6 +223,20 @@ const AdminLayout = () => {
   return (
     <AdminNotificationProvider>
       <AdminContent />
+      {/* Toast Container for admin notifications */}
+      <ToastContainer
+        containerId="admin-toasts"
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss={false}
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </AdminNotificationProvider>
   );
 };

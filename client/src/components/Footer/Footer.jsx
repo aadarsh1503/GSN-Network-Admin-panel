@@ -1,25 +1,98 @@
 // src/components/Footer.jsx
 
-import React from 'react';
-import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaFacebookF, FaTwitter, FaLinkedinIn, FaYoutube, FaInstagram, FaChevronUp } from 'react-icons/fa';
+import React, { useState } from 'react'; // Added useState
+import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaFacebookF, FaTwitter, FaLinkedinIn, FaYoutube, FaInstagram, FaChevronUp, FaArrowRight } from 'react-icons/fa'; // Added FaArrowRight
 import footerBgImage from "./Footer.png";
 import GSN from "./GSN.jpg";
 import VersionDisplay from '../VersionDisplay/VersionDisplay';
+
 const Footer = () => {
+  // --- NEWSLETTER LOGIC ---
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      setMessage('Please enter a valid email address.');
+      return;
+    }
+    try {
+      setLoading(true);
+      const formData = new FormData();
+      formData.append('email', email);
+      formData.append('list', 'AoyrHgk92Us892ZPK9FnN3Jg'); 
+      formData.append('subform', 'yes');
+      formData.append('hp', '');
+
+      await fetch('https://send.alzyara.com/subscribe', {
+        method: 'POST', body: formData, mode: 'no-cors'
+      });
+      setMessage('Thank you! Your subscription is confirmed.');
+      setEmail('');
+      setTimeout(() => setMessage(''), 4000);
+    } catch (error) {
+      console.error('Error:', error);
+      setMessage('Subscription failed. Please try again.');
+      setTimeout(() => setMessage(''), 3000);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <footer className="relative bg-[#212121] text-gray-300 pt-20 overflow-hidden">
       
-      
       <div
-        className="absolute inset-0 w-full h-full bg-no-repeat bg-center top-32"
+        className="absolute inset-0 w-full h-full bg-no-repeat bg-center top-64"
         style={{ backgroundImage: `url(${footerBgImage})` }}
       ></div>
       <div className="absolute inset-0 w-full h-full bg-black opacity-5"></div> 
   
       <div className="relative container max-w-7xl mx-auto px-6 lg:px-8">
+        
+        {/* --- NEWSLETTER SECTION --- */}
+        <div className="mb-20 text-center">
+            <h2 className="text-3xl lg:text-4xl font-bold text-white tracking-tight">
+                Stay Ahead of the Curve
+            </h2>
+            <p className="mt-3 text-gray-400 max-w-2xl mx-auto">
+                Get exclusive logistics insights and market trends delivered to your inbox.
+            </p>
+            
+            <div className="mt-8 max-w-lg mx-auto p-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm shadow-xl">
+                <form onSubmit={handleSubscribe} className="flex items-center">
+                    <input 
+    type="email"
+    placeholder="Enter your email"
+    className="flex-grow bg-transparent text-white rounded-2xl placeholder-gray-500 px-5 py-2"
+    value={email}
+    autoComplete="off"
+    onChange={(e) => setEmail(e.target.value)}
+    required
+/>
+
+                    <button 
+                        type="submit" 
+                        className="flex-shrink-0 bg-[#CDA435] text-white p-3 rounded-full hover:bg-yellow-600 transition-all duration-300 shadow-md" 
+                        disabled={loading}
+                    >
+                        {loading ? ( 
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> 
+                        ) : ( 
+                          <FaArrowRight className="text-xl"/> 
+                        )}
+                    </button>
+                </form>
+            </div>
+            {message && <p className="mt-4 text-sm text-[#CDA435]">{message}</p>}
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           
-         
+          {/* Column 1: Logo & Info */}
           <div className="ml-8">
             <img src={GSN} alt="Logistics Logo" className="w-28 bg-white" />
             <p className="mt-2 text-gray-400">
@@ -41,7 +114,7 @@ const Footer = () => {
             </div>
           </div>
 
-      
+          {/* Column 2: Information */}
           <div>
             <h3 className="text-xl text-white font-semibold">Information</h3>
             <div className="w-16 h-1 bg-[#CDA435] mt-2 mb-6"></div>
@@ -85,16 +158,15 @@ const Footer = () => {
       </div>
 
       {/* --- LOWER FOOTER / COPYRIGHT SECTION --- */}
-      {/* This div is now OUTSIDE the container, so it will be full-width */}
       <div className="relative mt-1 bg-[#171717] py-6 text-center text-gray-400">
         <div className="flex items-center justify-center space-x-4">
-          <p>2025 Copyright © GSN</p>
+         <p>{new Date().getFullYear()} Copyright © GSN</p>
           <span>|</span>
           <VersionDisplay />
         </div>
       </div>
 
-      {/* Scroll to top button (remains absolutely positioned to the footer) */}
+      {/* Scroll to top button */}
       <a href="#" className="absolute bottom-8 right-8 w-12 h-12 bg-[#CDA435] rounded-full flex items-center justify-center text-white text-xl shadow-lg hover:bg-yellow-500 transition-colors">
         <FaChevronUp />
       </a>

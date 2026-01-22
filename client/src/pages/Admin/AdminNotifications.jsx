@@ -4,13 +4,13 @@ import {
   FaCheck, 
   FaTimes, 
   FaEye,
-  FaClock,
   FaQuoteLeft,
   FaUser,
   FaTicketAlt,
   FaChevronRight,
-  FaInfoCircle,
-  FaExternalLinkAlt
+  FaSort,
+  FaSortUp,
+  FaSortDown
 } from 'react-icons/fa';
 import { FiClock, FiEye, FiCheckCircle, FiAlertCircle, FiZap } from 'react-icons/fi';
 import toast from 'react-hot-toast';
@@ -22,6 +22,10 @@ const AdminNotifications = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [sortField, setSortField] = useState('created_at');
+  const [sortDirection, setSortDirection] = useState('desc');
+  const [filterType, setFilterType] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
 
   useEffect(() => {
     fetchNotifications();
@@ -113,6 +117,68 @@ const AdminNotifications = () => {
     });
   };
 
+  const formatDateShort = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = (now - date) / (1000 * 60 * 60);
+    
+    if (diffInHours < 24) {
+      return date.toLocaleTimeString('en-US', { 
+        hour: 'numeric', minute: 'numeric', hour12: true 
+      });
+    } else if (diffInHours < 168) { // 7 days
+      return date.toLocaleDateString('en-US', { 
+        weekday: 'short', hour: 'numeric', minute: 'numeric', hour12: true 
+      });
+    } else {
+      return date.toLocaleDateString('en-US', { 
+        month: 'short', day: 'numeric' 
+      });
+    }
+  };
+
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  };
+
+  const getSortIcon = (field) => {
+    if (sortField !== field) return <FaSort className="text-gray-400" size={12} />;
+    return sortDirection === 'asc' ? 
+      <FaSortUp className="text-[#CDA435]" size={12} /> : 
+      <FaSortDown className="text-[#CDA435]" size={12} />;
+  };
+
+  const filteredAndSortedNotifications = () => {
+    let filtered = notifications.filter(notification => {
+      const typeMatch = filterType === 'all' || notification.type === filterType;
+      const statusMatch = filterStatus === 'all' || 
+        (filterStatus === 'read' && notification.is_read) ||
+        (filterStatus === 'unread' && !notification.is_read);
+      return typeMatch && statusMatch;
+    });
+
+    return filtered.sort((a, b) => {
+      let aValue = a[sortField];
+      let bValue = b[sortField];
+      
+      if (sortField === 'created_at') {
+        aValue = new Date(aValue);
+        bValue = new Date(bValue);
+      }
+      
+      if (sortDirection === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+  };
+
   const getNotificationIcon = (type) => {
     switch (type) {
       case 'quote':
@@ -127,16 +193,15 @@ const AdminNotifications = () => {
   };
 
   const getNotificationGradient = (type, isRead) => {
-    const baseOpacity = isRead ? '0.3' : '0.8';
     switch (type) {
       case 'quote':
-        return `bg-gradient-to-r from-[#CDA435]/10 via-[#D9B95B]/5 to-transparent border-l-[#CDA435]`;
+        return isRead ? 'bg-[#CDA435]/5' : 'bg-[#CDA435]/10';
       case 'registration':
-        return `bg-gradient-to-r from-emerald-500/10 via-emerald-400/5 to-transparent border-l-emerald-500`;
+        return isRead ? 'bg-emerald-500/5' : 'bg-emerald-500/10';
       case 'ticket':
-        return `bg-gradient-to-r from-orange-500/10 via-orange-400/5 to-transparent border-l-orange-500`;
+        return isRead ? 'bg-orange-500/5' : 'bg-orange-500/10';
       default:
-        return `bg-gradient-to-r from-gray-500/10 via-gray-400/5 to-transparent border-l-gray-500`;
+        return isRead ? 'bg-gray-500/5' : 'bg-gray-500/10';
     }
   };
 
@@ -216,51 +281,117 @@ const AdminNotifications = () => {
           </div>
         </div>
 
-        {/* Notifications Grid */}
-        <div className="space-y-4">
+        {/* Filters and Controls */}
+        <div className="bg-white rounded-xl shadow-md p-4 mb-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <select 
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                className="px-3 py-2 border border-gray-200 rounded-lg focus:border-[#CDA435] focus:ring-1 focus:ring-[#CDA435]/20 text-sm"
+              >
+                <option value="all">All Types</option>
+                <option value="quote">Quote</option>
+                <option value="registration">Registration</option>
+                <option value="ticket">Ticket</option>
+              </select>
+              
+              <select 
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="px-3 py-2 border border-gray-200 rounded-lg focus:border-[#CDA435] focus:ring-1 focus:ring-[#CDA435]/20 text-sm"
+              >
+                <option value="all">All Status</option>
+                <option value="unread">Unread</option>
+                <option value="read">Read</option>
+              </select>
+            </div>
+            
+            {unreadCount > 0 && (
+              <button
+                onClick={markAllAsRead}
+                className="bg-[#CDA435] text-white px-4 py-2 rounded-lg hover:bg-[#D9B95B] transition-all duration-300 flex items-center gap-2 text-sm font-medium"
+              >
+                <FiCheckCircle size={16} />
+                Mark All Read ({unreadCount})
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Notifications Table */}
+        <div className="bg-white rounded-xl shadow-md overflow-hidden">
           {!Array.isArray(notifications) || notifications.length === 0 ? (
             <div className="text-center py-16">
-              <div className="w-32 h-32 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-[#CDA435]/90 to-[#D9B95B]/90 backdrop-blur-sm"></div>
-                <FaBell size={64} className="text-white relative z-10" />
+              <div className="w-20 h-20 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <FaBell size={32} className="text-white" />
               </div>
-              <h3 className="text-3xl font-bold mb-4 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                All Clear!
-              </h3>
-              <p className="text-gray-500 text-lg leading-relaxed max-w-md mx-auto">
-                No notifications to display. You're all caught up with platform activities.
-              </p>
+              <h3 className="text-xl font-bold mb-2 text-gray-800">All Clear!</h3>
+              <p className="text-gray-500">No notifications to display. You're all caught up with platform activities.</p>
             </div>
           ) : (
-            notifications.map((notification) => (
-              <div
-                key={notification.id}
-                className={`group relative overflow-hidden rounded-2xl border-l-4 transition-all duration-500 hover:shadow-2xl hover:scale-[1.02] cursor-pointer backdrop-blur-sm ${
-                  getNotificationGradient(notification.type, notification.is_read)
-                } ${notification.is_read ? 'opacity-75' : 'shadow-lg'}`}
-                onClick={() => handleViewDetails(notification)}
-              >
-                <div className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start space-x-4 flex-1">
-                      {/* Icon with glow effect */}
-                      <div className="relative">
-                        <div className="w-12 h-12 bg-white/80 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
-                          {getNotificationIcon(notification.type)}
-                        </div>
-                        {!notification.is_read && (
-                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full animate-pulse shadow-lg"></div>
-                        )}
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className={`text-lg font-bold transition-colors duration-300 ${
-                            notification.is_read ? 'text-gray-700' : 'text-gray-900'
-                          } group-hover:text-[#CDA435]`}>
-                            {notification.title}
-                          </h3>
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-4 py-3 text-left">
+                      <button 
+                        onClick={() => handleSort('type')}
+                        className="flex items-center gap-2 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-[#CDA435] transition-colors"
+                      >
+                        Type {getSortIcon('type')}
+                      </button>
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      <button 
+                        onClick={() => handleSort('title')}
+                        className="flex items-center gap-2 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-[#CDA435] transition-colors"
+                      >
+                        Title {getSortIcon('title')}
+                      </button>
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Message</span>
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      <button 
+                        onClick={() => handleSort('user_name')}
+                        className="flex items-center gap-2 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-[#CDA435] transition-colors"
+                      >
+                        User {getSortIcon('user_name')}
+                      </button>
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      <button 
+                        onClick={() => handleSort('created_at')}
+                        className="flex items-center gap-2 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-[#CDA435] transition-colors"
+                      >
+                        Date {getSortIcon('created_at')}
+                      </button>
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</span>
+                    </th>
+                    <th className="px-4 py-3 text-center">
+                      <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {filteredAndSortedNotifications().map((notification) => (
+                    <tr
+                      key={notification.id}
+                      className={`hover:bg-gray-50 transition-colors cursor-pointer ${
+                        !notification.is_read ? 'bg-blue-50/30' : ''
+                      } ${getNotificationGradient(notification.type, notification.is_read)}`}
+                      onClick={() => handleViewDetails(notification)}
+                    >
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white shadow-sm">
+                            {getNotificationIcon(notification.type)}
+                          </div>
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold uppercase ${
                             notification.type === 'quote' ? 'bg-[#CDA435]/20 text-[#CDA435]' :
                             notification.type === 'registration' ? 'bg-emerald-500/20 text-emerald-700' :
                             notification.type === 'ticket' ? 'bg-orange-500/20 text-orange-700' :
@@ -268,81 +399,87 @@ const AdminNotifications = () => {
                           }`}>
                             {notification.type}
                           </span>
-                          {notification.is_read && (
-                            <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full flex items-center gap-1">
-                              <FiCheckCircle size={12} />
-                              Read
-                            </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <span className={`font-semibold text-sm ${
+                            notification.is_read ? 'text-gray-600' : 'text-gray-900'
+                          }`}>
+                            {notification.title}
+                          </span>
+                          {!notification.is_read && (
+                            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
                           )}
                         </div>
-                        
-                        <p className={`text-base leading-relaxed mb-4 ${
+                      </td>
+                      <td className="px-4 py-3">
+                        <p className={`text-sm max-w-xs truncate ${
                           notification.is_read ? 'text-gray-500' : 'text-gray-700'
                         }`}>
                           {formatMessagePreview(notification.message)}
                         </p>
-                        
-                        <div className="flex items-center gap-6 text-sm text-gray-400">
+                      </td>
+                      <td className="px-4 py-3">
+                        {notification.user_name ? (
                           <div className="flex items-center gap-2">
-                            <FiClock className="text-[#CDA435]" />
-                            <span className="font-medium">{formatDate(notification.created_at)}</span>
+                            <FaUser className="text-[#CDA435]" size={12} />
+                            <span className="text-sm text-gray-700 font-medium">{notification.user_name}</span>
                           </div>
-                          {notification.user_name && (
-                            <div className="flex items-center gap-2">
-                              <FaUser className="text-[#D9B95B]" />
-                              <span className="font-medium">User: {notification.user_name}</span>
-                            </div>
+                        ) : (
+                          <span className="text-sm text-gray-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <FiClock className="text-[#CDA435]" size={12} />
+                          <span className="text-sm text-gray-600">{formatDateShort(notification.created_at)}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        {notification.is_read ? (
+                          <div className="flex items-center gap-1 text-emerald-600">
+                            <FiCheckCircle size={14} />
+                            <span className="text-xs font-semibold">Read</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1 text-blue-600">
+                            <FiAlertCircle size={14} />
+                            <span className="text-xs font-semibold">Unread</span>
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleViewDetails(notification);
+                            }}
+                            className="w-8 h-8 bg-[#CDA435] text-white rounded-lg flex items-center justify-center hover:bg-[#D9B95B] transition-colors"
+                            title="View Details"
+                          >
+                            <FiEye size={14} />
+                          </button>
+                          {!notification.is_read && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                markAsRead(notification.id);
+                              }}
+                              className="w-8 h-8 bg-blue-500 text-white rounded-lg flex items-center justify-center hover:bg-blue-600 transition-colors"
+                              title="Mark as read"
+                            >
+                              <FaCheck size={12} />
+                            </button>
                           )}
                         </div>
-                      </div>
-                    </div>
-                    
-                    {/* Futuristic Action Buttons */}
-                    <div className="flex items-center space-x-3 ml-4">
-                      {/* Eye Button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleViewDetails(notification);
-                        }}
-                        className="group/btn relative w-12 h-12 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-xl flex items-center justify-center shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-110 overflow-hidden"
-                        title="View Details"
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-[#CDA435]/90 to-[#D9B95B]/90 backdrop-blur-sm"></div>
-                        <FiEye className="text-white relative z-10 group-hover/btn:scale-110 transition-transform duration-300" size={18} />
-                        <div className="absolute inset-0 bg-white/20 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>
-                      </button>
-                      
-                      {/* Read Status */}
-                      {notification.is_read ? (
-                        <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-3 py-2 rounded-xl">
-                          <FiCheckCircle size={16} />
-                          <span className="text-sm font-semibold">Read</span>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            markAsRead(notification.id);
-                          }}
-                          className="flex items-center gap-2 text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-xl transition-all duration-300 hover:shadow-md"
-                          title="Mark as read"
-                        >
-                          <FaCheck size={14} />
-                          <span className="text-sm font-semibold">Mark Read</span>
-                        </button>
-                      )}
-                      
-                      {/* Arrow indicator */}
-                      <FaChevronRight className="text-gray-400 group-hover:text-[#CDA435] transition-colors duration-300" size={16} />
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Hover glow effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-[#CDA435]/5 to-[#D9B95B]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-              </div>
-            ))
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
 

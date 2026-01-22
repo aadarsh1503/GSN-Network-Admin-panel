@@ -22,6 +22,39 @@ const getCompanyProfile = async (req, res) => {
     }
 };
 
+// @desc    Get company profile by ID (for business users to view company details)
+// @route   GET /api/company/profile/:companyId
+const getCompanyProfileById = async (req, res) => {
+    const { companyId } = req.params;
+
+    try {
+        // Get company profile - simplified query without subscriptions table
+        const [companyRows] = await db.execute(`
+            SELECT * FROM users WHERE id = ? AND role = 'company'
+        `, [companyId]);
+
+        const companyProfile = companyRows[0];
+
+        if (!companyProfile) {
+            return res.status(404).json({ message: 'Company profile not found' });
+        }
+
+        // Remove sensitive information
+        delete companyProfile.password;
+        delete companyProfile.email_verification_token;
+        delete companyProfile.password_reset_token;
+        delete companyProfile.password_reset_expires;
+
+        // Add default subscription plan if not available
+        companyProfile.subscription_plan = companyProfile.subscription_plan || 'Guest Member';
+
+        res.status(200).json(companyProfile);
+    } catch (error) {
+        console.error('Error fetching company profile by ID:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
 // @desc    Update company profile
 // @route   PUT /api/company/profile
 const updateCompanyProfile = async (req, res) => {
@@ -413,6 +446,7 @@ const updateCompanyBranch = async (req, res) => {
 // Update exports
 export { 
     getCompanyProfile, 
+    getCompanyProfileById,
     updateCompanyProfile, 
     addCompanyBranch, 
     getCompanyBranches,

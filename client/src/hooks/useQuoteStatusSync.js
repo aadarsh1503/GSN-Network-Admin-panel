@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import api from '../utils/api';
+import { api } from '../utils/api';
 import toast from 'react-hot-toast';
 
 /**
@@ -19,9 +19,10 @@ export const useQuoteStatusSync = (quoteId, interval = 15000, onStatusChange = n
     if (!quoteId) return null;
 
     try {
-      // Fetch current quote status
-      const response = await api.get(`/api/business-quotes/${quoteId}`);
-      const quote = response;
+      // Fetch current quote status - use the correct endpoint
+      const response = await api.get(`/api/business-quotes/my-quotes`);
+      const quotes = Array.isArray(response) ? response : [];
+      const quote = quotes.find(q => q.id === parseInt(quoteId));
       
       if (quote && quote.status) {
         const newStatus = quote.status;

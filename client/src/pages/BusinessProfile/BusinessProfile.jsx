@@ -18,10 +18,12 @@ import {
   CheckCircle,
   AlertCircle,
   Upload,
-  Trash2
+  Trash2,
+  ChevronDown
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api } from '../../utils/api';
+import { fetchCountries, fetchStates, fetchCities } from '../../utils/locationData';
 
 const BusinessProfile = () => {
   const [profile, setProfile] = useState({
@@ -29,7 +31,7 @@ const BusinessProfile = () => {
     name: '',
     email: '',
     phone: '',
-    category: [], // Changed to array for multiple categories
+    category: [],
     country: '',
     state: '',
     city: '',
@@ -60,6 +62,17 @@ const BusinessProfile = () => {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [businessCategories, setBusinessCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
+  
+  // Location data states
+  const [countries, setCountries] = useState([]);
+  const [states, setStates] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [locationLoading, setLocationLoading] = useState({
+    countries: false,
+    states: false,
+    cities: false
+  });
+  
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -74,7 +87,95 @@ const BusinessProfile = () => {
   useEffect(() => {
     fetchProfile();
     fetchBusinessCategories();
+    loadCountries();
   }, []);
+
+  // Load countries on component mount
+  const loadCountries = async () => {
+    try {
+      setLocationLoading(prev => ({ ...prev, countries: true }));
+      const countriesData = await fetchCountries();
+      setCountries(countriesData);
+    } catch (error) {
+      console.error('Error loading countries:', error);
+      toast.error('Failed to load countries');
+    } finally {
+      setLocationLoading(prev => ({ ...prev, countries: false }));
+    }
+  };
+
+  // Load states when country changes
+  const loadStates = async (countryName) => {
+    if (!countryName) {
+      setStates([]);
+      setCities([]);
+      return;
+    }
+
+    try {
+      setLocationLoading(prev => ({ ...prev, states: true }));
+      const statesData = await fetchStates(countryName);
+      setStates(statesData);
+      setCities([]); // Clear cities when country changes
+      
+      // Clear state and city in profile if country changed
+      if (profile.country !== countryName) {
+        setProfile(prev => ({
+          ...prev,
+          state: '',
+          city: ''
+        }));
+      }
+    } catch (error) {
+      console.error('Error loading states:', error);
+      toast.error('Failed to load states');
+      setStates([]);
+    } finally {
+      setLocationLoading(prev => ({ ...prev, states: false }));
+    }
+  };
+
+  // Load cities when state changes
+  const loadCities = async (countryName, stateName) => {
+    if (!countryName || !stateName) {
+      setCities([]);
+      return;
+    }
+
+    try {
+      setLocationLoading(prev => ({ ...prev, cities: true }));
+      const citiesData = await fetchCities(countryName, stateName);
+      setCities(citiesData);
+      
+      // Clear city in profile if state changed
+      if (profile.state !== stateName) {
+        setProfile(prev => ({
+          ...prev,
+          city: ''
+        }));
+      }
+    } catch (error) {
+      console.error('Error loading cities:', error);
+      toast.error('Failed to load cities');
+      setCities([]);
+    } finally {
+      setLocationLoading(prev => ({ ...prev, cities: false }));
+    }
+  };
+
+  // Load states and cities when profile is loaded or country changes
+  useEffect(() => {
+    if (profile.country) {
+      loadStates(profile.country);
+    }
+  }, [profile.country]);
+
+  // Load cities when state changes
+  useEffect(() => {
+    if (profile.country && profile.state) {
+      loadCities(profile.country, profile.state);
+    }
+  }, [profile.country, profile.state]);
 
   const fetchBusinessCategories = async () => {
     try {
@@ -136,6 +237,34 @@ const BusinessProfile = () => {
     setProfile(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  // Enhanced location change handlers
+  const handleCountryChange = (e) => {
+    const selectedCountry = e.target.value;
+    setProfile(prev => ({
+      ...prev,
+      country: selectedCountry,
+      state: '', // Reset state when country changes
+      city: ''   // Reset city when country changes
+    }));
+  };
+
+  const handleStateChange = (e) => {
+    const selectedState = e.target.value;
+    setProfile(prev => ({
+      ...prev,
+      state: selectedState,
+      city: '' // Reset city when state changes
+    }));
+  };
+
+  const handleCityChange = (e) => {
+    const selectedCity = e.target.value;
+    setProfile(prev => ({
+      ...prev,
+      city: selectedCity
     }));
   };
 
@@ -307,7 +436,9 @@ const BusinessProfile = () => {
     ];
     
     const optionalFields = [
-      'state', 'city', 'website', 'logo'
+      'state', 'city', 'website', 'logo', 'owner_name', 'owner_phone', 
+      'incharge_name', 'incharge_phone', 'skype', 'company_address',
+      'services', 'facebook', 'twitter', 'instagram', 'linkedin'
     ];
 
     const filledRequired = requiredFields.filter(field => 
@@ -590,19 +721,32 @@ const BusinessProfile = () => {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Country
+                  Country *
                 </label>
                 <div className="relative">
-                  <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
-                  <input
-                    type="text"
+                  <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4 z-10" />
+                  <select
                     name="country"
                     value={profile.country}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
-                    placeholder="Enter country"
-                  />
+                    onChange={handleCountryChange}
+                    disabled={!isEditing || locationLoading.countries}
+                    className="w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600 appearance-none"
+                  >
+                    <option value="">
+                      {locationLoading.countries ? 'Loading countries...' : 'Select Country'}
+                    </option>
+                    {countries.map(country => (
+                      <option key={country.code} value={country.name}>
+                        {country.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4 pointer-events-none" />
+                  {locationLoading.countries && (
+                    <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#CDA435] border-t-transparent"></div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -611,16 +755,74 @@ const BusinessProfile = () => {
                   State/Province
                 </label>
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
-                  <input
-                    type="text"
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4 z-10" />
+                  <select
                     name="state"
                     value={profile.state}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
-                    placeholder="Enter state/province"
-                  />
+                    onChange={handleStateChange}
+                    disabled={!isEditing || !profile.country || locationLoading.states}
+                    className="w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600 appearance-none"
+                  >
+                    <option value="">
+                      {!profile.country 
+                        ? 'Select country first' 
+                        : locationLoading.states 
+                        ? 'Loading states...' 
+                        : states.length === 0 
+                        ? 'No states available'
+                        : 'Select State/Province'
+                      }
+                    </option>
+                    {states.map(state => (
+                      <option key={state} value={state}>
+                        {state}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4 pointer-events-none" />
+                  {locationLoading.states && (
+                    <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#CDA435] border-t-transparent"></div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  City
+                </label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4 z-10" />
+                  <select
+                    name="city"
+                    value={profile.city}
+                    onChange={handleCityChange}
+                    disabled={!isEditing || !profile.state || locationLoading.cities}
+                    className="w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600 appearance-none"
+                  >
+                    <option value="">
+                      {!profile.state 
+                        ? 'Select state first' 
+                        : locationLoading.cities 
+                        ? 'Loading cities...' 
+                        : cities.length === 0 
+                        ? 'No cities available'
+                        : 'Select City'
+                      }
+                    </option>
+                    {cities.map(city => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4 pointer-events-none" />
+                  {locationLoading.cities && (
+                    <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#CDA435] border-t-transparent"></div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -641,10 +843,92 @@ const BusinessProfile = () => {
             </div>
           </div>
 
-          {/* Contact Information - Simplified */}
+          {/* Contact Information */}
           <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-white/20">
             <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center">
               <User className="h-6 w-6 mr-3 text-[#CDA435]" />
+              Contact Information
+            </h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Owner Name
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                  <input
+                    type="text"
+                    name="owner_name"
+                    value={profile.owner_name}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
+                    placeholder="Enter owner name"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Owner Phone
+                </label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                  <input
+                    type="tel"
+                    name="owner_phone"
+                    value={profile.owner_phone}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
+                    placeholder="Enter owner phone"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Incharge Name
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                  <input
+                    type="text"
+                    name="incharge_name"
+                    value={profile.incharge_name}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
+                    placeholder="Enter incharge name"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Incharge Phone
+                </label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                  <input
+                    type="tel"
+                    name="incharge_phone"
+                    value={profile.incharge_phone}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
+                    placeholder="Enter incharge phone"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Additional Information */}
+          <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-white/20">
+            <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+              <Globe className="h-6 w-6 mr-3 text-[#CDA435]" />
               Additional Information
             </h2>
             
@@ -669,18 +953,133 @@ const BusinessProfile = () => {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  City
+                  Skype ID (Optional)
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                  <input
+                    type="text"
+                    name="skype"
+                    value={profile.skype}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
+                    placeholder="Enter Skype ID"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Company Address
                 </label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
                   <input
                     type="text"
-                    name="city"
-                    value={profile.city}
+                    name="company_address"
+                    value={profile.company_address}
                     onChange={handleInputChange}
                     disabled={!isEditing}
                     className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
-                    placeholder="Enter city"
+                    placeholder="Enter company address"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* <div className="mt-6">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Services Offered (Optional)
+              </label>
+              <textarea
+                name="services"
+                value={Array.isArray(profile.services) ? profile.services.join(', ') : profile.services || ''}
+                onChange={(e) => setProfile(prev => ({ ...prev, services: e.target.value }))}
+                disabled={!isEditing}
+                rows={3}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
+                placeholder="Describe the services your business offers..."
+              />
+            </div> */}
+          </div>
+
+          {/* Social Media & Online Presence */}
+          <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-white/20">
+            <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+              <Globe className="h-6 w-6 mr-3 text-[#CDA435]" />
+              Social Media & Online Presence
+            </h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Facebook (Optional)
+                </label>
+                <div className="relative">
+                  <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                  <input
+                    type="url"
+                    name="facebook"
+                    value={profile.facebook}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
+                    placeholder="https://facebook.com/yourpage"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Twitter (Optional)
+                </label>
+                <div className="relative">
+                  <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                  <input
+                    type="url"
+                    name="twitter"
+                    value={profile.twitter}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
+                    placeholder="https://twitter.com/yourhandle"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Instagram (Optional)
+                </label>
+                <div className="relative">
+                  <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                  <input
+                    type="url"
+                    name="instagram"
+                    value={profile.instagram}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
+                    placeholder="https://instagram.com/yourprofile"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  LinkedIn (Optional)
+                </label>
+                <div className="relative">
+                  <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                  <input
+                    type="url"
+                    name="linkedin"
+                    value={profile.linkedin}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
+                    placeholder="https://linkedin.com/company/yourcompany"
                   />
                 </div>
               </div>

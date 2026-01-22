@@ -282,88 +282,96 @@ router.post('/upload-payment-proof', authenticateToken, authorizeRoles('user', '
             }
         }
 
-        // Get user and company details for email notifications
-        const [userDetails] = await db.execute(
-            'SELECT name, email FROM users WHERE id = ?',
-            [userId]
-        );
-
-        const [companyDetails] = await db.execute(
-            'SELECT name, email FROM users WHERE id = ?',
-            [company_id]
-        );
-
-        const [quoteResponseDetails] = await db.execute(
-            `SELECT qr.*, cbd.bank_name, cbd.account_holder_name, cbd.account_number, cbd.swift_code,
-                    cbd.branch_name, cbd.iban_number, cbd.payment_instructions
-             FROM quote_responses qr 
-             LEFT JOIN quote_response_bank_details qrbd ON qr.id = qrbd.quote_response_id
-             LEFT JOIN company_bank_details cbd ON qrbd.company_bank_details_id = cbd.id 
-             WHERE qr.id = ?`,
-            [quote_response_id]
-        );
-
-        if (userDetails.length > 0 && companyDetails.length > 0 && quoteResponseDetails.length > 0) {
-            const currentDate = new Date().toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-
-            const paymentDate = new Date(payment_date).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-
-            // Send email to company
+        // Queue email notifications for async processing
+        setImmediate(async () => {
             try {
-                await sendQuoteEmail('paymentProofToCompany', {
-                    recipientEmail: companyDetails[0].email,
-                    companyName: companyDetails[0].name,
-                    customerName: userDetails[0].name,
-                    customerEmail: userDetails[0].email,
-                    quoteId: quote_id,
-                    amount: quoteResponseDetails[0].price,
-                    paymentDate: paymentDate,
-                    uploadDate: currentDate,
-                    paymentNotes: payment_notes || '',
-                    bankName: quoteResponseDetails[0].bank_name || '',
-                    accountHolderName: quoteResponseDetails[0].account_holder_name || '',
-                    accountNumber: quoteResponseDetails[0].account_number || '',
-                    swiftCode: quoteResponseDetails[0].swift_code || '',
-                    branchName: quoteResponseDetails[0].branch_name || '',
-                    ibanNumber: quoteResponseDetails[0].iban_number || '',
-                    paymentInstructions: quoteResponseDetails[0].payment_instructions || ''
-                });
-                console.log('✅ Payment proof notification sent to company:', companyDetails[0].email);
-            } catch (emailError) {
-                console.error('❌ Failed to send payment proof notification to company:', emailError);
-            }
+                // Get user and company details for email notifications
+                const [userDetails] = await db.execute(
+                    'SELECT name, email FROM users WHERE id = ?',
+                    [userId]
+                );
 
-            // Send confirmation email to user
-            try {
-                await sendQuoteEmail('paymentProofToUser', {
-                    recipientEmail: userDetails[0].email,
-                    customerName: userDetails[0].name,
-                    companyName: companyDetails[0].name,
-                    quoteId: quote_id,
-                    amount: quoteResponseDetails[0].price,
-                    paymentDate: paymentDate,
-                    uploadDate: currentDate,
-                    fileName: req.file.originalname,
-                    paymentNotes: payment_notes || ''
-                });
-                console.log('✅ Payment proof confirmation sent to user:', userDetails[0].email);
-            } catch (emailError) {
-                console.error('❌ Failed to send payment proof confirmation to user:', emailError);
+                const [companyDetails] = await db.execute(
+                    'SELECT name, email FROM users WHERE id = ?',
+                    [company_id]
+                );
+
+                const [quoteResponseDetails] = await db.execute(
+                    `SELECT qr.*, cbd.bank_name, cbd.account_holder_name, cbd.account_number, cbd.swift_code,
+                            cbd.branch_name, cbd.iban_number, cbd.payment_instructions
+                     FROM quote_responses qr 
+                     LEFT JOIN quote_response_bank_details qrbd ON qr.id = qrbd.quote_response_id
+                     LEFT JOIN company_bank_details cbd ON qrbd.company_bank_details_id = cbd.id 
+                     WHERE qr.id = ?`,
+                    [quote_response_id]
+                );
+
+                if (userDetails.length > 0 && companyDetails.length > 0 && quoteResponseDetails.length > 0) {
+                    const currentDate = new Date().toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+
+                    const paymentDate = new Date(payment_date).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+
+                    // Send email to company
+                    try {
+                        await sendQuoteEmail('paymentProofToCompany', {
+                            recipientEmail: companyDetails[0].email,
+                            companyName: companyDetails[0].name,
+                            customerName: userDetails[0].name,
+                            customerEmail: userDetails[0].email,
+                            quoteId: quote_id,
+                            amount: quoteResponseDetails[0].price,
+                            paymentDate: paymentDate,
+                            uploadDate: currentDate,
+                            paymentNotes: payment_notes || '',
+                            bankName: quoteResponseDetails[0].bank_name || '',
+                            accountHolderName: quoteResponseDetails[0].account_holder_name || '',
+                            accountNumber: quoteResponseDetails[0].account_number || '',
+                            swiftCode: quoteResponseDetails[0].swift_code || '',
+                            branchName: quoteResponseDetails[0].branch_name || '',
+                            ibanNumber: quoteResponseDetails[0].iban_number || '',
+                            paymentInstructions: quoteResponseDetails[0].payment_instructions || ''
+                        });
+                        console.log('✅ Payment proof notification sent to company:', companyDetails[0].email);
+                    } catch (emailError) {
+                        console.error('❌ Failed to send payment proof notification to company:', emailError);
+                    }
+
+                    // Send confirmation email to user
+                    try {
+                        await sendQuoteEmail('paymentProofToUser', {
+                            recipientEmail: userDetails[0].email,
+                            customerName: userDetails[0].name,
+                            companyName: companyDetails[0].name,
+                            quoteId: quote_id,
+                            amount: quoteResponseDetails[0].price,
+                            paymentDate: paymentDate,
+                            uploadDate: currentDate,
+                            fileName: req.file.originalname,
+                            paymentNotes: payment_notes || ''
+                        });
+                        console.log('✅ Payment proof confirmation sent to user:', userDetails[0].email);
+                    } catch (emailError) {
+                        console.error('❌ Failed to send payment proof confirmation to user:', emailError);
+                    }
+                }
+            } catch (asyncError) {
+                console.error('❌ Error in async email processing:', asyncError);
             }
-        }
+        });
 
         res.status(201).json({ 
-            message: 'Payment proof uploaded successfully. The company will verify your payment before work begins.',
+            message: 'Payment proof uploaded successfully! Email notifications are being sent in the background.',
             paymentProofId: paymentProofId,
-            fileUrl: uploadResult.secure_url
+            fileUrl: uploadResult.secure_url,
+            async: true
         });
 
     } catch (error) {

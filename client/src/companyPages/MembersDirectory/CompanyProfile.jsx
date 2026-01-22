@@ -28,6 +28,15 @@ const CompanyProfile = ({ member, onClose }) => {
   const members = member.members || [];
   const reviews = member.reviews || [];
 
+  // Function to format category text (remove underscores and capitalize)
+  const formatCategory = (category) => {
+    if (!category) return '';
+    return category
+      .split(',')
+      .map(cat => cat.trim().replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()))
+      .join(', ');
+  };
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!messageData.subject || !messageData.message) {
@@ -186,7 +195,7 @@ const CompanyProfile = ({ member, onClose }) => {
                   </h1>
                   <div className="flex items-center space-x-3 mb-3">
                     <span className="px-3 py-1 bg-[#CDA435]/10 text-[#CDA435] rounded-full text-sm font-medium border border-[#CDA435]/30">
-                      {company.category}
+                      {formatCategory(company.category)}
                     </span>
                     <FiZap className="text-[#CDA435] animate-pulse" />
                   </div>

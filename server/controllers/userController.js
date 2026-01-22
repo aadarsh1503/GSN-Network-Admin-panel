@@ -4,6 +4,7 @@ import db from '../config/db.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { createAdminNotification } from './adminController.js';
+import { sendUserRegistrationNotificationToAdmin } from '../services/adminNotificationService.js';
 import realTimeNotificationService from '../services/realTimeNotificationService.js';
 import { sendWelcomeMessage } from './messageController.js';
 import { queueSubscriptionEmails } from '../services/emailQueue.js';
@@ -58,7 +59,7 @@ const loginUser = async (req, res) => {
         jwt.sign(
             payload,
             process.env.JWT_SECRET,
-            { expiresIn: '24h' }, // Changed from 1h to 24h
+            { expiresIn: '8h' }, // Set to 8 hours for better balance
             (err, token) => {
                 if (err) throw err;
                 res.status(200).json({
@@ -178,16 +179,19 @@ const registerUser = async (req, res) => {
           console.error('❌ Failed to queue admin registration notification:', error);
       });
 
-      // Create admin notification only for company registrations
-      if (role === 'company') {
-          await createAdminNotification(
-              'registration',
-              `New Company Owner Registration`,
-              `${name} (${email}) has registered as a Company Owner and is pending approval.`,
-              newUserId
-          );
+      // Create admin notification for all user registrations
+      try {
+          console.log(`🔔 Creating admin notification for ${role} user: ${name} (ID: ${newUserId})`);
+          await sendUserRegistrationNotificationToAdmin(newUserId, name, role, email);
+          console.log(`✅ Admin notification created successfully for user ${newUserId}`);
+      } catch (notificationError) {
+          console.error(`❌ Failed to create admin notification for user ${newUserId}:`, notificationError);
+          // Don't fail the registration if notification fails
+      }
 
-          // Send real-time notification to admins
+      // Send real-time notification to admins for all user types
+      try {
+          console.log(`📡 Sending real-time notification for ${role} user: ${name}`);
           await realTimeNotificationService.notifyNewUserRegistration({
               id: newUserId,
               name: name,
@@ -195,15 +199,10 @@ const registerUser = async (req, res) => {
               role: role,
               created_at: new Date().toISOString()
           });
-      } else {
-          // Send real-time notification for user and business registrations (for admin awareness)
-          await realTimeNotificationService.notifyNewUserRegistration({
-              id: newUserId,
-              name: name,
-              email: email,
-              role: role,
-              created_at: new Date().toISOString()
-          });
+          console.log(`✅ Real-time notification sent successfully for user ${newUserId}`);
+      } catch (realtimeError) {
+          console.error(`❌ Failed to send real-time notification for user ${newUserId}:`, realtimeError);
+          // Don't fail the registration if real-time notification fails
       }
 
       // 7. Send appropriate response based on role
@@ -217,7 +216,7 @@ const registerUser = async (req, res) => {
           jwt.sign(
               payload,
               process.env.JWT_SECRET,
-              { expiresIn: '1h' },
+              { expiresIn: '8h' }, // Standardize to 8 hours
               (err, token) => {
                   if (err) {
                       console.error('JWT Error:', err);
@@ -316,7 +315,8 @@ const getUserProfileById = async (req, res) => {
                 id, name, email, phone, role, category, country, state, city,
                 status, is_blacklisted, created_at, updated_at,
                 owner_name, owner_phone, incharge_name, incharge_phone,
-                skype, website, facebook, twitter, instagram
+                skype, website, facebook, twitter, instagram,
+                logo, company_address, about_company
             FROM users 
             WHERE id = ?
         `;
@@ -354,6 +354,11 @@ const getCompanyProfileByIdAdmin = async (req, res) => {
         }
 
         delete userProfile.password;
+        
+        // Convert MySQL boolean values (0/1) to JavaScript booleans
+        userProfile.status = Boolean(userProfile.status);
+        userProfile.is_blacklisted = Boolean(userProfile.is_blacklisted);
+        
         res.status(200).json(userProfile);
     } catch (error) {
         console.error('Error fetching company profile:', error);
@@ -366,116 +371,168 @@ const getCompanyProfileByIdAdmin = async (req, res) => {
 // @access  Admin
 const updateCompanyProfileByIdAdmin = async (req, res) => {
     try {
+        console.log('🔹 updateCompanyProfileByIdAdmin called');
+
         const { id } = req.params;
+        console.log('📌 Company ID:', id);
+
         const {
             name, email, phone, category, country, state, city,
             owner_name, owner_phone, incharge_name, incharge_phone,
             skype, website, facebook, twitter, instagram, linkedin,
-            services, map_location, company_address, about_company
+            map_location, company_address, about_company,
+            latitude, longitude
         } = req.body;
-        
+
+        console.log('📦 Request Body:', req.body);
+
         // Validate input
         if (!name || !email) {
+            console.warn('⚠️ Validation failed: name or email missing');
             return res.status(400).json({ message: 'Name and email are required' });
         }
-        
+
         // Check if email is already taken by another user
         const emailCheckSql = `SELECT id FROM users WHERE email = ? AND id != ?`;
+        console.log('🔍 Checking email uniqueness:', email);
+
         const [emailCheck] = await db.execute(emailCheckSql, [email, id]);
-        
+        console.log('📄 Email check result:', emailCheck);
+
         if (emailCheck.length > 0) {
+            console.warn('⚠️ Email already taken by another user');
             return res.status(400).json({ message: 'Email is already taken by another user' });
         }
 
         // Convert undefined values to null for MySQL compatibility
-        const sanitizeValue = (value) => value === undefined ? null : value;
+        const sanitizeValue = (value) => {
+            if (value === undefined || value === null || value === '') {
+                return null;
+            }
+            return value;
+        };
 
-        // Handle services - if it's an array, stringify it
-        let servicesString = services;
-        if (typeof services !== 'string' && services) {
-            servicesString = JSON.stringify(services);
-        }
-        
         const sql = `
             UPDATE users SET
                 name = ?, email = ?, phone = ?, category = ?, country = ?, state = ?, city = ?,
                 owner_name = ?, owner_phone = ?, incharge_name = ?, incharge_phone = ?,
                 skype = ?, website = ?, facebook = ?, twitter = ?, instagram = ?, linkedin = ?,
-                services = ?, map_location = ?, company_address = ?, about_company = ?,
+                map_location = ?, company_address = ?, about_company = ?,
+                latitude = ?, longitude = ?,
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ? AND role = 'company'
         `;
-        
+
         const values = [
-            sanitizeValue(name), sanitizeValue(email), sanitizeValue(phone), 
+            sanitizeValue(name), sanitizeValue(email), sanitizeValue(phone),
             sanitizeValue(category), sanitizeValue(country), sanitizeValue(state), sanitizeValue(city),
-            sanitizeValue(owner_name), sanitizeValue(owner_phone), 
+            sanitizeValue(owner_name), sanitizeValue(owner_phone),
             sanitizeValue(incharge_name), sanitizeValue(incharge_phone),
-            sanitizeValue(skype), sanitizeValue(website), sanitizeValue(facebook), 
+            sanitizeValue(skype), sanitizeValue(website), sanitizeValue(facebook),
             sanitizeValue(twitter), sanitizeValue(instagram), sanitizeValue(linkedin),
-            sanitizeValue(servicesString), sanitizeValue(map_location), 
-            sanitizeValue(company_address), sanitizeValue(about_company),
+            sanitizeValue(map_location), sanitizeValue(company_address), sanitizeValue(about_company),
+            sanitizeValue(latitude), sanitizeValue(longitude),
             id
         ];
-        
+
+        console.log('📝 Update SQL:', sql);
+        console.log('🧾 SQL Values:', values);
+
         const [result] = await db.execute(sql, values);
-        
+        console.log('✅ Update result:', result);
+
         if (result.affectedRows === 0) {
+            console.warn('❌ No rows affected — company not found or role mismatch');
             return res.status(404).json({ message: 'Company not found' });
         }
-        
+
+        console.log('🎉 Company profile updated successfully');
         res.status(200).json({ message: 'Company profile updated successfully' });
+
     } catch (error) {
-        console.error('Error updating company profile:', error);
+        console.error('🔥 Error updating company profile:', error);
         res.status(500).json({ message: 'Server error updating company profile' });
     }
 };
+
 const updateUserProfileById = async (req, res) => {
     try {
+        console.log('🔹 updateUserProfileById called');
+
         const { id } = req.params;
+        console.log('📌 User ID:', id);
+
         const { 
             name, email, mobile, category, country, state, city,
             owner_name, owner_phone, incharge_name, incharge_phone,
-            website, skype
+            website, skype, logo, about_company
         } = req.body;
-        
+
+        console.log('📦 Request Body:', req.body);
+
         // Validate input
         if (!name || !email) {
+            console.warn('⚠️ Validation failed: name or email missing');
             return res.status(400).json({ message: 'Name and email are required' });
         }
-        
+
         // Check if email is already taken by another user
         const emailCheckSql = `SELECT id FROM users WHERE email = ? AND id != ?`;
+        console.log('🔍 Checking email uniqueness:', email);
+
         const [emailCheck] = await db.execute(emailCheckSql, [email, id]);
-        
+        console.log('📄 Email check result:', emailCheck);
+
         if (emailCheck.length > 0) {
+            console.warn('⚠️ Email already exists for another user');
             return res.status(400).json({ message: 'Email is already taken by another user' });
         }
-        
+
+        // Convert undefined values to null for MySQL compatibility
+        const sanitizeValue = (value) => {
+            if (value === undefined || value === null || value === '') {
+                return null;
+            }
+            return value;
+        };
+
         const sql = `
             UPDATE users 
             SET name = ?, email = ?, phone = ?, category = ?, country = ?, state = ?, city = ?,
                 owner_name = ?, owner_phone = ?, incharge_name = ?, incharge_phone = ?,
-                website = ?, skype = ?, updated_at = CURRENT_TIMESTAMP
+                website = ?, skype = ?, logo = ?, about_company = ?, updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         `;
-        
-        const [result] = await db.execute(sql, [
-            name, email, mobile, category, country, state, city,
-            owner_name, owner_phone, incharge_name, incharge_phone,
-            website, skype, id
-        ]);
-        
+
+        const values = [
+            sanitizeValue(name), sanitizeValue(email), sanitizeValue(mobile), 
+            sanitizeValue(category), sanitizeValue(country), sanitizeValue(state), sanitizeValue(city),
+            sanitizeValue(owner_name), sanitizeValue(owner_phone), 
+            sanitizeValue(incharge_name), sanitizeValue(incharge_phone),
+            sanitizeValue(website), sanitizeValue(skype), sanitizeValue(logo), 
+            sanitizeValue(about_company), id
+        ];
+
+        console.log('📝 Update SQL:', sql);
+        console.log('🧾 SQL Values:', values);
+
+        const [result] = await db.execute(sql, values);
+        console.log('✅ Update result:', result);
+
         if (result.affectedRows === 0) {
+            console.warn('❌ No rows affected — user not found');
             return res.status(404).json({ message: 'User not found' });
         }
-        
+
+        console.log('🎉 User profile updated successfully');
         res.status(200).json({ message: 'User profile updated successfully' });
+
     } catch (error) {
-        console.error('Error updating user profile:', error);
+        console.error('🔥 Error updating user profile:', error);
         res.status(500).json({ message: 'Server error updating user profile' });
     }
 };
+
 
 const getCompanies = async (req, res) => {
     try {
@@ -732,7 +789,28 @@ const getBusinessUsers = async (req, res) => {
                 phone AS mobile, 
                 role, 
                 is_blacklisted AS onBlacklist, 
-                status 
+                status,
+                logo,
+                company_logo,
+                incharge_image,
+                category,
+                country,
+                state,
+                city,
+                owner_name,
+                owner_phone,
+                incharge_name,
+                incharge_phone,
+                skype,
+                website,
+                facebook,
+                twitter,
+                instagram,
+                linkedin,
+                services,
+                company_address,
+                about_company,
+                created_at
             FROM users 
             WHERE role = 'business'
         `;
@@ -1371,6 +1449,49 @@ const verifyResetTokenEndpoint = async (req, res) => {
     }
 };
 
+// @desc    Refresh authentication token
+// @route   POST /api/user/refresh-token
+// @access  Private
+const refreshToken = async (req, res) => {
+    try {
+        // The user is already authenticated via the protect middleware
+        const user = req.user;
+        
+        // Generate a new token with extended expiration
+        const payload = {
+            id: user.id,
+            role: user.role,
+        };
+
+        jwt.sign(
+            payload,
+            process.env.JWT_SECRET,
+            { expiresIn: '8h' }, // Fresh 8-hour token
+            (err, token) => {
+                if (err) {
+                    console.error('JWT Refresh Error:', err);
+                    return res.status(500).json({ message: 'Error refreshing token' });
+                }
+                
+                res.status(200).json({
+                    token,
+                    user: {
+                        id: user.id,
+                        name: user.name,
+                        email: user.email,
+                        role: user.role,
+                    },
+                    message: 'Token refreshed successfully'
+                });
+            }
+        );
+
+    } catch (error) {
+        console.error('Error refreshing token:', error);
+        res.status(500).json({ message: 'Server error refreshing token' });
+    }
+};
+
 export {
     loginUser,
     getAdminData,
@@ -1397,5 +1518,6 @@ export {
     getUserTransactionInvoiceById,
     forgotPassword,
     resetPassword,
-    verifyResetTokenEndpoint
+    verifyResetTokenEndpoint,
+    refreshToken
 };

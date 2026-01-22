@@ -1,8 +1,19 @@
 // src/components/BusinessOwners.jsx
 
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { FaPen, FaEye, FaTimes } from 'react-icons/fa';
 import { FaArrowUp, FaArrowDown } from 'react-icons/fa6';
+import { 
+  Building, 
+  Mail, 
+  Phone, 
+  Globe, 
+  MapPin, 
+  Upload, 
+  Trash2, 
+  CheckCircle,
+  X
+} from 'lucide-react';
 import { api } from '../../utils/api';
 import { adminToast } from '../../utils/adminToast';
 import StatusConfirmationModal from '../../components/Modal/StatusConfirmationModal';
@@ -17,6 +28,35 @@ const ToggleSwitch = ({ checked, onChange }) => {
   );
 };
 
+// Helper function to format category names
+const formatCategoryName = (category) => {
+  if (!category) return 'N/A';
+  
+  const categoryMap = {
+    '3pl': 'Third-Party Logistics Providers (3PLs)',
+    'freight_forwarders': 'Freight Forwarders',
+    'courier_parcel': 'Courier and Parcel Delivery Services',
+    'warehousing_distribution': 'Warehousing and Distribution',
+    'transportation_service': 'Transportation Service',
+    'supply_chain_management': 'Supply Chain Management',
+    'inventory_management': 'Inventory Management',
+    'cold_chain_logistics': 'Cold Chain Logistics',
+    'ecommerce_logistics': 'E-commerce Logistics',
+    'cross_border_logistics': 'Cross-border Logistics',
+    'specialized_logistics': 'Specialized Logistics',
+    'technology_software_providers': 'Technology and Software Providers',
+    'packaging_labeling_services': 'Packaging and Labeling Services',
+    'last_mile_delivery': 'Last Mile Delivery',
+    'air_cargo_freight': 'Air Cargo and Freight Services',
+    'rail_intermodal_logistics': 'Rail and Intermodal Logistics',
+    'freight_brokerage': 'Freight Brokerage',
+    'drone_autonomous_logistics': 'Drone and Autonomous Vehicle Logistics',
+    'custom_brokerage': 'Custom Brokerage'
+  };
+  
+  return categoryMap[category] || category.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+};
+
 
 function BusinessOwners() {
   const [users, setUsers] = useState([]);
@@ -29,6 +69,7 @@ function BusinessOwners() {
   const [editingUser, setEditingUser] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [viewingUser, setViewingUser] = useState(null);
+  const [showAllCategories, setShowAllCategories] = useState(false); // New state for category expansion
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     type: '',
@@ -36,6 +77,35 @@ function BusinessOwners() {
     currentValue: null,
     userName: ''
   });
+
+  // Business categories for the edit form
+  const businessCategories = [
+    'Aerospace and Defense',
+    'Agriculture and Farming',
+    'Automotive Industry',
+    'Biotechnology',
+    'Chemical Industry',
+    'Clothing and Apparel',
+    'Construction and Building Materials',
+    'Distributors',
+    'Education Sector',
+    'Energy and Utilities',
+    'Financial Services and Banking',
+    'Food and Beverage Industry',
+    'Government and Public Sector',
+    'Healthcare and Pharmaceuticals',
+    'Hospitality and Tourism',
+    'Insurance Industry',
+    'Manufacturers',
+    'Media and Entertainment',
+    'Mining and Metals',
+    'Non-Profit Organizations',
+    'Professional Services (Legal, Consulting)',
+    'Real Estate',
+    'Retailer',
+    'Technology Companies',
+    'Telecommunications'
+  ];
 
   // --- Fetch Data from Backend ---
   useEffect(() => {
@@ -138,47 +208,67 @@ function BusinessOwners() {
   const handleEditUser = async (user) => {
     console.log('Editing user:', user); // Debug log
     setLoading(true);
+    
+    // Show loading toast
+    const loadingToastId = adminToast.info('Loading user details for editing...', { autoClose: false });
+    
     try {
       // Fetch full user details for editing
       const userDetails = await api.get(`/api/user/profile/${user.id}`);
       console.log('User details fetched:', userDetails); // Debug log
+      console.log('About company from API:', userDetails.about_company); // Debug specific field
+      console.log('Logo from API:', userDetails.logo); // Debug specific field
+      
+      // Dismiss loading toast
+      adminToast.dismiss(loadingToastId);
       
       setEditingUser(user.id);
       setEditForm({
         name: userDetails.name || '',
         email: userDetails.email || '',
-        mobile: userDetails.phone || userDetails.mobile || '',
-        category: userDetails.category || '',
+        mobile: userDetails.phone || userDetails.mobile || '', // Map phone to mobile
+        category: Array.isArray(userDetails.category) ? userDetails.category : 
+                 (userDetails.category ? userDetails.category.split(',').map(c => c.trim()).filter(c => c) : []),
         country: userDetails.country || '',
         state: userDetails.state || '',
         city: userDetails.city || '',
-        owner_name: userDetails.owner_name || '',
-        owner_phone: userDetails.owner_phone || '',
-        incharge_name: userDetails.incharge_name || '',
-        incharge_phone: userDetails.incharge_phone || '',
         website: userDetails.website || '',
-        skype: userDetails.skype || ''
+        about_company: userDetails.about_company || '', // This should now work
+        logo: userDetails.logo || '' // This should now work
       });
+      
+      // Success toast with data confirmation
+      adminToast.success(`✅ User details loaded! Found ${userDetails.about_company ? 'about company' : 'no about'} and ${userDetails.logo ? 'logo' : 'no logo'}`, {
+        autoClose: 3000
+      });
+      
     } catch (error) {
       console.error("Error fetching user details for edit:", error);
+      // Dismiss loading toast
+      adminToast.dismiss(loadingToastId);
+      
+      // Show specific error
+      const errorMessage = error.response?.data?.message || error.message || 'Unknown error';
+      adminToast.error(`❌ Failed to load user details: ${errorMessage}`, {
+        autoClose: 5000
+      });
+      
       // Fallback to basic user data if detailed fetch fails
       setEditingUser(user.id);
       setEditForm({
         name: user.name || '',
         email: user.email || '',
-        mobile: user.mobile || '',
-        category: user.category || '',
+        mobile: user.phone || user.mobile || '', // Map phone to mobile
+        category: Array.isArray(user.category) ? user.category : 
+                 (user.category ? user.category.split(',').map(c => c.trim()).filter(c => c) : []),
         country: user.country || '',
         state: user.state || '',
         city: user.city || '',
-        owner_name: '',
-        owner_phone: '',
-        incharge_name: '',
-        incharge_phone: '',
-        website: '',
-        skype: ''
+        website: user.website || '',
+        about_company: user.about_company || '',
+        logo: user.logo || ''
       });
-      adminToast.warning('Could not load full profile details, showing basic information');
+      
     } finally {
       setLoading(false);
     }
@@ -187,22 +277,23 @@ function BusinessOwners() {
   // 4. Handle Save Edit
   const handleSaveEdit = async () => {
     console.log('Saving edit form:', editForm); // Debug log
+    
+    // Show saving toast
+    const savingToastId = adminToast.info('Saving changes...', { autoClose: false });
+    
     try {
       // Use the admin update API with correct field mapping
       const updateData = {
         name: editForm.name,
         email: editForm.email,
-        mobile: editForm.mobile,
-        category: editForm.category,
+        mobile: editForm.mobile, // Backend expects 'mobile' but stores as 'phone'
+        category: Array.isArray(editForm.category) ? editForm.category.join(',') : editForm.category,
         country: editForm.country,
         state: editForm.state,
         city: editForm.city,
-        owner_name: editForm.owner_name || '',
-        owner_phone: editForm.owner_phone || '',
-        incharge_name: editForm.incharge_name || '',
-        incharge_phone: editForm.incharge_phone || '',
         website: editForm.website || '',
-        skype: editForm.skype || ''
+        logo: editForm.logo || '',
+        about_company: editForm.about_company || ''
       };
       
       console.log('Sending update data:', updateData); // Debug log
@@ -210,25 +301,41 @@ function BusinessOwners() {
       const response = await api.put(`/api/user/update-profile/${editingUser}`, updateData);
       console.log('Update response:', response); // Debug log
       
-      // Update local state
+      // Dismiss saving toast
+      adminToast.dismiss(savingToastId);
+      
+      // Update local state with the response data or form data
       setUsers(users.map(user => 
         user.id === editingUser 
           ? { 
               ...user, 
               name: editForm.name,
               email: editForm.email,
-              mobile: editForm.mobile
+              mobile: editForm.mobile,
+              category: Array.isArray(editForm.category) ? editForm.category.join(',') : editForm.category,
+              country: editForm.country,
+              state: editForm.state,
+              city: editForm.city,
+              website: editForm.website,
+              logo: editForm.logo,
+              about_company: editForm.about_company
             }
           : user
       ));
       
       setEditingUser(null);
       setEditForm({});
-      adminToast.success('Business profile updated successfully');
+      adminToast.success('Business profile updated successfully! 🎉');
     } catch (error) {
+      // Dismiss saving toast
+      adminToast.dismiss(savingToastId);
+      
       console.error("Error updating business:", error);
       console.error("Error details:", error.response || error); // More detailed error logging
-      adminToast.error(error.message || "Failed to update business profile");
+      
+      // Show specific error message
+      const errorMessage = error.response?.data?.message || error.message || "Failed to update business profile";
+      adminToast.error(`Update failed: ${errorMessage}`);
     }
   };
 
@@ -238,9 +345,65 @@ function BusinessOwners() {
     setEditForm({});
   };
 
-  // 6. Handle View User Details
+  // 6. Handle Category Toggle for Edit Form
+  const handleCategoryToggle = (category) => {
+    setEditForm(prev => ({
+      ...prev,
+      category: prev.category && prev.category.includes(category)
+        ? prev.category.filter(c => c !== category)
+        : [...(prev.category || []), category]
+    }));
+  };
+
+  // 7. Handle Logo Upload
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      adminToast.error('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      adminToast.error('Image size should be less than 5MB');
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await api.post('/api/upload/image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const logoUrl = response.url;
+      
+      // Update edit form with new logo URL
+      setEditForm(prev => ({
+        ...prev,
+        logo: logoUrl
+      }));
+
+      adminToast.success('Logo uploaded successfully');
+      
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      adminToast.error(error.response?.data?.message || 'Failed to upload logo');
+    }
+  };
+
+  // 8. Handle View User Details
   const handleViewUser = async (user) => {
     try {
+      // Reset category expansion state when opening modal
+      setShowAllCategories(false);
+      
       // For business users, we'll use the user profile API with proper error handling
       let userDetails;
       try {
@@ -502,81 +665,516 @@ function BusinessOwners() {
         </div>
       </div>
 
-      {/* User Details Modal */}
+      {/* Enhanced User Details Modal */}
       {viewingUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold">Business Owner Details</h3>
-              <button 
-                onClick={() => setViewingUser(null)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <FaTimes size={20} />
-              </button>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                <p className="p-2 bg-gray-50 rounded border">{viewingUser.name}</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <p className="p-2 bg-gray-50 rounded border">{viewingUser.email}</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Mobile</label>
-                <p className="p-2 bg-gray-50 rounded border">{viewingUser.phone || viewingUser.mobile}</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-                <p className="p-2 bg-gray-50 rounded border capitalize">{viewingUser.role}</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                <p className="p-2 bg-gray-50 rounded border">{viewingUser.category || 'N/A'}</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
-                <p className="p-2 bg-gray-50 rounded border">{viewingUser.country || 'N/A'}</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <p className={`p-2 rounded border ${viewingUser.status ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                  {viewingUser.status ? 'Active' : 'Inactive'}
-                </p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Blacklisted</label>
-                <p className={`p-2 rounded border ${viewingUser.is_blacklisted ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
-                  {viewingUser.is_blacklisted ? 'Yes' : 'No'}
-                </p>
-              </div>
-              
-              {viewingUser.created_at && (
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Registration Date</label>
-                  <p className="p-2 bg-gray-50 rounded border">
-                    {new Date(viewingUser.created_at).toLocaleString()}
-                  </p>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden shadow-2xl">
+            {/* Modal Header */}
+            <div className="bg-yellow-500 p-6 text-white">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-4">
+                  {(viewingUser.logo || viewingUser.profile_image || viewingUser.image) && (
+                    <img 
+                      src={viewingUser.logo || viewingUser.profile_image || viewingUser.image} 
+                      alt="Business Logo" 
+                      className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-lg"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                  )}
+                  <div>
+                    <h3 className="text-2xl font-bold">{viewingUser.name}</h3>
+                    <p className="text-blue-100">Business Profile</p>
+                  </div>
                 </div>
-              )}
+                <button 
+                  onClick={() => setViewingUser(null)}
+                  className="text-white hover:text-blue-200 transition-colors p-2 rounded-full hover:bg-white hover:bg-opacity-20"
+                >
+                  <FaTimes size={24} />
+                </button>
+              </div>
             </div>
-            
-            <div className="mt-6 flex justify-end">
+
+            {/* Modal Content */}
+            <div className="overflow-y-auto max-h-[calc(95vh-120px)]">
+              <div className="p-6">
+                {/* Business Header Section */}
+                <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-6 mb-6 border border-gray-200 shadow-sm">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                    {/* Business Info */}
+                    <div className="lg:col-span-2">
+                      <div className="flex items-start space-x-4">
+                        {/* Country Flag */}
+                        {viewingUser.country && (
+                          <div className="flex-shrink-0">
+                            <div className="w-12 h-8 bg-gray-200 rounded border border-gray-300 flex items-center justify-center text-xs font-bold text-gray-600">
+                              {viewingUser.country.substring(0, 2).toUpperCase()}
+                            </div>
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <h2 className="text-2xl font-bold text-gray-800 mb-2">{viewingUser.name}</h2>
+                          <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                            {viewingUser.website && (
+                              <a href={viewingUser.website} target="_blank" rel="noopener noreferrer" className="flex items-center hover:text-blue-600 transition-colors">
+                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9" />
+                                </svg>
+                                Website
+                              </a>
+                            )}
+                            {(viewingUser.country || viewingUser.state || viewingUser.city) && (
+                              <span className="flex items-center">
+                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                {[viewingUser.city, viewingUser.state, viewingUser.country].filter(Boolean).join(', ')}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Status Badges */}
+                    <div className="flex flex-col items-start lg:items-end space-y-3">
+                      <div className={`px-4 py-2 rounded-full text-sm font-bold ${
+                        viewingUser.status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {viewingUser.status ? 'Active Account' : 'Inactive Account'}
+                      </div>
+                      {viewingUser.is_blacklisted && (
+                        <div className="px-4 py-2 rounded-full text-sm font-bold bg-red-100 text-red-800">
+                          Blacklisted
+                        </div>
+                      )}
+                      {viewingUser.created_at && (
+                        <div className="text-sm text-gray-500">
+                          Joined: {new Date(viewingUser.created_at).toLocaleDateString()}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Main Content Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Left Column - Main Information */}
+                  <div className="lg:col-span-2 space-y-6">
+                    
+                    {/* Business Information Card */}
+                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+                      <div className="p-6 border-b border-gray-200">
+                        <h4 className="text-lg font-semibold text-gray-800 flex items-center">
+                          <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                          </svg>
+                          Business Information
+                        </h4>
+                      </div>
+                      <div className="p-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Business Name</label>
+                            <p className="p-3 bg-gray-50 rounded-lg border text-gray-800">{viewingUser.name}</p>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            <p className="p-3 bg-gray-50 rounded-lg border text-gray-800">{viewingUser.email}</p>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                            <p className="p-3 bg-gray-50 rounded-lg border text-gray-800">{viewingUser.phone || viewingUser.mobile || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                            <p className="p-3 bg-gray-50 rounded-lg border text-gray-800 capitalize">{viewingUser.role}</p>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                            <p className="p-3 bg-gray-50 rounded-lg border text-gray-800">{viewingUser.country || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">State/Province</label>
+                            <p className="p-3 bg-gray-50 rounded-lg border text-gray-800">{viewingUser.state || 'N/A'}</p>
+                          </div>
+                        </div>
+                        {viewingUser.about_company && (
+                          <div className="mt-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">About Business</label>
+                            <p className="p-3 bg-gray-50 rounded-lg border text-gray-800">{viewingUser.about_company}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Contact Information Card */}
+                    {(viewingUser.owner_name || viewingUser.owner_phone || viewingUser.incharge_name || viewingUser.incharge_phone) && (
+                      <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+                        <div className="p-6 border-b border-gray-200">
+                          <h4 className="text-lg font-semibold text-gray-800 flex items-center">
+                            <span className="w-5 h-5 mr-2 text-green-600">👤</span>
+                            Contact Information
+                          </h4>
+                        </div>
+                        <div className="p-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {viewingUser.owner_name && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Owner Name</label>
+                                <p className="p-3 bg-gray-50 rounded-lg border text-gray-800">{viewingUser.owner_name}</p>
+                              </div>
+                            )}
+                            {viewingUser.owner_phone && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Owner Phone</label>
+                                <p className="p-3 bg-gray-50 rounded-lg border text-gray-800">{viewingUser.owner_phone}</p>
+                              </div>
+                            )}
+                            {viewingUser.incharge_name && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Incharge Name</label>
+                                <p className="p-3 bg-gray-50 rounded-lg border text-gray-800">{viewingUser.incharge_name}</p>
+                              </div>
+                            )}
+                            {viewingUser.incharge_phone && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Incharge Phone</label>
+                                <p className="p-3 bg-gray-50 rounded-lg border text-gray-800">{viewingUser.incharge_phone}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Additional Information Card */}
+                    {(viewingUser.website || viewingUser.city || viewingUser.skype || viewingUser.company_address || viewingUser.services) && (
+                      <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+                        <div className="p-6 border-b border-gray-200">
+                          <h4 className="text-lg font-semibold text-gray-800 flex items-center">
+                            <svg className="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9" />
+                            </svg>
+                            Additional Information
+                          </h4>
+                        </div>
+                        <div className="p-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {viewingUser.website && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                                <a 
+                                  href={viewingUser.website.startsWith('http') ? viewingUser.website : `https://${viewingUser.website}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-3 bg-gray-50 rounded-lg border text-blue-600 hover:text-blue-800 block"
+                                >
+                                  {viewingUser.website}
+                                </a>
+                              </div>
+                            )}
+                            {viewingUser.city && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                                <p className="p-3 bg-gray-50 rounded-lg border text-gray-800">{viewingUser.city}</p>
+                              </div>
+                            )}
+                            {viewingUser.skype && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Skype ID</label>
+                                <p className="p-3 bg-gray-50 rounded-lg border text-gray-800">{viewingUser.skype}</p>
+                              </div>
+                            )}
+                            {viewingUser.company_address && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Company Address</label>
+                                <p className="p-3 bg-gray-50 rounded-lg border text-gray-800">{viewingUser.company_address}</p>
+                              </div>
+                            )}
+                          </div>
+                          {viewingUser.services && (
+                            <div className="mt-4">
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Services Offered</label>
+                              <p className="p-3 bg-gray-50 rounded-lg border text-gray-800">{viewingUser.services}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Social Media & Online Presence Card */}
+                    {(viewingUser.facebook || viewingUser.twitter || viewingUser.instagram || viewingUser.linkedin) && (
+                      <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+                        <div className="p-6 border-b border-gray-200">
+                          <h4 className="text-lg font-semibold text-gray-800 flex items-center">
+                            <span className="w-5 h-5 mr-2 text-purple-600">🌐</span>
+                            Social Media & Online Presence
+                          </h4>
+                        </div>
+                        <div className="p-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {viewingUser.facebook && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Facebook</label>
+                                <a 
+                                  href={viewingUser.facebook.startsWith('http') ? viewingUser.facebook : `https://${viewingUser.facebook}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-3 bg-gray-50 rounded-lg border text-blue-600 hover:text-blue-800 block"
+                                >
+                                  {viewingUser.facebook}
+                                </a>
+                              </div>
+                            )}
+                            {viewingUser.twitter && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Twitter</label>
+                                <a 
+                                  href={viewingUser.twitter.startsWith('http') ? viewingUser.twitter : `https://${viewingUser.twitter}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-3 bg-gray-50 rounded-lg border text-blue-600 hover:text-blue-800 block"
+                                >
+                                  {viewingUser.twitter}
+                                </a>
+                              </div>
+                            )}
+                            {viewingUser.instagram && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Instagram</label>
+                                <a 
+                                  href={viewingUser.instagram.startsWith('http') ? viewingUser.instagram : `https://${viewingUser.instagram}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-3 bg-gray-50 rounded-lg border text-blue-600 hover:text-blue-800 block"
+                                >
+                                  {viewingUser.instagram}
+                                </a>
+                              </div>
+                            )}
+                            {viewingUser.linkedin && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn</label>
+                                <a 
+                                  href={viewingUser.linkedin.startsWith('http') ? viewingUser.linkedin : `https://${viewingUser.linkedin}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-3 bg-gray-50 rounded-lg border text-blue-600 hover:text-blue-800 block"
+                                >
+                                  {viewingUser.linkedin}
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Business Categories Card */}
+                    {viewingUser.category && (
+                      <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+                        <div className="p-6 border-b border-gray-200">
+                          <h4 className="text-lg font-semibold text-gray-800 flex items-center">
+                            <svg className="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                            </svg>
+                            Business Categories
+                          </h4>
+                        </div>
+                        <div className="p-6">
+                          <div className="bg-gray-50 rounded-lg p-4">
+                            {(() => {
+                              // Handle comma-separated categories
+                              const categories = viewingUser.category.split(',').map(cat => cat.trim()).filter(Boolean);
+                              
+                              if (categories.length <= 6) {
+                                // Show all categories if 6 or fewer
+                                return (
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                    {categories.map((category, index) => (
+                                      <div key={index} className="flex items-center p-2 bg-white rounded border">
+                                        <svg className="w-4 h-4 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span className="text-sm text-gray-800">{formatCategoryName(category)}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                );
+                              } else {
+                                // Show limited categories with expand/collapse for many categories
+                                const categoriesToShow = showAllCategories ? categories : categories.slice(0, 6);
+                                return (
+                                  <div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
+                                      {categoriesToShow.map((category, index) => (
+                                        <div key={index} className="flex items-center p-2 bg-white rounded border">
+                                          <svg className="w-4 h-4 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                          </svg>
+                                          <span className="text-sm text-gray-800">{formatCategoryName(category)}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                    <div className="text-center">
+                                      <button
+                                        onClick={() => setShowAllCategories(!showAllCategories)}
+                                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-purple-600 bg-white border border-purple-200 rounded-lg hover:bg-purple-50 transition-colors"
+                                      >
+                                        {showAllCategories ? (
+                                          <>
+                                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                            </svg>
+                                            Show Less
+                                          </>
+                                        ) : (
+                                          <>
+                                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                            Show All {categories.length} Categories
+                                          </>
+                                        )}
+                                      </button>
+                                    </div>
+                                  </div>
+                                );
+                              }
+                            })()}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right Column - Contact & Additional Info */}
+                  <div className="space-y-6">
+                    
+                    {/* Contact Person Card */}
+                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm sticky top-4">
+                      <div className="p-6 text-center">
+                        <div className="mb-4">
+                          {(viewingUser.owner_image || viewingUser.profile_image || viewingUser.logo || viewingUser.image) ? (
+                            <img 
+                              src={viewingUser.owner_image || viewingUser.profile_image || viewingUser.logo || viewingUser.image} 
+                              alt="Business Owner" 
+                              className="w-20 h-20 rounded-full mx-auto object-cover border-4 border-gray-100 shadow-sm"
+                              onError={(e) => {
+                                e.target.src = 'https://i.imgur.com/sCEw22l.png';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-20 h-20 rounded-full mx-auto bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center border-4 border-gray-100 text-white text-2xl font-bold shadow-sm">
+                              {(viewingUser.owner_name || viewingUser.name || 'B').charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-800">
+                          {viewingUser.owner_name || viewingUser.name}
+                        </h3>
+                        <p className="text-gray-500 mb-3">Business Owner</p>
+                        <div className="text-gray-600 mb-4">
+                          <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                          </svg>
+                          {viewingUser.owner_phone || viewingUser.phone || viewingUser.mobile || 'Phone not available'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Online Presence */}
+                    {(viewingUser.website || viewingUser.skype) && (
+                      <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+                        <div className="p-6 border-b border-gray-200">
+                          <h4 className="text-lg font-semibold text-gray-800 flex items-center">
+                            <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9" />
+                            </svg>
+                            Online Presence
+                          </h4>
+                        </div>
+                        <div className="p-6 space-y-3">
+                          {viewingUser.website && (
+                            <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                              <svg className="w-5 h-5 mr-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9" />
+                              </svg>
+                              <a href={viewingUser.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm">
+                                {viewingUser.website}
+                              </a>
+                            </div>
+                          )}
+                          {viewingUser.skype && (
+                            <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                              <svg className="w-5 h-5 mr-3 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12.069 18.874c-4.023 0-5.82-1.979-5.82-3.464 0-.765.561-1.296 1.333-1.296 1.723 0 1.273 2.477 4.487 2.477 1.641 0 2.55-.895 2.55-1.811 0-.551-.269-1.16-1.354-1.429l-3.576-.895c-2.88-.724-3.403-2.286-3.403-3.751 0-3.047 2.861-4.191 5.549-4.191 2.471 0 5.393 1.373 5.393 3.199 0 .784-.688 1.24-1.453 1.24-1.469 0-1.198-2.037-4.164-2.037-1.469 0-2.292.664-2.292 1.617 0 .587.269 1.027 1.181 1.24l3.19.742c3.007.742 3.673 2.435 3.673 3.965 0 2.613-2.04 4.191-5.82 4.191l.526.002z"/>
+                              </svg>
+                              <span className="text-gray-700 text-sm">{viewingUser.skype}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Location Information */}
+                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+                      <div className="p-6 border-b border-gray-200">
+                        <h4 className="text-lg font-semibold text-gray-800 flex items-center">
+                          <svg className="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          Location Details
+                        </h4>
+                      </div>
+                      <div className="p-6 space-y-3">
+                        {viewingUser.country && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                            <p className="p-2 bg-gray-50 rounded text-gray-800">{viewingUser.country}</p>
+                          </div>
+                        )}
+                        {viewingUser.state && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                            <p className="p-2 bg-gray-50 rounded text-gray-800">{viewingUser.state}</p>
+                          </div>
+                        )}
+                        {viewingUser.city && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                            <p className="p-2 bg-gray-50 rounded text-gray-800">{viewingUser.city}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
               <button 
                 onClick={() => setViewingUser(null)}
-                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
               >
                 Close
+              </button>
+              <button 
+                onClick={() => {
+                  setViewingUser(null);
+                  handleEditUser(viewingUser);
+                }}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+              >
+                <FaPen className="mr-2" />
+                Edit Profile
               </button>
             </div>
           </div>
@@ -585,184 +1183,294 @@ function BusinessOwners() {
 
       {/* Edit User Modal */}
       {editingUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold">Edit Business Owner</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden">
+            {/* Modal Header */}
+            <div className="bg-yellow-500 px-6 py-4 flex justify-between items-center">
+              <h3 className="text-xl font-semibold text-white flex items-center">
+                <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Edit Business Profile
+              </h3>
               <button 
                 onClick={handleCancelEdit}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-white hover:text-gray-200 transition-colors"
               >
-                <FaTimes size={20} />
+                <FaTimes size={24} />
               </button>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Basic Information */}
-              <div className="md:col-span-2">
-                <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">Basic Information</h4>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Business Name *</label>
-                <input
-                  type="text"
-                  value={editForm.name}
-                  onChange={(e) => setEditForm({...editForm, name: e.target.value})}
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-                <input
-                  type="email"
-                  value={editForm.email}
-                  onChange={(e) => setEditForm({...editForm, email: e.target.value})}
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Mobile</label>
-                <input
-                  type="text"
-                  value={editForm.mobile}
-                  onChange={(e) => setEditForm({...editForm, mobile: e.target.value})}
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
-                />
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                <input
-                  type="text"
-                  value={editForm.category}
-                  onChange={(e) => setEditForm({...editForm, category: e.target.value})}
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
-                />
-              </div>
+            {/* Modal Content */}
+            <div className="overflow-y-auto max-h-[calc(95vh-120px)]">
+              <div className="p-6">
+                <div className="space-y-8">
+                  
+                  {/* Company Logo Section */}
+                  <div className="bg-slate-50 rounded-2xl p-6">
+                    <h4 className="text-xl font-bold text-slate-800 mb-6 flex items-center">
+                      <Building className="h-6 w-6 mr-3 text-[#CDA435]" />
+                      Company Logo
+                    </h4>
+                    
+                    <div className="flex items-center space-x-6">
+                      <div className="relative">
+                        <div className="w-24 h-24 bg-slate-100 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden">
+                          {editForm.logo ? (
+                            <img 
+                              src={editForm.logo} 
+                              alt="Company Logo" 
+                              className="w-full h-full object-cover rounded-xl"
+                            />
+                          ) : (
+                            <Building className="h-8 w-8 text-slate-400" />
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="flex-1">
+                        <h5 className="text-lg font-semibold text-slate-800 mb-2">Upload Company Logo</h5>
+                        <p className="text-slate-600 text-sm mb-4">
+                          Upload your company logo to build trust with logistics providers. Recommended size: 200x200px, Max size: 5MB
+                        </p>
+                        
+                        <div className="flex space-x-3">
+                          <label className="flex items-center space-x-2 bg-gradient-to-r from-[#CDA435] to-[#B8941F] hover:from-[#B8941F] hover:to-[#CDA435] text-white px-4 py-2 rounded-xl transition-all duration-300 cursor-pointer">
+                            <Upload className="h-4 w-4" />
+                            <span>Upload Logo</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleLogoUpload}
+                              className="hidden"
+                            />
+                          </label>
+                          
+                          {editForm.logo && (
+                            <button
+                              onClick={() => setEditForm(prev => ({ ...prev, logo: '' }))}
+                              className="flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl transition-all duration-300"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              <span>Remove</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
-              {/* Location Information */}
-              <div className="md:col-span-2 mt-4">
-                <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">Location Information</h4>
-              </div>
+                  {/* Business Information Section */}
+                  <div className="bg-slate-50 rounded-2xl p-6">
+                    <h4 className="text-xl font-bold text-slate-800 mb-6 flex items-center">
+                      <Building className="h-6 w-6 mr-3 text-[#CDA435]" />
+                      Business Information
+                    </h4>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          Business Name *
+                        </label>
+                        <div className="relative">
+                          <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                          <input
+                            type="text"
+                            value={editForm.name || ''}
+                            onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300"
+                            placeholder="Enter business name"
+                            required
+                          />
+                        </div>
+                      </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
-                <input
-                  type="text"
-                  value={editForm.country}
-                  onChange={(e) => setEditForm({...editForm, country: e.target.value})}
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
-                />
-              </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          Email Address *
+                        </label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                          <input
+                            type="email"
+                            value={editForm.email || ''}
+                            onChange={(e) => setEditForm({...editForm, email: e.target.value})}
+                            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300"
+                            placeholder="Enter email address"
+                            required
+                          />
+                        </div>
+                      </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
-                <input
-                  type="text"
-                  value={editForm.state}
-                  onChange={(e) => setEditForm({...editForm, state: e.target.value})}
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
-                />
-              </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          Phone Number
+                        </label>
+                        <div className="relative">
+                          <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                          <input
+                            type="tel"
+                            value={editForm.mobile || ''}
+                            onChange={(e) => setEditForm({...editForm, mobile: e.target.value})}
+                            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300"
+                            placeholder="Enter phone number"
+                          />
+                        </div>
+                      </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                <input
-                  type="text"
-                  value={editForm.city}
-                  onChange={(e) => setEditForm({...editForm, city: e.target.value})}
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
-                />
-              </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-slate-700 mb-3">
+                          Business Categories *
+                        </label>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          {businessCategories.map(category => (
+                            <label
+                              key={category}
+                              className={`flex items-center space-x-2 p-3 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
+                                editForm.category && editForm.category.includes(category)
+                                  ? 'border-[#CDA435] bg-yellow-50 text-[#CDA435]'
+                                  : 'border-slate-200 bg-white hover:border-slate-300'
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={editForm.category && editForm.category.includes(category)}
+                                onChange={() => handleCategoryToggle(category)}
+                                className="hidden"
+                              />
+                              <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                                editForm.category && editForm.category.includes(category)
+                                  ? 'border-[#CDA435] bg-[#CDA435]'
+                                  : 'border-slate-300'
+                              }`}>
+                                {editForm.category && editForm.category.includes(category) && (
+                                  <CheckCircle className="h-3 w-3 text-white" />
+                                )}
+                              </div>
+                              <span className="text-sm font-medium">{category}</span>
+                            </label>
+                          ))}
+                        </div>
+                        {editForm.category && editForm.category.length > 0 && (
+                          <div className="mt-3 p-3 bg-green-50 rounded-xl border border-green-200">
+                            <p className="text-sm text-green-700">
+                              <CheckCircle className="inline h-4 w-4 mr-1" />
+                              {editForm.category.length} categor{editForm.category.length !== 1 ? 'ies' : 'y'} selected: {editForm.category.join(', ')}
+                            </p>
+                          </div>
+                        )}
+                      </div>
 
-              {/* Contact Information */}
-              <div className="md:col-span-2 mt-4">
-                <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">Contact Information</h4>
-              </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          Country
+                        </label>
+                        <div className="relative">
+                          <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                          <input
+                            type="text"
+                            value={editForm.country || ''}
+                            onChange={(e) => setEditForm({...editForm, country: e.target.value})}
+                            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300"
+                            placeholder="Enter country"
+                          />
+                        </div>
+                      </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Owner Name</label>
-                <input
-                  type="text"
-                  value={editForm.owner_name}
-                  onChange={(e) => setEditForm({...editForm, owner_name: e.target.value})}
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
-                />
-              </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          State/Province
+                        </label>
+                        <div className="relative">
+                          <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                          <input
+                            type="text"
+                            value={editForm.state || ''}
+                            onChange={(e) => setEditForm({...editForm, state: e.target.value})}
+                            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300"
+                            placeholder="Enter state/province"
+                          />
+                        </div>
+                      </div>
+                    </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Owner Phone</label>
-                <input
-                  type="text"
-                  value={editForm.owner_phone}
-                  onChange={(e) => setEditForm({...editForm, owner_phone: e.target.value})}
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
-                />
-              </div>
+                    <div className="mt-6">
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        About Business *
+                      </label>
+                      <textarea
+                        value={editForm.about_company || ''}
+                        onChange={(e) => setEditForm({...editForm, about_company: e.target.value})}
+                        rows={4}
+                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300"
+                        placeholder="Describe your business and what products/services you need logistics for..."
+                      />
+                    </div>
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Incharge Name</label>
-                <input
-                  type="text"
-                  value={editForm.incharge_name}
-                  onChange={(e) => setEditForm({...editForm, incharge_name: e.target.value})}
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
-                />
-              </div>
+                  {/* Additional Information Section */}
+                  <div className="bg-slate-50 rounded-2xl p-6">
+                    <h4 className="text-xl font-bold text-slate-800 mb-6 flex items-center">
+                      <Globe className="h-6 w-6 mr-3 text-[#CDA435]" />
+                      Additional Information
+                    </h4>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          Website (Optional)
+                        </label>
+                        <div className="relative">
+                          <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                          <input
+                            type="url"
+                            value={editForm.website || ''}
+                            onChange={(e) => setEditForm({...editForm, website: e.target.value})}
+                            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300"
+                            placeholder="https://www.example.com"
+                          />
+                        </div>
+                      </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Incharge Phone</label>
-                <input
-                  type="text"
-                  value={editForm.incharge_phone}
-                  onChange={(e) => setEditForm({...editForm, incharge_phone: e.target.value})}
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
-                />
-              </div>
-
-              {/* Online Presence */}
-              <div className="md:col-span-2 mt-4">
-                <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">Online Presence</h4>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
-                <input
-                  type="url"
-                  value={editForm.website}
-                  onChange={(e) => setEditForm({...editForm, website: e.target.value})}
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
-                  placeholder="https://example.com"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Skype</label>
-                <input
-                  type="text"
-                  value={editForm.skype}
-                  onChange={(e) => setEditForm({...editForm, skype: e.target.value})}
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
-                />
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          City
+                        </label>
+                        <div className="relative">
+                          <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                          <input
+                            type="text"
+                            value={editForm.city || ''}
+                            onChange={(e) => setEditForm({...editForm, city: e.target.value})}
+                            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300"
+                            placeholder="Enter city"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-            
-            <div className="mt-6 flex justify-end space-x-3">
+
+            {/* Modal Footer */}
+            <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3 border-t border-gray-200">
               <button 
                 onClick={handleCancelEdit}
-                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center"
               >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
                 Cancel
               </button>
               <button 
                 onClick={handleSaveEdit}
-                className="px-4 py-2 bg-[#CDA435] text-white rounded hover:bg-[#B8941F]"
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
               >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
                 Save Changes
               </button>
             </div>

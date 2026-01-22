@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FaSort, FaPen, FaTrash, FaTimes } from 'react-icons/fa';
 import api from '../../utils/api';
+import { fetchCountries, fetchStates, fetchCities } from '../../utils/locationData';
 
 const ManageCompanyBranch = () => {
   const [branches, setBranches] = useState([]);
@@ -10,6 +11,14 @@ const ManageCompanyBranch = () => {
   // Pagination State
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Location data states for edit modal
+  const [countries, setCountries] = useState([]);
+  const [states, setStates] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [loadingCountries, setLoadingCountries] = useState(false);
+  const [loadingStates, setLoadingStates] = useState(false);
+  const [loadingCities, setLoadingCities] = useState(false);
 
   // --- EDIT STATE ---
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -23,7 +32,20 @@ const ManageCompanyBranch = () => {
   // Fetch Data on Component Mount
   useEffect(() => {
     fetchBranches();
+    loadCountries();
   }, []);
+
+  const loadCountries = async () => {
+    setLoadingCountries(true);
+    try {
+      const countriesData = await fetchCountries();
+      setCountries(countriesData);
+    } catch (error) {
+      console.error('Error loading countries:', error);
+    } finally {
+      setLoadingCountries(false);
+    }
+  };
 
   const fetchBranches = async () => {
     try {
@@ -51,10 +73,10 @@ const ManageCompanyBranch = () => {
   };
 
   // --- EDIT HANDLERS ---
-  const handleEditClick = (branch) => {
+  const handleEditClick = async (branch) => {
     setEditingId(branch.id);
     // Map database column names to form state names
-    setEditFormData({
+    const formData = {
       branchName: branch.branch_name,
       branchPhone: branch.branch_phone || '',
       branchEmail: branch.branch_email || '',
@@ -71,13 +93,87 @@ const ManageCompanyBranch = () => {
       mapLocation: branch.map_location || '',
       website: branch.website || '',
       telephone: branch.telephone || ''
-    });
+    };
+    
+    setEditFormData(formData);
+    
+    // Load states if country is selected
+    if (formData.country) {
+      setLoadingStates(true);
+      try {
+        const statesData = await fetchStates(formData.country);
+        setStates(statesData);
+        
+        // Load cities if state is also selected
+        if (formData.state) {
+          setLoadingCities(true);
+          try {
+            const citiesData = await fetchCities(formData.country, formData.state);
+            setCities(citiesData);
+          } catch (error) {
+            console.error('Error loading cities:', error);
+          } finally {
+            setLoadingCities(false);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading states:', error);
+      } finally {
+        setLoadingStates(false);
+      }
+    }
+    
     setIsEditModalOpen(true);
   };
 
-  const handleEditChange = (e) => {
+  const handleEditChange = async (e) => {
     const { name, value } = e.target;
     setEditFormData(prev => ({ ...prev, [name]: value }));
+
+    // Handle cascading dropdowns
+    if (name === 'country') {
+      // Reset state and city when country changes
+      setEditFormData(prev => ({
+        ...prev,
+        [name]: value,
+        state: '',
+        city: ''
+      }));
+      setStates([]);
+      setCities([]);
+      
+      if (value) {
+        setLoadingStates(true);
+        try {
+          const statesData = await fetchStates(value);
+          setStates(statesData);
+        } catch (error) {
+          console.error('Error loading states:', error);
+        } finally {
+          setLoadingStates(false);
+        }
+      }
+    } else if (name === 'state') {
+      // Reset city when state changes
+      setEditFormData(prev => ({
+        ...prev,
+        [name]: value,
+        city: ''
+      }));
+      setCities([]);
+      
+      if (value && editFormData.country) {
+        setLoadingCities(true);
+        try {
+          const citiesData = await fetchCities(editFormData.country, value);
+          setCities(citiesData);
+        } catch (error) {
+          console.error('Error loading cities:', error);
+        } finally {
+          setLoadingCities(false);
+        }
+      }
+    }
   };
 
   const handleUpdateSubmit = async (e) => {
@@ -222,9 +318,77 @@ const ManageCompanyBranch = () => {
               <h4 className="text-md font-semibold text-[#CDA435] mb-4 border-b pb-2">Location & Contact</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div><label className={labelClasses}>Branch Name</label><input type="text" name="branchName" value={editFormData.branchName} onChange={handleEditChange} className={inputClasses} required /></div>
-                <div><label className={labelClasses}>Country</label><input type="text" name="country" value={editFormData.country} onChange={handleEditChange} className={inputClasses} /></div>
-                <div><label className={labelClasses}>State</label><input type="text" name="state" value={editFormData.state} onChange={handleEditChange} className={inputClasses} /></div>
-                <div><label className={labelClasses}>City</label><input type="text" name="city" value={editFormData.city} onChange={handleEditChange} className={inputClasses} /></div>
+                
+                <div>
+                  <label className={labelClasses}>Country</label>
+                  <select 
+                    name="country" 
+                    value={editFormData.country} 
+                    onChange={handleEditChange} 
+                    className={inputClasses}
+                    disabled={loadingCountries}
+                  >
+                    <option value="">
+                      {loadingCountries ? 'Loading countries...' : 'Select Country'}
+                    </option>
+                    {countries.map((country) => (
+                      <option key={country.code} value={country.name}>
+                        {country.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className={labelClasses}>State</label>
+                  <select 
+                    name="state" 
+                    value={editFormData.state} 
+                    onChange={handleEditChange} 
+                    className={inputClasses}
+                    disabled={!editFormData.country || loadingStates}
+                  >
+                    <option value="">
+                      {!editFormData.country 
+                        ? 'Select country first' 
+                        : loadingStates 
+                          ? 'Loading states...' 
+                          : 'Select State'
+                      }
+                    </option>
+                    {states.map((state) => (
+                      <option key={state} value={state}>
+                        {state}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className={labelClasses}>City</label>
+                  <select 
+                    name="city" 
+                    value={editFormData.city} 
+                    onChange={handleEditChange} 
+                    className={inputClasses}
+                    disabled={!editFormData.state || loadingCities}
+                  >
+                    <option value="">
+                      {!editFormData.state 
+                        ? 'Select state first' 
+                        : loadingCities 
+                          ? 'Loading cities...' 
+                          : 'Select City'
+                      }
+                    </option>
+                    {cities.map((city) => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
                 <div><label className={labelClasses}>Phone</label><input type="tel" name="branchPhone" value={editFormData.branchPhone} onChange={handleEditChange} className={inputClasses} /></div>
                 <div><label className={labelClasses}>Email</label><input type="email" name="branchEmail" value={editFormData.branchEmail} onChange={handleEditChange} className={inputClasses} /></div>
                 <div><label className={labelClasses}>Telephone</label><input type="tel" name="telephone" value={editFormData.telephone} onChange={handleEditChange} className={inputClasses} /></div>

@@ -355,8 +355,8 @@ const EditCompanyDetails = () => {
                 
                 const combinedData = {
                     ...companyData,
-                    owner_name: companyData.owner_name || userData.user || '', 
-                    owner_phone: companyData.owner_phone || userData.phone_number || '',
+                    owner_name: companyData.owner_name || userData.name || '', 
+                    owner_phone: companyData.owner_phone || userData.phone || '',
                     // Ensure logo exists in state
                     logo: companyData.logo || '' 
                 };

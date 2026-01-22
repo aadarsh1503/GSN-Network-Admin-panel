@@ -35,7 +35,7 @@ export const getNewRegistrations = async (req, res) => {
         u.created_at 
       FROM users u
       LEFT JOIN admin_toast_seen ats ON u.id = ats.user_id AND ats.toast_type = 'registration'
-      WHERE u.role IN ('company', 'business') 
+      WHERE u.role IN ('user', 'company', 'business') 
         AND u.created_at > ? 
         AND ats.user_id IS NULL
       ORDER BY u.created_at DESC
@@ -59,10 +59,11 @@ export const getPendingNotifications = async (req, res) => {
     const createTableSql = `
       CREATE TABLE IF NOT EXISTS admin_notifications (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        type ENUM('registration', 'quote', 'ticket', 'general') NOT NULL,
+        type ENUM('registration', 'quote', 'ticket', 'general', 'dispute') NOT NULL,
         title VARCHAR(255) NOT NULL,
         message TEXT NOT NULL,
         user_id INT,
+        additional_data JSON,
         is_read BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

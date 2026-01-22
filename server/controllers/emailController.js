@@ -1,14 +1,23 @@
 import db from '../config/db.js';
 import { sendEmail } from '../services/emailService.js';
+import { sendBulkEmailViaSendy, getSendySubscriberCount } from '../services/sendyService.js';
 
 // @desc    Send bulk emails to users based on type
 // @route   POST /api/admin/send-emails
 // @access  Private/Admin
 export const sendBulkEmails = async (req, res) => {
     try {
-        const { userType, subject, body } = req.body;
+        console.log('📧 Bulk email request received:', {
+            userType: req.body.userType,
+            subject: req.body.subject,
+            emailMethod: req.body.emailMethod,
+            bodyLength: req.body.body?.length
+        });
+
+        const { userType, subject, body, emailMethod = 'smtp' } = req.body;
 
         if (!userType || !subject || !body) {
+            console.log('❌ Missing required fields:', { userType, subject, bodyExists: !!body });
             return res.status(400).json({ 
                 message: 'User type, subject, and body are required' 
             });
@@ -40,45 +49,86 @@ export const sendBulkEmails = async (req, res) => {
                 `;
                 break;
             default:
+                console.log('❌ Invalid user type:', userType);
                 return res.status(400).json({ message: 'Invalid user type' });
         }
 
+        console.log('🔍 Executing SQL query for userType:', userType);
+        
         // Get users based on the query
         const [users] = await db.execute(sql, params);
 
+        console.log(`📊 Found ${users.length} users for ${userType}`);
+        if (users.length > 0) {
+            console.log('👥 Sample users:', users.slice(0, 3).map(u => ({ email: u.email, name: u.name })));
+        }
+
         if (users.length === 0) {
+            console.log('❌ No users found for type:', userType);
             return res.status(404).json({ 
                 message: 'No users found for the selected type' 
             });
         }
 
-        // Send emails to all users
-        const emailPromises = users.map(user => {
-            // Personalize the email body with user's name
-            const personalizedBody = body.replace(/\{name\}/g, user.name || 'Valued User');
-            return sendEmail(user.email, subject, personalizedBody, 'general');
-        });
+        let result;
 
-        const results = await Promise.allSettled(emailPromises);
-
-        // Count successful and failed emails
-        const successful = results.filter(result => result.status === 'fulfilled' && result.value.success).length;
-        const failed = results.length - successful;
-
-        res.status(200).json({
-            message: 'Bulk email sending completed',
-            totalUsers: users.length,
-            successful,
-            failed,
-            details: {
-                userType,
-                subject,
-                recipients: users.map(u => u.email)
+        if (emailMethod === 'sendy') {
+            console.log('📨 Sending via Sendy...');
+            // Send via Sendy
+            result = await sendBulkEmailViaSendy(users, subject, body);
+            
+            console.log('✅ Sendy result:', result);
+            
+            if (result.success) {
+                res.status(200).json({
+                    message: result.message,
+                    method: 'sendy',
+                    totalUsers: users.length,
+                    campaignSent: true,
+                    subscriptionResults: result.subscriptionResults,
+                    details: {
+                        userType,
+                        subject,
+                        recipients: users.map(u => u.email)
+                    }
+                });
+            } else {
+                console.log('❌ Sendy failed:', result.message);
+                res.status(500).json({
+                    message: result.message || 'Failed to send via Sendy',
+                    method: 'sendy'
+                });
             }
-        });
+        } else {
+            console.log('📧 Sending via SMTP...');
+            // Send via SMTP (existing method)
+            const emailPromises = users.map(user => {
+                const personalizedBody = body.replace(/\{name\}/g, user.name || 'Valued User');
+                return sendEmail(user.email, subject, personalizedBody, 'general');
+            });
+
+            const results = await Promise.allSettled(emailPromises);
+            const successful = results.filter(result => result.status === 'fulfilled' && result.value.success).length;
+            const failed = results.length - successful;
+
+            console.log(`✅ SMTP results: ${successful} successful, ${failed} failed`);
+
+            res.status(200).json({
+                message: 'Bulk email sending completed via SMTP',
+                method: 'smtp',
+                totalUsers: users.length,
+                successful,
+                failed,
+                details: {
+                    userType,
+                    subject,
+                    recipients: users.map(u => u.email)
+                }
+            });
+        }
 
     } catch (error) {
-        console.error('Error sending bulk emails:', error);
+        console.error('❌ Error sending bulk emails:', error);
         res.status(500).json({ message: 'Server error sending emails' });
     }
 };
@@ -125,12 +175,16 @@ export const getEmailStats = async (req, res) => {
 
         const [userCounts] = await db.execute(userCountsQuery);
 
+        // Get Sendy subscriber count
+        const sendySubscriberCount = await getSendySubscriberCount();
+
         res.status(200).json({
             emailStats: stats,
             userCounts: userCounts.reduce((acc, curr) => {
                 acc[curr.type] = curr.count;
                 return acc;
-            }, {})
+            }, {}),
+            sendySubscriberCount
         });
 
     } catch (error) {

@@ -1,4 +1,5 @@
 // Utility function for consistent logout handling across the app
+import activityTracker from './activityTracker';
 
 export const performLogout = (options = {}) => {
   const {
@@ -9,6 +10,10 @@ export const performLogout = (options = {}) => {
   } = options;
 
   try {
+    // Stop activity tracking
+    activityTracker.stopTracking();
+    console.log('🛑 Activity tracker stopped on logout');
+    
     // Clear authentication data
     localStorage.removeItem('token');
     localStorage.removeItem('user');

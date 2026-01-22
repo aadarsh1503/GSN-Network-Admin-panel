@@ -39,6 +39,11 @@ export const adminToast = {
     toast.dismiss();
   },
   
+  // Method to dismiss a specific toast by ID
+  dismiss: (toastId) => {
+    toast.dismiss(toastId);
+  },
+  
   // Custom method for admin notifications
   notify: (message, type = 'info', options = {}) => {
     const config = { ...defaultToastConfig, ...options };

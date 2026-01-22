@@ -4,21 +4,41 @@ import db from '../config/db.js';
 // Create an admin notification
 const createAdminNotification = async (type, title, message, userId = null, additionalData = null) => {
     try {
-        const sql = `
+        // First try with additional_data column
+        let sql = `
             INSERT INTO admin_notifications (type, title, message, user_id, additional_data, created_at, is_read)
             VALUES (?, ?, ?, ?, ?, NOW(), 0)
         `;
         
-        const [result] = await db.execute(sql, [
+        let values = [
             type, 
             title, 
             message, 
             userId, 
             additionalData ? JSON.stringify(additionalData) : null
-        ]);
-        
-        console.log(`✅ Admin notification created: ${title}`);
-        return result.insertId;
+        ];
+
+        try {
+            const [result] = await db.execute(sql, values);
+            console.log(`✅ Admin notification created: ${title}`);
+            return result.insertId;
+        } catch (columnError) {
+            // If additional_data column doesn't exist, try without it
+            if (columnError.code === 'ER_BAD_FIELD_ERROR') {
+                console.log('⚠️ additional_data column not found, creating notification without it...');
+                sql = `
+                    INSERT INTO admin_notifications (type, title, message, user_id, created_at, is_read)
+                    VALUES (?, ?, ?, ?, NOW(), 0)
+                `;
+                values = [type, title, message, userId];
+                
+                const [result] = await db.execute(sql, values);
+                console.log(`✅ Admin notification created (without additional_data): ${title}`);
+                return result.insertId;
+            } else {
+                throw columnError;
+            }
+        }
     } catch (error) {
         console.error('❌ Error creating admin notification:', error);
         throw error;

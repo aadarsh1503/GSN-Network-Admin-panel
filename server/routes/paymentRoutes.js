@@ -419,10 +419,19 @@ router.put('/verify/:id', authenticateToken, authorizeRoles('company'), async (r
 
     // If verified, update quote status to 'approved'
     if (status === 'verified') {
+      // Update quote status to approved
       await db.execute(
-        'UPDATE quotes SET status = ? WHERE id = ?',
+        'UPDATE quotes SET status = ?, updated_at = NOW() WHERE id = ?',
         ['approved', verification[0].quote_id]
       );
+
+      // Also update the quote_responses table to reflect the approval
+      await db.execute(
+        'UPDATE quote_responses SET status = ? WHERE quote_id = ? AND company_id = ?',
+        ['approved', verification[0].quote_id, companyId]
+      );
+
+      console.log(`✅ Quote #${verification[0].quote_id} automatically approved due to payment verification`);
     }
 
     res.json({ 
@@ -535,10 +544,65 @@ router.put('/verify-enhanced/:verificationId', authenticateToken, authorizeRoles
 
     // If verified, update quote status to approved/running
     if (verification_status === 'verified') {
+      // Update quote status to approved
       await db.execute(
-        'UPDATE quotes SET status = ? WHERE id = ?',
+        'UPDATE quotes SET status = ?, updated_at = NOW() WHERE id = ?',
         ['approved', verification.quote_id]
       );
+
+      // Also update the quote_responses table to reflect the approval
+      await db.execute(
+        'UPDATE quote_responses SET status = ? WHERE quote_id = ? AND company_id = ?',
+        ['approved', verification.quote_id, companyId]
+      );
+
+      console.log(`✅ Quote #${verification.quote_id} automatically approved due to payment verification`);
+
+      // Create admin notification for auto-approval
+      try {
+        const [companyDetails] = await db.execute(
+          'SELECT name FROM users WHERE id = ?',
+          [companyId]
+        );
+        
+        const companyName = companyDetails.length > 0 ? companyDetails[0].name : 'Company';
+        
+        const title = `Quote Auto-Approved - Payment Verified`;
+        const message = `Quote #${verification.quote_id} has been automatically approved because ${companyName} verified the customer's payment.
+
+📋 Details:
+🏢 Company: ${companyName}
+📄 Quote ID: #${verification.quote_id}
+💳 Payment Status: Verified ✅
+📊 Quote Status: Automatically Updated to "Approved"
+📝 Company Notes: ${company_notes || 'Payment verified successfully'}
+
+⏰ Auto-Approved: ${new Date().toLocaleString('en-US', { 
+          month: 'short', 
+          day: 'numeric', 
+          year: 'numeric',
+          hour: 'numeric', 
+          minute: '2-digit',
+          hour12: true 
+        })}
+
+🎉 The quote is now approved and work can begin!`;
+        
+        await db.execute(`
+          INSERT INTO admin_notifications (type, title, message, user_id, created_at, is_read)
+          VALUES (?, ?, ?, ?, NOW(), 0)
+        `, [
+          'quote',
+          title,
+          message,
+          verification.user_id
+        ]);
+        
+        console.log(`✅ Admin notification created for auto-approval: Quote #${verification.quote_id}`);
+      } catch (notificationError) {
+        console.error('❌ Error creating admin notification for auto-approval:', notificationError);
+        // Don't fail the whole operation if notification fails
+      }
     } else if (verification_status === 'rejected') {
       // If payment is rejected, update quote status to rejected
       await db.execute(

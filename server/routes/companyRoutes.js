@@ -2,6 +2,7 @@ import express from 'express';
 const router = express.Router();
 import { 
     getCompanyProfile, 
+    getCompanyProfileById,
     updateCompanyProfile, 
     addCompanyBranch,
     getCompanyBranches,
@@ -22,6 +23,10 @@ router.route('/profile')
         { name: 'logo', maxCount: 1 },
         { name: 'incharge_image', maxCount: 1 }
     ]), updateCompanyProfile);
+
+// Get company profile by ID (for business users)
+router.route('/profile/:companyId')
+    .get(protect, getCompanyProfileById);
 
 // Branch Routes
 router.route('/branches')

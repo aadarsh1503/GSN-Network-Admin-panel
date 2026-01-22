@@ -7,6 +7,8 @@ import { LoadingProvider } from "./contexts/LoadingContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { GlobalNotificationProvider } from "./contexts/GlobalNotificationContext";
 import { SubscriptionProvider } from "./contexts/SubscriptionContext";
+import activityTracker from "./utils/activityTracker";
+import { getToken } from "./utils/api";
 import "./App.css";
 import "./styles/notifications.css";
 
@@ -164,6 +166,20 @@ const PublicLayout = () => (
 );
 
 function App() {
+  // Initialize activity tracker when app starts
+  useEffect(() => {
+    const token = getToken();
+    if (token) {
+      activityTracker.startTracking();
+      console.log('🚀 Activity tracker initialized');
+    }
+
+    // Cleanup on unmount
+    return () => {
+      activityTracker.stopTracking();
+    };
+  }, []);
+
   return (
     <LoadingProvider>
       <NotificationProvider>
@@ -184,16 +200,19 @@ function App() {
             {/* Global Toast Container for react-toastify */}
             <ToastContainer
               position="top-right"
-              autoClose={6000}
+              autoClose={5000}
               hideProgressBar={false}
-              newestOnTop={false}
-              closeOnClick
+              newestOnTop={true}
+              closeOnClick={true}
               rtl={false}
               pauseOnFocusLoss={false}
-              draggable
-              pauseOnHover
+              draggable={true}
+              pauseOnHover={true}
               theme="light"
               limit={5}
+              style={{
+                zIndex: 9999
+              }}
             />
 
       <Routes>

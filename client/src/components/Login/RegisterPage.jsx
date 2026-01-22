@@ -4,7 +4,7 @@ import { Listbox, Transition } from '@headlessui/react';
 import PhoneInput from 'react-phone-input-2';
 import toast from 'react-hot-toast';
 import 'react-phone-input-2/lib/style.css';
-import { api } from '../../utils/api';
+import { api, publicAPI } from '../../utils/api';
 import { submitPendingQuote, hasPendingQuote } from '../../utils/pendingQuote';
 
 // Importing icons for a better UI
@@ -116,36 +116,45 @@ const RegisterPage = () => {
     useEffect(() => {
         const fetchUserCountry = async () => {
             try {
-                const response = await fetch('https://ipapi.co/json/');
-                if (!response.ok) throw new Error('Failed to fetch IP info.');
-                const data = await response.json();
+                // Use our backend proxy to avoid CORS issues
+                const result = await publicAPI.getCountry();
                 
-                // Set phone input country code
-                setInitialCountry(data.country_code.toLowerCase());
-                
-                // Auto-select country in dropdown
-                if (data.country_name) {
-                    setFormData(prevState => ({
-                        ...prevState,
-                        country: data.country_name
-                    }));
+                if (result.success && result.data) {
+                    const data = result.data;
+                    
+                    // Set phone input country code
+                    setInitialCountry(data.country_code.toLowerCase());
+                    
+                    // Auto-select country in dropdown
+                    if (data.country_name) {
+                        setFormData(prevState => ({
+                            ...prevState,
+                            country: data.country_name
+                        }));
+                    }
+                    
+                    console.log('✅ Country detected:', data.country_name, `(${data.country_code})`);
+                } else {
+                    throw new Error('Failed to get country data');
                 }
             } catch (err) {
                 console.error("Could not fetch user's country:", err);
+                // Fallback to US
                 setInitialCountry('us');
+                setFormData(prevState => ({
+                    ...prevState,
+                    country: 'United States'
+                }));
             }
         };
+
         fetchUserCountry();
     }, []);
 
     useEffect(() => {
         const fetchCountries = async () => {
             try {
-                const response = await fetch('https://countriesnow.space/api/v0.1/countries');
-                if (!response.ok) throw new Error('Failed to fetch country list.');
-                const data = await response.json();
-                if (data.error) throw new Error(data.msg);
-                const countryNames = data.data.map(c => c.country).sort();
+                const countryNames = await publicAPI.getCountries();
                 setCountries(countryNames);
             } catch (err) {
                 console.error("Failed to fetch countries:", err);
@@ -464,78 +473,90 @@ const RegisterPage = () => {
 };
 
 // --- Helper components ---
-const InputWithIcon = ({ id, name, type = 'text', value, onChange, placeholder, required = false, icon, showPassword, togglePassword }) => (
-    <div>
-        <label htmlFor={id} className="block text-gray-700 text-sm font-medium mb-2">
-            {placeholder.replace('Enter Your ', '').replace('Create a ', '').replace(' (Optional)', '')} {required && '*'}
-        </label>
-        <div className="relative">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                {icon}
-            </span>
-            <input
-                type={type} id={id} name={name} value={value} onChange={onChange}
-                placeholder={placeholder} required={required}
-                className="w-full pl-10 pr-12 py-3 bg-stone-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#CDA435] border-transparent transition"
-            />
-            {(type === 'password' || (type === 'text' && togglePassword)) && (
-                <button
-                    type="button"
-                    onClick={togglePassword}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
-                    aria-label="Toggle password visibility"
-                >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-            )}
-        </div>
-    </div>
-);
+function InputWithIcon({ id, name, type = 'text', value, onChange, placeholder, required = false, icon, showPassword, togglePassword }) {
+    const getLabelText = (placeholder) => {
+        let text = placeholder;
+        text = text.replace('Enter Your ', '');
+        text = text.replace('Create a ', '');
+        text = text.replace(' (Optional)', '');
+        return text;
+    };
 
-
-const CustomSelect = ({ label, value, onChange, options, placeholder, disabled = false, loading = false }) => (
-    <div>
-        <Listbox value={value} onChange={onChange} disabled={disabled}>
-            <Listbox.Label className="block text-gray-700 text-sm font-medium mb-2">{label}</Listbox.Label>
+    return (
+        <div>
+            <label htmlFor={id} className="block text-gray-700 text-sm font-medium mb-2">
+                {getLabelText(placeholder)} {required && '*'}
+            </label>
             <div className="relative">
-                <Listbox.Button className="relative w-full cursor-default rounded-lg bg-stone-100 py-3 pl-3 pr-10 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#CDA435] disabled:bg-stone-200 disabled:cursor-not-allowed">
-                    <span className={`block truncate ${value ? 'text-gray-900' : 'text-gray-400'}`}>
-                        {value || placeholder}
-                    </span>
-                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                        {loading ? <Loader2 className="h-5 w-5 text-gray-400 animate-spin" /> : <ChevronDown className="h-5 w-5 text-gray-400" aria-hidden="true" />}
-                    </span>
-                </Listbox.Button>
-                <Transition as={Fragment} leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
-                    <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-30">
-                        {options.length === 0 && !loading ? (
-                            <div className="relative cursor-default select-none py-2 px-4 text-gray-700">Nothing found.</div>
-                        ) : (
-                            options.map((option, optionIdx) => (
-                                <Listbox.Option
-                                    key={optionIdx}
-                                    className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-[#f0e4c2] text-[#8e7121]' : 'text-gray-900'}`}
-                                    value={option}
-                                >
-                                    {({ selected }) => (
-                                        <>
-                                            <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>{option}</span>
-                                            {selected ? (
-                                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-[#CDA435]">
-                                                    <Check className="h-5 w-5" aria-hidden="true" />
-                                                </span>
-                                            ) : null}
-                                        </>
-                                    )}
-                                </Listbox.Option>
-                            ))
-                        )}
-                    </Listbox.Options>
-                </Transition>
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    {icon}
+                </span>
+                <input
+                    type={type} id={id} name={name} value={value} onChange={onChange}
+                    placeholder={placeholder} required={required}
+                    className="w-full pl-10 pr-12 py-3 bg-stone-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#CDA435] border-transparent transition"
+                />
+                {(type === 'password' || (type === 'text' && togglePassword)) && (
+                    <button
+                        type="button"
+                        onClick={togglePassword}
+                        className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                        aria-label="Toggle password visibility"
+                    >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                )}
             </div>
-        </Listbox>
-    </div>
-);
+        </div>
+    );
+}
+
+
+function CustomSelect({ label, value, onChange, options, placeholder, disabled = false, loading = false }) {
+    return (
+        <div>
+            <Listbox value={value} onChange={onChange} disabled={disabled}>
+                <Listbox.Label className="block text-gray-700 text-sm font-medium mb-2">{label}</Listbox.Label>
+                <div className="relative">
+                    <Listbox.Button className="relative w-full cursor-default rounded-lg bg-stone-100 py-3 pl-3 pr-10 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#CDA435] disabled:bg-stone-200 disabled:cursor-not-allowed">
+                        <span className={`block truncate ${value ? 'text-gray-900' : 'text-gray-400'}`}>
+                            {value || placeholder}
+                        </span>
+                        <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                            {loading ? <Loader2 className="h-5 w-5 text-gray-400 animate-spin" /> : <ChevronDown className="h-5 w-5 text-gray-400" aria-hidden="true" />}
+                        </span>
+                    </Listbox.Button>
+                    <Transition as={Fragment} leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
+                        <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-30">
+                            {options.length === 0 && !loading ? (
+                                <div className="relative cursor-default select-none py-2 px-4 text-gray-700">Nothing found.</div>
+                            ) : (
+                                options.map((option, optionIdx) => (
+                                    <Listbox.Option
+                                        key={optionIdx}
+                                        className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-[#f0e4c2] text-[#8e7121]' : 'text-gray-900'}`}
+                                        value={option}
+                                    >
+                                        {({ selected }) => (
+                                            <>
+                                                <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>{option}</span>
+                                                {selected ? (
+                                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-[#CDA435]">
+                                                        <Check className="h-5 w-5" aria-hidden="true" />
+                                                    </span>
+                                                ) : null}
+                                            </>
+                                        )}
+                                    </Listbox.Option>
+                                ))
+                            )}
+                        </Listbox.Options>
+                    </Transition>
+                </div>
+            </Listbox>
+        </div>
+    );
+}
 
 
 export default RegisterPage;

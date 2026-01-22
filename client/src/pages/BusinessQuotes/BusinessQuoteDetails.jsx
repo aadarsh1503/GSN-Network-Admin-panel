@@ -18,7 +18,8 @@ import {
   FaUniversity,
   FaCreditCard,
   FaUpload,
-  FaComments
+  FaComments,
+  FaEye
 } from 'react-icons/fa';
 import { 
   Zap, 
@@ -40,6 +41,7 @@ import {
 import toast from 'react-hot-toast';
 import { api } from '../../utils/api';
 import PaymentUpload from '../../components/PaymentUpload/PaymentUpload';
+import CompanyProfileModal from '../../components/CompanyProfileModal/CompanyProfileModal';
 import { useQuoteStatusSync } from '../../hooks/useQuoteStatusSync';
 
 const BusinessQuoteDetails = () => {
@@ -51,6 +53,8 @@ const BusinessQuoteDetails = () => {
   const [actionLoading, setActionLoading] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedResponseForPayment, setSelectedResponseForPayment] = useState(null);
+  const [showCompanyProfileModal, setShowCompanyProfileModal] = useState(false);
+  const [selectedCompanyId, setSelectedCompanyId] = useState(null);
 
   // Status synchronization hook
   const { currentStatus, isPolling, forceRefresh } = useQuoteStatusSync(
@@ -103,6 +107,17 @@ const BusinessQuoteDetails = () => {
       // Use enhanced API to get responses with bank details
       const data = await api.get(`/api/enhanced-quotes/${quoteId}/responses-with-bank-details`);
       const responsesArray = Array.isArray(data) ? data : [];
+      
+      // Debug logging to see what data we're getting
+      console.log('📊 Fetched quote responses:', responsesArray);
+      console.log('💳 Payment proof status for each response:', responsesArray.map(r => ({
+        id: r.id,
+        company_name: r.company_name,
+        payment_proof_uploaded: r.payment_proof_uploaded,
+        payment_status: r.payment_status,
+        user_response_status: r.user_response_status
+      })));
+      
       setResponses(responsesArray);
     } catch (error) {
       console.error('Error fetching quote responses:', error);
@@ -128,7 +143,9 @@ const BusinessQuoteDetails = () => {
         companyId: companyId
       });
 
-      toast.success('Quote accepted successfully! Your payment is being verified by the company. Work will begin once payment is confirmed.');
+      toast.success('Quote accepted successfully! Email notifications are being sent. Your payment is being verified by the company.', {
+        duration: 6000
+      });
       fetchQuoteResponses();
       fetchQuoteDetails();
     } catch (error) {
@@ -152,7 +169,9 @@ const BusinessQuoteDetails = () => {
         companyId: companyId
       });
 
-      toast.success('Quote response rejected. The company has been notified.');
+      toast.success('Quote response rejected. Email notifications are being sent to the company.', {
+        duration: 5000
+      });
       fetchQuoteResponses();
     } catch (error) {
       console.error('Error rejecting quote response:', error);
@@ -750,8 +769,20 @@ const BusinessQuoteDetails = () => {
                                 </div>
                               )}
                             </div>
-                            <div>
-                              <h3 className="text-2xl font-bold text-slate-800 mb-1">{response.company_name}</h3>
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-3 mb-1">
+                                <h3 className="text-2xl font-bold text-slate-800">{response.company_name}</h3>
+                                <button
+                                  onClick={() => {
+                                    setSelectedCompanyId(response.company_id);
+                                    setShowCompanyProfileModal(true);
+                                  }}
+                                  className="flex items-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105"
+                                >
+                                  <FaEye className="h-4 w-4" />
+                                  <span className="text-sm">View Company Details</span>
+                                </button>
+                              </div>
                               <div className="flex items-center space-x-6 text-slate-600">
                                 <div className="flex items-center space-x-2">
                                   <FaEnvelope className="h-4 w-4 text-yellow-500" />
@@ -1183,10 +1214,21 @@ const BusinessQuoteDetails = () => {
               setShowPaymentModal(false);
               setSelectedResponseForPayment(null);
               fetchQuoteResponses(); // Refresh to show updated payment status
-              toast.success('Payment proof uploaded successfully! The company will verify your payment before work begins.');
+              // Toast message is already shown in PaymentUpload component
             }}
           />
         </div>
+      )}
+
+      {/* Company Profile Modal */}
+      {showCompanyProfileModal && selectedCompanyId && (
+        <CompanyProfileModal
+          companyId={selectedCompanyId}
+          onClose={() => {
+            setShowCompanyProfileModal(false);
+            setSelectedCompanyId(null);
+          }}
+        />
       )}
     </div>
   );

@@ -1,8 +1,152 @@
-/* Admin Notification Styles - Dark Theme with Website Colors */
+/* Admin Notification Styles - Clean Light Theme */
 .admin-toast-container {
   z-index: 9999 !important;
 }
 
+/* Clean success toast styling for admin notifications */
+.admin-success-toast {
+  background: #ffffff !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  border-left: 4px solid #10b981 !important;
+  margin-bottom: 8px !important;
+  min-height: 70px !important;
+  color: #374151 !important;
+  position: relative !important;
+}
+
+.admin-success-body {
+  color: #374151 !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  padding: 12px !important;
+  font-weight: 500 !important;
+}
+
+.admin-success-progress {
+  background: #10b981 !important;
+  height: 3px !important;
+}
+
+/* Ensure close button is visible and functional */
+.admin-success-toast .Toastify__close-button {
+  color: #6b7280 !important;
+  opacity: 0.8 !important;
+  font-size: 18px !important;
+  position: absolute !important;
+  top: 8px !important;
+  right: 8px !important;
+  background: none !important;
+  border: none !important;
+  cursor: pointer !important;
+  z-index: 10 !important;
+  width: 20px !important;
+  height: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.admin-success-toast .Toastify__close-button:hover {
+  opacity: 1 !important;
+  color: #374151 !important;
+  background: rgba(107, 114, 128, 0.1) !important;
+  border-radius: 50% !important;
+}
+
+/* Ensure progress bar works correctly */
+.admin-success-toast .Toastify__progress-bar {
+  background: #10b981 !important;
+  height: 3px !important;
+}
+
+/* Additional styling for admin toast container items */
+.admin-toast-item {
+  background: #ffffff !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  border-left: 4px solid #10b981 !important;
+  color: #374151 !important;
+  position: relative !important;
+}
+
+.admin-toast-body-item {
+  color: #374151 !important;
+  font-weight: 500 !important;
+}
+
+.admin-toast-progress-item {
+  background: #10b981 !important;
+  height: 3px !important;
+}
+
+/* Ensure all text in admin toasts is readable */
+#admin-toasts .Toastify__toast {
+  background: #ffffff !important;
+  color: #374151 !important;
+  border-left: 4px solid #10b981 !important;
+  position: relative !important;
+}
+
+#admin-toasts .Toastify__toast-body {
+  color: #374151 !important;
+}
+
+#admin-toasts .Toastify__close-button {
+  color: #6b7280 !important;
+  opacity: 0.8 !important;
+  position: absolute !important;
+  top: 8px !important;
+  right: 8px !important;
+  cursor: pointer !important;
+  z-index: 10 !important;
+}
+
+#admin-toasts .Toastify__close-button:hover {
+  opacity: 1 !important;
+  color: #374151 !important;
+}
+
+#admin-toasts .Toastify__progress-bar {
+  background: #10b981 !important;
+}
+
+/* Fix for toast container z-index */
+#admin-toasts {
+  z-index: 9999 !important;
+}
+
+/* Animation for new notifications */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.admin-success-toast {
+  animation: slideInRight 0.3s ease-out !important;
+}
+
+/* Multiple toast stacking */
+.admin-toast-container .Toastify__toast:nth-child(1) {
+  z-index: 9999;
+}
+
+.admin-toast-container .Toastify__toast:nth-child(2) {
+  z-index: 9998;
+  transform: translateY(-4px) scale(0.98);
+}
+
+.admin-toast-container .Toastify__toast:nth-child(3) {
+  z-index: 9997;
+  transform: translateY(-8px) scale(0.96);
+}
+
+/* Legacy dark theme styles (keeping for backward compatibility) */
 .admin-toast {
   background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
   border-radius: 12px !important;
@@ -12,7 +156,6 @@
   margin-bottom: 8px !important;
   min-height: 80px !important;
   color: #ffffff !important;
-  /* Ensure toast doesn't interfere with auto-close */
   pointer-events: auto !important;
 }
 
@@ -23,62 +166,9 @@
   font-weight: 500 !important;
 }
 
-/* Override any conflicting toast text colors */
-.admin-toast .Toastify__toast-body {
-  color: #ffffff !important;
-}
-
-.admin-toast .Toastify__toast-body div {
-  color: #ffffff !important;
-}
-
-/* Global toast text color override for admin area */
-.Toastify__toast--success .Toastify__toast-body,
-.Toastify__toast--error .Toastify__toast-body,
-.Toastify__toast--info .Toastify__toast-body,
-.Toastify__toast--warning .Toastify__toast-body,
-.Toastify__toast--default .Toastify__toast-body {
-  color: #ffffff !important;
-}
-
-/* Additional specificity for admin toast text */
-.admin-toast-container .Toastify__toast .Toastify__toast-body,
-.admin-toast-container .Toastify__toast .Toastify__toast-body div,
-.admin-toast-container .admin-toast .Toastify__toast-body,
-.admin-toast-container .admin-toast .Toastify__toast-body div {
-  color: #ffffff !important;
-  font-weight: 500 !important;
-}
-
-/* Ensure all text elements within toasts are white */
-.admin-toast-container * {
-  color: #ffffff !important;
-}
-
-/* Ensure close button is visible */
-.admin-toast .Toastify__close-button {
-  color: #ffffff !important;
-  opacity: 0.7;
-}
-
-.admin-toast .Toastify__close-button:hover {
-  opacity: 1;
-}
-
 .admin-toast-progress {
   background: linear-gradient(90deg, #CDA435, #B8941F) !important;
   height: 4px !important;
-}
-
-/* Ensure progress bar is always visible and animating */
-.admin-toast .Toastify__progress-bar {
-  background: linear-gradient(90deg, #CDA435, #B8941F) !important;
-  height: 4px !important;
-}
-
-/* Force progress bar animation */
-.admin-toast .Toastify__progress-bar--animated {
-  animation: Toastify__trackProgress linear !important;
 }
 
 .admin-notification-toast {
@@ -98,45 +188,4 @@
   background: linear-gradient(90deg, #CDA435, #B8941F);
   height: 4px;
   border-radius: 0 0 12px 12px;
-}
-
-/* Animation for new notifications */
-@keyframes slideInRight {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-.admin-toast {
-  animation: slideInRight 0.3s ease-out;
-}
-
-/* Multiple toast stacking */
-.admin-toast-container .Toastify__toast:nth-child(1) {
-  z-index: 9999;
-}
-
-.admin-toast-container .Toastify__toast:nth-child(2) {
-  z-index: 9998;
-  transform: translateY(-4px) scale(0.98);
-}
-
-.admin-toast-container .Toastify__toast:nth-child(3) {
-  z-index: 9997;
-  transform: translateY(-8px) scale(0.96);
-}
-
-.admin-toast-container .Toastify__toast:nth-child(4) {
-  z-index: 9996;
-  transform: translateY(-12px) scale(0.94);
-}
-
-.admin-toast-container .Toastify__toast:nth-child(5) {
-  z-index: 9995;
-  transform: translateY(-16px) scale(0.92);
 }

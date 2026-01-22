@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { submitPendingQuote, hasPendingQuote } from '../../utils/pendingQuote';
 import toast from 'react-hot-toast';
 import { api, isTokenExpired } from '../../utils/api';
+import activityTracker from '../../utils/activityTracker';
 import { Eye, EyeOff } from 'lucide-react';
 
 const LoginPage = () => {
@@ -122,6 +123,10 @@ const LoginPage = () => {
             // Optional: Store the token for future authenticated requests
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
+
+            // Start activity tracking after successful login
+            activityTracker.startTracking();
+            console.log('🚀 Activity tracker started after login');
 
             // Force a small delay to ensure localStorage is updated
             await new Promise(resolve => setTimeout(resolve, 100));
