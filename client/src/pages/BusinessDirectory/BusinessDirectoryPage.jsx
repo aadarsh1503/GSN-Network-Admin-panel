@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaTimes, FaMapMarkerAlt, FaGlobe, FaEye, FaBuilding, FaIndustry, FaCog, FaBoxes, FaCalendarAlt, FaUsers, FaArrowLeft } from 'react-icons/fa';
+import { FaTimes, FaMapMarkerAlt, FaGlobe, FaEye, FaBuilding, FaIndustry, FaCog, FaBoxes, FaCalendarAlt, FaUsers, FaArrowLeft, FaTh, FaList } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
@@ -189,6 +189,7 @@ const BusinessDirectoryPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [itemsPerPage, setItemsPerPage] = useState(12);
   const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1, totalBusinesses: 0 });
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
 
   // Function to format category names (replace underscores with spaces and capitalize)
   const formatCategoryName = (category) => {
@@ -252,10 +253,10 @@ const BusinessDirectoryPage = () => {
   };
 
   return (
-    <div className="min-h-screen mt-24 bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen mt-20 bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Header - More compact */}
       <div className="bg-gradient-to-r from-[#D9B95B] to-[#CDA435] text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <button 
@@ -264,13 +265,13 @@ const BusinessDirectoryPage = () => {
               >
                 <FaArrowLeft className="text-lg" />
               </button>
-              <div className="flex items-center space-x-3">
+              <div className="flex mt-4 items-center space-x-3">
                 <div className="p-2 bg-white/20 rounded-full">
-                  <FaUsers className="text-xl" />
+                  <FaUsers className="text-lg" />
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold">Business Directory</h1>
-                  <p className="text-white/90 text-sm">Discover businesses requesting bulk quotes</p>
+                  <p className="text-white/90 text-xs">Discover businesses requesting bulk quotes</p>
                 </div>
               </div>
             </div>
@@ -279,13 +280,13 @@ const BusinessDirectoryPage = () => {
       </div>
 
       {/* Filters - More compact */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="bg-white rounded-xl shadow-md p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+        <div className="bg-white rounded-lg shadow-sm p-3 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
             <select 
               value={selectedCategory}
               onChange={(e) => { setSelectedCategory(e.target.value); setPagination(p => ({...p, currentPage: 1})); }}
-              className="w-full p-3 border border-gray-200 rounded-lg focus:border-[#D9B95B] focus:ring-1 focus:ring-[#D9B95B]/20 transition-all text-sm"
+              className="w-full p-2 border border-gray-200 rounded-md focus:border-[#D9B95B] focus:ring-1 focus:ring-[#D9B95B]/20 transition-all text-xs"
             >
               <option value="">🏢 All Categories</option>
               {filters.categories?.map((cat, idx) => (
@@ -295,7 +296,7 @@ const BusinessDirectoryPage = () => {
             <select 
               value={selectedCountry}
               onChange={(e) => { setSelectedCountry(e.target.value); setPagination(p => ({...p, currentPage: 1})); }}
-              className="w-full p-3 border border-gray-200 rounded-lg focus:border-[#D9B95B] focus:ring-1 focus:ring-[#D9B95B]/20 transition-all text-sm"
+              className="w-full p-2 border border-gray-200 rounded-md focus:border-[#D9B95B] focus:ring-1 focus:ring-[#D9B95B]/20 transition-all text-xs"
             >
               <option value="">🌍 All Countries</option>
               {filters.countries?.map((country, idx) => (
@@ -307,12 +308,12 @@ const BusinessDirectoryPage = () => {
               placeholder="🔍 Search businesses..."
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setPagination(p => ({...p, currentPage: 1})); }}
-              className="w-full p-3 border border-gray-200 rounded-lg focus:border-[#D9B95B] focus:ring-1 focus:ring-[#D9B95B]/20 transition-all text-sm"
+              className="w-full p-2 border border-gray-200 rounded-md focus:border-[#D9B95B] focus:ring-1 focus:ring-[#D9B95B]/20 transition-all text-xs"
             />
             <select 
               value={itemsPerPage}
               onChange={(e) => { setItemsPerPage(Number(e.target.value)); setPagination(p => ({...p, currentPage: 1})); }}
-              className="w-full p-3 border border-gray-200 rounded-lg focus:border-[#D9B95B] focus:ring-1 focus:ring-[#D9B95B]/20 transition-all text-sm"
+              className="w-full p-2 border border-gray-200 rounded-md focus:border-[#D9B95B] focus:ring-1 focus:ring-[#D9B95B]/20 transition-all text-xs"
             >
               <option value={5}>📄 5 per page</option>
               <option value={10}>📄 10 per page</option>
@@ -321,25 +322,53 @@ const BusinessDirectoryPage = () => {
               <option value={30}>📄 30 per page</option>
             </select>
           </div>
+          
+          {/* View Toggle Buttons */}
+          <div className="flex justify-end mt-3 pt-3 border-t border-gray-100">
+            <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`flex items-center space-x-1 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                  viewMode === 'grid'
+                    ? 'bg-[#D9B95B] text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'
+                }`}
+              >
+                <FaTh className="text-xs" />
+                <span>Grid View</span>
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`flex items-center space-x-1 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                  viewMode === 'list'
+                    ? 'bg-[#D9B95B] text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'
+                }`}
+              >
+                <FaList className="text-xs" />
+                <span>List View</span>
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Businesses List - More compact */}
-        <div className="bg-white rounded-xl shadow-md p-4">
+        <div className="bg-white rounded-lg shadow-sm p-3">
           {loading ? (
-            <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-10 w-10 border-4 border-[#D9B95B] border-t-transparent"></div>
-              <p className="mt-3 text-base font-medium text-gray-600">Loading businesses...</p>
+            <div className="text-center py-8">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#D9B95B] border-t-transparent"></div>
+              <p className="mt-2 text-sm font-medium text-gray-600">Loading businesses...</p>
             </div>
           ) : businesses.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-4xl mb-3">🏢</div>
-              <p className="text-lg text-gray-500 font-medium">No businesses found</p>
-              <p className="text-gray-400 text-sm">Try adjusting your search criteria</p>
+            <div className="text-center py-8">
+              <div className="text-3xl mb-2">🏢</div>
+              <p className="text-base text-gray-500 font-medium">No businesses found</p>
+              <p className="text-gray-400 text-xs">Try adjusting your search criteria</p>
             </div>
           ) : (
             <>
-              <div className="mb-4 flex justify-between items-center">
-                <div className="text-base font-semibold text-gray-700">
+              <div className="mb-3 flex justify-between items-center">
+                <div className="text-sm font-semibold text-gray-700">
                   <span className="text-[#D9B95B]">{businesses.length}</span> of <span className="text-[#D9B95B]">{pagination.totalBusinesses}</span> businesses
                 </div>
                 <div className="flex items-center space-x-2 text-xs text-gray-500">
@@ -347,75 +376,141 @@ const BusinessDirectoryPage = () => {
                   <span>Bulk Quote Requesters</span>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              <div className={viewMode === 'grid' 
+                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3"
+                : "space-y-3"
+              }>
                 {businesses.map(business => (
-                  <div key={business.id} className="group bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden hover:shadow-lg hover:border-[#D9B95B] transition-all duration-300 transform hover:-translate-y-1">
-                    
-                    {/* Business Header - Reduced height */}
-                    <div className="relative h-24 bg-gradient-to-br from-[#D9B95B] to-[#CDA435] overflow-hidden">
-                      {business.logo ? (
-                        <img src={business.logo} alt={business.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-2xl text-white font-bold drop-shadow-lg">{business.name?.charAt(0)}</span>
+                  viewMode === 'grid' ? (
+                    // Grid View - Compact Cards
+                    <div key={business.id} className="group bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md hover:border-[#D9B95B] transition-all duration-300 transform hover:-translate-y-1">
+                      
+                      {/* Business Header - Compact with circular logo */}
+                      <div className="relative p-3 bg-gradient-to-br from-gray-50 to-gray-100 text-center">
+                        {business.logo ? (
+                          <img 
+                            src={business.logo} 
+                            alt={business.name} 
+                            className="w-12 h-12 rounded-full object-cover mx-auto border-2 border-white shadow-md group-hover:scale-110 transition-transform duration-300" 
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#D9B95B] to-[#CDA435] flex items-center justify-center mx-auto border-2 border-white shadow-md group-hover:scale-110 transition-transform duration-300">
+                            <span className="text-lg text-white font-bold">{business.name?.charAt(0)}</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Business Info - Compact */}
+                      <div className="p-3 pt-1">
+                        <h3 className="font-semibold text-xs text-gray-800 group-hover:text-[#D9B95B] transition-colors line-clamp-2 mb-2 min-h-[2rem] text-center">
+                          {business.name}
+                        </h3>
+                        
+                        <div className="mb-2 text-center">
+                          <span className="bg-gradient-to-r from-[#D9B95B]/20 to-[#CDA435]/20 text-[#8B7355] px-2 py-1 rounded-full text-xs font-medium line-clamp-1 inline-block">
+                            {formatCategoryName(Array.isArray(business.category) ? business.category[0] : business.category?.split(',')[0])}
+                          </span>
                         </div>
-                      )}
-                      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors"></div>
+                        
+                        <div className="flex items-center justify-center text-gray-600 text-xs mb-2 bg-gray-50 p-1.5 rounded-md">
+                          <FaMapMarkerAlt className="mr-1 text-[#D9B95B] flex-shrink-0 text-xs" />
+                          <span className="font-medium truncate text-center">{business.city ? `${business.city}, ` : ''}{business.country}</span>
+                        </div>
+                        
+                        <div className="flex items-center justify-center text-xs mb-2 bg-blue-50 p-1.5 rounded-md">
+                          <FaUsers className="mr-1 text-[#D9B95B] text-xs" />
+                          <span className="text-blue-600 font-medium">Bulk Requester</span>
+                        </div>
+                        
+                        <button 
+                          onClick={() => handleViewProfile(business)}
+                          className="w-full bg-gradient-to-r from-[#D9B95B] to-[#CDA435] text-white py-1.5 rounded-md hover:from-[#CDA435] hover:to-[#D9B95B] transition-all duration-300 flex items-center justify-center font-medium text-xs shadow-sm hover:shadow-md transform hover:scale-105"
+                        >
+                          <FaEye className="mr-1 text-xs" />
+                          View Profile
+                        </button>
+                      </div>
                     </div>
-                    
-                    {/* Business Info - Reduced padding */}
-                    <div className="p-3">
-                      <h3 className="font-bold text-sm text-gray-800 group-hover:text-[#D9B95B] transition-colors line-clamp-2 mb-2 min-h-[2.5rem]">
-                        {business.name}
-                      </h3>
-                      
-                      <div className="mb-2">
-                        <span className="bg-gradient-to-r from-[#D9B95B]/20 to-[#CDA435]/20 text-[#8B7355] px-2 py-1 rounded-full text-xs font-semibold line-clamp-1">
-                          {formatCategoryName(Array.isArray(business.category) ? business.category[0] : business.category?.split(',')[0])}
-                        </span>
+                  ) : (
+                    // List View - One per row, compact
+                    <div key={business.id} className="group bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md hover:border-[#D9B95B] transition-all duration-300">
+                      <div className="flex items-center p-4 space-x-4">
+                        {/* Business Logo */}
+                        <div className="flex-shrink-0">
+                          {business.logo ? (
+                            <img 
+                              src={business.logo} 
+                              alt={business.name} 
+                              className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 shadow-sm group-hover:scale-105 transition-transform duration-300" 
+                            />
+                          ) : (
+                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#D9B95B] to-[#CDA435] flex items-center justify-center border-2 border-gray-200 shadow-sm group-hover:scale-105 transition-transform duration-300">
+                              <span className="text-xl text-white font-bold">{business.name?.charAt(0)}</span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Business Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h3 className="font-bold text-lg text-gray-800 group-hover:text-[#D9B95B] transition-colors truncate">
+                                {business.name}
+                              </h3>
+                              <div className="flex items-center space-x-3 mt-1">
+                                <span className="bg-gradient-to-r from-[#D9B95B]/20 to-[#CDA435]/20 text-[#8B7355] px-3 py-1 rounded-full text-sm font-medium">
+                                  {formatCategoryName(Array.isArray(business.category) ? business.category[0] : business.category?.split(',')[0])}
+                                </span>
+                                <div className="flex items-center text-gray-600 text-sm">
+                                  <FaMapMarkerAlt className="mr-1 text-[#D9B95B] flex-shrink-0" />
+                                  <span className="font-medium">{business.city ? `${business.city}, ` : ''}{business.country}</span>
+                                </div>
+                              </div>
+                              <div className="flex items-center mt-2">
+                                <div className="flex items-center text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+                                  <FaUsers className="mr-1 text-[#D9B95B] text-sm" />
+                                  <span className="font-medium text-sm">Bulk Quote Requester</span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Action Button */}
+                            <div className="flex-shrink-0 ml-4">
+                              <button 
+                                onClick={() => handleViewProfile(business)}
+                                className="bg-gradient-to-r from-[#D9B95B] to-[#CDA435] text-white px-6 py-2 rounded-lg hover:from-[#CDA435] hover:to-[#D9B95B] transition-all duration-300 flex items-center font-medium text-sm shadow-sm hover:shadow-md transform hover:scale-105"
+                              >
+                                <FaEye className="mr-2" />
+                                View Profile
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      
-                      <div className="flex items-center text-gray-600 text-xs mb-2 bg-gray-50 p-2 rounded-md">
-                        <FaMapMarkerAlt className="mr-1 text-[#D9B95B] flex-shrink-0 text-xs" />
-                        <span className="font-medium truncate">{business.city ? `${business.city}, ` : ''}{business.country}</span>
-                      </div>
-                      
-                      <div className="flex items-center justify-center text-xs mb-3 bg-blue-50 p-2 rounded-md">
-                        <FaUsers className="mr-1 text-[#D9B95B] text-xs" />
-                        <span className="text-blue-600 font-medium">Bulk Requester</span>
-                      </div>
-                      
-                      <button 
-                        onClick={() => handleViewProfile(business)}
-                        className="w-full bg-gradient-to-r from-[#D9B95B] to-[#CDA435] text-white py-2 rounded-lg hover:from-[#CDA435] hover:to-[#D9B95B] transition-all duration-300 flex items-center justify-center font-bold text-xs shadow-md hover:shadow-lg transform hover:scale-105"
-                      >
-                        <FaEye className="mr-1 text-xs" />
-                        View Profile
-                      </button>
                     </div>
-                  </div>
+                  )
                 ))}
               </div>
 
               {/* Pagination - More compact */}
               {pagination.totalPages > 1 && (
-                <div className="flex justify-center items-center space-x-3 mt-6 pt-4 border-t border-gray-200">
+                <div className="flex justify-center items-center space-x-2 mt-4 pt-3 border-t border-gray-200">
                   <button 
                     onClick={() => setPagination(p => ({...p, currentPage: p.currentPage - 1}))}
                     disabled={!pagination.hasPrev}
-                    className="px-4 py-2 bg-gradient-to-r from-gray-100 to-gray-200 rounded-lg hover:from-[#D9B95B] hover:to-[#CDA435] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium"
+                    className="px-3 py-1.5 bg-gradient-to-r from-gray-100 to-gray-200 rounded-md hover:from-[#D9B95B] hover:to-[#CDA435] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all text-xs font-medium"
                   >
                     ← Previous
                   </button>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-gray-600 text-sm">Page</span>
-                    <span className="bg-[#D9B95B] text-white px-2 py-1 rounded-md font-bold text-sm">{pagination.currentPage}</span>
-                    <span className="text-gray-600 text-sm">of {pagination.totalPages}</span>
+                  <div className="flex items-center space-x-1">
+                    <span className="text-gray-600 text-xs">Page</span>
+                    <span className="bg-[#D9B95B] text-white px-2 py-1 rounded-md font-bold text-xs">{pagination.currentPage}</span>
+                    <span className="text-gray-600 text-xs">of {pagination.totalPages}</span>
                   </div>
                   <button 
                     onClick={() => setPagination(p => ({...p, currentPage: p.currentPage + 1}))}
                     disabled={!pagination.hasNext}
-                    className="px-4 py-2 bg-gradient-to-r from-gray-100 to-gray-200 rounded-lg hover:from-[#D9B95B] hover:to-[#CDA435] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium"
+                    className="px-3 py-1.5 bg-gradient-to-r from-gray-100 to-gray-200 rounded-md hover:from-[#D9B95B] hover:to-[#CDA435] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all text-xs font-medium"
                   >
                     Next →
                   </button>

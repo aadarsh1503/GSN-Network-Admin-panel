@@ -231,11 +231,11 @@ const AdminNotifications = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 p-2">
       <div className="max-w-7xl mx-auto">
         {/* Futuristic Header */}
         <div className="mb-8">
-          <div className="relative overflow-hidden bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-2xl p-8 shadow-2xl">
+          <div className="relative overflow-hidden bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-2xl p-4 shadow-2xl">
             <div className="absolute inset-0 bg-gradient-to-r from-[#CDA435]/95 to-[#D9B95B]/95 backdrop-blur-sm"></div>
             <div className="relative z-10">
               <div className="flex items-center justify-between">

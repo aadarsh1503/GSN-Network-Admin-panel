@@ -25,7 +25,7 @@ class SSEService {
     }
 
     try {
-      const sseUrl = `http://localhost:5000/api/notifications/stream?token=${encodeURIComponent(token)}`;
+      const sseUrl = `/api/notifications/stream?token=${encodeURIComponent(token)}`;
       console.log('🔌 Connecting to SSE:', sseUrl);
       
       this.eventSource = new EventSource(sseUrl);
@@ -163,7 +163,7 @@ class SSEService {
         throw new Error('No authentication token available');
       }
 
-      const response = await fetch('http://localhost:5000/api/notifications/connections', {
+      const response = await fetch('/api/notifications/connections', {
         headers: {
           'Authorization': `Bearer ${token}`
         }

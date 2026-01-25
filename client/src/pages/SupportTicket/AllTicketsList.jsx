@@ -252,7 +252,7 @@ const AllTicketsList = () => {
   };
 
   const SortableHeader = ({ children, sortKey }) => (
-    <th className="py-4 px-6 text-left font-semibold cursor-pointer hover:bg-yellow-100 transition-colors duration-200" onClick={() => handleSort(sortKey)}>
+    <th className="py-3 px-3 text-left font-semibold cursor-pointer hover:bg-yellow-100 transition-colors duration-200" onClick={() => handleSort(sortKey)}>
       <div className="flex items-center">
         {children}
         {sortConfig.key === sortKey ? (
@@ -580,17 +580,16 @@ const AllTicketsList = () => {
           ) : (
             <>
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[800px]">
+                <table className="w-full min-w-[600px]">
                   <thead className="bg-gradient-to-r from-yellow-50 to-amber-50">
                     <tr>
                       <SortableHeader sortKey="ticket_number">Ticket</SortableHeader>
                       <SortableHeader sortKey="user_name">User</SortableHeader>
-                      <SortableHeader sortKey="recipient_type">Recipient</SortableHeader>
                       <SortableHeader sortKey="subject">Subject</SortableHeader>
                       <SortableHeader sortKey="priority">Priority</SortableHeader>
                       <SortableHeader sortKey="status">Status</SortableHeader>
                       <SortableHeader sortKey="created_at">Date</SortableHeader>
-                      <th className="py-4 px-4 text-left font-semibold">Actions</th>
+                      <th className="py-4 px-3 text-left font-semibold">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -598,7 +597,7 @@ const AllTicketsList = () => {
                       <tr key={ticket.id} className={`hover:bg-gradient-to-r hover:from-yellow-50/50 hover:to-amber-50/50 transition-all duration-300 ${
                         ticket.user_role === 'admin' ? 'bg-red-50/30' : ''
                       }`}>
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-3">
                           <div className="flex items-center space-x-2">
                             <div className="p-1 bg-gradient-to-r from-yellow-100 to-amber-100 rounded-lg flex-shrink-0">
                               <FiMail className="text-yellow-600" size={12} />
@@ -614,7 +613,7 @@ const AllTicketsList = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-3">
                           <div className="flex items-center space-x-2">
                             <div className="p-1 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-lg flex-shrink-0">
                               {getUserTypeIcon(ticket.user_role)}
@@ -635,27 +634,7 @@ const AllTicketsList = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center space-x-2">
-                            <div className="p-1 bg-gradient-to-r from-yellow-100 to-amber-100 rounded-lg flex-shrink-0">
-                              {ticket.recipient_type === 'company' ? <FiHome className="text-green-600" size={12} /> : <FiShield className="text-red-600" size={12} />}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="text-xs font-semibold text-gray-900 truncate" title={ticket.recipient_type === 'company' && ticket.company_name ? ticket.company_name : ticket.recipient_name}>
-                                {ticket.recipient_type === 'company' && ticket.company_name 
-                                  ? ticket.company_name 
-                                  : ticket.recipient_name
-                                }
-                              </div>
-                              <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium ${
-                                ticket.recipient_type === 'company' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                              }`}>
-                                {ticket.recipient_type === 'company' ? 'Company' : 'Admin'}
-                              </span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-3">
                           <div className="min-w-0">
                             <div className="text-xs font-medium text-gray-900 truncate mb-1" title={ticket.subject}>
                               {ticket.subject}
@@ -665,7 +644,7 @@ const AllTicketsList = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-3">
                           <span className={`inline-flex items-center px-2 py-1 text-xs font-bold rounded-full ${
                             ticket.priority === 'low' ? 'bg-green-100 text-green-800' :
                             ticket.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
@@ -675,7 +654,7 @@ const AllTicketsList = () => {
                             {ticket.priority?.charAt(0).toUpperCase()}
                           </span>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-3">
                           <span className={`inline-flex items-center px-2 py-1 text-xs font-bold rounded-full ${
                             ticket.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                             ticket.status === 'answered' ? 'bg-blue-100 text-blue-800' :
@@ -684,7 +663,7 @@ const AllTicketsList = () => {
                             {ticket.status?.charAt(0).toUpperCase()}
                           </span>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-3">
                           <div className="text-xs font-medium text-gray-900 truncate">
                             {new Date(ticket.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                           </div>
@@ -692,7 +671,7 @@ const AllTicketsList = () => {
                             {new Date(ticket.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                           </div>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-3">
                           <div className="flex items-center space-x-1">
                             <button
                               onClick={() => openDetailsModal(ticket)}

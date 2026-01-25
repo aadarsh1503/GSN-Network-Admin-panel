@@ -4,6 +4,7 @@ import { submitPendingQuote, hasPendingQuote } from '../../utils/pendingQuote';
 import toast from 'react-hot-toast';
 import { api, isTokenExpired } from '../../utils/api';
 import activityTracker from '../../utils/activityTracker';
+import keepAliveService from '../../services/keepAliveService';
 import { Eye, EyeOff } from 'lucide-react';
 
 const LoginPage = () => {
@@ -126,7 +127,9 @@ const LoginPage = () => {
 
             // Start activity tracking after successful login
             activityTracker.startTracking();
-            console.log('🚀 Activity tracker started after login');
+
+            // Start keep-alive service after successful login
+            keepAliveService.start();
 
             // Force a small delay to ensure localStorage is updated
             await new Promise(resolve => setTimeout(resolve, 100));

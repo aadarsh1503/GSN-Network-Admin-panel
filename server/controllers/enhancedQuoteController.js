@@ -359,7 +359,7 @@ const getAllCompanyResponsesWithPayments = async (req, res) => {
                    cbd.account_number,
                    cbd.routing_number,
                    cbd.swift_code,
-                   cbd.iban,
+                   cbd.iban_number,
                    cbd.currency,
                    
                    -- Payment proof details

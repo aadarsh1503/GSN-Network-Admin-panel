@@ -6,6 +6,7 @@ import { FaArrowUp, FaArrowDown } from 'react-icons/fa6';
 import { api } from '../../utils/api';
 import { adminToast } from '../../utils/adminToast';
 import StatusConfirmationModal from '../../components/Modal/StatusConfirmationModal';
+import BlacklistReasonModal from '../../components/Modal/BlacklistReasonModal';
 
 // --- Custom Toggle Switch Component ---
 const ToggleSwitch = ({ checked, onChange }) => {
@@ -36,6 +37,11 @@ function User() {
     type: '',
     userId: null,
     currentValue: null,
+    userName: ''
+  });
+  const [blacklistModal, setBlacklistModal] = useState({
+    isOpen: false,
+    userId: null,
     userName: ''
   });
 
@@ -143,13 +149,48 @@ function User() {
 
   const handleBlacklistToggle = (userId, userName) => {
     const user = users.find(u => u.id === userId);
-    setConfirmModal({
-      isOpen: true,
-      type: user.onBlacklist ? 'unblacklist' : 'blacklist',
-      userId,
-      currentValue: user.onBlacklist,
-      userName
-    });
+    if (!user.onBlacklist) {
+      // Opening blacklist modal - need reason
+      setBlacklistModal({
+        isOpen: true,
+        userId,
+        userName
+      });
+    } else {
+      // Unblacklisting - use confirmation modal
+      setConfirmModal({
+        isOpen: true,
+        type: 'unblacklist',
+        userId,
+        currentValue: user.onBlacklist,
+        userName
+      });
+    }
+  };
+
+  const confirmBlacklistWithReason = async (reason) => {
+    const { userId } = blacklistModal;
+    
+    try {
+      await api.put(`/api/user/company-status/${userId}`, {
+        type: 'blacklist',
+        value: true,
+        reason: reason
+      });
+      
+      adminToast.success('User added to blacklist successfully');
+      
+      const updatedUsers = users.map(user =>
+        user.id === userId ? { ...user, onBlacklist: true } : user
+      );
+      setUsers(updatedUsers);
+      
+    } catch (error) {
+      console.error("Error updating blacklist:", error);
+      adminToast.error('Failed to update blacklist status');
+    } finally {
+      setBlacklistModal({ isOpen: false, userId: null, userName: '' });
+    }
   };
 
   const confirmBlacklistToggle = async () => {
@@ -433,6 +474,14 @@ function User() {
           confirmModal.type === 'unblacklist' ? 'Remove from Blacklist' : 'Confirm'
         }
         type={confirmModal.type}
+      />
+
+      {/* Blacklist Reason Modal */}
+      <BlacklistReasonModal
+        isOpen={blacklistModal.isOpen}
+        onClose={() => setBlacklistModal({ isOpen: false, userId: null, userName: '' })}
+        onConfirm={confirmBlacklistWithReason}
+        userName={blacklistModal.userName}
       />
     </div>
   );

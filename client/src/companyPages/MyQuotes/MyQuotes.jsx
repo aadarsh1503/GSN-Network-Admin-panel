@@ -1505,7 +1505,7 @@ const MyQuotes = () => {
                           title="View Complete Quote Details"
                         >
                           <FiEye className="text-sm" />
-                          View Details
+                          View
                         </button>
                       </td>
                     </tr>

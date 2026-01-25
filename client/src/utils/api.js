@@ -1,6 +1,6 @@
 // API utility with proper token handling and loading states
 
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = ''; // Use relative URLs with Vite proxy
 
 // Token management
 export const getToken = () => {
@@ -96,10 +96,10 @@ export const refreshAuthToken = async () => {
 };
 
 // Handle authentication failures and redirect
-const handleAuthFailure = (error) => {
+const handleAuthFailure = (error, accountIssueType = null) => {
   // Add persistent logging to track when this is called
   const timestamp = new Date().toISOString();
-  const logEntry = `[${timestamp}] AUTH_FAILURE: ${error.message} - Current path: ${window.location.pathname}`;
+  const logEntry = `[${timestamp}] AUTH_FAILURE: ${error.message} - Current path: ${window.location.pathname} - Issue: ${accountIssueType}`;
   
   try {
     const logs = JSON.parse(localStorage.getItem('auth_debug_logs') || '[]');
@@ -111,6 +111,21 @@ const handleAuthFailure = (error) => {
   }
   
   removeToken();
+  
+  // Show appropriate message based on account issue type
+  if (accountIssueType === 'deactivated') {
+    if (typeof window !== 'undefined' && window.dispatchEvent) {
+      window.dispatchEvent(new CustomEvent('accountDeactivated', {
+        detail: { message: error.message }
+      }));
+    }
+  } else if (accountIssueType === 'blacklisted') {
+    if (typeof window !== 'undefined' && window.dispatchEvent) {
+      window.dispatchEvent(new CustomEvent('accountBlacklisted', {
+        detail: { message: error.message }
+      }));
+    }
+  }
   
   // Only redirect if we're not already on login/public pages
   const currentPath = window.location.pathname;
@@ -191,11 +206,14 @@ export const apiRequest = async (endpoint, options = {}) => {
         );
         
         const isRoleError = errorData.message && errorData.message.includes('not authorized to access this route');
+        const isAccountDeactivated = errorData.accountDeactivated === true;
+        const isAccountBlacklisted = errorData.accountBlacklisted === true;
         
-        if (isTokenError) {
-          // Only clear localStorage for actual token issues
+        if (isTokenError || isAccountDeactivated || isAccountBlacklisted) {
+          // Handle token issues, account deactivation, and blacklisting
           const error = new Error('Authentication failed: ' + (errorData.message || 'Please login again'));
-          handleAuthFailure(error);
+          const issueType = isAccountDeactivated ? 'deactivated' : isAccountBlacklisted ? 'blacklisted' : null;
+          handleAuthFailure(error, issueType);
           return;
         } else if (isRoleError) {
           // For role errors, just throw the error without clearing localStorage
@@ -298,6 +316,7 @@ export const userAPI = {
   login: (credentials) => api.post('/api/user/login', credentials),
   register: (userData) => api.post('/api/user/register', userData),
   getProfile: () => api.get('/api/user/me'),
+  keepAlive: () => api.get('/api/user/keep-alive'), // Keep-alive ping endpoint
 };
 
 // Public API methods (no authentication required)
@@ -339,4 +358,83 @@ export const publicAPI = {
   }
 };
 
+// Check account status periodically
+export const checkAccountStatus = async () => {
+  const token = getToken();
+  if (!token || isTokenExpired(token)) {
+    return { active: false, reason: 'no_token' };
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/user/me`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (response.status === 401) {
+      const errorData = await response.json().catch(() => ({}));
+      if (errorData.accountDeactivated) {
+        return { active: false, reason: 'deactivated', message: errorData.message };
+      }
+      if (errorData.accountBlacklisted) {
+        return { active: false, reason: 'blacklisted', message: errorData.message };
+      }
+      return { active: false, reason: 'unauthorized' };
+    }
+
+    if (response.ok) {
+      const userData = await response.json();
+      return { active: true, user: userData };
+    }
+
+    return { active: false, reason: 'unknown' };
+  } catch (error) {
+    console.error('Account status check failed:', error);
+    return { active: false, reason: 'network_error' };
+  }
+};
+
+// Start periodic account status checking
+export const startAccountStatusMonitoring = (intervalMinutes = 5) => {
+  // Clear any existing interval
+  if (window.accountStatusInterval) {
+    clearInterval(window.accountStatusInterval);
+  }
+
+  // Set up periodic checking
+  window.accountStatusInterval = setInterval(async () => {
+    const token = getToken();
+    if (!token) return; // No need to check if not logged in
+
+    const status = await checkAccountStatus();
+    if (!status.active) {
+      console.log('🚫 Account status check failed:', status.reason);
+      
+      if (status.reason === 'deactivated') {
+        // Account was deactivated - force logout with specific message
+        const error = new Error(status.message || 'Your account has been deactivated');
+        handleAuthFailure(error, 'deactivated');
+      } else if (status.reason === 'blacklisted') {
+        // Account was blacklisted - force logout with specific message
+        const error = new Error(status.message || 'Your account has been blacklisted');
+        handleAuthFailure(error, 'blacklisted');
+      } else if (status.reason === 'unauthorized') {
+        // Token expired or invalid - force logout
+        const error = new Error('Your session has expired. Please login again.');
+        handleAuthFailure(error, null);
+      }
+    }
+  }, intervalMinutes * 60 * 1000); // Convert minutes to milliseconds
+};
+
+// Stop account status monitoring
+export const stopAccountStatusMonitoring = () => {
+  if (window.accountStatusInterval) {
+    clearInterval(window.accountStatusInterval);
+    window.accountStatusInterval = null;
+  }
+};
 export default api;

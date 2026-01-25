@@ -9,6 +9,7 @@ import { GlobalNotificationProvider } from "./contexts/GlobalNotificationContext
 import { SubscriptionProvider } from "./contexts/SubscriptionContext";
 import activityTracker from "./utils/activityTracker";
 import { getToken } from "./utils/api";
+import keepAliveService from "./services/keepAliveService";
 import "./App.css";
 import "./styles/notifications.css";
 
@@ -166,17 +167,32 @@ const PublicLayout = () => (
 );
 
 function App() {
-  // Initialize activity tracker when app starts
+  // Initialize activity tracker and keep-alive service when app starts
   useEffect(() => {
     const token = getToken();
     if (token) {
+      // Start activity tracker
       activityTracker.startTracking();
       console.log('🚀 Activity tracker initialized');
+      
+      // Start keep-alive service to prevent token expiration
+      keepAliveService.start();
+      console.log('🚀 Keep-alive service initialized');
     }
+
+    // Listen for keep-alive failure events
+    const handleKeepAliveFailure = (event) => {
+      console.error('🚫 Keep-alive service failed:', event.detail.message);
+      // You can show a toast notification or handle this as needed
+    };
+
+    window.addEventListener('keepAliveFailure', handleKeepAliveFailure);
 
     // Cleanup on unmount
     return () => {
       activityTracker.stopTracking();
+      keepAliveService.stop();
+      window.removeEventListener('keepAliveFailure', handleKeepAliveFailure);
     };
   }, []);
 

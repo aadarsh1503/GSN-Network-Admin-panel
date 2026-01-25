@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Toggle Functionality - Grid & List Views</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .feature { background: #e8f5e8; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #4caf50; }
+        .view-mode { background: #e8f0ff; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #2196f3; }
+        .comparison { background: #fff3e0; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #ff9800; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 3px; overflow-x: auto; font-size: 12px; }
+        .highlight { background: #ffeb3b; padding: 2px 4px; border-radius: 2px; }
+        .grid-demo, .list-demo { display: grid; gap: 10px; margin: 10px 0; padding: 10px; border: 2px dashed #ccc; border-radius: 5px; }
+        .grid-demo { grid-template-columns: repeat(4, 1fr); }
+        .list-demo { grid-template-columns: 1fr; }
+        .demo-card { background: #f9f9f9; padding: 8px; border-radius: 4px; text-align: center; font-size: 12px; }
+        .demo-list-card { background: #f9f9f9; padding: 8px; border-radius: 4px; display: flex; align-items: center; gap: 10px; font-size: 12px; }
+        .demo-logo { width: 20px; height: 20px; background: #D9B95B; border-radius: 50%; display: inline-block; }
+        .demo-list-logo { width: 30px; height: 30px; background: #D9B95B; border-radius: 50%; flex-shrink: 0; }
+    </style>
+</head>
+<body>
+    <h1>🎛️ View Toggle Functionality Added</h1>
+    
+    <div class="feature">
+        <h2>✅ New Features Added to Both Directory Pages:</h2>
+        
+        <div class="view-mode">
+            <h3>1. 🎯 View Toggle Buttons</h3>
+            <p><strong>Location:</strong> Added to filters section in both CompanyDirectoryPage.jsx and BusinessDirectoryPage.jsx</p>
+            <ul>
+                <li>🔲 <strong>Grid View</strong> - Multiple cards per row (current compact design)</li>
+                <li>📋 <strong>List View</strong> - One card per row (horizontal layout)</li>
+            </ul>
+            <pre>// View Toggle Implementation
+const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
+
+&lt;div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1"&gt;
+  &lt;button onClick={() =&gt; setViewMode('grid')}&gt;
+    &lt;FaTh /&gt; Grid View
+  &lt;/button&gt;
+  &lt;button onClick={() =&gt; setViewMode('list')}&gt;
+    &lt;FaList /&gt; List View
+  &lt;/button&gt;
+&lt;/div&gt;</pre>
+        </div>
+
+        <div class="view-mode">
+            <h3>2. 🔲 Grid View (Default)</h3>
+            <p><strong>Layout:</strong> Multiple cards per row - compact design</p>
+            <ul>
+                <li>📱 <strong>Responsive:</strong> 1 → 2 → 4 → 6 cards per row</li>
+                <li>🔵 <strong>Circular logos</strong> centered in cards</li>
+                <li>📏 <strong>Compact height</strong> with optimized spacing</li>
+                <li>🎨 <strong>Vertical layout</strong> with centered content</li>
+            </ul>
+            
+            <div class="grid-demo">
+                <div class="demo-card">
+                    <div class="demo-logo"></div><br>
+                    <strong>Company A</strong><br>
+                    <small>Category</small><br>
+                    <small>📍 Location</small>
+                </div>
+                <div class="demo-card">
+                    <div class="demo-logo"></div><br>
+                    <strong>Company B</strong><br>
+                    <small>Category</small><br>
+                    <small>📍 Location</small>
+                </div>
+                <div class="demo-card">
+                    <div class="demo-logo"></div><br>
+                    <strong>Company C</strong><br>
+                    <small>Category</small><br>
+                    <small>📍 Location</small>
+                </div>
+                <div class="demo-card">
+                    <div class="demo-logo"></div><br>
+                    <strong>Company D</strong><br>
+                    <small>Category</small><br>
+                    <small>📍 Location</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="view-mode">
+            <h3>3. 📋 List View (New)</h3>
+            <p><strong>Layout:</strong> One card per row - horizontal layout</p>
+            <ul>
+                <li>📏 <strong>Full width:</strong> Each company takes full row</li>
+                <li>🔵 <strong>Larger circular logos</strong> (16x16) on the left</li>
+                <li>📝 <strong>More information visible</strong> in horizontal layout</li>
+                <li>🎯 <strong>Better for detailed browsing</strong></li>
+            </ul>
+            
+            <div class="list-demo">
+                <div class="demo-list-card">
+                    <div class="demo-list-logo"></div>
+                    <div style="flex: 1;">
+                        <strong>Company Name</strong><br>
+                        <small>Category • 📍 Location • ⭐ Rating</small>
+                    </div>
+                    <button style="background: #D9B95B; color: white; padding: 4px 8px; border: none; border-radius: 4px; font-size: 10px;">View Profile</button>
+                </div>
+                <div class="demo-list-card">
+                    <div class="demo-list-logo"></div>
+                    <div style="flex: 1;">
+                        <strong>Another Company</strong><br>
+                        <small>Category • 📍 Location • ⭐ Rating</small>
+                    </div>
+                    <button style="background: #D9B95B; color: white; padding: 4px 8px; border: none; border-radius: 4px; font-size: 10px;">View Profile</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="comparison">
+        <h2>📊 Grid vs List View Comparison:</h2>
+        
+        <table border="1" style="border-collapse: collapse; width: 100%; margin: 10px 0;">
+            <tr style="background: #f5f5f5;">
+                <th style="padding: 8px;">Feature</th>
+                <th style="padding: 8px;">Grid View 🔲</th>
+                <th style="padding: 8px;">List View 📋</th>
+            </tr>
+            <tr>
+                <td style="padding: 8px;"><strong>Layout</strong></td>
+                <td style="padding: 8px;">Multiple cards per row</td>
+                <td style="padding: 8px;">One card per row</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px;"><strong>Logo Size</strong></td>
+                <td style="padding: 8px;">w-12 h-12 (compact)</td>
+                <td style="padding: 8px;">w-16 h-16 (larger)</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px;"><strong>Content Density</strong></td>
+                <td style="padding: 8px;">High (6 per row)</td>
+                <td style="padding: 8px;">Medium (1 per row)</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px;"><strong>Information Display</strong></td>
+                <td style="padding: 8px;">Compact, centered</td>
+                <td style="padding: 8px;">Detailed, horizontal</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px;"><strong>Best For</strong></td>
+                <td style="padding: 8px;">Quick browsing, overview</td>
+                <td style="padding: 8px;">Detailed comparison</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px;"><strong>Screen Usage</strong></td>
+                <td style="padding: 8px;">Efficient, more visible</td>
+                <td style="padding: 8px;">Spacious, detailed</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="feature">
+        <h2>🔧 Technical Implementation:</h2>
+        
+        <h3>State Management:</h3>
+        <pre>const [viewMode, setViewMode] = useState('grid'); // Default to grid view</pre>
+        
+        <h3>Dynamic Grid Classes:</h3>
+        <pre>className={viewMode === 'grid' 
+  ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3"
+  : "space-y-3"
+}</pre>
+        
+        <h3>Conditional Rendering:</h3>
+        <pre>{companies.map(company => (
+  viewMode === 'grid' ? (
+    // Grid View Component
+    &lt;CompactGridCard company={company} /&gt;
+  ) : (
+    // List View Component  
+    &lt;HorizontalListCard company={company} /&gt;
+  )
+))}</pre>
+
+        <h3>Toggle Button Styling:</h3>
+        <pre>className={`flex items-center space-x-1 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+  viewMode === 'grid'
+    ? 'bg-[#D9B95B] text-white shadow-sm'
+    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'
+}`}</pre>
+    </div>
+
+    <div class="feature">
+        <h2>🎯 User Experience Benefits:</h2>
+        
+        <h3>🔲 Grid View Benefits:</h3>
+        <ul>
+            <li>✅ <strong>Quick Overview:</strong> See many companies at once</li>
+            <li>✅ <strong>Efficient Browsing:</strong> 6 companies per row on large screens</li>
+            <li>✅ <strong>Compact Design:</strong> Minimal scrolling needed</li>
+            <li>✅ <strong>Visual Appeal:</strong> Clean, organized layout</li>
+        </ul>
+
+        <h3>📋 List View Benefits:</h3>
+        <ul>
+            <li>✅ <strong>Detailed Information:</strong> More space for company details</li>
+            <li>✅ <strong>Easy Comparison:</strong> Compare companies side by side</li>
+            <li>✅ <strong>Better Readability:</strong> Larger text and logos</li>
+            <li>✅ <strong>Accessibility:</strong> Easier to scan for specific information</li>
+        </ul>
+
+        <h3>🎛️ Toggle Functionality:</h3>
+        <ul>
+            <li>✅ <strong>Instant Switching:</strong> No page reload needed</li>
+            <li>✅ <strong>State Persistence:</strong> Remembers choice during session</li>
+            <li>✅ <strong>Visual Feedback:</strong> Active button highlighted</li>
+            <li>✅ <strong>Smooth Transitions:</strong> Animated view changes</li>
+        </ul>
+    </div>
+
+    <div class="feature">
+        <h2>📱 Responsive Behavior:</h2>
+        
+        <h3>Grid View Responsiveness:</h3>
+        <ul>
+            <li><strong>Mobile (sm):</strong> 1 column</li>
+            <li><strong>Tablet (md):</strong> 2 columns</li>
+            <li><strong>Desktop (lg):</strong> 4 columns</li>
+            <li><strong>Large (xl):</strong> 6 columns</li>
+        </ul>
+
+        <h3>List View Responsiveness:</h3>
+        <ul>
+            <li><strong>All Screens:</strong> 1 column (full width)</li>
+            <li><strong>Mobile:</strong> Stacked content, smaller buttons</li>
+            <li><strong>Desktop:</strong> Horizontal layout with larger elements</li>
+        </ul>
+    </div>
+
+    <div class="feature">
+        <h2>🚀 Result:</h2>
+        <p><strong>Both CompanyDirectoryPage and BusinessDirectoryPage now have flexible view options:</strong></p>
+        <ul>
+            <li>🔲 <strong>Grid View:</strong> Perfect for quick browsing and overview</li>
+            <li>📋 <strong>List View:</strong> Ideal for detailed comparison and analysis</li>
+            <li>🎛️ <strong>Easy Toggle:</strong> Switch between views instantly</li>
+            <li>📱 <strong>Fully Responsive:</strong> Works great on all devices</li>
+            <li>🎨 <strong>Consistent Design:</strong> Both views maintain brand styling</li>
+            <li>⚡ <strong>Performance:</strong> No additional API calls needed</li>
+        </ul>
+    </div>
+
+    <script>
+        console.log('✅ View toggle functionality added to both directory pages!');
+        console.log('🔲 Grid View: Compact cards, multiple per row');
+        console.log('📋 List View: Detailed cards, one per row');
+        console.log('🎛️ Easy switching between view modes');
+        console.log('📱 Fully responsive on all devices');
+    </script>
+</body>
+</html>

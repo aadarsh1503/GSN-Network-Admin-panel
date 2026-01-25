@@ -15,10 +15,14 @@ import {
   FaFileInvoiceDollar,
   FaTicketAlt
 } from 'react-icons/fa';
+import toast from 'react-hot-toast';
 import { useNotifications } from '../contexts/NotificationContext';
 import LogoutConfirmationModal from '../components/Modal/LogoutConfirmationModal';
 import { useLogoutModal } from '../hooks/useLogoutModal';
-import { api } from '../utils/api';
+import { api, startAccountStatusMonitoring, stopAccountStatusMonitoring } from '../utils/api';
+import { useAccountStatusWebSocket } from '../hooks/useAccountStatusWebSocket';
+import AccountStatusModal from '../components/Modal/AccountStatusModal';
+import { checkAndShowAccountStatus, forceLogout } from '../utils/accountStatusChecker';
 
 const BusinessLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -27,6 +31,35 @@ const BusinessLayout = () => {
   const location = useLocation();
   const { unreadCount, messageUnreadCount, forceResetUnreadCount } = useNotifications();
   const { isLogoutModalOpen, openLogoutModal, closeLogoutModal } = useLogoutModal();
+  
+  // WebSocket connection for real-time account status
+  const { isConnected, accountStatus, clearAccountStatus, handleLogout: wsHandleLogout } = useAccountStatusWebSocket();
+  
+  // State for modal visibility
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [modalConfig, setModalConfig] = useState({ type: '', message: '' });
+
+  // Handle real-time account status changes
+  useEffect(() => {
+    if (accountStatus) {
+      console.log('🚨 Account status change detected:', accountStatus);
+      
+      if (accountStatus.type === 'deactivated' || accountStatus.type === 'blacklisted') {
+        setModalConfig({
+          type: accountStatus.type,
+          message: accountStatus.message
+        });
+        setShowStatusModal(true);
+      } else if (accountStatus.type === 'reactivated') {
+        // Show success message for reactivation
+        toast.success(accountStatus.message || 'Your account has been reactivated!', {
+          duration: 5000,
+          position: 'top-center',
+        });
+        clearAccountStatus();
+      }
+    }
+  }, [accountStatus, clearAccountStatus]);
 
   useEffect(() => {
     // Get user info from localStorage
@@ -34,6 +67,52 @@ const BusinessLayout = () => {
     if (userData) {
       setUser(JSON.parse(userData));
     }
+
+    // CHECK ACCOUNT STATUS ON PAGE LOAD/REFRESH
+    checkAndShowAccountStatus();
+
+    // Set up account status monitoring and deactivation handling
+    startAccountStatusMonitoring(2); // Check every 2 minutes
+
+    // Listen for account deactivation events
+    const handleAccountDeactivated = (event) => {
+      setModalConfig({
+        type: 'deactivated',
+        message: event.detail.message
+      });
+      setShowStatusModal(true);
+    };
+
+    // Listen for account blacklisted events
+    const handleAccountBlacklisted = (event) => {
+      setModalConfig({
+        type: 'blacklisted',
+        message: event.detail.message
+      });
+      setShowStatusModal(true);
+    };
+
+    // Listen for custom account status modal event
+    const handleShowAccountStatusModal = (event) => {
+      console.log('🚨 Business account status modal event received:', event.detail);
+      setModalConfig({
+        type: event.detail.type,
+        message: event.detail.message
+      });
+      setShowStatusModal(true);
+    };
+
+    window.addEventListener('accountDeactivated', handleAccountDeactivated);
+    window.addEventListener('accountBlacklisted', handleAccountBlacklisted);
+    window.addEventListener('showAccountStatusModal', handleShowAccountStatusModal);
+
+    // Cleanup on unmount
+    return () => {
+      stopAccountStatusMonitoring();
+      window.removeEventListener('accountDeactivated', handleAccountDeactivated);
+      window.removeEventListener('accountBlacklisted', handleAccountBlacklisted);
+      window.removeEventListener('showAccountStatusModal', handleShowAccountStatusModal);
+    };
   }, []);
 
   useEffect(() => {
@@ -74,6 +153,16 @@ const BusinessLayout = () => {
 
   const handleLogout = () => {
     openLogoutModal();
+  };
+
+  const handleModalClose = () => {
+    setShowStatusModal(false);
+    clearAccountStatus();
+  };
+
+  const handleModalLogout = () => {
+    setShowStatusModal(false);
+    forceLogout('Business account status changed');
   };
 
   const menuItems = [
@@ -323,6 +412,15 @@ const BusinessLayout = () => {
         onClose={closeLogoutModal}
         userRole="business"
         userName={businessProfile?.name || user?.name || 'Business User'}
+      />
+      
+      {/* Account Status Modal */}
+      <AccountStatusModal
+        isOpen={showStatusModal}
+        onClose={handleModalClose}
+        type={modalConfig.type}
+        message={modalConfig.message}
+        onLogout={handleModalLogout}
       />
     </div>
   );

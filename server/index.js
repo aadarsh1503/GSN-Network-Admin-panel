@@ -2,7 +2,7 @@
 
 import express from 'express';
 import dotenv from 'dotenv';
-import cors from 'cors'; // You will need CORS for your React app
+// Removed CORS import since using Vite proxy
 import companyRoutes from './routes/companyRoutes.js';
 import invoiceRoutes from './routes/invoiceRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
@@ -40,12 +40,16 @@ import enhancedQuoteRoutes from './routes/enhancedQuoteRoutes.js';
 import emailQueueRoutes from './routes/emailQueueRoutes.js';
 import debugRoutes from './routes/debugRoutes.js';
 import geoRoutes from './routes/geoRoutes.js';
+import adminAccountRoutes from './routes/adminAccountRoutes.js';
+import testAccountStatusRoutes from './routes/testAccountStatus.js';
 // ==========================================================
 // CONFIGURE DOTENV AT THE VERY TOP
 dotenv.config();
 // ==========================================================
 
 import userRoutes from './routes/userRoutes.js';
+import { createServer } from 'http';
+import realTimeAccountService from './services/realTimeAccountService.js';
 
 // For debugging: check if the variable is loaded
 console.log('JWT Secret Loaded:', process.env.JWT_SECRET ? 'Yes' : 'No'); 
@@ -53,8 +57,14 @@ console.log('JWT Secret Loaded:', process.env.JWT_SECRET ? 'Yes' : 'No');
 const app = express();
 const PORT = process.env.PORT || 5001;
 
+// Create HTTP server for WebSocket integration
+const server = createServer(app);
+
+// Initialize real-time account status service
+realTimeAccountService.initialize(server);
+
 // Middlewares
-app.use(cors()); // Enable CORS for all routes
+// Removed CORS middleware since using Vite proxy
 app.use(express.json()); // Middleware to parse JSON bodies
 app.use('/uploads', express.static('uploads')); // Serve uploaded files
 
@@ -99,6 +109,8 @@ app.use('/api/test', testRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin-panel', adminPanelRoutes);
 app.use('/api/admin', emailRoutes);
+app.use('/api/admin', adminAccountRoutes); // Real-time account management routes
+app.use('/api/test', testAccountStatusRoutes); // Test account status routes
 app.use('/api/general-settings', generalSettingsRoutes);
 app.use('/api/bank-details', bankDetailsRoutes);
 app.use('/api/notifications', realTimeNotificationRoutes);
@@ -114,7 +126,8 @@ app.use('/api/debug', debugRoutes);
 
 console.log('📍 All routes mounted successfully');
 
-// Start the server
-app.listen(PORT, () => {
+// Start the server with WebSocket support
+server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🔌 WebSocket server available at ws://localhost:${PORT}/ws/account-status`);
 });

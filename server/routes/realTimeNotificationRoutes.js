@@ -73,13 +73,11 @@ router.get('/stream', (req, res) => {
     return res.status(401).json({ error: 'Invalid token' });
   }
 
-  // Set SSE headers
+  // Set SSE headers (removed CORS headers since using Vite proxy)
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
     'Connection': 'keep-alive',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Cache-Control',
     'X-Accel-Buffering': 'no', // Disable nginx buffering
   });
 

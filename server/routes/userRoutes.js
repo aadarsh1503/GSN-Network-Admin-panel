@@ -30,7 +30,8 @@ import {
     forgotPassword,
     resetPassword,
     verifyResetTokenEndpoint,
-    refreshToken
+    refreshToken,
+    keepAlive
 } from '../controllers/userController.js';
 
 // Public Routes
@@ -46,6 +47,7 @@ router.get('/verify-reset-token/:token', verifyResetTokenEndpoint);
 router.get('/me', protect, getUserProfile);
 router.put('/update-profile', protect, updateUserProfile);
 router.post('/refresh-token', protect, refreshToken); // New refresh token endpoint
+router.get('/keep-alive', protect, keepAlive); // Keep-alive ping endpoint
 router.get('/admin-data', protect, authorize('admin'), getAdminData);
 
 // Company profile route (for companies to get their own profile)

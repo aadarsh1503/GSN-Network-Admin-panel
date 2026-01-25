@@ -1196,9 +1196,9 @@ const Dashboard = () => {
               <p className="text-3xl font-bold text-green-600">${Math.round(realTimeData.totalRevenue).toLocaleString()}</p>
               <p className="text-sm text-gray-500">Platform Revenue</p>
               {/* Temporary debug info */}
-              <p className="text-xs text-red-500 mt-1">
+              {/* <p className="text-xs text-red-500 mt-1">
                 Debug: Subs={realTimeData.totalSubscriptions}, Active={realTimeData.activeSubscriptions}, Revenue=${realTimeData.subscriptionRevenue}
-              </p>
+              </p> */}
             </div>
           </div>
           

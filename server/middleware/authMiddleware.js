@@ -14,11 +14,30 @@ const protect = async (req, res, next) => {
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
             // Get user from the token's ID and attach to the request
-            const [rows] = await db.execute('SELECT id, name, email, role FROM users WHERE id = ?', [decoded.id]);
+            // ENHANCED: Also check account status and blacklist status
+            const [rows] = await db.execute('SELECT id, name, email, role, status, is_blacklisted FROM users WHERE id = ?', [decoded.id]);
             req.user = rows[0];
 
             if (!req.user) {
                 return res.status(401).json({ message: 'Not authorized, user not found' });
+            }
+
+            // ENHANCED: Check if user account is active (status = 1)
+            if (req.user.status !== 1 && req.user.status !== true) {
+                console.log(`🚫 Account deactivated for user ${req.user.email} (ID: ${req.user.id})`);
+                return res.status(401).json({ 
+                    message: 'Your account has been deactivated. Please contact support.',
+                    accountDeactivated: true // Flag to help frontend handle this specific case
+                });
+            }
+
+            // ENHANCED: Check if user is blacklisted
+            if (req.user.is_blacklisted === 1 || req.user.is_blacklisted === true) {
+                console.log(`🚫 Blacklisted user attempted access: ${req.user.email} (ID: ${req.user.id})`);
+                return res.status(401).json({ 
+                    message: 'Your account has been blacklisted due to policy violations. Please contact support.',
+                    accountBlacklisted: true // Flag to help frontend handle this specific case
+                });
             }
 
             next(); // Proceed to the next middleware/controller

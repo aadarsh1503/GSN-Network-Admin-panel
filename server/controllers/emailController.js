@@ -1,5 +1,5 @@
 import db from '../config/db.js';
-import { sendEmail } from '../services/emailService.js';
+import { sendEmail, sendBulkEmails as sendBulkEmailsService } from '../services/improvedEmailService.js';
 import { sendBulkEmailViaSendy, getSendySubscriberCount } from '../services/sendyService.js';
 
 // @desc    Send bulk emails to users based on type
@@ -100,25 +100,29 @@ export const sendBulkEmails = async (req, res) => {
                 });
             }
         } else {
-            console.log('📧 Sending via SMTP...');
-            // Send via SMTP (existing method)
-            const emailPromises = users.map(user => {
-                const personalizedBody = body.replace(/\{name\}/g, user.name || 'Valued User');
-                return sendEmail(user.email, subject, personalizedBody, 'general');
-            });
+            console.log('📧 Sending via SMTP with improved error handling...');
+            // Send via SMTP using improved bulk email service
+            const result = await sendBulkEmailsService(users, subject, body);
 
-            const results = await Promise.allSettled(emailPromises);
-            const successful = results.filter(result => result.status === 'fulfilled' && result.value.success).length;
-            const failed = results.length - successful;
+            console.log(`✅ SMTP results: ${result.successful} successful, ${result.failed} failed`);
 
-            console.log(`✅ SMTP results: ${successful} successful, ${failed} failed`);
+            // Provide detailed error information
+            let responseMessage = 'Bulk email sending completed via SMTP';
+            if (result.failed > 0) {
+                responseMessage += ` (${result.failed} emails failed - see logs for details)`;
+            }
 
             res.status(200).json({
-                message: 'Bulk email sending completed via SMTP',
+                message: responseMessage,
                 method: 'smtp',
-                totalUsers: users.length,
-                successful,
-                failed,
+                totalUsers: result.total,
+                successful: result.successful,
+                failed: result.failed,
+                errorSummary: result.errors.length > 0 ? 
+                    result.errors.reduce((acc, error) => {
+                        acc[error.errorType] = (acc[error.errorType] || 0) + 1;
+                        return acc;
+                    }, {}) : null,
                 details: {
                     userType,
                     subject,

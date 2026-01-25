@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaTimes, FaMapMarkerAlt, FaGlobe, FaEye, FaStar, FaShip, FaTruck, FaPlane, FaIndustry, FaCog, FaBoxes, FaRecycle, FaCalendarAlt, FaArrowLeft } from 'react-icons/fa';
+import { FaTimes, FaMapMarkerAlt, FaGlobe, FaEye, FaStar, FaShip, FaTruck, FaPlane, FaIndustry, FaCog, FaBoxes, FaRecycle, FaCalendarAlt, FaArrowLeft, FaTh, FaList } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
@@ -215,6 +215,7 @@ const CompanyDirectoryPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [itemsPerPage, setItemsPerPage] = useState(12);
   const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1, totalCompanies: 0 });
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
 
   // Function to format category names (replace underscores with spaces and capitalize)
   const formatCategoryName = (category) => {
@@ -278,10 +279,10 @@ const CompanyDirectoryPage = () => {
   };
 
   return (
-    <div className="min-h-screen mt-24 bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen mt-20 bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Header - More compact */}
       <div className="bg-gradient-to-r from-[#D9B95B] to-[#CDA435] text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <button 
@@ -290,13 +291,13 @@ const CompanyDirectoryPage = () => {
               >
                 <FaArrowLeft className="text-lg" />
               </button>
-              <div className="flex items-center space-x-3">
+              <div className="flex mt-4 items-center space-x-3">
                 <div className="p-2 bg-white/20 rounded-full">
-                  <FaGlobe className="text-xl" />
+                  <FaGlobe className="text-lg" />
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold">Freightnet Directory</h1>
-                  <p className="text-white/90 text-sm">Discover top freight forwarding companies</p>
+                  <p className="text-white/90 text-xs">Discover top freight forwarding companies</p>
                 </div>
               </div>
             </div>
@@ -305,13 +306,13 @@ const CompanyDirectoryPage = () => {
       </div>
 
       {/* Filters - More compact */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="bg-white rounded-xl shadow-md p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+        <div className="bg-white rounded-lg shadow-sm p-3 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
             <select 
               value={selectedCategory}
               onChange={(e) => { setSelectedCategory(e.target.value); setPagination(p => ({...p, currentPage: 1})); }}
-              className="w-full p-3 border border-gray-200 rounded-lg focus:border-[#D9B95B] focus:ring-1 focus:ring-[#D9B95B]/20 transition-all text-sm"
+              className="w-full p-2 border border-gray-200 rounded-md focus:border-[#D9B95B] focus:ring-1 focus:ring-[#D9B95B]/20 transition-all text-xs"
             >
               <option value="">🏢 All Categories</option>
               {filters.categories?.map((cat, idx) => (
@@ -321,7 +322,7 @@ const CompanyDirectoryPage = () => {
             <select 
               value={selectedCountry}
               onChange={(e) => { setSelectedCountry(e.target.value); setPagination(p => ({...p, currentPage: 1})); }}
-              className="w-full p-3 border border-gray-200 rounded-lg focus:border-[#D9B95B] focus:ring-1 focus:ring-[#D9B95B]/20 transition-all text-sm"
+              className="w-full p-2 border border-gray-200 rounded-md focus:border-[#D9B95B] focus:ring-1 focus:ring-[#D9B95B]/20 transition-all text-xs"
             >
               <option value="">🌍 All Countries</option>
               {filters.countries?.map((country, idx) => (
@@ -333,12 +334,12 @@ const CompanyDirectoryPage = () => {
               placeholder="🔍 Search companies..."
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setPagination(p => ({...p, currentPage: 1})); }}
-              className="w-full p-3 border border-gray-200 rounded-lg focus:border-[#D9B95B] focus:ring-1 focus:ring-[#D9B95B]/20 transition-all text-sm"
+              className="w-full p-2 border border-gray-200 rounded-md focus:border-[#D9B95B] focus:ring-1 focus:ring-[#D9B95B]/20 transition-all text-xs"
             />
             <select 
               value={itemsPerPage}
               onChange={(e) => { setItemsPerPage(Number(e.target.value)); setPagination(p => ({...p, currentPage: 1})); }}
-              className="w-full p-3 border border-gray-200 rounded-lg focus:border-[#D9B95B] focus:ring-1 focus:ring-[#D9B95B]/20 transition-all text-sm"
+              className="w-full p-2 border border-gray-200 rounded-md focus:border-[#D9B95B] focus:ring-1 focus:ring-[#D9B95B]/20 transition-all text-xs"
             >
               <option value={5}>📄 5 per page</option>
               <option value={10}>📄 10 per page</option>
@@ -347,25 +348,53 @@ const CompanyDirectoryPage = () => {
               <option value={30}>📄 30 per page</option>
             </select>
           </div>
+          
+          {/* View Toggle Buttons */}
+          <div className="flex justify-end mt-3 pt-3 border-t border-gray-100">
+            <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`flex items-center space-x-1 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                  viewMode === 'grid'
+                    ? 'bg-[#D9B95B] text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'
+                }`}
+              >
+                <FaTh className="text-xs" />
+                <span>Grid View</span>
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`flex items-center space-x-1 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                  viewMode === 'list'
+                    ? 'bg-[#D9B95B] text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'
+                }`}
+              >
+                <FaList className="text-xs" />
+                <span>List View</span>
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Companies List - More compact */}
-        <div className="bg-white rounded-xl shadow-md p-4">
+        <div className="bg-white rounded-lg shadow-sm p-3">
           {loading ? (
-            <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-10 w-10 border-4 border-[#D9B95B] border-t-transparent"></div>
-              <p className="mt-3 text-base font-medium text-gray-600">Loading amazing companies...</p>
+            <div className="text-center py-8">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#D9B95B] border-t-transparent"></div>
+              <p className="mt-2 text-sm font-medium text-gray-600">Loading amazing companies...</p>
             </div>
           ) : companies.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-4xl mb-3">🏢</div>
-              <p className="text-lg text-gray-500 font-medium">No companies found</p>
-              <p className="text-gray-400 text-sm">Try adjusting your search criteria</p>
+            <div className="text-center py-8">
+              <div className="text-3xl mb-2">🏢</div>
+              <p className="text-base text-gray-500 font-medium">No companies found</p>
+              <p className="text-gray-400 text-xs">Try adjusting your search criteria</p>
             </div>
           ) : (
             <>
-              <div className="mb-4 flex justify-between items-center">
-                <div className="text-base font-semibold text-gray-700">
+              <div className="mb-3 flex justify-between items-center">
+                <div className="text-sm font-semibold text-gray-700">
                   <span className="text-[#D9B95B]">{companies.length}</span> of <span className="text-[#D9B95B]">{pagination.totalCompanies}</span> companies
                 </div>
                 <div className="flex items-center space-x-2 text-xs text-gray-500">
@@ -373,84 +402,157 @@ const CompanyDirectoryPage = () => {
                   <span>Featured Members First</span>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              <div className={viewMode === 'grid' 
+                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3"
+                : "space-y-3"
+              }>
                 {companies.map(company => (
-                  <div key={company.id} className="group bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden hover:shadow-lg hover:border-[#D9B95B] transition-all duration-300 transform hover:-translate-y-1">
-                    
-                    {/* Company Header - Reduced height */}
-                    <div className="relative h-24 bg-gradient-to-br from-[#D9B95B] to-[#CDA435] overflow-hidden">
-                      {company.logo ? (
-                        <img src={company.logo} alt={company.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-2xl text-white font-bold drop-shadow-lg">{company.name?.charAt(0)}</span>
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors"></div>
-                    </div>
-                    
-                    {/* Company Info - Reduced padding */}
-                    <div className="p-3">
-                      <h3 className="font-bold text-sm text-gray-800 group-hover:text-[#D9B95B] transition-colors line-clamp-2 mb-2 min-h-[2.5rem]">
-                        {company.name}
-                      </h3>
+                  viewMode === 'grid' ? (
+                    // Grid View - Compact Cards
+                    <div key={company.id} className="group bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md hover:border-[#D9B95B] transition-all duration-300 transform hover:-translate-y-1">
                       
-                      <div className="mb-2">
-                        <span className="bg-gradient-to-r from-[#D9B95B]/20 to-[#CDA435]/20 text-[#8B7355] px-2 py-1 rounded-full text-xs font-semibold line-clamp-1">
-                          {formatCategoryName(company.category)}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center text-gray-600 text-xs mb-2 bg-gray-50 p-2 rounded-md">
-                        <FaMapMarkerAlt className="mr-1 text-[#D9B95B] flex-shrink-0 text-xs" />
-                        <span className="font-medium truncate">{company.city ? `${company.city}, ` : ''}{company.country}</span>
-                      </div>
-                      
-                      {company.average_rating > 0 && (
-                        <div className="flex items-center justify-between text-xs mb-3 bg-yellow-50 p-2 rounded-md">
-                          <div className="flex items-center text-yellow-600">
-                            <div className="flex mr-1">
-                              {[...Array(5)].map((_, i) => (
-                                <FaStar key={i} className={`text-xs ${i < Math.floor(company.average_rating) ? 'text-yellow-400' : 'text-gray-300'}`} />
-                              ))}
-                            </div>
-                            <span className="font-bold text-xs">{company.average_rating}</span>
+                      {/* Company Header - Compact with circular logo */}
+                      <div className="relative p-3 bg-gradient-to-br from-gray-50 to-gray-100 text-center">
+                        {company.logo ? (
+                          <img 
+                            src={company.logo} 
+                            alt={company.name} 
+                            className="w-12 h-12 rounded-full object-cover mx-auto border-2 border-white shadow-md group-hover:scale-110 transition-transform duration-300" 
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#D9B95B] to-[#CDA435] flex items-center justify-center mx-auto border-2 border-white shadow-md group-hover:scale-110 transition-transform duration-300">
+                            <span className="text-lg text-white font-bold">{company.name?.charAt(0)}</span>
                           </div>
-                          <span className="text-gray-500 text-xs">({company.total_reviews})</span>
-                        </div>
-                      )}
+                        )}
+                      </div>
                       
-                      <button 
-                        onClick={() => handleViewProfile(company)}
-                        className="w-full bg-gradient-to-r from-[#D9B95B] to-[#CDA435] text-white py-2 rounded-lg hover:from-[#CDA435] hover:to-[#D9B95B] transition-all duration-300 flex items-center justify-center font-bold text-xs shadow-md hover:shadow-lg transform hover:scale-105"
-                      >
-                        <FaEye className="mr-1 text-xs" />
-                        View Profile
-                      </button>
+                      {/* Company Info - Compact */}
+                      <div className="p-3 pt-1">
+                        <h3 className="font-semibold text-xs text-gray-800 group-hover:text-[#D9B95B] transition-colors line-clamp-2 mb-2 min-h-[2rem] text-center">
+                          {company.name}
+                        </h3>
+                        
+                        <div className="mb-2 text-center">
+                          <span className="bg-gradient-to-r from-[#D9B95B]/20 to-[#CDA435]/20 text-[#8B7355] px-2 py-1 rounded-full text-xs font-medium line-clamp-1 inline-block">
+                            {formatCategoryName(company.category)}
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center justify-center text-gray-600 text-xs mb-2 bg-gray-50 p-1.5 rounded-md">
+                          <FaMapMarkerAlt className="mr-1 text-[#D9B95B] flex-shrink-0 text-xs" />
+                          <span className="font-medium truncate text-center">{company.city ? `${company.city}, ` : ''}{company.country}</span>
+                        </div>
+                        
+                        {company.average_rating > 0 && (
+                          <div className="flex items-center justify-center text-xs mb-2 bg-yellow-50 p-1.5 rounded-md">
+                            <div className="flex items-center text-yellow-600">
+                              <div className="flex mr-1">
+                                {[...Array(5)].map((_, i) => (
+                                  <FaStar key={i} className={`text-xs ${i < Math.floor(company.average_rating) ? 'text-yellow-400' : 'text-gray-300'}`} />
+                                ))}
+                              </div>
+                              <span className="font-bold text-xs">{company.average_rating}</span>
+                            </div>
+                            <span className="text-gray-500 text-xs ml-1">({company.total_reviews})</span>
+                          </div>
+                        )}
+                        
+                        <button 
+                          onClick={() => handleViewProfile(company)}
+                          className="w-full bg-gradient-to-r from-[#D9B95B] to-[#CDA435] text-white py-1.5 rounded-md hover:from-[#CDA435] hover:to-[#D9B95B] transition-all duration-300 flex items-center justify-center font-medium text-xs shadow-sm hover:shadow-md transform hover:scale-105"
+                        >
+                          <FaEye className="mr-1 text-xs" />
+                          View Profile
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    // List View - One per row, compact
+                    <div key={company.id} className="group bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md hover:border-[#D9B95B] transition-all duration-300">
+                      <div className="flex items-center p-4 space-x-4">
+                        {/* Company Logo */}
+                        <div className="flex-shrink-0">
+                          {company.logo ? (
+                            <img 
+                              src={company.logo} 
+                              alt={company.name} 
+                              className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 shadow-sm group-hover:scale-105 transition-transform duration-300" 
+                            />
+                          ) : (
+                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#D9B95B] to-[#CDA435] flex items-center justify-center border-2 border-gray-200 shadow-sm group-hover:scale-105 transition-transform duration-300">
+                              <span className="text-xl text-white font-bold">{company.name?.charAt(0)}</span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Company Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h3 className="font-bold text-lg text-gray-800 group-hover:text-[#D9B95B] transition-colors truncate">
+                                {company.name}
+                              </h3>
+                              <div className="flex items-center space-x-3 mt-1">
+                                <span className="bg-gradient-to-r from-[#D9B95B]/20 to-[#CDA435]/20 text-[#8B7355] px-3 py-1 rounded-full text-sm font-medium">
+                                  {formatCategoryName(company.category)}
+                                </span>
+                                <div className="flex items-center text-gray-600 text-sm">
+                                  <FaMapMarkerAlt className="mr-1 text-[#D9B95B] flex-shrink-0" />
+                                  <span className="font-medium">{company.city ? `${company.city}, ` : ''}{company.country}</span>
+                                </div>
+                              </div>
+                              {company.average_rating > 0 && (
+                                <div className="flex items-center mt-2">
+                                  <div className="flex items-center text-yellow-600 mr-3">
+                                    <div className="flex mr-1">
+                                      {[...Array(5)].map((_, i) => (
+                                        <FaStar key={i} className={`text-sm ${i < Math.floor(company.average_rating) ? 'text-yellow-400' : 'text-gray-300'}`} />
+                                      ))}
+                                    </div>
+                                    <span className="font-bold text-sm ml-1">{company.average_rating}</span>
+                                  </div>
+                                  <span className="text-gray-500 text-sm">({company.total_reviews} reviews)</span>
+                                </div>
+                              )}
+                            </div>
+                            
+                            {/* Action Button */}
+                            <div className="flex-shrink-0 ml-4">
+                              <button 
+                                onClick={() => handleViewProfile(company)}
+                                className="bg-gradient-to-r from-[#D9B95B] to-[#CDA435] text-white px-6 py-2 rounded-lg hover:from-[#CDA435] hover:to-[#D9B95B] transition-all duration-300 flex items-center font-medium text-sm shadow-sm hover:shadow-md transform hover:scale-105"
+                              >
+                                <FaEye className="mr-2" />
+                                View Profile
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
                 ))}
               </div>
 
               {/* Pagination - More compact */}
               {pagination.totalPages > 1 && (
-                <div className="flex justify-center items-center space-x-3 mt-6 pt-4 border-t border-gray-200">
+                <div className="flex justify-center items-center space-x-2 mt-4 pt-3 border-t border-gray-200">
                   <button 
                     onClick={() => setPagination(p => ({...p, currentPage: p.currentPage - 1}))}
                     disabled={!pagination.hasPrev}
-                    className="px-4 py-2 bg-gradient-to-r from-gray-100 to-gray-200 rounded-lg hover:from-[#D9B95B] hover:to-[#CDA435] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium"
+                    className="px-3 py-1.5 bg-gradient-to-r from-gray-100 to-gray-200 rounded-md hover:from-[#D9B95B] hover:to-[#CDA435] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all text-xs font-medium"
                   >
                     ← Previous
                   </button>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-gray-600 text-sm">Page</span>
-                    <span className="bg-[#D9B95B] text-white px-2 py-1 rounded-md font-bold text-sm">{pagination.currentPage}</span>
-                    <span className="text-gray-600 text-sm">of {pagination.totalPages}</span>
+                  <div className="flex items-center space-x-1">
+                    <span className="text-gray-600 text-xs">Page</span>
+                    <span className="bg-[#D9B95B] text-white px-2 py-1 rounded-md font-bold text-xs">{pagination.currentPage}</span>
+                    <span className="text-gray-600 text-xs">of {pagination.totalPages}</span>
                   </div>
                   <button 
                     onClick={() => setPagination(p => ({...p, currentPage: p.currentPage + 1}))}
                     disabled={!pagination.hasNext}
-                    className="px-4 py-2 bg-gradient-to-r from-gray-100 to-gray-200 rounded-lg hover:from-[#D9B95B] hover:to-[#CDA435] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium"
+                    className="px-3 py-1.5 bg-gradient-to-r from-gray-100 to-gray-200 rounded-md hover:from-[#D9B95B] hover:to-[#CDA435] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all text-xs font-medium"
                   >
                     Next →
                   </button>

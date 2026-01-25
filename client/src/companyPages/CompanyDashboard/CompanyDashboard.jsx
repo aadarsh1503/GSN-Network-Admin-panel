@@ -33,10 +33,8 @@ const persistentLog = (message, type = 'info') => {
         if (logs.length > 50) logs.splice(50);
         localStorage.setItem('auth_debug_logs', JSON.stringify(logs));
     } catch (e) {
-        console.error('Failed to store debug log:', e);
+        // Silent fail for logging
     }
-    
-    console.log(logEntry);
 };
 
 // Website color palette matching the Admin Dashboard
@@ -288,7 +286,6 @@ const NotificationTable = () => {
         const response = await api.get('/api/notifications/my-notifications');
         setNotifications(Array.isArray(response) ? response : []);
       } catch (error) {
-        console.error("Error loading notifications", error);
         setNotifications([]);
       } finally {
         setLoading(false);
@@ -575,7 +572,6 @@ const Dashboard = () => {
       });
     } catch (error) {
       persistentLog(`❌ Error checking notifications: ${error.message}`, 'error');
-      console.error('Error checking notifications:', error);
     }
   };
 
@@ -683,7 +679,6 @@ const Dashboard = () => {
       persistentLog('✅ fetchDashboardData completed successfully', 'success');
     } catch (error) {
       persistentLog(`❌ fetchDashboardData failed: ${error.message}`, 'error');
-      console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
       persistentLog('🏁 fetchDashboardData finished (loading set to false)', 'info');
@@ -693,7 +688,6 @@ const Dashboard = () => {
   const fetchTransactionAmount = async () => {
     try {
       persistentLog('💰 Starting fetchTransactionAmount', 'info');
-      console.log('Fetching transaction amount...');
       let totalAmount = 0;
       
       // Try to get data from the enhanced quotes API
@@ -701,30 +695,23 @@ const Dashboard = () => {
         persistentLog('📡 Trying enhanced quotes API', 'info');
         const data = await api.get('/api/enhanced-quotes/company-responses-with-payments');
         persistentLog('✅ Enhanced quotes API success', 'success');
-        console.log('Enhanced quotes data received:', data);
         
         if (Array.isArray(data) && data.length > 0) {
           // Filter for payments that have been verified by this company
           const verifiedPayments = data.filter(item => {
             const isVerified = item.payment_status === 'verified';
-            console.log(`Item ${item.quote_id || item.id}: payment_status=${item.payment_status}, price=${item.price}, isVerified=${isVerified}`);
             return isVerified;
           });
           
-          console.log('Verified payments found:', verifiedPayments.length);
-          
           totalAmount = verifiedPayments.reduce((sum, item) => {
             const price = parseFloat(item.price) || 0;
-            console.log(`Adding price: ${price} to sum: ${sum}`);
             return sum + price;
           }, 0);
           
           persistentLog(`💰 Total from enhanced quotes: ${totalAmount}`, 'info');
-          console.log('Total from enhanced quotes:', totalAmount);
         }
       } catch (enhancedError) {
         persistentLog(`❌ Enhanced quotes API failed: ${enhancedError.message}`, 'error');
-        console.log('Enhanced quotes API failed, trying alternative...', enhancedError);
       }
       
       // If no amount found, try the company quotes API as fallback
@@ -733,7 +720,6 @@ const Dashboard = () => {
           persistentLog('📡 Trying company quotes transactions API', 'info');
           const companyData = await api.get('/api/company-quotes/transactions');
           persistentLog('✅ Company quotes transactions API success', 'success');
-          console.log('Company quotes data received:', companyData);
           
           if (Array.isArray(companyData) && companyData.length > 0) {
             const paidTransactions = companyData.filter(item => 
@@ -746,11 +732,9 @@ const Dashboard = () => {
             }, 0);
             
             persistentLog(`💰 Total from company quotes: ${totalAmount}`, 'info');
-            console.log('Total from company quotes:', totalAmount);
           }
         } catch (companyError) {
           persistentLog(`❌ Company quotes transactions API failed: ${companyError.message}`, 'error');
-          console.log('Company quotes API also failed:', companyError);
         }
       }
       
@@ -760,7 +744,6 @@ const Dashboard = () => {
           persistentLog('📡 Trying my quote responses API', 'info');
           const myQuotesData = await api.get('/api/company-quotes/my-responses');
           persistentLog('✅ My quote responses API success', 'success');
-          console.log('My quote responses data received:', myQuotesData);
           
           if (Array.isArray(myQuotesData) && myQuotesData.length > 0) {
             const acceptedQuotes = myQuotesData.filter(item => 
@@ -773,20 +756,16 @@ const Dashboard = () => {
             }, 0);
             
             persistentLog(`💰 Total from my quote responses: ${totalAmount}`, 'info');
-            console.log('Total from my quote responses:', totalAmount);
           }
         } catch (myQuotesError) {
           persistentLog(`❌ My quote responses API failed: ${myQuotesError.message}`, 'error');
-          console.log('My quote responses API also failed:', myQuotesError);
         }
       }
       
       persistentLog(`💰 Final transaction amount: ${totalAmount}`, 'success');
-      console.log('Final transaction amount calculated:', totalAmount);
       
       setTransactionAmount(totalAmount);
     } catch (error) {
-      console.error('Error fetching transaction amount:', error);
       setTransactionAmount(0);
     }
   };

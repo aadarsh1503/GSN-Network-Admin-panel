@@ -16,6 +16,30 @@ import {
   markTokenAsUsed 
 } from '../services/passwordResetService.js';
 
+// Keep-alive function to prevent token expiration
+const keepAlive = async (req, res) => {
+    try {
+        // Simple ping response that confirms the user is authenticated
+        // This will keep the backend active and prevent token expiration
+        const user = req.user; // Available from protect middleware
+        
+        res.status(200).json({
+            success: true,
+            message: 'Keep-alive ping successful',
+            timestamp: new Date().toISOString(),
+            userId: user.id,
+            userRole: user.role
+        });
+    } catch (error) {
+        console.error('Keep-alive error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Keep-alive ping failed',
+            error: error.message
+        });
+    }
+};
+
 // @desc    Authenticate user & get token
 // @route   POST /api/users/login
 // @access  Public
@@ -37,11 +61,27 @@ const loginUser = async (req, res) => {
         // --- NEW LOGIC: Check Blacklist and Status ---
         // If is_blacklisted is 1 (true) OR status is 0 (false/inactive)
         if (user.is_blacklisted) {
-            return res.status(403).json({ message: 'Your account has been blacklisted. Please contact support.' });
+            return res.status(403).json({ 
+                message: 'Your account has been blacklisted. Please contact support.',
+                accountBlacklisted: true 
+            });
         }
         
         if (user.status === 0) {
-             return res.status(403).json({ message: 'Your account is currently inactive.' });
+            // Check if this is a business or company user pending admin approval
+            if (user.role === 'business' || user.role === 'company') {
+                return res.status(403).json({ 
+                    message: 'Your account is pending admin approval. Please wait for an administrator to activate your account.',
+                    accountStatus: 'pending_approval'
+                });
+            }
+            // Generic inactive account message
+            else {
+                return res.status(403).json({ 
+                    message: 'Your account is currently inactive. Please contact support.',
+                    accountDeactivated: true 
+                });
+            }
         }
         // ---------------------------------------------
 
@@ -116,8 +156,9 @@ const registerUser = async (req, res) => {
       }
 
       // 5. Determine initial status based on role
-      // Regular users and business users are automatically activated, only companies need approval
-      const initialStatus = (role === 'user' || role === 'business') ? 1 : 0;
+      // Regular users are automatically activated
+      // Business users and company users need admin approval (status = 0 until approved)
+      const initialStatus = role === 'user' ? 1 : 0;
       
       // Insert new user into the database
       let sql, values;
@@ -206,8 +247,8 @@ const registerUser = async (req, res) => {
       }
 
       // 7. Send appropriate response based on role
-      if (role === 'user' || role === 'business') {
-          // Regular users and business users can login immediately - provide token for auto-login
+      if (role === 'user') {
+          // Regular users can login immediately - provide token for auto-login
           const payload = {
               id: newUserId,
               role: role,
@@ -249,7 +290,7 @@ const registerUser = async (req, res) => {
               }
           );
       } else {
-          // Only companies need admin approval
+          // Business users and company users need admin approval
           res.status(201).json({
               message: 'Registration successful! Your account is pending admin approval. You will be able to login once an administrator activates your account.',
               accountStatus: 'pending_approval',
@@ -1519,5 +1560,6 @@ export {
     forgotPassword,
     resetPassword,
     verifyResetTokenEndpoint,
-    refreshToken
+    refreshToken,
+    keepAlive
 };

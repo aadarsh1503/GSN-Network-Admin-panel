@@ -9,7 +9,8 @@ import {
   FaExclamationTriangle,
   FaInfoCircle,
   FaCheckCircle,
-  FaTimesCircle
+  FaTimesCircle,
+  FaTimes
 } from 'react-icons/fa';
 import { FiClock, FiPackage, FiUser } from 'react-icons/fi';
 import toast from 'react-hot-toast';
@@ -22,12 +23,26 @@ const BusinessNotifications = () => {
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
   const [filter, setFilter] = useState('all'); // all, quote_responses, status_updates, general
+  const [imageModal, setImageModal] = useState({ isOpen: false, imageUrl: '', title: '' });
   const { 
     fetchUnreadCount: refreshGlobalUnreadCount, 
     markAsRead: contextMarkAsRead,
     forceResetUnreadCount
   } = useNotifications();
   const navigate = useNavigate();
+
+  const handleImageClick = (e, imageUrl, title) => {
+    e.stopPropagation(); // Prevent notification card click
+    setImageModal({
+      isOpen: true,
+      imageUrl: imageUrl,
+      title: title || 'Notification Image'
+    });
+  };
+
+  const closeImageModal = () => {
+    setImageModal({ isOpen: false, imageUrl: '', title: '' });
+  };
 
   const markAllNotificationsAsRead = async () => {
     try {
@@ -95,6 +110,25 @@ const BusinessNotifications = () => {
     
     initializePage();
   }, []);
+
+  // Handle Escape key for closing modal
+  useEffect(() => {
+    const handleEscapeKey = (event) => {
+      if (event.key === 'Escape' && imageModal.isOpen) {
+        closeImageModal();
+      }
+    };
+
+    if (imageModal.isOpen) {
+      document.addEventListener('keydown', handleEscapeKey);
+      document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+      document.body.style.overflow = 'unset'; // Restore scrolling
+    };
+  }, [imageModal.isOpen]);
 
   const fetchNotifications = async () => {
     try {
@@ -245,27 +279,27 @@ const BusinessNotifications = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-2xl p-6 text-white">
+        {/* Compact Header */}
+        <div className="mb-4">
+          <div className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-xl p-4 text-white">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                  <FaBell className="text-2xl" />
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                  <FaBell className="text-lg" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold">Business Notifications</h1>
-                  <p className="text-white text-opacity-90">Stay updated with your quote activities</p>
+                  <h1 className="text-xl font-bold">Business Notifications</h1>
+                  <p className="text-white text-opacity-90 text-sm">Stay updated with your quote activities</p>
                 </div>
               </div>
               {unreadCount > 0 ? (
-                <div className="bg-red-500 text-white px-4 py-2 rounded-full text-sm font-bold">
+                <div className="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold">
                   {unreadCount} unread
                 </div>
               ) : (
-                <div className="bg-green-500 text-white px-4 py-2 rounded-full text-sm font-bold">
+                <div className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold">
                   All viewed
                 </div>
               )}
@@ -273,46 +307,46 @@ const BusinessNotifications = () => {
           </div>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="mb-6">
-          <div className="bg-white rounded-xl shadow-sm p-2 inline-flex">
+        {/* Compact Filter Tabs */}
+        <div className="mb-4">
+          <div className="bg-white rounded-lg shadow-sm p-1 inline-flex">
             {[
-              { key: 'all', label: 'All Notifications', icon: FaBell },
-              { key: 'quote_responses', label: 'Quote Responses', icon: FaDollarSign },
-              { key: 'status_updates', label: 'Status Updates', icon: FaInfoCircle },
+              { key: 'all', label: 'All', icon: FaBell },
+              { key: 'quote_responses', label: 'Quotes', icon: FaDollarSign },
+              { key: 'status_updates', label: 'Status', icon: FaInfoCircle },
               { key: 'general', label: 'General', icon: FaBuilding }
             ].map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
                 onClick={() => setFilter(key)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+                className={`flex items-center gap-1 px-3 py-2 rounded-md font-medium transition-all duration-300 text-sm ${
                   filter === key
                     ? 'bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white shadow-lg'
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                <Icon className="text-sm" />
+                <Icon className="text-xs" />
                 {label}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Notifications */}
+        {/* Compact Notifications */}
         {!Array.isArray(filteredNotifications) || filteredNotifications.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <FaBell className="text-3xl text-gray-400" />
+          <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <FaBell className="text-2xl text-gray-400" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No notifications found</h3>
-            <p className="text-gray-600">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No notifications found</h3>
+            <p className="text-gray-600 text-sm">
               {filter === 'all' 
                 ? "You don't have any notifications yet." 
                 : `No ${filter.replace('_', ' ')} notifications found.`}
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-2">
             {filteredNotifications.map((notification) => {
               if (!notification || !notification.id) {
                 return null;
@@ -322,118 +356,105 @@ const BusinessNotifications = () => {
                 <div 
                   key={notification.id} 
                   onClick={() => handleNotificationClick(notification)}
-                  className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-2 cursor-pointer border-gray-200 hover:border-[#CDA435]"
+                  className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200 hover:border-[#CDA435] cursor-pointer"
                 >
-                  <div className="p-6">
-                    <div className="flex items-start gap-4">
-                      {/* Icon */}
-                      <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gray-100">
+                  <div className="p-3">
+                    <div className="flex items-center gap-3">
+                      {/* Compact Icon */}
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 flex-shrink-0">
                         {getNotificationIcon(notification)}
                       </div>
 
-                      {/* Content */}
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h3 className="text-lg font-bold text-gray-900 mb-1">
-                              {notification.title || notification.subject || 'Notification'}
-                            </h3>
-                            <div className="flex items-center gap-4 text-sm text-gray-600">
-                              <div className="flex items-center gap-1">
-                                <FiClock />
-                                <span>{notification.created_at ? formatDate(notification.created_at) : 'No Date'}</span>
-                              </div>
+                      {/* Main Content - Horizontal Layout */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <h3 className="text-sm font-semibold text-gray-900 truncate pr-2">
+                            {notification.title || notification.subject || 'Notification'}
+                          </h3>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {/* Company Logo - Smaller with Click Handler */}
+                            {(notification.image || (notification.data && notification.data.company_logo)) && (
+                              <img 
+                                src={notification.image || notification.data.company_logo} 
+                                alt={notification.title || 'Company'} 
+                                className="h-8 w-10 object-contain border rounded bg-white p-0.5 cursor-pointer hover:shadow-md transition-all duration-300" 
+                                onClick={(e) => handleImageClick(e, notification.image || notification.data.company_logo, notification.title || 'Company Logo')}
+                                title="Click to view full image"
+                              />
+                            )}
+                            {/* Date */}
+                            <div className="flex items-center gap-1 text-xs text-gray-500">
+                              <FiClock className="text-xs" />
+                              <span>{notification.created_at ? formatDate(notification.created_at) : 'No Date'}</span>
                             </div>
                           </div>
-
-                          {/* Company Logo */}
-                          {(notification.image || (notification.data && notification.data.company_logo)) && (
-                            <img 
-                              src={notification.image || notification.data.company_logo} 
-                              alt={notification.title || 'Company'} 
-                              className="h-16 w-20 object-contain border rounded-lg bg-white p-1" 
-                            />
-                          )}
                         </div>
 
-                        {/* Message */}
-                        <p className="text-gray-700 mb-4 leading-relaxed">
+                        {/* Message - Single Line with Truncation */}
+                        <p className="text-xs text-gray-600 mb-2 truncate">
                           {notification.message || 'No message content'}
                         </p>
 
-                        {/* Click to view indicator */}
-                        <div className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B] bg-opacity-10 rounded-lg p-3 mb-4 border border-[#CDA435] border-opacity-30">
-                          <p className="text-sm text-[#ffffff] font-medium flex items-center gap-2">
-                            <FaEye />
-                            {(() => {
-                              const destination = getNotificationDestination(notification);
-                              if (destination.path) {
-                                if (notification.data?.quote_id) {
-                                  return `Click to view Quote #${notification.data.quote_id} Quote`;
-                                } else {
-                                  const pageName = destination.path.split('/').pop();
-                                  return `Click to view in ${pageName} page`;
-                                }
-                              } else {
-                                return 'Notification details';
-                              }
-                            })()}
-                          </p>
-                        </div>
-
-                        {/* Quote Details (if available) */}
+                        {/* Quote Details - Compact Horizontal Layout */}
                         {notification.data && notification.data.quote_id && (
-                          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 mb-4 border border-blue-200">
-                            <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
-                              <FiPackage />
-                              Quote Details
-                            </h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                              <div className="flex items-center gap-2">
-                                <FaTruck className="text-blue-600" />
-                                <span className="text-blue-700">Quote ID: #{notification.data.quote_id}</span>
+                          <div className="bg-blue-50 rounded-md p-2 mb-2 border border-blue-200">
+                            <div className="flex items-center gap-4 text-xs">
+                              <div className="flex items-center gap-1">
+                                <FiPackage className="text-blue-600" />
+                                <span className="text-blue-700 font-medium">Quote #{notification.data.quote_id}</span>
                               </div>
                               {notification.data.price && (
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1">
                                   <FaDollarSign className="text-green-600" />
-                                  <span className="text-blue-700">Price: ${notification.data.price}</span>
+                                  <span className="text-blue-700">${notification.data.price}</span>
                                 </div>
                               )}
                               {notification.data.company_name && (
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1">
                                   <FiUser className="text-blue-600" />
-                                  <span className="text-blue-700">Company: {notification.data.company_name}</span>
+                                  <span className="text-blue-700 truncate max-w-24">{notification.data.company_name}</span>
                                 </div>
                               )}
                               {notification.data.transit_time && (
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1">
                                   <FaCalendarAlt className="text-blue-600" />
-                                  <span className="text-blue-700">Transit: {notification.data.transit_time}</span>
+                                  <span className="text-blue-700">{notification.data.transit_time}</span>
                                 </div>
                               )}
                             </div>
                           </div>
                         )}
 
-                        {/* Actions */}
-                        <div className="flex items-center gap-3">
+                        {/* Action Button - Compact */}
+                        <div className="flex items-center justify-between">
+                          <div className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B] bg-opacity-10 rounded-md px-2 py-1 border border-[#CDA435] border-opacity-30">
+                            <p className="text-xs text-[#ffffff] font-medium flex items-center gap-1">
+                              <FaEye className="text-xs" />
+                              {(() => {
+                                const destination = getNotificationDestination(notification);
+                                if (destination.path) {
+                                  if (notification.data?.quote_id) {
+                                    return `Quote #${notification.data.quote_id}`;
+                                  } else {
+                                    const pageName = destination.path.split('/').pop();
+                                    return `View ${pageName}`;
+                                  }
+                                } else {
+                                  return 'View details';
+                                }
+                              })()}
+                            </p>
+                          </div>
+                          
                           <button
                             onClick={(e) => {
-                              e.stopPropagation(); // Prevent card click
+                              e.stopPropagation();
                               handleNotificationClick(notification);
                             }}
-                            className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:scale-105 font-medium flex items-center gap-2"
+                            className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white px-3 py-1 rounded-md hover:shadow-md transition-all duration-300 text-xs font-medium flex items-center gap-1"
                           >
-                            <FaEye />
-                            {(() => {
-                              const destination = getNotificationDestination(notification);
-                              if (destination.path) {
-                                const pageName = destination.path.split('/').pop();
-                                return `View in ${pageName.charAt(0).toUpperCase() + pageName.slice(1)}`;
-                              } else {
-                                return 'View Details';
-                              }
-                            })()}
+                            <FaEye className="text-xs" />
+                            View
                           </button>
                         </div>
                       </div>
@@ -445,6 +466,55 @@ const BusinessNotifications = () => {
           </div>
         )}
       </div>
+
+      {/* Image Modal */}
+      {imageModal.isOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+          onClick={closeImageModal} // Click outside to close
+        >
+          <div 
+            className="relative max-w-4xl max-h-full bg-white rounded-2xl shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
+          >
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B] px-6 py-4 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-white">{imageModal.title}</h3>
+              <button
+                onClick={closeImageModal}
+                className="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-all duration-300"
+              >
+                <FaTimes size={20} />
+              </button>
+            </div>
+            
+            {/* Modal Content */}
+            <div className="p-6">
+              <div className="flex items-center justify-center">
+                <img
+                  src={imageModal.imageUrl}
+                  alt={imageModal.title}
+                  className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-lg"
+                  onError={(e) => {
+                    e.target.src = '/placeholder-image.png'; // Fallback image
+                    e.target.alt = 'Image not available';
+                  }}
+                />
+              </div>
+            </div>
+            
+            {/* Modal Footer */}
+            <div className="bg-gray-50 px-6 py-4 flex justify-end">
+              <button
+                onClick={closeImageModal}
+                className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white px-6 py-2 rounded-lg hover:shadow-md transition-all duration-300 font-medium"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

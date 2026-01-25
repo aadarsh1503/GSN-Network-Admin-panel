@@ -261,7 +261,7 @@ const RegisterPage = () => {
                     }
                 }
             } else if (data.accountStatus === 'pending_approval') {
-                // Account created but needs admin approval (for company users)
+                // Account created but needs admin approval (for company and business users)
                 toast.success(data.message || 'Account created! Your account is pending admin approval.');
                 
                 // Clear any pending quote data since user can't login yet
