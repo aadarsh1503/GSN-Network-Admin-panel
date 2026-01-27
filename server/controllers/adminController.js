@@ -59,7 +59,7 @@ export const getPendingNotifications = async (req, res) => {
     const createTableSql = `
       CREATE TABLE IF NOT EXISTS admin_notifications (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        type ENUM('registration', 'quote', 'ticket', 'general', 'dispute') NOT NULL,
+        type ENUM('registration', 'quote', 'ticket', 'general', 'dispute', 'subscription') NOT NULL,
         title VARCHAR(255) NOT NULL,
         message TEXT NOT NULL,
         user_id INT,

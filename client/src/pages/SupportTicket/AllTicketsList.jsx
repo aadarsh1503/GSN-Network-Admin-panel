@@ -393,77 +393,77 @@ const AllTicketsList = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 p-3">
       <div className="max-w-6xl mx-auto">
-        {/* Futuristic Header */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 p-8 mb-8">
+        {/* Compact Header */}
+        <div className="bg-white/80 backdrop-blur-lg rounded-xl shadow-xl border border-white/20 p-4 mb-4">
           <div className="flex flex-col lg:flex-row justify-between items-center">
-            <div className="flex items-center space-x-4 mb-4 lg:mb-0">
-              <div className="p-3 bg-gradient-to-r from-yellow-500 to-amber-600 rounded-xl">
-                <FiMail className="text-white" size={32} />
+            <div className="flex items-center space-x-3 mb-2 lg:mb-0">
+              <div className="p-2 bg-gradient-to-r from-yellow-500 to-amber-600 rounded-lg">
+                <FiMail className="text-white" size={20} />
               </div>
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                  Support Ticket Center
+                <h1 className="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                  Support Tickets
                 </h1>
-                <p className="text-gray-600 mt-1">Advanced ticket management & customer support system</p>
+                <p className="text-gray-600 text-sm">Manage customer support</p>
               </div>
             </div>
             <button 
               onClick={fetchTickets}
-              className="flex items-center space-x-2 bg-gradient-to-r from-yellow-500 to-amber-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-yellow-600 hover:to-amber-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
+              className="flex items-center space-x-2 bg-gradient-to-r from-yellow-500 to-amber-600 text-white font-semibold py-2 px-4 rounded-lg hover:from-yellow-600 hover:to-amber-700 transition-all duration-300 shadow-lg text-sm"
             >
-              <FiRefreshCw size={20} />
-              <span>Refresh Data</span>
+              <FiRefreshCw size={16} />
+              <span>Refresh</span>
             </button>
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Compact Stats */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
           {[
-            { label: 'Total Tickets', value: counts.all, icon: FiMail, color: 'from-yellow-500 to-amber-500' },
+            { label: 'Total', value: counts.all, icon: FiMail, color: 'from-yellow-500 to-amber-500' },
             { label: 'Pending', value: counts.pending, icon: FiClock, color: 'from-orange-500 to-red-500' },
             { label: 'Answered', value: counts.answered, icon: FiMessageSquare, color: 'from-blue-500 to-cyan-500' },
             { label: 'Closed', value: counts.closed, icon: FiCheckCircle, color: 'from-green-500 to-emerald-500' }
           ].map((stat, index) => (
-            <div key={index} className="bg-white/80 backdrop-blur-lg rounded-xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
+            <div key={index} className="bg-white/80 backdrop-blur-lg rounded-lg shadow-lg border border-white/20 p-3 hover:shadow-xl transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                  <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                  <p className="text-xs font-medium text-gray-600">{stat.label}</p>
+                  <p className="text-xl font-bold text-gray-900">{stat.value}</p>
                 </div>
-                <div className={`p-3 bg-gradient-to-r ${stat.color} rounded-lg`}>
-                  <stat.icon className="text-white" size={24} />
+                <div className={`p-2 bg-gradient-to-r ${stat.color} rounded-lg`}>
+                  <stat.icon className="text-white" size={16} />
                 </div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Advanced Filters */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 p-6 mb-8">
-          <div className="flex flex-col lg:flex-row items-center justify-between space-y-4 lg:space-y-0 lg:space-x-6">
+        {/* Compact Filters */}
+        <div className="bg-white/80 backdrop-blur-lg rounded-xl shadow-xl border border-white/20 p-4 mb-4">
+          <div className="flex flex-col lg:flex-row items-center justify-between space-y-3 lg:space-y-0 lg:space-x-4">
             {/* Search */}
-            <div className="relative flex-1 max-w-md">
-              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <div className="relative flex-1 max-w-sm">
+              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
               <input
                 type="text"
-                placeholder="Search tickets, users, subjects..."
+                placeholder="Search tickets..."
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className="w-full pl-10 pr-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300"
+                className="w-full pl-9 pr-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300 text-sm"
               />
             </div>
 
             {/* Filters */}
-            <div className="flex flex-wrap items-center space-x-4">
+            <div className="flex flex-wrap items-center space-x-2">
               <select
                 value={statusFilter}
                 onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-                className="px-4 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300"
+                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300 text-sm"
               >
-                <option value="all">All Status ({counts.all})</option>
+                <option value="all">All ({counts.all})</option>
                 <option value="pending">Pending ({counts.pending})</option>
                 <option value="answered">Answered ({counts.answered})</option>
                 <option value="closed">Closed ({counts.closed})</option>
@@ -472,29 +472,19 @@ const AllTicketsList = () => {
               <select
                 value={userTypeFilter}
                 onChange={(e) => { setUserTypeFilter(e.target.value); setCurrentPage(1); }}
-                className="px-4 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300"
+                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300 text-sm"
               >
-                <option value="all">All User Types ({userTypeCounts.all})</option>
-                <option value="user">Regular Users ({userTypeCounts.user})</option>
-                <option value="business">Business Owners ({userTypeCounts.business})</option>
-                <option value="company">Company Members ({userTypeCounts.company})</option>
-                <option value="admin">Admins ({userTypeCounts.admin})</option>
-              </select>
-
-              <select
-                value={recipientFilter}
-                onChange={(e) => { setRecipientFilter(e.target.value); setCurrentPage(1); }}
-                className="px-4 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300"
-              >
-                <option value="all">All Recipients</option>
-                <option value="admin">To Admin</option>
-                <option value="company">To Companies</option>
+                <option value="all">All Users</option>
+                <option value="user">Users</option>
+                <option value="business">Business</option>
+                <option value="company">Company</option>
+                <option value="admin">Admin</option>
               </select>
 
               <select
                 value={priorityFilter}
                 onChange={(e) => { setPriorityFilter(e.target.value); setCurrentPage(1); }}
-                className="px-4 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300"
+                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300 text-sm"
               >
                 <option value="all">All Priorities</option>
                 <option value="low">Low</option>
@@ -506,72 +496,39 @@ const AllTicketsList = () => {
               <select
                 value={itemsPerPage}
                 onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
-                className="px-4 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300"
+                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300 text-sm"
               >
-                <option value="5">5 per page</option>
-                <option value="10">10 per page</option>
-                <option value="25">25 per page</option>
-                <option value="50">50 per page</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
               </select>
 
               <button
                 onClick={resetFilters}
-                className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all duration-300"
+                className="flex items-center space-x-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all duration-300 text-sm"
               >
-                <FiX size={16} />
+                <FiX size={14} />
                 <span>Reset</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* Status Filter Tabs */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 mb-8 overflow-hidden">
-          <div className="flex overflow-x-auto">
-            {[
-              { key: 'all', label: 'All Tickets', count: counts.all, icon: FiMail },
-              { key: 'pending', label: 'Pending', count: counts.pending, icon: FiClock },
-              { key: 'answered', label: 'Answered', count: counts.answered, icon: FiMessageSquare },
-              { key: 'closed', label: 'Closed', count: counts.closed, icon: FiCheckCircle },
-            ].map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setStatusFilter(tab.key)}
-                className={`flex items-center space-x-3 px-6 py-4 font-medium text-sm whitespace-nowrap transition-all duration-300 ${
-                  statusFilter === tab.key
-                    ? 'bg-gradient-to-r from-yellow-500 to-amber-600 text-white shadow-lg'
-                    : 'text-gray-600 hover:text-gray-800 hover:bg-yellow-50'
-                }`}
-              >
-                <tab.icon size={18} />
-                <span>{tab.label}</span>
-                {tab.count > 0 && (
-                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                    statusFilter === tab.key ? 'bg-white/20 text-white' : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Futuristic Tickets Table */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+        {/* Tickets Table */}
+        <div className="bg-white/80 backdrop-blur-lg rounded-xl shadow-xl border border-white/20 overflow-hidden">
           {sortedTickets.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="p-4 bg-gradient-to-r from-yellow-100 to-amber-200 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-                <FiMail className="text-yellow-600" size={48} />
+            <div className="text-center py-12">
+              <div className="p-3 bg-gradient-to-r from-yellow-100 to-amber-200 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <FiMail className="text-yellow-600" size={32} />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 {searchTerm ? 'No Matching Tickets' : (statusFilter === 'all' ? 'No Tickets Found' : `No ${statusFilter} Tickets`)}
               </h3>
-              <p className="text-gray-500 max-w-md mx-auto">
+              <p className="text-gray-500 max-w-md mx-auto text-sm">
                 {searchTerm 
                   ? `No tickets match your search criteria "${searchTerm}"`
                   : (statusFilter === 'all' 
-                    ? 'The support center is currently empty. All systems are running smoothly.'
+                    ? 'The support center is currently empty.'
                     : `There are no ${statusFilter} tickets at the moment.`
                   )
                 }

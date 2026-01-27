@@ -248,7 +248,7 @@ const PendingTickets = () => {
   };
 
   const SortableHeader = ({ children, sortKey }) => (
-    <th className="py-4 px-4 text-left font-semibold cursor-pointer hover:bg-yellow-100 transition-colors duration-200" onClick={() => handleSort(sortKey)}>
+    <th className="py-3 px-3 text-left font-semibold cursor-pointer hover:bg-yellow-100 transition-colors duration-200" onClick={() => handleSort(sortKey)}>
       <div className="flex items-center">
         {children}
         {sortConfig.key === sortKey ? (
@@ -297,78 +297,78 @@ const PendingTickets = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 p-3">
       <div className="max-w-6xl mx-auto">
-        {/* Futuristic Header */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 p-8 mb-8">
+        {/* Compact Header */}
+        <div className="bg-white/80 backdrop-blur-lg rounded-xl shadow-xl border border-white/20 p-4 mb-4">
           <div className="flex flex-col lg:flex-row justify-between items-center">
-            <div className="flex items-center space-x-4 mb-4 lg:mb-0">
-              <div className="p-3 bg-gradient-to-r from-yellow-500 to-amber-600 rounded-xl">
-                <FiClock className="text-white" size={32} />
+            <div className="flex items-center space-x-3 mb-2 lg:mb-0">
+              <div className="p-2 bg-gradient-to-r from-yellow-500 to-amber-600 rounded-lg">
+                <FiClock className="text-white" size={20} />
               </div>
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                <h1 className="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
                   Pending Tickets
                 </h1>
-                <p className="text-gray-600 mt-1">Tickets awaiting admin response</p>
+                <p className="text-gray-600 text-sm">Awaiting response</p>
               </div>
             </div>
             <button 
               onClick={fetchTickets}
-              className="flex items-center space-x-2 bg-gradient-to-r from-yellow-500 to-amber-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-yellow-600 hover:to-amber-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
+              className="flex items-center space-x-2 bg-gradient-to-r from-yellow-500 to-amber-600 text-white font-semibold py-2 px-4 rounded-lg hover:from-yellow-600 hover:to-amber-700 transition-all duration-300 shadow-lg text-sm"
             >
-              <FiRefreshCw size={20} />
-              <span>Refresh Data</span>
+              <FiRefreshCw size={16} />
+              <span>Refresh</span>
             </button>
           </div>
         </div>
 
-        {/* Stats Card */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-xl shadow-lg border border-white/20 p-6 mb-8 hover:shadow-xl transition-all duration-300">
+        {/* Compact Stats */}
+        <div className="bg-white/80 backdrop-blur-lg rounded-lg shadow-lg border border-white/20 p-3 mb-4 hover:shadow-xl transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Pending Tickets</p>
-              <p className="text-3xl font-bold text-gray-900">{tickets.length}</p>
+              <p className="text-xs font-medium text-gray-600">Pending Tickets</p>
+              <p className="text-xl font-bold text-gray-900">{tickets.length}</p>
             </div>
-            <div className="p-3 bg-gradient-to-r from-yellow-500 to-amber-500 rounded-lg">
-              <FiClock className="text-white" size={24} />
+            <div className="p-2 bg-gradient-to-r from-yellow-500 to-amber-500 rounded-lg">
+              <FiClock className="text-white" size={16} />
             </div>
           </div>
         </div>
 
-        {/* Advanced Filters */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 p-6 mb-8">
-          <div className="flex flex-col lg:flex-row items-center justify-between space-y-4 lg:space-y-0 lg:space-x-6">
+        {/* Compact Filters */}
+        <div className="bg-white/80 backdrop-blur-lg rounded-xl shadow-xl border border-white/20 p-4 mb-4">
+          <div className="flex flex-col lg:flex-row items-center justify-between space-y-3 lg:space-y-0 lg:space-x-4">
             {/* Search */}
-            <div className="relative flex-1 max-w-md">
-              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <div className="relative flex-1 max-w-sm">
+              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
               <input
                 type="text"
                 placeholder="Search pending tickets..."
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className="w-full pl-10 pr-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300"
+                className="w-full pl-9 pr-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300 text-sm"
               />
             </div>
 
             {/* Filters */}
-            <div className="flex flex-wrap items-center space-x-4">
+            <div className="flex flex-wrap items-center space-x-2">
               <select
                 value={userTypeFilter}
                 onChange={(e) => { setUserTypeFilter(e.target.value); setCurrentPage(1); }}
-                className="px-4 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300"
+                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300 text-sm"
               >
-                <option value="all">All User Types</option>
-                <option value="user">Regular Users</option>
-                <option value="business">Business Owners</option>
-                <option value="company">Company Members</option>
-                <option value="admin">Admins</option>
+                <option value="all">All Users</option>
+                <option value="user">Users</option>
+                <option value="business">Business</option>
+                <option value="company">Company</option>
+                <option value="admin">Admin</option>
               </select>
 
               <select
                 value={priorityFilter}
                 onChange={(e) => { setPriorityFilter(e.target.value); setCurrentPage(1); }}
-                className="px-4 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300"
+                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300 text-sm"
               >
                 <option value="all">All Priorities</option>
                 <option value="low">Low</option>
@@ -380,34 +380,33 @@ const PendingTickets = () => {
               <select
                 value={itemsPerPage}
                 onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
-                className="px-4 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300"
+                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300 text-sm"
               >
-                <option value="5">5 per page</option>
-                <option value="10">10 per page</option>
-                <option value="25">25 per page</option>
-                <option value="50">50 per page</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
               </select>
 
               <button
                 onClick={resetFilters}
-                className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all duration-300"
+                className="flex items-center space-x-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all duration-300 text-sm"
               >
-                <FiX size={16} />
+                <FiX size={14} />
                 <span>Reset</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* Futuristic Tickets Table */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+        {/* Tickets Table */}
+        <div className="bg-white/80 backdrop-blur-lg rounded-xl shadow-xl border border-white/20 overflow-hidden">
           {sortedTickets.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="p-4 bg-gradient-to-r from-yellow-100 to-amber-200 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-                <FiClock className="text-yellow-600" size={48} />
+            <div className="text-center py-12">
+              <div className="p-3 bg-gradient-to-r from-yellow-100 to-amber-200 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <FiClock className="text-yellow-600" size={32} />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No Pending Tickets</h3>
-              <p className="text-gray-500 max-w-md mx-auto">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No Pending Tickets</h3>
+              <p className="text-gray-500 max-w-md mx-auto text-sm">
                 {searchTerm 
                   ? `No pending tickets match your search criteria "${searchTerm}"`
                   : 'All tickets have been processed. Great work!'
@@ -417,7 +416,7 @@ const PendingTickets = () => {
           ) : (
             <>
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[800px]">
+                <table className="w-full min-w-[600px]">
                   <thead className="bg-gradient-to-r from-yellow-50 to-amber-50">
                     <tr>
                       <SortableHeader sortKey="ticket_number">Ticket</SortableHeader>
@@ -426,7 +425,7 @@ const PendingTickets = () => {
                       <SortableHeader sortKey="subject">Subject</SortableHeader>
                       <SortableHeader sortKey="priority">Priority</SortableHeader>
                       <SortableHeader sortKey="created_at">Date</SortableHeader>
-                      <th className="py-4 px-4 text-left font-semibold">Actions</th>
+                      <th className="py-3 px-3 text-left font-semibold">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -434,7 +433,7 @@ const PendingTickets = () => {
                       <tr key={ticket.id} className={`hover:bg-gradient-to-r hover:from-yellow-50/50 hover:to-amber-50/50 transition-all duration-300 ${
                         ticket.user_role === 'admin' ? 'bg-red-50/30' : ''
                       }`}>
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-3">
                           <div className="flex items-center space-x-2">
                             <div className="p-1 bg-gradient-to-r from-yellow-100 to-amber-100 rounded-lg flex-shrink-0">
                               <FiMail className="text-yellow-600" size={12} />
@@ -450,7 +449,7 @@ const PendingTickets = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-3">
                           <div className="flex items-center space-x-2">
                             <div className="p-1 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-lg flex-shrink-0">
                               {getUserTypeIcon(ticket.user_role)}
@@ -462,7 +461,7 @@ const PendingTickets = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-3">
                           <div className="flex items-center space-x-2">
                             <div className="p-1 bg-gradient-to-r from-yellow-100 to-amber-100 rounded-lg flex-shrink-0">
                               {ticket.recipient_type === 'company' ? <FiHome className="text-green-600" size={12} /> : <FiShield className="text-red-600" size={12} />}
@@ -478,7 +477,7 @@ const PendingTickets = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-3">
                           <div className="min-w-0">
                             <div className="text-xs font-medium text-gray-900 truncate mb-1" title={ticket.subject}>
                               {ticket.subject}
@@ -488,7 +487,7 @@ const PendingTickets = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-3">
                           <span className={`inline-flex items-center px-2 py-1 text-xs font-bold rounded-full ${
                             ticket.priority === 'low' ? 'bg-green-100 text-green-800' :
                             ticket.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
@@ -498,7 +497,7 @@ const PendingTickets = () => {
                             {ticket.priority?.charAt(0).toUpperCase()}
                           </span>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-3">
                           <div className="text-xs font-medium text-gray-900 truncate">
                             {new Date(ticket.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                           </div>
@@ -506,7 +505,7 @@ const PendingTickets = () => {
                             {new Date(ticket.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                           </div>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-3">
                           <div className="flex items-center space-x-1">
                             <button
                               onClick={() => openDetailsModal(ticket)}

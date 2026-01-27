@@ -10,7 +10,8 @@ import {
   FaChevronRight,
   FaSort,
   FaSortUp,
-  FaSortDown
+  FaSortDown,
+  FaCreditCard
 } from 'react-icons/fa';
 import { FiClock, FiEye, FiCheckCircle, FiAlertCircle, FiZap } from 'react-icons/fi';
 import toast from 'react-hot-toast';
@@ -187,6 +188,8 @@ const AdminNotifications = () => {
         return <FaUser className="text-emerald-500" size={18} />;
       case 'ticket':
         return <FaTicketAlt className="text-orange-500" size={18} />;
+      case 'subscription':
+        return <FaCreditCard className="text-purple-500" size={18} />;
       default:
         return <FaBell className="text-gray-500" size={18} />;
     }
@@ -200,6 +203,8 @@ const AdminNotifications = () => {
         return isRead ? 'bg-emerald-500/5' : 'bg-emerald-500/10';
       case 'ticket':
         return isRead ? 'bg-orange-500/5' : 'bg-orange-500/10';
+      case 'subscription':
+        return isRead ? 'bg-purple-500/5' : 'bg-purple-500/10';
       default:
         return isRead ? 'bg-gray-500/5' : 'bg-gray-500/10';
     }
@@ -294,6 +299,7 @@ const AdminNotifications = () => {
                 <option value="quote">Quote</option>
                 <option value="registration">Registration</option>
                 <option value="ticket">Ticket</option>
+                <option value="subscription">Subscription</option>
               </select>
               
               <select 
@@ -395,6 +401,7 @@ const AdminNotifications = () => {
                             notification.type === 'quote' ? 'bg-[#CDA435]/20 text-[#CDA435]' :
                             notification.type === 'registration' ? 'bg-emerald-500/20 text-emerald-700' :
                             notification.type === 'ticket' ? 'bg-orange-500/20 text-orange-700' :
+                            notification.type === 'subscription' ? 'bg-purple-500/20 text-purple-700' :
                             'bg-gray-500/20 text-gray-700'
                           }`}>
                             {notification.type}
@@ -523,6 +530,7 @@ const AdminNotifications = () => {
                         selectedNotification.type === 'quote' ? 'bg-[#CDA435]/20 text-[#CDA435]' :
                         selectedNotification.type === 'registration' ? 'bg-emerald-500/20 text-emerald-700' :
                         selectedNotification.type === 'ticket' ? 'bg-orange-500/20 text-orange-700' :
+                        selectedNotification.type === 'subscription' ? 'bg-purple-500/20 text-purple-700' :
                         'bg-gray-500/20 text-gray-700'
                       }`}>
                         {selectedNotification.type}

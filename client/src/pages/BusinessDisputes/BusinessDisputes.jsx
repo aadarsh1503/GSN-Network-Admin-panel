@@ -511,16 +511,16 @@ const BusinessDisputes = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-yellow-50 via-amber-50 to-orange-50 rounded-2xl p-8 border border-yellow-200/50">
+      <div className="bg-gradient-to-r from-yellow-50 via-amber-50 to-orange-50 rounded-xl p-6 border border-yellow-200/50">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-yellow-600 to-amber-600 bg-clip-text text-transparent mb-2">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-yellow-600 to-amber-600 bg-clip-text text-transparent mb-2">
               Business Disputes
             </h1>
-            <p className="text-slate-600 text-lg">File and manage disputes against logistics companies</p>
-            <div className="flex items-center space-x-4 mt-4">
+            <p className="text-slate-600">File and manage disputes against logistics companies</p>
+            <div className="flex items-center space-x-4 mt-3">
               <div className="flex items-center space-x-2 bg-white/50 backdrop-blur-sm px-3 py-1 rounded-full">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                 <span className="text-sm text-green-600">Business Support</span>
@@ -544,7 +544,7 @@ const BusinessDisputes = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {['open', 'investigating', 'resolved', 'closed'].map((status) => {
           const count = disputes.filter(d => d.status === status).length;
           const percentage = disputes.length > 0 ? ((count / disputes.length) * 100).toFixed(1) : 0;
@@ -552,13 +552,13 @@ const BusinessDisputes = () => {
           return (
             <div
               key={status}
-              className={`bg-white/80 backdrop-blur-lg rounded-2xl p-6 border transition-all duration-300 hover:shadow-xl cursor-pointer transform hover:scale-105 ${
+              className={`bg-white/80 backdrop-blur-lg rounded-xl p-5 border transition-all duration-300 hover:shadow-xl cursor-pointer transform hover:scale-105 ${
                 filter === status ? 'ring-2 ring-blue-500 border-blue-200' : 'border-white/20'
               }`}
               onClick={() => setFilter(filter === status ? 'all' : status)}
             >
-              <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-2xl ${getStatusColor(status).replace('text-', 'bg-').replace('bg-', 'bg-').replace('-800', '-100').replace('-100', '-500')} text-white`}>
+              <div className="flex items-center justify-between mb-3">
+                <div className={`p-3 rounded-xl ${getStatusColor(status).replace('text-', 'bg-').replace('bg-', 'bg-').replace('-800', '-100').replace('-100', '-500')} text-white`}>
                   {getStatusIcon(status)}
                 </div>
                 <span className="text-2xl font-bold text-slate-800">{count}</span>
@@ -571,8 +571,8 @@ const BusinessDisputes = () => {
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-white/20">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+      <div className="bg-white/80 backdrop-blur-lg rounded-xl p-5 shadow-lg border border-white/20">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0">
           {/* Search */}
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
@@ -606,10 +606,10 @@ const BusinessDisputes = () => {
         </div>
       </div>
 
-      {/* Disputes List */}
-      <div className="space-y-4">
+      {/* Disputes Table */}
+      <div className="bg-white/80 backdrop-blur-lg rounded-xl shadow-lg border border-white/20 overflow-hidden">
         {filteredDisputes.length === 0 ? (
-          <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-12 text-center border border-white/20">
+          <div className="text-center py-12">
             <div className="bg-gradient-to-br from-yellow-100 to-amber-200 rounded-full p-8 w-32 h-32 mx-auto mb-6 flex items-center justify-center">
               <Building className="text-yellow-600 h-16 w-16" />
             </div>
@@ -633,119 +633,127 @@ const BusinessDisputes = () => {
             )}
           </div>
         ) : (
-          filteredDisputes.map((dispute) => (
-            <div
-              key={dispute.id}
-              className={`bg-white/80 backdrop-blur-lg rounded-2xl p-6 border-l-4 shadow-lg hover:shadow-xl transition-all duration-300 group ${
-                getPriorityColor(dispute.priority)
-              }`}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  {/* Header */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-3">
-                      <div className={`p-3 rounded-2xl ${getStatusColor(dispute.status).replace('text-', 'bg-').replace('bg-', 'bg-').replace('-800', '-100').replace('-100', '-500')} text-white`}>
-                        {getStatusIcon(dispute.status)}
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gradient-to-r from-yellow-50 to-amber-50">
+                <tr>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Dispute</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Title & Description</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Company</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Category</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Priority</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Status</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Responses</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Attachments</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Created</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {filteredDisputes.map((dispute) => (
+                  <tr key={dispute.id} className="hover:bg-gradient-to-r hover:from-yellow-50/50 hover:to-amber-50/50 transition-all duration-300">
+                    {/* Dispute Info */}
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-3">
+                        <div className={`p-2 rounded-lg ${getStatusColor(dispute.status).replace('text-', 'bg-').replace('bg-', 'bg-').replace('-800', '-100').replace('-100', '-500')} text-white`}>
+                          {getStatusIcon(dispute.status)}
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-slate-800">Dispute #{dispute.id}</div>
+                          {dispute.quoteId && dispute.quoteId !== null && (
+                            <div className="text-xs text-slate-500">Quote #{dispute.quoteId}</div>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-slate-800">Dispute #{dispute.id}</h3>
-                        <p className="text-sm text-slate-600">{getCategoryLabel(dispute.category)}</p>
+                    </td>
+
+                    {/* Title & Description */}
+                    <td className="px-6 py-4">
+                      <div className="max-w-xs">
+                        <div className="text-sm font-semibold text-slate-800 mb-1" title={dispute.title}>
+                          {dispute.title}
+                        </div>
+                        <div className="text-xs text-slate-600 truncate" title={dispute.description}>
+                          {dispute.description}
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center space-x-3">
+                    </td>
+
+                    {/* Company */}
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-2">
+                        <Building className="h-4 w-4 text-blue-500" />
+                        <span className="text-sm font-medium text-slate-800">{dispute.companyName}</span>
+                      </div>
+                    </td>
+
+                    {/* Category */}
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-slate-700">{getCategoryLabel(dispute.category)}</span>
+                    </td>
+
+                    {/* Priority */}
+                    <td className="px-6 py-4">
                       {getPriorityBadge(dispute.priority)}
+                    </td>
+
+                    {/* Status */}
+                    <td className="px-6 py-4">
                       <span className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(dispute.status)}`}>
                         {getStatusIcon(dispute.status)}
                         <span className="capitalize">{dispute.status}</span>
                       </span>
-                    </div>
-                  </div>
+                    </td>
 
-                  {/* Title and Description */}
-                  <div className="mb-4">
-                    <h4 className="text-xl font-semibold text-slate-800 mb-2">{dispute.title}</h4>
-                    <p className="text-slate-600 leading-relaxed">{dispute.description}</p>
-                  </div>
-
-                  {/* Company and Quote Info */}
-                  <div className="flex items-center space-x-6 mb-4 p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl">
-                    <div className="flex items-center space-x-2">
-                      <Building className="h-4 w-4 text-blue-500" />
-                      <span className="text-sm text-slate-600">Filed Against:</span>
-                      <span className="font-semibold text-slate-800">{dispute.companyName}</span>
-                    </div>
-                    {dispute.quoteId && dispute.quoteId !== null && (
-                      <div className="flex items-center space-x-2">
-                        <FileText className="h-4 w-4 text-green-500" />
-                        <span className="text-sm text-slate-600">Quote:</span>
-                        <span className="font-semibold text-slate-800">#{dispute.quoteId}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Stats */}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                    <div className="bg-blue-50 rounded-xl p-3">
+                    {/* Responses */}
+                    <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">
                         <MessageSquare className="h-4 w-4 text-blue-500" />
-                        <span className="text-sm text-slate-600">Responses</span>
+                        <span className="text-lg font-bold text-slate-800">{dispute.responseCount}</span>
                       </div>
-                      <p className="text-lg font-bold text-slate-800">{dispute.responseCount}</p>
-                    </div>
-                    <div className="bg-purple-50 rounded-xl p-3">
+                    </td>
+
+                    {/* Attachments */}
+                    <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">
                         <FileText className="h-4 w-4 text-purple-500" />
-                        <span className="text-sm text-slate-600">Attachments</span>
+                        <span className="text-lg font-bold text-slate-800">{dispute.attachments}</span>
                       </div>
-                      <p className="text-lg font-bold text-slate-800">{dispute.attachments}</p>
-                    </div>
-                    <div className="bg-green-50 rounded-xl p-3">
-                      <div className="flex items-center space-x-2">
-                        <Calendar className="h-4 w-4 text-green-500" />
-                        <span className="text-sm text-slate-600">Created</span>
-                      </div>
-                      <p className="text-sm font-semibold text-slate-800">
-                        {new Date(dispute.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </p>
-                    </div>
-                    <div className="bg-orange-50 rounded-xl p-3">
-                      <div className="flex items-center space-x-2">
-                        <Clock className="h-4 w-4 text-orange-500" />
-                        <span className="text-sm text-slate-600">Est. Resolution</span>
-                      </div>
-                      <p className="text-sm font-semibold text-slate-800">
-                        {new Date(dispute.estimatedResolution).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </p>
-                    </div>
-                  </div>
+                    </td>
 
-                  {/* Footer */}
-                  <div className="flex items-center justify-between text-sm text-slate-500">
-                    <div className="flex items-center space-x-4">
-                      <span>Created: {formatDate(dispute.createdAt)}</span>
-                      <span>•</span>
-                      <span>Updated: {formatDate(dispute.updatedAt)}</span>
-                    </div>
-                    <button 
-                      onClick={() => handleViewDetails(dispute)}
-                      className="flex items-center space-x-1 text-blue-600 hover:text-blue-700 font-medium group-hover:underline"
-                    >
-                      <span>View Details</span>
-                      <ArrowUpRight className="h-3 w-3" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))
+                    {/* Created */}
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-slate-700">
+                        {formatDate(dispute.createdAt)}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        Est. Resolution: {new Date(dispute.estimatedResolution).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </div>
+                    </td>
+
+                    {/* Actions */}
+                    <td className="px-6 py-4">
+                      <button 
+                        onClick={() => handleViewDetails(dispute)}
+                        className="inline-flex items-center space-x-1 text-blue-600 hover:text-blue-700 font-medium hover:underline"
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span>View</span>
+                        <ArrowUpRight className="h-3 w-3" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
-      {/* Pagination would go here if needed */}
+      {/* Pagination */}
       {filteredDisputes.length > 0 && (
         <div className="flex justify-center">
-          <div className="bg-white/80 backdrop-blur-lg rounded-2xl px-6 py-3 border border-white/20">
+          <div className="bg-white/80 backdrop-blur-lg rounded-xl px-6 py-3 border border-white/20">
             <span className="text-sm text-slate-600">
               Showing {filteredDisputes.length} of {disputes.length} disputes
             </span>

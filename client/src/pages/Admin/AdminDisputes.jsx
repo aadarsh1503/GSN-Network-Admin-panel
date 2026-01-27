@@ -299,87 +299,87 @@ const AdminDisputes = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-3">
       <div className="max-w-6xl mx-auto">
-        {/* Futuristic Header */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 p-8 mb-8">
+        {/* Compact Header */}
+        <div className="bg-white/80 backdrop-blur-lg rounded-xl shadow-xl border border-white/20 p-4 mb-4">
           <div className="flex flex-col lg:flex-row justify-between items-center">
-            <div className="flex items-center space-x-4 mb-4 lg:mb-0">
-              <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl">
-                <FiShield className="text-white" size={32} />
+            <div className="flex items-center space-x-3 mb-2 lg:mb-0">
+              <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg">
+                <FiShield className="text-white" size={20} />
               </div>
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                  Admin Dispute Center
+                <h1 className="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                  Admin Disputes
                 </h1>
-                <p className="text-gray-600 mt-1">Advanced dispute management & resolution system</p>
+                <p className="text-gray-600 text-sm">Manage disputes</p>
               </div>
             </div>
             <button 
               onClick={fetchDisputes}
-              className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
+              className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-2 px-4 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-lg text-sm"
             >
-              <FiRefreshCw size={20} />
-              <span>Refresh Data</span>
+              <FiRefreshCw size={16} />
+              <span>Refresh</span>
             </button>
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Compact Stats */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
           {[
-            { label: 'Total Disputes', value: counts.all, icon: FiUsers, color: 'from-blue-500 to-cyan-500' },
+            { label: 'Total', value: counts.all, icon: FiUsers, color: 'from-blue-500 to-cyan-500' },
             { label: 'Pending', value: counts.pending, icon: FiClock, color: 'from-yellow-500 to-orange-500' },
             { label: 'Running', value: counts.running, icon: FiZap, color: 'from-purple-500 to-pink-500' },
             { label: 'Resolved', value: counts.resolved, icon: FiCheckCircle, color: 'from-green-500 to-emerald-500' }
           ].map((stat, index) => (
-            <div key={index} className="bg-white/80 backdrop-blur-lg rounded-xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
+            <div key={index} className="bg-white/80 backdrop-blur-lg rounded-lg shadow-lg border border-white/20 p-3 hover:shadow-xl transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                  <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                  <p className="text-xs font-medium text-gray-600">{stat.label}</p>
+                  <p className="text-xl font-bold text-gray-900">{stat.value}</p>
                 </div>
-                <div className={`p-3 bg-gradient-to-r ${stat.color} rounded-lg`}>
-                  <stat.icon className="text-white" size={24} />
+                <div className={`p-2 bg-gradient-to-r ${stat.color} rounded-lg`}>
+                  <stat.icon className="text-white" size={16} />
                 </div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Advanced Filters */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 p-6 mb-8">
-          <div className="flex flex-col lg:flex-row items-center justify-between space-y-4 lg:space-y-0 lg:space-x-6">
+        {/* Compact Filters */}
+        <div className="bg-white/80 backdrop-blur-lg rounded-xl shadow-xl border border-white/20 p-4 mb-4">
+          <div className="flex flex-col lg:flex-row items-center justify-between space-y-3 lg:space-y-0 lg:space-x-4">
             {/* Search */}
-            <div className="relative flex-1 max-w-md">
-              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <div className="relative flex-1 max-w-sm">
+              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
               <input
                 type="text"
-                placeholder="Search disputes, users, companies..."
+                placeholder="Search disputes..."
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className="w-full pl-10 pr-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                className="w-full pl-9 pr-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-sm"
               />
             </div>
 
             {/* Filters */}
-            <div className="flex flex-wrap items-center space-x-4">
+            <div className="flex flex-wrap items-center space-x-2">
               <select
                 value={userTypeFilter}
                 onChange={(e) => { setUserTypeFilter(e.target.value); setCurrentPage(1); }}
-                className="px-4 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 text-sm"
               >
-                <option value="all">All User Types ({userTypeCounts.all})</option>
-                <option value="user">Regular Users ({userTypeCounts.user})</option>
-                <option value="business">Business Owners ({userTypeCounts.business})</option>
-                <option value="company">Company Members ({userTypeCounts.company})</option>
-                <option value="admin">Admins ({userTypeCounts.admin})</option>
+                <option value="all">All Users</option>
+                <option value="user">Users</option>
+                <option value="business">Business</option>
+                <option value="company">Company</option>
+                <option value="admin">Admin</option>
               </select>
 
               <select
                 value={priorityFilter}
                 onChange={(e) => { setPriorityFilter(e.target.value); setCurrentPage(1); }}
-                className="px-4 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 text-sm"
               >
                 <option value="all">All Priorities</option>
                 <option value="urgent">Urgent</option>
@@ -391,72 +391,39 @@ const AdminDisputes = () => {
               <select
                 value={itemsPerPage}
                 onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
-                className="px-4 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 text-sm"
               >
-                <option value="5">5 per page</option>
-                <option value="10">10 per page</option>
-                <option value="25">25 per page</option>
-                <option value="50">50 per page</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
               </select>
 
               <button
                 onClick={resetFilters}
-                className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all duration-300"
+                className="flex items-center space-x-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all duration-300 text-sm"
               >
-                <FiX size={16} />
+                <FiX size={14} />
                 <span>Reset</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* Status Filter Tabs */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 mb-8 overflow-hidden">
-          <div className="flex overflow-x-auto">
-            {[
-              { key: 'all', label: 'All Disputes', count: counts.all, icon: FiUsers },
-              { key: 'pending', label: 'Pending', count: counts.pending, icon: FiClock },
-              { key: 'running', label: 'Running', count: counts.running, icon: FiZap },
-              { key: 'resolved', label: 'Resolved', count: counts.resolved, icon: FiCheckCircle },
-              { key: 'closed', label: 'Closed', count: counts.closed, icon: FiCheckCircle },
-            ].map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setFilter(tab.key)}
-                className={`flex items-center space-x-3 px-6 py-4 font-medium text-sm whitespace-nowrap transition-all duration-300 ${
-                  filter === tab.key
-                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
-                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-                }`}
-              >
-                <tab.icon size={18} />
-                <span>{tab.label}</span>
-                {tab.count > 0 && (
-                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                    filter === tab.key ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
-                  }`}>
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-        {/* Futuristic Disputes Table */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+        {/* Disputes Table */}
+        <div className="bg-white/80 backdrop-blur-lg rounded-xl shadow-xl border border-white/20 overflow-hidden">
           {sortedDisputes.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="p-4 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-                <FiCheckCircle className="text-gray-400" size={48} />
+            <div className="text-center py-12">
+              <div className="p-3 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <FiCheckCircle className="text-gray-400" size={32} />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 {searchTerm ? 'No Matching Disputes' : (filter === 'all' ? 'No Disputes Found' : `No ${filter} Disputes`)}
               </h3>
-              <p className="text-gray-500 max-w-md mx-auto">
+              <p className="text-gray-500 max-w-md mx-auto text-sm">
                 {searchTerm 
                   ? `No disputes match your search criteria "${searchTerm}"`
                   : (filter === 'all' 
-                    ? 'The dispute center is currently empty. All systems are running smoothly.'
+                    ? 'The dispute center is currently empty.'
                     : `There are no ${filter} disputes at the moment.`
                   )
                 }
@@ -468,97 +435,115 @@ const AdminDisputes = () => {
                 <table className="w-full">
                   <thead className="bg-gradient-to-r from-gray-50 to-blue-50">
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Dispute Info</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Filed By</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Against</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Reason</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Priority</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Created</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Dispute Info</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Filed By</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Against</th>
+                      {/* <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Reason</th> */}
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Priority</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Created</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {paginatedDisputes.map((dispute, index) => (
                       <tr key={dispute.id} className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-all duration-300">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center space-x-3">
-                            <div className="p-2 bg-gradient-to-r from-blue-100 to-purple-100 rounded-lg">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center space-x-2">
+                            <div className="p-1.5 bg-gradient-to-r from-blue-100 to-purple-100 rounded-lg">
                               {getStatusIcon(dispute.status)}
                             </div>
                             <div>
-                              <div className="text-sm font-bold text-gray-900">#{dispute.id}</div>
-                              <div className="text-sm text-gray-600 max-w-xs truncate font-medium">{dispute.title}</div>
+                              <div className="text-xs font-bold text-gray-900">#{dispute.id}</div>
+                              <div className="text-xs text-gray-600 max-w-xs truncate font-medium">{dispute.title}</div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center space-x-3">
-                            <div className="p-2 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-lg">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center space-x-2">
+                            <div className="p-1.5 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-lg">
                               {getUserTypeIcon(dispute.user_role)}
                             </div>
                             <div>
-                              <div className="text-sm font-semibold text-gray-900">{dispute.user_name}</div>
+                              <div className="text-xs font-semibold text-gray-900">{dispute.user_name}</div>
                               <div className="text-xs text-gray-500 mb-1">{dispute.user_email}</div>
-                              {getUserTypeBadge(dispute.user_role)}
+                              <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium ${
+                                dispute.user_role === 'user' ? 'bg-blue-100 text-blue-800' :
+                                dispute.user_role === 'business' ? 'bg-purple-100 text-purple-800' :
+                                dispute.user_role === 'company' ? 'bg-green-100 text-green-800' :
+                                'bg-red-100 text-red-800'
+                              }`}>
+                                {dispute.user_role === 'user' ? 'User' :
+                                 dispute.user_role === 'business' ? 'Biz' :
+                                 dispute.user_role === 'company' ? 'Co' : 'Admin'}
+                              </span>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center space-x-3">
-                            <div className="p-2 bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center space-x-2">
+                            <div className="p-1.5 bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg">
                               {getUserTypeIcon(dispute.company_role)}
                             </div>
                             <div>
-                              <div className="text-sm font-semibold text-gray-900">{dispute.company_name}</div>
+                              <div className="text-xs font-semibold text-gray-900">{dispute.company_name}</div>
                               <div className="text-xs text-gray-500 mb-1">{dispute.company_email}</div>
-                              {getUserTypeBadge(dispute.company_role)}
+                              <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium ${
+                                dispute.company_role === 'user' ? 'bg-blue-100 text-blue-800' :
+                                dispute.company_role === 'business' ? 'bg-purple-100 text-purple-800' :
+                                dispute.company_role === 'company' ? 'bg-green-100 text-green-800' :
+                                'bg-red-100 text-red-800'
+                              }`}>
+                                {dispute.company_role === 'user' ? 'User' :
+                                 dispute.company_role === 'business' ? 'Biz' :
+                                 dispute.company_role === 'company' ? 'Co' : 'Admin'}
+                              </span>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm font-medium text-gray-900 bg-gray-50 px-3 py-1 rounded-lg">
+                        {/* <td className="px-4 py-3">
+                          <div className="text-xs font-medium text-gray-900 bg-gray-50 px-2 py-1 rounded-lg">
                             {dispute.reason_title}
                           </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-3 py-1 text-xs font-bold rounded-full ${getPriorityColor(dispute.priority)}`}>
-                            <FiTrendingUp className="mr-1" size={12} />
-                            {dispute.priority.toUpperCase()}
+                        </td> */}
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex items-center px-2 py-1 text-xs font-bold rounded-full ${getPriorityColor(dispute.priority)}`}>
+                            <FiTrendingUp className="mr-1" size={10} />
+                            {dispute.priority.charAt(0).toUpperCase()}
                           </span>
                         </td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-3 py-1 text-xs font-bold rounded-full ${getStatusColor(dispute.status)}`}>
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex items-center px-2 py-1 text-xs font-bold rounded-full ${getStatusColor(dispute.status)}`}>
                             {getStatusIcon(dispute.status)}
-                            <span className="ml-1">{dispute.status.toUpperCase()}</span>
+                            <span className="ml-1">{dispute.status.charAt(0).toUpperCase()}</span>
                           </span>
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm font-medium text-gray-900">
+                        <td className="px-4 py-3">
+                          <div className="text-xs font-medium text-gray-900">
                             {new Date(dispute.created_at).toLocaleDateString()}
                           </div>
                           <div className="text-xs text-gray-500">
                             {new Date(dispute.created_at).toLocaleTimeString()}
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center space-x-2">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center space-x-1">
                             <button
                               onClick={() => {
                                 setSelectedDispute(dispute);
                                 setShowDetailsModal(true);
                               }}
-                              className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                              className="p-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
                               title="View Details"
                             >
-                              <FiEye size={16} />
+                              <FiEye size={12} />
                             </button>
                             <button
                               onClick={() => handleOpenChat(dispute)}
-                              className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                              className="p-1.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
                               title="Open Chat"
                             >
-                              <FiMessageSquare size={16} />
+                              <FiMessageSquare size={12} />
                             </button>
                             {dispute.status !== 'closed' && (
                               <button
@@ -567,10 +552,10 @@ const AdminDisputes = () => {
                                   setNewStatus(dispute.status);
                                   setShowResponseModal(true);
                                 }}
-                                className="p-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                                className="p-1.5 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
                                 title="Update Status"
                               >
-                                <FiEdit size={16} />
+                                <FiEdit size={12} />
                               </button>
                             )}
                             <button
@@ -578,10 +563,10 @@ const AdminDisputes = () => {
                                 setDisputeToDelete(dispute);
                                 setShowDeleteModal(true);
                               }}
-                              className="p-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:from-red-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                              className="p-1.5 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:from-red-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
                               title="Delete Dispute"
                             >
-                              <FiTrash2 size={16} />
+                              <FiTrash2 size={12} />
                             </button>
                           </div>
                         </td>

@@ -10,6 +10,7 @@ import { SubscriptionProvider } from "./contexts/SubscriptionContext";
 import activityTracker from "./utils/activityTracker";
 import { getToken } from "./utils/api";
 import keepAliveService from "./services/keepAliveService";
+import connectionMonitor from "./services/connectionMonitor";
 import "./App.css";
 import "./styles/notifications.css";
 
@@ -83,6 +84,7 @@ import AdminInvoices from "./pages/Admin/AdminInvoices";
 // --- Company Pages ---
 import CompanyDashboard from "./companyPages/CompanyDashboard/CompanyDashboard";
 import MembersDirectory from "./companyPages/MembersDirectory/MembersDirectory";
+import MemberProfile from "./companyPages/MemberProfile/MemberProfile";
 import QuotesPage from "./companyPages/QuotesPage/QuotesPage";
 import RequestQuote from "./companyPages/RequestQuote/RequestQuote";
 import CompanyProfileDetail from "./companyPages/CompanyProfileDetail/CompanyProfileDetail";
@@ -167,9 +169,14 @@ const PublicLayout = () => (
 );
 
 function App() {
-  // Initialize activity tracker and keep-alive service when app starts
+  // Initialize activity tracker, keep-alive service, and connection monitor when app starts
   useEffect(() => {
     const token = getToken();
+    
+    // Initialize connection monitor first
+    connectionMonitor.initialize();
+    console.log('🌐 Connection monitor initialized');
+    
     if (token) {
       // Start activity tracker
       activityTracker.startTracking();
@@ -177,13 +184,33 @@ function App() {
       
       // Start keep-alive service to prevent token expiration
       keepAliveService.start();
-      console.log('🚀 Keep-alive service initialized');
+      console.log('� Keep-alivie service initialized');
     }
+
+    // Listen for connection status changes
+    const handleConnectionChange = (status) => {
+      console.log('🌐 Connection status changed:', status);
+      
+      if (status.type === 'offline') {
+        console.warn('🌐 Application is offline - some features may not work');
+      } else if (status.type === 'online') {
+        console.log('🌐 Application is back online');
+      } else if (status.type === 'quality-degraded') {
+        console.warn(`🌐 Connection quality degraded: ${status.connectionQuality}`);
+      }
+    };
+
+    connectionMonitor.addEventListener(handleConnectionChange);
 
     // Listen for keep-alive failure events
     const handleKeepAliveFailure = (event) => {
-      console.error('🚫 Keep-alive service failed:', event.detail.message);
-      // You can show a toast notification or handle this as needed
+      console.error('🚫 Keep-alive service issue:', event.detail.message);
+      
+      // Only show user notification for persistent issues
+      if (event.detail.action === 'service_stopped') {
+        // You can show a toast notification or handle this as needed
+        console.warn('🚫 Persistent connection issues detected. Please check your internet connection.');
+      }
     };
 
     window.addEventListener('keepAliveFailure', handleKeepAliveFailure);
@@ -192,6 +219,8 @@ function App() {
     return () => {
       activityTracker.stopTracking();
       keepAliveService.stop();
+      connectionMonitor.removeEventListener(handleConnectionChange);
+      connectionMonitor.destroy();
       window.removeEventListener('keepAliveFailure', handleKeepAliveFailure);
     };
   }, []);
@@ -321,6 +350,7 @@ function App() {
           <Route index element={<CompanyDashboard />} />
           <Route path="dashboard" element={<CompanyDashboard />} />
           <Route path="member-directory" element={<MembersDirectory />} />
+          <Route path="member-profile/:companyId" element={<MemberProfile />} />
           <Route path="quote" element={<RequestQuote />} />
           <Route path="freight-quotes" element={<QuotesPage />} />
           <Route path="my-profile" element={<CompanyProfileDetail />} />

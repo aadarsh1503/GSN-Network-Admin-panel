@@ -1,21 +1,30 @@
 import { useState, useEffect } from 'react';
 import { 
-  FaSearch, FaFileDownload, FaTrash, FaFilter, FaChartLine, 
-  FaCreditCard, FaReceipt, FaEye, FaCalendarAlt 
-} from 'react-icons/fa';
+  FiSearch, FiDownload, FiTrash, FiFilter, FiTrendingUp, 
+  FiCreditCard, FiFileText, FiEye, FiCalendar 
+} from 'react-icons/fi';
+import { FaSort, FaTrash } from 'react-icons/fa';
 import { api } from '../../utils/api';
-import { adminToast } from '../../utils/adminToast';
+import toast from 'react-hot-toast';
 
 const AdminTransactions = () => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filteredTransactions, setFilteredTransactions] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [sortConfig, setSortConfig] = useState({ key: 'created_at', direction: 'desc' });
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, transactionId: null, transactionDetails: null });
 
   useEffect(() => {
     fetchTransactions();
   }, []);
+
+  useEffect(() => {
+    filterAndSortTransactions();
+  }, [transactions, searchTerm, statusFilter, sortConfig]);
 
   const fetchTransactions = async () => {
     try {
@@ -48,7 +57,6 @@ const AdminTransactions = () => {
               quote_id: item.quote_id,
               product_description: item.product_description,
               amount: item.price,
-              payment_method: 'verified_payment',
               transaction_reference: `VERIFIED-${item.quote_id}-${item.quote_response_id}`,
               status: 'verified',
               created_at: item.verification_date || item.created_at,
@@ -72,21 +80,74 @@ const AdminTransactions = () => {
       setTransactions(combinedTransactions);
     } catch (error) {
       console.error('Error fetching transactions:', error);
-      adminToast.error('Failed to load transactions');
+      toast.error('Failed to load transactions');
     } finally {
       setLoading(false);
     }
   };
 
+  const filterAndSortTransactions = () => {
+    let filtered = [...transactions];
+
+    // Search filter
+    if (searchTerm) {
+      filtered = filtered.filter(txn =>
+        txn.user_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        txn.user_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        txn.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        txn.transaction_reference?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        txn.product_description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        txn.plan_name?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Status filter
+    if (statusFilter) {
+      filtered = filtered.filter(txn => txn.status === statusFilter);
+    }
+
+    // Sort
+    filtered.sort((a, b) => {
+      let aValue = a[sortConfig.key];
+      let bValue = b[sortConfig.key];
+
+      if (sortConfig.key === 'created_at') {
+        aValue = new Date(aValue || 0);
+        bValue = new Date(bValue || 0);
+      } else if (sortConfig.key === 'amount') {
+        aValue = parseFloat(aValue || 0);
+        bValue = parseFloat(bValue || 0);
+      }
+
+      if (aValue < bValue) {
+        return sortConfig.direction === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+
+    setFilteredTransactions(filtered);
+    setCurrentPage(1);
+  };
+
+  const handleSort = (key) => {
+    setSortConfig(prevConfig => ({
+      key,
+      direction: prevConfig.key === key && prevConfig.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
   const handleDeleteTransaction = async (transactionId) => {
     try {
       await api.delete(`/api/admin-panel/transactions/${transactionId}`);
-      adminToast.success('Transaction deleted successfully');
+      toast.success('Transaction deleted successfully');
       setDeleteConfirm({ show: false, transactionId: null, transactionDetails: null });
       fetchTransactions(); // Refresh the list
     } catch (error) {
       console.error('Error deleting transaction:', error);
-      adminToast.error('Failed to delete transaction');
+      toast.error('Failed to delete transaction');
     }
   };
 
@@ -102,20 +163,6 @@ const AdminTransactions = () => {
     setDeleteConfirm({ show: false, transactionId: null, transactionDetails: null });
   };
 
-  const filteredTransactions = transactions.filter(txn => {
-    const matchesSearch = 
-      txn.user_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      txn.user_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      txn.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      txn.transaction_reference?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      txn.product_description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      txn.plan_name?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = !statusFilter || txn.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
-
   const getTransactionTypeIcon = (type) => {
     return type === 'subscription' ? '📋' : '📦';
   };
@@ -127,16 +174,22 @@ const AdminTransactions = () => {
   const getStatusBadge = (status) => {
     const colors = {
       completed: 'bg-green-100 text-green-800',
+      verified: 'bg-green-100 text-green-800',
+      paid: 'bg-green-100 text-green-800',
       pending: 'bg-yellow-100 text-yellow-800',
       failed: 'bg-red-100 text-red-800',
       refunded: 'bg-gray-100 text-gray-800'
     };
-    return colors[status] || 'bg-gray-100 text-gray-800';
+    return (
+      <span className={`px-1 py-0.5 rounded text-xs font-medium ${colors[status] || 'bg-gray-100 text-gray-800'}`}>
+        {status?.charAt(0).toUpperCase() + status?.slice(1)}
+      </span>
+    );
   };
 
   const calculateTotalRevenue = () => {
     return filteredTransactions
-      .filter(txn => txn.status === 'completed' || txn.status === 'verified' || txn.status === 'paid')
+      .filter(txn => ['completed', 'verified', 'paid'].includes(txn.status))
       .reduce((sum, txn) => sum + parseFloat(txn.amount || txn.amount_paid || 0), 0)
       .toFixed(2);
   };
@@ -150,18 +203,16 @@ const AdminTransactions = () => {
       quotes: quoteTransactions.length,
       subscriptions: subscriptionTransactions.length,
       quoteRevenue: quoteTransactions
-        .filter(t => t.status === 'completed' || t.status === 'verified')
+        .filter(t => ['completed', 'verified'].includes(t.status))
         .reduce((sum, t) => sum + parseFloat(t.amount || 0), 0),
       subscriptionRevenue: subscriptionTransactions
-        .filter(t => t.status === 'paid' || t.status === 'completed')
+        .filter(t => ['paid', 'completed'].includes(t.status))
         .reduce((sum, t) => sum + parseFloat(t.amount_paid || 0), 0)
     };
   };
 
-  const stats = getTransactionStats();
-
   const exportToCSV = () => {
-    const headers = ['ID', 'Type', 'User', 'Email', 'Company', 'Quote/Plan', 'Product/Description', 'Amount', 'Payment Method', 'Reference', 'Status', 'Date'];
+    const headers = ['ID', 'Type', 'User', 'Email', 'Company', 'Quote/Plan', 'Product/Description', 'Amount', 'Reference', 'Status', 'Date'];
     const rows = filteredTransactions.map(txn => [
       txn.id,
       getTransactionTypeName(txn.transaction_type),
@@ -171,7 +222,6 @@ const AdminTransactions = () => {
       txn.quote_id || txn.plan_name || 'N/A',
       txn.product_description || txn.plan_description || 'N/A',
       txn.amount || txn.amount_paid,
-      txn.payment_method || 'N/A',
       txn.transaction_reference || 'N/A',
       txn.status,
       new Date(txn.created_at).toLocaleDateString()
@@ -186,389 +236,389 @@ const AdminTransactions = () => {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `all_transactions_${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `transactions_${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
   };
 
+  // Pagination
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredTransactions.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
+  const stats = getTransactionStats();
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600 font-medium">Loading transactions...</p>
+      <div className="bg-gray-50 min-h-screen p-2 sm:p-3">
+        <div className="max-w-full mx-auto">
+          <div className="bg-white p-4 rounded-lg shadow-sm flex items-center justify-center min-h-[300px]">
+            <div className="text-center">
+              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+              <p className="text-gray-600 text-sm">Loading transactions...</p>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 sm:p-1">
-      <div className="max-w-6xl mx-auto space-y-6">
-        
-        {/* Header Section */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                <FaChartLine className="text-white text-xl" />
-              </div>
+    <div className="bg-gray-50 min-h-screen p-2 sm:p-3">
+      <div className="max-w-full mx-auto">
+        {/* Compact Stats Section */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+          <div className="bg-white p-3 rounded-lg shadow-sm">
+            <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-                  Transaction Management
-                </h1>
-                <p className="text-slate-600 mt-1">Monitor all quote payments and subscription transactions</p>
+                <p className="text-xs text-gray-500">Total</p>
+                <p className="text-lg font-bold text-gray-800">{stats.total}</p>
               </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2 text-sm text-slate-600">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span>Live Data</span>
-              </div>
-              <button
-                onClick={exportToCSV}
-                className="flex items-center space-x-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-6 py-3 rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all duration-300 shadow-lg hover:shadow-xl"
-              >
-                <FaFileDownload />
-                <span className="font-medium">Export CSV</span>
-              </button>
+              <FiFileText className="text-blue-600" />
             </div>
           </div>
-        </div>
-
-        {/* Stats Dashboard */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
+          <div className="bg-white p-3 rounded-lg shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-slate-500 text-sm font-medium">Total Transactions</p>
-                <p className="text-3xl font-bold text-slate-800 mt-1">{stats.total}</p>
+                <p className="text-xs text-gray-500">Revenue</p>
+                <p className="text-lg font-bold text-green-600">${calculateTotalRevenue()}</p>
               </div>
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center">
-                <FaReceipt className="text-blue-600" />
-              </div>
+              <FiTrendingUp className="text-green-600" />
             </div>
           </div>
-
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
+          <div className="bg-white p-3 rounded-lg shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-slate-500 text-sm font-medium">Total Revenue</p>
-                <p className="text-3xl font-bold text-emerald-600 mt-1">${calculateTotalRevenue()}</p>
+                <p className="text-xs text-gray-500">Quotes</p>
+                <p className="text-lg font-bold text-blue-600">{stats.quotes}</p>
               </div>
-              {/* <div className="w-10 h-10 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-lg flex items-center justify-center">
-                <FaChartLine className="text-emerald-600" />
-              </div> */}
+              <span className="text-blue-600">📦</span>
             </div>
           </div>
-
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
+          <div className="bg-white p-3 rounded-lg shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-slate-500 text-sm font-medium">Quote Payments</p>
-                <p className="text-2xl font-bold text-blue-600 mt-1">{stats.quotes}</p>
-                <p className="text-sm text-slate-500">${stats.quoteRevenue.toFixed(2)}</p>
-              </div>
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center">
-                <span className="text-blue-600 text-lg">📦</span>
-              </div>
-            </div>
-          </div>
-
-          {/* <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-500 text-sm font-medium">Subscriptions</p>
-                <p className="text-2xl font-bold text-purple-600 mt-1">{stats.subscriptions}</p>
-                <p className="text-sm text-slate-500">${stats.subscriptionRevenue.toFixed(2)}</p>
-              </div>
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex items-center justify-center">
-                <FaCreditCard className="text-purple-600" />
-              </div>
-            </div>
-          </div> */}
-
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-500 text-sm font-medium">Completed</p>
-                <p className="text-2xl font-bold text-green-600 mt-1">
+                <p className="text-xs text-gray-500">Completed</p>
+                <p className="text-lg font-bold text-green-600">
                   {filteredTransactions.filter(t => ['completed', 'verified', 'paid'].includes(t.status)).length}
                 </p>
               </div>
-              <div className="w-10 h-10 bg-gradient-to-br from-green-100 to-green-200 rounded-lg flex items-center justify-center">
-                <span className="text-green-600 text-lg">✅</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-500 text-sm font-medium">Pending</p>
-                <p className="text-2xl font-bold text-amber-600 mt-1">
-                  {filteredTransactions.filter(t => t.status === 'pending').length}
-                </p>
-              </div>
-              <div className="w-10 h-10 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg flex items-center justify-center">
-                <span className="text-amber-600 text-lg">⏳</span>
-              </div>
+              <span className="text-green-600">✅</span>
             </div>
           </div>
         </div>
 
-        {/* Filters Section */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="w-8 h-8 bg-gradient-to-br from-slate-500 to-slate-600 rounded-lg flex items-center justify-center">
-              <FaFilter className="text-white text-sm" />
-            </div>
-            <h3 className="text-lg font-semibold text-slate-800">Filters & Search</h3>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="relative">
-              <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" />
+        {/* Compact Filter Section */}
+        <div className="bg-white p-3 rounded-lg shadow-sm mb-3">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 items-end">
+            <div className="w-full">
+              <label htmlFor="search" className="block text-xs font-medium text-gray-700 mb-1">
+                <FiSearch className="inline mr-1" />
+                Search
+              </label>
               <input
                 type="text"
-                placeholder="Search transactions..."
-                className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                id="search"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search..."
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
               />
             </div>
-            
-            <select
-              className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="">All Status</option>
-              <option value="completed">Completed</option>
-              <option value="verified">Verified</option>
-              <option value="paid">Paid</option>
-              <option value="pending">Pending</option>
-              <option value="failed">Failed</option>
-              <option value="refunded">Refunded</option>
-            </select>
-            
-            {/* <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setSearchTerm('Quote Payment')}
-                className="flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-all duration-300 font-medium"
+            <div className="w-full">
+              <label htmlFor="status-filter" className="block text-xs font-medium text-gray-700 mb-1">
+                Status
+              </label>
+              <select
+                id="status-filter"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 bg-white"
               >
-                <span>📦</span>
-                <span>Quotes</span>
-              </button>
-              <button
-                onClick={() => setSearchTerm('Subscription')}
-                className="flex items-center space-x-2 px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-all duration-300 font-medium"
+                <option value="">All</option>
+                <option value="completed">Completed</option>
+                <option value="verified">Verified</option>
+                <option value="paid">Paid</option>
+                <option value="pending">Pending</option>
+                <option value="failed">Failed</option>
+                <option value="refunded">Refunded</option>
+              </select>
+            </div>
+            <div className="w-full">
+              <button 
+                onClick={() => {
+                  setSearchTerm('');
+                  setStatusFilter('');
+                }}
+                className="w-full flex items-center justify-center px-3 py-1.5 text-sm bg-[#d4b46a] text-white font-medium rounded-md shadow-sm hover:bg-[#c8a860] transition-colors"
               >
-                <span>📋</span>
-                <span>Subscriptions</span>
+                <FiFilter className="mr-1" />
+                Clear
               </button>
-            </div> */}
-            
-            <button
-              onClick={() => {
-                setSearchTerm('');
-                setStatusFilter('');
-              }}
-              className="bg-gradient-to-r from-slate-500 to-slate-600 text-white px-6 py-3 rounded-xl hover:from-slate-600 hover:to-slate-700 transition-all duration-300 font-medium"
-            >
-              Reset Filters
-            </button>
+            </div>
+            <div className="w-full">
+              <button
+                onClick={exportToCSV}
+                className="w-full flex items-center justify-center px-3 py-1.5 text-sm bg-green-600 text-white font-medium rounded-md shadow-sm hover:bg-green-700 transition-colors"
+              >
+                <FiDownload className="mr-1" />
+                Export
+              </button>
+            </div>
+            <div className="w-full">
+              <div className="flex items-center space-x-2 text-xs text-gray-600">
+                <span>Show</span>
+                <select 
+                  value={itemsPerPage}
+                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                  className="border border-gray-300 rounded px-1 py-0.5 bg-white text-xs"
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Transactions Table */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+        {/* Compact Table Section */}
+        <div className="bg-white p-3 rounded-lg shadow-sm">
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="text-lg font-semibold text-gray-800">Transactions ({filteredTransactions.length})</h2>
+            <div className="text-xs text-blue-600 font-medium">
+              💰 Payment Management
+            </div>
+          </div>
+
+          {/* Compact Table */}
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+            <table className="w-full text-xs text-left text-gray-600">
+              <thead className="bg-[#e6c98c] text-gray-700 uppercase text-xs">
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">ID</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Type</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">User</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Company</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Quote/Plan</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Product/Description</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Amount</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Payment Method</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Status</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Date</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Actions</th>
+                  <th scope="col" className="px-2 py-2 font-semibold">
+                    <div className="flex items-center cursor-pointer" onClick={() => handleSort('id')}>
+                      #
+                      <FaSort className="ml-1 h-2 w-2 text-gray-500" />
+                    </div>
+                  </th>
+                  <th scope="col" className="px-2 py-2 font-semibold min-w-[120px]">
+                    Type
+                  </th>
+                  <th scope="col" className="px-2 py-2 font-semibold min-w-[140px]">
+                    User
+                  </th>
+                  <th scope="col" className="px-2 py-2 font-semibold min-w-[140px]">
+                    Company
+                  </th>
+                  <th scope="col" className="px-2 py-2 font-semibold min-w-[150px]">
+                    Product/Plan
+                  </th>
+                  <th scope="col" className="px-2 py-2 font-semibold">
+                    <div className="flex items-center cursor-pointer" onClick={() => handleSort('amount')}>
+                      Amount
+                      <FaSort className="ml-1 h-2 w-2 text-gray-500" />
+                    </div>
+                  </th>
+                  <th scope="col" className="px-2 py-2 font-semibold min-w-[120px]">
+                    Reference
+                  </th>
+                  <th scope="col" className="px-2 py-2 font-semibold">
+                    <div className="flex items-center cursor-pointer" onClick={() => handleSort('status')}>
+                      Status
+                      <FaSort className="ml-1 h-2 w-2 text-gray-500" />
+                    </div>
+                  </th>
+                  <th scope="col" className="px-2 py-2 font-semibold">
+                    <div className="flex items-center cursor-pointer" onClick={() => handleSort('created_at')}>
+                      Date
+                      <FaSort className="ml-1 h-2 w-2 text-gray-500" />
+                    </div>
+                  </th>
+                  <th scope="col" className="px-2 py-2 font-semibold">
+                    Action
+                  </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
-                {filteredTransactions.length > 0 ? (
-                  filteredTransactions.map((txn) => (
-                    <tr key={`${txn.transaction_type}-${txn.id}`} className="hover:bg-slate-50/50 transition-colors duration-200">
-                      <td className="px-6 py-4">
-                        <span className="font-mono text-sm text-slate-600">{txn.id}</span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center">
-                            <span className="text-sm">{getTransactionTypeIcon(txn.transaction_type)}</span>
-                          </div>
-                          <span className="text-sm font-medium text-slate-700">{getTransactionTypeName(txn.transaction_type)}</span>
+              <tbody>
+                {currentItems.length === 0 ? (
+                  <tr>
+                    <td colSpan="10" className="px-2 py-6 text-center text-gray-500 text-sm">
+                      {transactions.length === 0 ? 'No transactions found.' : 'No transactions match your current filters.'}
+                    </td>
+                  </tr>
+                ) : (
+                  currentItems.map((transaction, index) => (
+                    <tr key={transaction.id} className="bg-white border-b hover:bg-gray-50">
+                      <td className="px-2 py-2 text-xs">{indexOfFirstItem + index + 1}</td>
+                      <td className="px-2 py-2">
+                        <div className="flex items-center gap-1 min-w-[120px]">
+                          <span className="text-lg">{getTransactionTypeIcon(transaction.transaction_type)}</span>
+                          <span className="text-xs font-medium">{getTransactionTypeName(transaction.transaction_type)}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <div>
-                          <div className="font-medium text-slate-800">{txn.user_name}</div>
-                          <div className="text-sm text-slate-500">{txn.user_email}</div>
+                      <td className="px-2 py-2">
+                        <div className="min-w-[140px]">
+                          <div className="font-medium text-xs truncate">{transaction.user_name || 'N/A'}</div>
+                          <div className="text-xs text-gray-500 truncate">{transaction.user_email || 'N/A'}</div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <div>
-                          <div className="font-medium text-slate-800">{txn.company_name || 'N/A'}</div>
-                          <div className="text-sm text-slate-500">{txn.company_email || ''}</div>
+                      <td className="px-2 py-2">
+                        <div className="min-w-[140px]">
+                          {transaction.company_name ? (
+                            <>
+                              <div className="font-medium text-xs text-blue-600 truncate">{transaction.company_name}</div>
+                              <div className="text-xs text-gray-500 truncate">{transaction.company_email || 'No email'}</div>
+                            </>
+                          ) : (
+                            <span className="text-gray-400 text-xs">No company</span>
+                          )}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        {txn.transaction_type === 'quote' ? (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                            #{txn.quote_id || 'N/A'}
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
-                            {txn.plan_name || 'N/A'}
-                          </span>
+                      <td className="px-2 py-2 max-w-[150px]">
+                        <div className="text-xs truncate" title={transaction.product_description || transaction.plan_name || transaction.plan_description}>
+                          {transaction.product_description || transaction.plan_name || transaction.plan_description || 'N/A'}
+                        </div>
+                        {transaction.quote_id && (
+                          <div className="text-xs text-blue-600">Quote #{transaction.quote_id}</div>
                         )}
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-slate-600 max-w-xs truncate">
-                          {txn.product_description || txn.plan_description || 'N/A'}
+                      <td className="px-2 py-2">
+                        <div className="font-bold text-xs text-green-600">
+                          ${transaction.amount || transaction.amount_paid || '0.00'}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className="text-lg font-bold text-emerald-600">
-                          ${txn.amount || txn.amount_paid}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm text-slate-600">{txn.payment_method || 'N/A'}</span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(txn.status)}`}>
-                          {txn.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2 text-sm text-slate-600">
-                          <FaCalendarAlt className="text-slate-400" />
-                          <span>{new Date(txn.created_at).toLocaleDateString()}</span>
+                      <td className="px-2 py-2">
+                        <div className="text-xs truncate min-w-[120px]" title={transaction.transaction_reference}>
+                          {transaction.transaction_reference || 'N/A'}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2">
-                          <button
-                            className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-all duration-200"
-                            title="View Details"
-                          >
-                            <FaEye />
-                          </button>
-                          <button
-                            onClick={() => showDeleteConfirm(txn)}
-                            className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all duration-200"
+                      <td className="px-2 py-2">
+                        {getStatusBadge(transaction.status)}
+                      </td>
+                      <td className="px-2 py-2 text-xs">
+                        {new Date(transaction.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </td>
+                      <td className="px-2 py-2">
+                        <div className="flex items-center">
+                          <button 
+                            onClick={() => showDeleteConfirm(transaction)}
+                            className="p-1.5 bg-gradient-to-r from-red-500 to-red-600 text-white rounded hover:from-red-600 hover:to-red-700 transition-all duration-200 shadow-sm hover:shadow-md"
                             title="Delete Transaction"
                           >
-                            <FaTrash />
+                            <FiTrash className="w-3 h-3" />
                           </button>
                         </div>
                       </td>
                     </tr>
                   ))
-                ) : (
-                  <tr>
-                    <td colSpan="11" className="text-center py-12">
-                      <div className="flex flex-col items-center space-y-3">
-                        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center">
-                          <FaReceipt className="text-slate-400 text-xl" />
-                        </div>
-                        <p className="text-slate-500 font-medium">No transactions found</p>
-                        <p className="text-slate-400 text-sm">Try adjusting your search filters</p>
-                      </div>
-                    </td>
-                  </tr>
                 )}
               </tbody>
             </table>
           </div>
 
-          {/* Summary Footer */}
-          <div className="bg-gradient-to-r from-slate-50 to-slate-100 border-t border-slate-200 px-6 py-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-              <div className="flex items-center space-x-2 text-slate-600">
-                <FaReceipt className="text-slate-400" />
-                <span>Showing {filteredTransactions.length} of {transactions.length} transactions</span>
+          {/* Compact Pagination */}
+          {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row justify-between items-center mt-3 text-xs text-gray-600 gap-2">
+              <div>
+                {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredTransactions.length)} of {filteredTransactions.length}
               </div>
-              <div className="flex items-center space-x-2 text-slate-600">
-                <span className="text-blue-600">📦</span>
-                <span>Quote Payments: {stats.quotes} (${stats.quoteRevenue.toFixed(2)})</span>
+              <div className="flex items-center">
+                <button 
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-2 py-1 text-xs border border-gray-300 rounded-l-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Prev
+                </button>
+                {[...Array(Math.min(totalPages, 5))].map((_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`px-2 py-1 text-xs border-t border-b ${
+                        currentPage === pageNum 
+                          ? 'text-white bg-[#d4b46a]' 
+                          : 'hover:bg-gray-100'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+                <button 
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="px-2 py-1 text-xs border border-gray-300 rounded-r-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
               </div>
-              {/* <div className="flex items-center space-x-2 text-slate-600">
-                <FaCreditCard className="text-purple-600" />
-                <span>Subscriptions: {stats.subscriptions} (${stats.subscriptionRevenue.toFixed(2)})</span>
-              </div> */}
             </div>
-          </div>
+          )}
         </div>
 
         {/* Delete Confirmation Modal */}
         {deleteConfirm.show && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full border border-white/20">
-              <div className="p-6">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                    <FaTrash className="text-red-600" />
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+              <div className="p-4">
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                    <FaTrash className="text-red-600 w-3 h-3" />
                   </div>
-                  <h3 className="text-lg font-semibold text-slate-900">
+                  <h3 className="text-base font-semibold text-gray-900">
                     Confirm Delete Transaction
                   </h3>
                 </div>
                 
-                <div className="mb-6">
-                  <p className="text-slate-600 mb-4">
+                <div className="mb-4">
+                  <p className="text-gray-600 mb-3 text-sm">
                     Are you sure you want to delete this transaction? This action cannot be undone.
                   </p>
                   {deleteConfirm.transactionDetails && (
-                    <div className="bg-slate-50 rounded-xl p-4 space-y-2 text-sm">
+                    <div className="bg-gray-50 rounded-lg p-3 space-y-2 text-xs">
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Transaction ID:</span>
-                        <span className="font-medium text-slate-800">{deleteConfirm.transactionDetails.id}</span>
+                        <span className="text-gray-500">Transaction ID:</span>
+                        <span className="font-medium text-gray-800">{deleteConfirm.transactionDetails.id}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-500">User:</span>
-                        <span className="font-medium text-slate-800">{deleteConfirm.transactionDetails.user_name}</span>
+                        <span className="text-gray-500">User:</span>
+                        <span className="font-medium text-gray-800">{deleteConfirm.transactionDetails.user_name}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Amount:</span>
-                        <span className="font-bold text-emerald-600">${deleteConfirm.transactionDetails.amount}</span>
+                        <span className="text-gray-500">Amount:</span>
+                        <span className="font-bold text-green-600">${deleteConfirm.transactionDetails.amount || deleteConfirm.transactionDetails.amount_paid}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Status:</span>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(deleteConfirm.transactionDetails.status)}`}>
-                          {deleteConfirm.transactionDetails.status}
-                        </span>
+                        <span className="text-gray-500">Status:</span>
+                        {getStatusBadge(deleteConfirm.transactionDetails.status)}
                       </div>
                     </div>
                   )}
                 </div>
                 
-                <div className="flex justify-end space-x-3">
+                <div className="flex justify-end space-x-2">
                   <button
                     onClick={hideDeleteConfirm}
-                    className="px-6 py-3 text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200 transition-all duration-300 font-medium"
+                    className="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors text-sm font-medium"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={() => handleDeleteTransaction(deleteConfirm.transactionId)}
-                    className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-300 font-medium shadow-lg"
+                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
                   >
                     Delete Transaction
                   </button>

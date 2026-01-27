@@ -118,8 +118,8 @@ const AdminHeader = ({ toggleSidebar, toggleFullscreen, isFullscreen }) => {
           >
             <div className="p-6 text-center border-b">
                 <img src="https://res.cloudinary.com/ds1dt3qub/image/upload/v1769023793/payment_proofs/tiuj0ygbuvrcxon4y3ss.jpg" alt="Admin" className="w-20 h-20 rounded-full mx-auto mb-3" />
-                <h3 className="font-bold text-gray-800">admin</h3>
-                <p className="text-sm text-gray-500">admin@gmail.com</p>
+                <h3 className="font-bold text-gray-800">ADMIN</h3>
+                {/* <p className="text-sm text-gray-500">admin@gmail.com</p> */}
             </div>
             <div className="p-4 space-y-1" onClick={handleLinkClick}>
                 <Link to="/admin/user-Profile" className="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"><FiUser className="mr-3" /> Profile</Link>

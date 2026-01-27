@@ -4,162 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
 
-// Company Profile Modal Component - Futuristic Design
-const CompanyProfileModal = ({ company, onClose }) => {
-  if (!company) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-xl z-50 flex items-center justify-center p-4">
-      <div className="bg-white/95 backdrop-blur-xl rounded-3xl max-w-6xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20 relative">
-        {/* Animated Background Pattern */}
-        <div className="absolute inset-0 opacity-5 pointer-events-none">
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#D9B95B] via-transparent to-[#CDA435] animate-pulse"></div>
-          <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-[#D9B95B]/20 rounded-full blur-3xl animate-bounce"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-[#CDA435]/20 rounded-full blur-3xl animate-pulse"></div>
-        </div>
-
-        {/* Header with futuristic gradient */}
-        <div className="sticky top-0 bg-gradient-to-r from-[#D9B95B] via-[#E6C76B] to-[#CDA435] text-white p-8 flex justify-between items-center rounded-t-3xl relative overflow-hidden">
-          {/* Animated background elements */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse"></div>
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/50 to-transparent"></div>
-          
-          <div className="flex items-center space-x-6 relative z-10">
-            <div className="relative">
-              {company.logo ? (
-                <div className="relative">
-                  <img src={company.logo} alt={company.name} className="w-20 h-20 rounded-full object-cover border-4 border-white/30 shadow-2xl" />
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/20 to-transparent"></div>
-                  <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-white/20 to-transparent blur-lg animate-pulse"></div>
-                </div>
-              ) : (
-                <div className="relative">
-                  <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border-4 border-white/30 shadow-2xl">
-                    <span className="text-3xl font-bold text-white">{company.name?.charAt(0)}</span>
-                  </div>
-                  <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-white/20 to-transparent blur-lg animate-pulse"></div>
-                </div>
-              )}
-            </div>
-            <div>
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">{company.name}</h2>
-              <p className="text-white/90 text-lg font-medium">{company.category}</p>
-              <div className="flex items-center mt-2 space-x-2">
-                <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse"></div>
-                <span className="text-white/70 text-sm">Premium Member</span>
-              </div>
-            </div>
-          </div>
-          <button 
-            onClick={onClose}
-            className="relative z-10 p-4 hover:bg-white/20 rounded-full transition-all duration-300 group"
-          >
-            <FaTimes className="text-2xl group-hover:rotate-90 transition-transform duration-300" />
-          </button>
-        </div>
-
-        {/* Content with glassmorphism */}
-        <div className="p-8 relative">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column - Enhanced Cards */}
-            <div className="lg:col-span-1 space-y-6">
-              <div className="bg-white/60 backdrop-blur-xl rounded-2xl p-6 shadow-xl border border-white/20 relative overflow-hidden group hover:shadow-2xl transition-all duration-500">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 group-hover:from-blue-500/10 group-hover:to-cyan-500/10 transition-all duration-500"></div>
-                <h4 className="font-bold text-gray-800 mb-4 flex items-center relative z-10">
-                  <div className="p-2 bg-gradient-to-r from-[#D9B95B] to-[#CDA435] rounded-xl mr-3 shadow-lg">
-                    <FaMapMarkerAlt className="text-white" />
-                  </div>
-                  Location Hub
-                </h4>
-                <div className="bg-white/80 backdrop-blur-sm p-4 rounded-xl shadow-lg relative z-10">
-                  <div className="flex items-start text-gray-700">
-                    <FaMapMarkerAlt className="mr-3 text-[#D9B95B] mt-1 flex-shrink-0" />
-                    <div>
-                      <p className="font-semibold text-lg">
-                        {[company.city, company.state, company.country].filter(Boolean).join(', ')}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {company.website && (
-                <div className="bg-white/60 backdrop-blur-xl rounded-2xl p-6 shadow-xl border border-white/20 relative overflow-hidden group hover:shadow-2xl transition-all duration-500">
-                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-green-500/5 group-hover:from-emerald-500/10 group-hover:to-green-500/10 transition-all duration-500"></div>
-                  <h4 className="font-bold text-gray-800 mb-4 flex items-center relative z-10">
-                    <div className="p-2 bg-gradient-to-r from-[#D9B95B] to-[#CDA435] rounded-xl mr-3 shadow-lg">
-                      <FaGlobe className="text-white" />
-                    </div>
-                    Digital Presence
-                  </h4>
-                  <div className="bg-white/80 backdrop-blur-sm p-4 rounded-xl shadow-lg relative z-10">
-                    <a href={company.website} target="_blank" rel="noopener noreferrer" 
-                       className="text-blue-600 hover:text-blue-800 font-medium flex items-center group transition-all duration-300">
-                      <FaGlobe className="mr-2 text-[#D9B95B] group-hover:rotate-12 transition-transform duration-300" />
-                      <span className="group-hover:underline">Visit Website</span>
-                    </a>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Right Column - Enhanced Content */}
-            <div className="lg:col-span-2 space-y-6">
-              {company.about_company && (
-                <div className="bg-white/60 backdrop-blur-xl rounded-2xl p-6 shadow-xl border border-white/20 relative overflow-hidden group hover:shadow-2xl transition-all duration-500">
-                  <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-orange-500/5 group-hover:from-amber-500/10 group-hover:to-orange-500/10 transition-all duration-500"></div>
-                  <h4 className="font-bold text-gray-800 mb-4 text-xl flex items-center relative z-10">
-                    <div className="p-2 bg-gradient-to-r from-[#D9B95B] to-[#CDA435] rounded-xl mr-3 shadow-lg">
-                      <FaAtom className="text-white" />
-                    </div>
-                    Company Directory
-                  </h4>
-                  <p className="text-gray-700 leading-relaxed text-lg bg-white/80 backdrop-blur-sm p-4 rounded-xl shadow-lg relative z-10">
-                    {company.about_company}
-                  </p>
-                </div>
-              )}
-
-              {company.average_rating > 0 && (
-                <div className="bg-white/60 backdrop-blur-xl rounded-2xl p-6 shadow-xl border border-white/20 relative overflow-hidden group hover:shadow-2xl transition-all duration-500">
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5 group-hover:from-purple-500/10 group-hover:to-pink-500/10 transition-all duration-500"></div>
-                  <h4 className="font-bold text-gray-800 mb-4 text-xl flex items-center relative z-10">
-                    <div className="p-2 bg-gradient-to-r from-[#D9B95B] to-[#CDA435] rounded-xl mr-3 shadow-lg">
-                      <FaStar className="text-white" />
-                    </div>
-                    Stellar Reviews
-                  </h4>
-                  <div className="bg-white/80 backdrop-blur-sm p-4 rounded-xl shadow-lg relative z-10">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="flex text-yellow-400 text-xl">
-                          {[...Array(5)].map((_, i) => (
-                            <FaStar key={i} className={`${i < Math.floor(company.average_rating) ? 'text-yellow-400' : 'text-gray-300'} hover:scale-110 transition-transform duration-200`} />
-                          ))}
-                        </div>
-                        <span className="text-2xl font-bold text-gray-800">{company.average_rating}</span>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-gray-600 font-medium">{company.total_reviews} Reviews</p>
-                        <p className="text-sm text-gray-500">Verified customers</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const MembersDirectory = () => {
   const navigate = useNavigate();
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState(null);
   const [filters, setFilters] = useState({ categories: [], countries: [] });
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('');
@@ -232,13 +80,9 @@ const MembersDirectory = () => {
     }
   };
 
-  const handleViewProfile = async (company) => {
-    try {
-      const data = await api.get(`/api/directory/company/${company.id}`);
-      setSelectedCompany(data.company);
-    } catch (error) {
-      toast.error('Error loading company profile');
-    }
+  const handleViewProfile = (company) => {
+    // Navigate to the member profile page
+    navigate(`/company/member-profile/${company.id}`);
   };
 
   const handleAddToWishlist = async (companyId) => {
@@ -277,7 +121,7 @@ const MembersDirectory = () => {
           <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
         </div>
         
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-10">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-6">
               <button 
@@ -310,74 +154,75 @@ const MembersDirectory = () => {
       </div>
 
       {/* Futuristic Filters */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-10">
-        <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl p-6 mb-6 border border-white/20 relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 relative z-10">
+        <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl p-4 mb-4 border border-white/20 relative overflow-hidden">
           {/* Animated background */}
           <div className="absolute inset-0 bg-gradient-to-r from-[#D9B95B]/5 via-transparent to-[#CDA435]/5 animate-pulse"></div>
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative z-10">
-            <div className="relative group">
-              <select 
-                value={selectedCategory}
-                onChange={(e) => { setSelectedCategory(e.target.value); setPagination(p => ({...p, currentPage: 1})); }}
-                className="w-full p-4 bg-white/80 backdrop-blur-sm border border-white/30 rounded-2xl focus:border-[#D9B95B] focus:ring-2 focus:ring-[#D9B95B]/20 transition-all duration-300 text-sm font-medium shadow-lg group-hover:shadow-xl"
-              >
-                <option value="">🏢 All Categories</option>
-                {filters.categories?.map((cat, idx) => (
-                  <option key={idx} value={cat}>{formatCategoryName(cat)}</option>
-                ))}
-              </select>
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-[#D9B95B]/10 to-[#CDA435]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 relative z-10">
+            {/* Filters Row */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 flex-1">
+              <div className="relative group">
+                <select 
+                  value={selectedCategory}
+                  onChange={(e) => { setSelectedCategory(e.target.value); setPagination(p => ({...p, currentPage: 1})); }}
+                  className="w-full p-3 bg-white/80 backdrop-blur-sm border border-white/30 rounded-xl focus:border-[#D9B95B] focus:ring-2 focus:ring-[#D9B95B]/20 transition-all duration-300 text-sm font-medium shadow-lg group-hover:shadow-xl"
+                >
+                  <option value="">🏢 All Categories</option>
+                  {filters.categories?.map((cat, idx) => (
+                    <option key={idx} value={cat}>{formatCategoryName(cat)}</option>
+                  ))}
+                </select>
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#D9B95B]/10 to-[#CDA435]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+              </div>
+              
+              <div className="relative group">
+                <select 
+                  value={selectedCountry}
+                  onChange={(e) => { setSelectedCountry(e.target.value); setPagination(p => ({...p, currentPage: 1})); }}
+                  className="w-full p-3 bg-white/80 backdrop-blur-sm border border-white/30 rounded-xl focus:border-[#D9B95B] focus:ring-2 focus:ring-[#D9B95B]/20 transition-all duration-300 text-sm font-medium shadow-lg group-hover:shadow-xl"
+                >
+                  <option value="">🌍 All Countries</option>
+                  {filters.countries?.map((country, idx) => (
+                    <option key={idx} value={country}>{country}</option>
+                  ))}
+                </select>
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#D9B95B]/10 to-[#CDA435]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+              </div>
+              
+              <div className="relative group">
+                <input
+                  type="text"
+                  placeholder="🔍 Search..."
+                  value={searchTerm}
+                  onChange={(e) => { setSearchTerm(e.target.value); setPagination(p => ({...p, currentPage: 1})); }}
+                  className="w-full p-3 bg-white/80 backdrop-blur-sm border border-white/30 rounded-xl focus:border-[#D9B95B] focus:ring-2 focus:ring-[#D9B95B]/20 transition-all duration-300 text-sm font-medium shadow-lg group-hover:shadow-xl"
+                />
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#D9B95B]/10 to-[#CDA435]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+              </div>
+              
+              <div className="relative group">
+                <select 
+                  value={itemsPerPage}
+                  onChange={(e) => { setItemsPerPage(Number(e.target.value)); setPagination(p => ({...p, currentPage: 1})); }}
+                  className="w-full p-3 bg-white/80 backdrop-blur-sm border border-white/30 rounded-xl focus:border-[#D9B95B] focus:ring-2 focus:ring-[#D9B95B]/20 transition-all duration-300 text-sm font-medium shadow-lg group-hover:shadow-xl"
+                >
+                  <option value={10}>📄 10 per page</option>
+                  <option value={20}>📄 20 per page</option>
+                  <option value={30}>📄 30 per page</option>
+                  <option value={40}>📄 40 per page</option>
+                </select>
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#D9B95B]/10 to-[#CDA435]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+              </div>
             </div>
             
-            <div className="relative group">
-              <select 
-                value={selectedCountry}
-                onChange={(e) => { setSelectedCountry(e.target.value); setPagination(p => ({...p, currentPage: 1})); }}
-                className="w-full p-4 bg-white/80 backdrop-blur-sm border border-white/30 rounded-2xl focus:border-[#D9B95B] focus:ring-2 focus:ring-[#D9B95B]/20 transition-all duration-300 text-sm font-medium shadow-lg group-hover:shadow-xl"
-              >
-                <option value="">🌍 All Countries</option>
-                {filters.countries?.map((country, idx) => (
-                  <option key={idx} value={country}>{country}</option>
-                ))}
-              </select>
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-[#D9B95B]/10 to-[#CDA435]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-            </div>
-            
-            <div className="relative group">
-              <input
-                type="text"
-                placeholder="🔍 Search..."
-                value={searchTerm}
-                onChange={(e) => { setSearchTerm(e.target.value); setPagination(p => ({...p, currentPage: 1})); }}
-                className="w-full p-4 bg-white/80 backdrop-blur-sm border border-white/30 rounded-2xl focus:border-[#D9B95B] focus:ring-2 focus:ring-[#D9B95B]/20 transition-all duration-300 text-sm font-medium shadow-lg group-hover:shadow-xl"
-              />
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-[#D9B95B]/10 to-[#CDA435]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-            </div>
-            
-            <div className="relative group">
-              <select 
-                value={itemsPerPage}
-                onChange={(e) => { setItemsPerPage(Number(e.target.value)); setPagination(p => ({...p, currentPage: 1})); }}
-                className="w-full p-4 bg-white/80 backdrop-blur-sm border border-white/30 rounded-2xl focus:border-[#D9B95B] focus:ring-2 focus:ring-[#D9B95B]/20 transition-all duration-300 text-sm font-medium shadow-lg group-hover:shadow-xl"
-              >
-                <option value={8}>📄 8 per page</option>
-                <option value={12}>📄 12 per page</option>
-                <option value={16}>📄 16 per page</option>
-                <option value={24}>📄 24 per page</option>
-              </select>
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-[#D9B95B]/10 to-[#CDA435]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-            </div>
-          </div>
-          
-          {/* Futuristic View Toggle */}
-          <div className="flex justify-end mt-6 pt-6 border-t border-white/20 relative z-10">
-            <div className="flex items-center space-x-2 bg-white/50 backdrop-blur-sm rounded-2xl p-2 border border-white/30 shadow-lg">
+            {/* View Toggle - Inline */}
+            <div className="flex items-center space-x-2 bg-white/50 backdrop-blur-sm rounded-xl p-1 border border-white/30 shadow-lg flex-shrink-0">
               <button
                 onClick={() => setViewMode('grid')}
-                className={`flex items-center space-x-2 px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300 ${
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-bold transition-all duration-300 ${
                   viewMode === 'grid'
-                    ? 'bg-gradient-to-r from-[#D9B95B] to-[#CDA435] text-white shadow-xl transform scale-105'
+                    ? 'bg-gradient-to-r from-[#D9B95B] to-[#CDA435] text-white shadow-lg transform scale-105'
                     : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'
                 }`}
               >
@@ -386,9 +231,9 @@ const MembersDirectory = () => {
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`flex items-center space-x-2 px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300 ${
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-bold transition-all duration-300 ${
                   viewMode === 'list'
-                    ? 'bg-gradient-to-r from-[#D9B95B] to-[#CDA435] text-white shadow-xl transform scale-105'
+                    ? 'bg-gradient-to-r from-[#D9B95B] to-[#CDA435] text-white shadow-lg transform scale-105'
                     : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'
                 }`}
               >
@@ -400,7 +245,7 @@ const MembersDirectory = () => {
         </div>
 
         {/* Futuristic Companies List */}
-        <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl p-6 border border-white/20 relative overflow-hidden">
+        <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl p-4 border border-white/20 relative overflow-hidden">
           {/* Animated background */}
           <div className="absolute inset-0 bg-gradient-to-r from-[#D9B95B]/3 via-transparent to-[#CDA435]/3 animate-pulse"></div>
           
@@ -425,7 +270,7 @@ const MembersDirectory = () => {
             </div>
           ) : (
             <>
-              <div className="mb-6 flex justify-between items-center relative z-10">
+              <div className="mb-4 flex justify-between items-center relative z-10">
                 <div className="text-lg font-bold text-gray-800 bg-white/50 backdrop-blur-sm px-4 py-2 rounded-2xl border border-white/30">
                   <span className="text-[#D9B95B]">{companies.length}</span> of <span className="text-[#CDA435]">{pagination.totalCompanies}</span> stellar companies
                 </div>
@@ -436,8 +281,8 @@ const MembersDirectory = () => {
               </div>
               
               <div className={viewMode === 'grid' 
-                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 relative z-10"
-                : "space-y-6 relative z-10"
+                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 relative z-10"
+                : "space-y-4 relative z-10"
               }>
                 {companies.map((company, index) => (
                   viewMode === 'grid' ? (
@@ -458,7 +303,7 @@ const MembersDirectory = () => {
                         )}
                         
                         {/* Company Header - Futuristic */}
-                        <div className="relative p-4 bg-gradient-to-br from-gray-50/80 to-gray-100/80 backdrop-blur-sm text-center overflow-hidden">
+                        <div className="relative p-3 bg-gradient-to-br from-gray-50/80 to-gray-100/80 backdrop-blur-sm text-center overflow-hidden">
                           {/* Animated background pattern */}
                           <div className="absolute inset-0 opacity-20">
                             <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#D9B95B]/10 to-[#CDA435]/10 animate-pulse"></div>
@@ -487,7 +332,7 @@ const MembersDirectory = () => {
                         </div>
                         
                         {/* Company Info - Enhanced */}
-                        <div className="p-4 pt-2 relative">
+                        <div className="p-3 pt-2 relative">
                           <h3 className="font-bold text-sm text-gray-800 group-hover:text-[#D9B95B] transition-colors line-clamp-2 mb-2 min-h-[2rem] text-center">
                             {company.name}
                           </h3>
@@ -556,7 +401,7 @@ const MembersDirectory = () => {
                           </div>
                         )}
                         
-                        <div className="flex items-center p-6 space-x-6">
+                        <div className="flex items-center p-4 space-x-6">
                           {/* Company Logo - Enhanced */}
                           <div className="flex-shrink-0 relative">
                             {company.logo ? (
@@ -641,7 +486,7 @@ const MembersDirectory = () => {
 
               {/* Futuristic Pagination */}
               {pagination.totalPages > 1 && (
-                <div className="flex justify-center items-center space-x-4 mt-8 pt-6 border-t border-white/20 relative z-10">
+                <div className="flex justify-center items-center space-x-4 mt-6 pt-4 border-t border-white/20 relative z-10">
                   <button 
                     onClick={() => setPagination(p => ({...p, currentPage: p.currentPage - 1}))}
                     disabled={!pagination.hasPrev}
@@ -668,12 +513,12 @@ const MembersDirectory = () => {
         </div>
 
         {/* Futuristic Sidebar Actions */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
           <div className="group relative">
             <div className="absolute -inset-1 bg-gradient-to-r from-[#D9B95B] to-[#CDA435] rounded-3xl blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-500"></div>
             <a 
               href="/company/quote" 
-              className="relative block bg-gradient-to-r from-[#D9B95B] to-[#CDA435] text-white font-bold py-6 px-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 text-center transform hover:scale-105 border border-white/20 backdrop-blur-sm"
+              className="relative block bg-gradient-to-r from-[#D9B95B] to-[#CDA435] text-white font-bold py-4 px-6 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 text-center transform hover:scale-105 border border-white/20 backdrop-blur-sm"
             >
               <div className="flex items-center justify-center space-x-3">
                 <FaRocket className="text-xl animate-pulse" />
@@ -682,7 +527,7 @@ const MembersDirectory = () => {
             </a>
           </div>
           
-          <div className="bg-white/70 backdrop-blur-xl border border-white/30 rounded-3xl p-6 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-105 relative overflow-hidden group">
+          <div className="bg-white/70 backdrop-blur-xl border border-white/30 rounded-3xl p-4 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-105 relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-r from-[#D9B95B]/5 to-[#CDA435]/5 group-hover:from-[#D9B95B]/10 group-hover:to-[#CDA435]/10 transition-all duration-500"></div>
             <div className="flex items-center justify-center space-x-3 relative z-10">
               <div className="p-2 bg-gradient-to-r from-[#D9B95B] to-[#CDA435] rounded-xl">
@@ -696,14 +541,6 @@ const MembersDirectory = () => {
           </div>
         </div>
       </div>
-
-      {/* Company Profile Modal */}
-      {selectedCompany && (
-        <CompanyProfileModal 
-          company={selectedCompany} 
-          onClose={() => setSelectedCompany(null)} 
-        />
-      )}
     </div>
   );
 };

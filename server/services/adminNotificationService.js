@@ -208,6 +208,30 @@ const sendUserRegistrationNotificationToAdmin = async (userId, userName, userRol
     }
 };
 
+// Send subscription payment proof notification to admin
+const sendSubscriptionPaymentProofNotificationToAdmin = async (userId, userName, planName, planPrice, transactionId, requestId) => {
+    try {
+        const title = `New Subscription Payment Proof Submitted`;
+        const message = `${userName} has submitted payment proof for ${planName} subscription (₹${planPrice}). Transaction ID: ${transactionId}. Please review and approve/reject the request.`;
+        
+        const additionalData = {
+            user_id: userId,
+            user_name: userName,
+            plan_name: planName,
+            plan_price: planPrice,
+            transaction_id: transactionId,
+            request_id: requestId,
+            action_type: 'subscription_payment_proof_submitted'
+        };
+        
+        await createAdminNotification('subscription', title, message, userId, additionalData);
+        console.log(`✅ Subscription payment proof notification sent to admin for request ${requestId}`);
+    } catch (error) {
+        console.error('❌ Error sending subscription payment proof notification to admin:', error);
+        throw error;
+    }
+};
+
 export {
     createAdminNotification,
     sendQuoteAcceptanceNotificationToAdmin,
@@ -216,5 +240,6 @@ export {
     sendQuoteResponseNotificationToAdmin,
     sendDisputeNotificationToAdmin,
     sendTicketNotificationToAdmin,
-    sendUserRegistrationNotificationToAdmin
+    sendUserRegistrationNotificationToAdmin,
+    sendSubscriptionPaymentProofNotificationToAdmin
 };

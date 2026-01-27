@@ -1,6 +1,7 @@
 // Utility function for consistent logout handling across the app
 import activityTracker from './activityTracker';
 import keepAliveService from '../services/keepAliveService';
+import connectionMonitor from '../services/connectionMonitor';
 
 export const performLogout = (options = {}) => {
   const {
@@ -18,6 +19,9 @@ export const performLogout = (options = {}) => {
     // Stop keep-alive service
     keepAliveService.stop();
     console.log('🛑 Keep-alive service stopped on logout');
+    
+    // Note: We don't destroy connection monitor on logout as it's useful for the entire app lifecycle
+    console.log('🌐 Connection monitor continues running (app-wide service)');
     
     // Clear authentication data
     localStorage.removeItem('token');

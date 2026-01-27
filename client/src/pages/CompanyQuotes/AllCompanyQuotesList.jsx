@@ -166,7 +166,7 @@ const AllCompanyQuotesList = () => {
     };
     
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors[status] || 'bg-gray-100 text-gray-800'}`}>
+      <span className={`px-1 py-0.5 rounded text-xs font-medium ${colors[status] || 'bg-gray-100 text-gray-800'}`}>
         {status?.charAt(0).toUpperCase() + status?.slice(1)}
       </span>
     );
@@ -175,47 +175,47 @@ const AllCompanyQuotesList = () => {
   const getPaymentStatusBadge = (quote) => {
     if (!quote.company_name || quote.company_name === 'null') {
       return (
-        <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-          No Company Assigned
+        <span className="px-1 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+          No Company
         </span>
       );
     }
 
     if (quote.payment_status === 'verified') {
       return (
-        <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-          ✓ Payment Verified
+        <span className="px-1 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+          ✓ Verified
         </span>
       );
     }
 
     if (quote.payment_status === 'rejected') {
       return (
-        <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-          ✗ Payment Rejected
+        <span className="px-1 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+          ✗ Rejected
         </span>
       );
     }
 
     if (quote.payment_proof_url && quote.payment_proof_url !== 'null') {
       return (
-        <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-          ⏳ Payment Pending
+        <span className="px-1 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+          ⏳ Pending
         </span>
       );
     }
 
     if (quote.has_payment_proof) {
       return (
-        <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-          💳 Awaiting Payment
+        <span className="px-1 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+          💳 Awaiting
         </span>
       );
     }
 
     return (
-      <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-        No Payment Required
+      <span className="px-1 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+        No Payment
       </span>
     );
   };
@@ -238,10 +238,10 @@ const AllCompanyQuotesList = () => {
 
   if (loading) {
     return (
-      <div className="bg-gray-50 min-h-screen p-4 sm:p-6 lg:p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-white p-6 rounded-lg shadow-sm flex items-center justify-center min-h-[400px]">
-            <FuturisticLoader size="large" message="Loading all quotes..." />
+      <div className="bg-gray-50 min-h-screen p-2 sm:p-3">
+        <div className="max-w-full mx-auto">
+          <div className="bg-white p-4 rounded-lg shadow-sm flex items-center justify-center min-h-[300px]">
+            <FuturisticLoader size="large" message="Loading quotes..." />
           </div>
         </div>
       </div>
@@ -249,13 +249,13 @@ const AllCompanyQuotesList = () => {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen p-4 sm:p-6 lg:p-8">
-      <div className="max-w-6xl mx-auto">
-        {/* Filter Section */}
-        <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
+    <div className="bg-gray-50 min-h-screen p-2 sm:p-3">
+      <div className="max-w-full mx-auto">
+        {/* Compact Filter Section */}
+        <div className="bg-white p-3 rounded-lg shadow-sm mb-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 items-end">
             <div className="w-full">
-              <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="date" className="block text-xs font-medium text-gray-700 mb-1">
                 <FiCalendar className="inline mr-1" />
                 Date
               </label>
@@ -264,20 +264,20 @@ const AllCompanyQuotesList = () => {
                 id="date"
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
               />
             </div>
             <div className="w-full">
-              <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 mb-1">
-                Quote Status
+              <label htmlFor="status-filter" className="block text-xs font-medium text-gray-700 mb-1">
+                Status
               </label>
               <select
                 id="status-filter"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 bg-white"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 bg-white"
               >
-                <option value="all">All Statuses</option>
+                <option value="all">All</option>
                 <option value="pending">Pending</option>
                 <option value="approved">Approved</option>
                 <option value="rejected">Rejected</option>
@@ -286,7 +286,7 @@ const AllCompanyQuotesList = () => {
               </select>
             </div>
             <div className="w-full">
-              <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="search" className="block text-xs font-medium text-gray-700 mb-1">
                 <FiSearch className="inline mr-1" />
                 Search
               </label>
@@ -295,8 +295,8 @@ const AllCompanyQuotesList = () => {
                 id="search"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search quotes..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+                placeholder="Search..."
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
               />
             </div>
             <div className="w-full">
@@ -306,96 +306,90 @@ const AllCompanyQuotesList = () => {
                   setStatusFilter('all');
                   setSearchTerm('');
                 }}
-                className="w-full flex items-center justify-center px-6 py-2 bg-[#d4b46a] text-white font-semibold rounded-md shadow-sm hover:bg-[#c8a860] transition-colors"
+                className="w-full flex items-center justify-center px-3 py-1.5 text-sm bg-[#d4b46a] text-white font-medium rounded-md shadow-sm hover:bg-[#c8a860] transition-colors"
               >
-                <FiFilter className="mr-2" />
-                Clear Filters
+                <FiFilter className="mr-1" />
+                Clear
               </button>
             </div>
           </div>
         </div>
 
-        {/* Table Section */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">All Quotes ({filteredQuotes.length})</h2>
-          
-          {loading && (
-            <div className="text-center py-4 text-blue-600">
-              <div className="inline-flex items-center">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-                Loading comprehensive quote data...
-              </div>
-            </div>
-          )}
-          
-          {/* Table Controls */}
-          <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
+        {/* Compact Table Section */}
+        <div className="bg-white p-3 rounded-lg shadow-sm">
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="text-lg font-semibold text-gray-800">All Quotes ({filteredQuotes.length})</h2>
+            <div className="flex items-center space-x-2 text-xs text-gray-600">
               <span>Show</span>
               <select 
                 value={itemsPerPage}
                 onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                className="border border-gray-300 rounded-md px-2 py-1 bg-white"
+                className="border border-gray-300 rounded px-1 py-0.5 bg-white text-xs"
               >
                 <option value={10}>10</option>
                 <option value={25}>25</option>
                 <option value={50}>50</option>
               </select>
-              <span>entries</span>
-            </div>
-            <div className="text-sm text-gray-600">
-              Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredQuotes.length)} of {filteredQuotes.length} entries
             </div>
           </div>
-
-          {/* Table */}
+          
+          {loading && (
+            <div className="text-center py-2 text-blue-600">
+              <div className="inline-flex items-center text-sm">
+                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2"></div>
+                Loading...
+              </div>
+            </div>
+          )}
+          
+          {/* Compact Table */}
           <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left text-gray-600">
+            <table className="w-full text-xs text-left text-gray-600">
               <thead className="bg-[#e6c98c] text-gray-700 uppercase text-xs">
                 <tr>
-                  <th scope="col" className="px-6 py-3 font-semibold">
+                  <th scope="col" className="px-2 py-2 font-semibold">
                     <div className="flex items-center cursor-pointer" onClick={() => handleSort('id')}>
-                      Sr.No
-                      <FaSort className="ml-1.5 h-3 w-3 text-gray-500" />
+                      #
+                      <FaSort className="ml-1 h-2 w-2 text-gray-500" />
                     </div>
                   </th>
-                  <th scope="col" className="px-6 py-3 font-semibold">
+                  <th scope="col" className="px-2 py-2 font-semibold min-w-[120px]">
                     User
                   </th>
-                  <th scope="col" className="px-6 py-3 font-semibold">
+                  <th scope="col" className="px-2 py-2 font-semibold min-w-[140px]">
                     Route
                   </th>
-                  <th scope="col" className="px-6 py-3 font-semibold">
+                  <th scope="col" className="px-2 py-2 font-semibold">
                     <div className="flex items-center cursor-pointer" onClick={() => handleSort('shipping_mode')}>
-                      Shipping Mode
-                      <FaSort className="ml-1.5 h-3 w-3 text-gray-500" />
+                      Mode
+                      <FaSort className="ml-1 h-2 w-2 text-gray-500" />
                     </div>
                   </th>
-                  <th scope="col" className="px-6 py-3 font-semibold">
+                  <th scope="col" className="px-2 py-2 font-semibold min-w-[150px]">
                     Product
                   </th>
-                  <th scope="col" className="px-6 py-3 font-semibold">
-                    Working Company
+                  <th scope="col" className="px-2 py-2 font-semibold min-w-[140px]">
+                    Company
                   </th>
-                  <th scope="col" className="px-6 py-3 font-semibold">
+                  <th scope="col" className="px-2 py-2 font-semibold min-w-[120px]">
                     Price & Payment
                   </th>
-                  <th scope="col" className="px-6 py-3 font-semibold">
-                    Responses
-                  </th>
-                  <th scope="col" className="px-6 py-3 font-semibold">
+                  {/* <th scope="col" className="px-2 py-2 font-semibold text-center">
+                    Resp.
+                  </th> */}
+                  <th scope="col" className="px-2 py-2 font-semibold">
                     <div className="flex items-center cursor-pointer" onClick={() => handleSort('status')}>
                       Status
-                      <FaSort className="ml-1.5 h-3 w-3 text-gray-500" />
+                      <FaSort className="ml-1 h-2 w-2 text-gray-500" />
                     </div>
                   </th>
-                  <th scope="col" className="px-6 py-3 font-semibold">
+                  <th scope="col" className="px-2 py-2 font-semibold">
                     <div className="flex items-center cursor-pointer" onClick={() => handleSort('created_at')}>
-                      Created Date
-                      <FaSort className="ml-1.5 h-3 w-3 text-gray-500" />
+                      Date
+                      <FaSort className="ml-1 h-2 w-2 text-gray-500" />
                     </div>
                   </th>
-                  <th scope="col" className="px-6 py-3 font-semibold">
+                  <th scope="col" className="px-2 py-2 font-semibold">
                     Action
                   </th>
                 </tr>
@@ -403,92 +397,94 @@ const AllCompanyQuotesList = () => {
               <tbody>
                 {currentItems.length === 0 ? (
                   <tr>
-                    <td colSpan="11" className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan="11" className="px-2 py-6 text-center text-gray-500 text-sm">
                       {quotes.length === 0 ? 'No quotes found.' : 'No quotes match your current filters.'}
                     </td>
                   </tr>
                 ) : (
                   currentItems.map((quote, index) => (
                     <tr key={quote.id} className="bg-white border-b hover:bg-gray-50">
-                      <td className="px-6 py-4">{indexOfFirstItem + index + 1}</td>
-                      <td className="px-6 py-4">
-                        <div>
-                          <div className="font-medium">{quote.user_name || 'Guest'}</div>
-                          <div className="text-sm text-gray-500">{quote.user_email}</div>
+                      <td className="px-2 py-2 text-xs">{indexOfFirstItem + index + 1}</td>
+                      <td className="px-2 py-2">
+                        <div className="min-w-[120px]">
+                          <div className="font-medium text-xs truncate">{quote.user_name || 'Guest'}</div>
+                          <div className="text-xs text-gray-500 truncate">{quote.user_email}</div>
                           {quote.user_role && (
                             <div className="text-xs text-blue-600 capitalize">{quote.user_role}</div>
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-4 flex-shrink-0">
+                      <td className="px-2 py-2">
+                        <div className="flex items-center gap-1 min-w-[140px]">
+                          <div className="w-4 h-3 flex-shrink-0">
                             <Flag code={getCountryCode(quote.departure_country)} className="w-full h-full object-cover" />
                           </div>
-                          <span className="text-xs">{quote.departure_country}</span>
-                          <span className="text-gray-400">→</span>
-                          <div className="w-6 h-4 flex-shrink-0">
+                          <span className="text-xs truncate max-w-[40px]" title={quote.departure_country}>{quote.departure_country?.substring(0, 3)}</span>
+                          <span className="text-gray-400 text-xs">→</span>
+                          <div className="w-4 h-3 flex-shrink-0">
                             <Flag code={getCountryCode(quote.arrival_country)} className="w-full h-full object-cover" />
                           </div>
-                          <span className="text-xs">{quote.arrival_country}</span>
+                          <span className="text-xs truncate max-w-[40px]" title={quote.arrival_country}>{quote.arrival_country?.substring(0, 3)}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4">{quote.shipping_mode}</td>
-                      <td className="px-6 py-4 max-w-xs truncate" title={quote.product_description}>
-                        {quote.product_description}
+                      <td className="px-2 py-2 text-xs">{quote.shipping_mode}</td>
+                      <td className="px-2 py-2 max-w-[150px]">
+                        <div className="text-xs truncate" title={quote.product_description}>
+                          {quote.product_description}
+                        </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-2 py-2">
                         {quote.company_name && quote.company_name !== 'null' ? (
-                          <div>
-                            <div className="font-medium text-blue-600">{quote.company_name}</div>
-                            <div className="text-sm text-gray-500">{quote.company_email || 'No email'}</div>
+                          <div className="min-w-[140px]">
+                            <div className="font-medium text-xs text-blue-600 truncate">{quote.company_name}</div>
+                            <div className="text-xs text-gray-500 truncate">{quote.company_email || 'No email'}</div>
                             {quote.accepted_at && (
                               <div className="text-xs text-green-600">
-                                Accepted: {new Date(quote.accepted_at).toLocaleDateString()}
+                                {new Date(quote.accepted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                               </div>
                             )}
                           </div>
                         ) : (
-                          <span className="text-gray-400 text-sm">No company assigned</span>
+                          <span className="text-gray-400 text-xs">No company</span>
                         )}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-2 py-2">
                         {quote.accepted_price && quote.accepted_price !== 'null' ? (
-                          <div>
-                            <div className="font-bold text-green-600">${quote.accepted_price}</div>
-                            <div className="text-xs text-gray-500">{quote.accepted_transit_time || 'N/A'}</div>
+                          <div className="min-w-[120px]">
+                            <div className="font-bold text-xs text-green-600">${quote.accepted_price}</div>
+                            <div className="text-xs text-gray-500 truncate">{quote.accepted_transit_time || 'N/A'}</div>
                             {getPaymentStatusBadge(quote)}
                             {quote.verification_date && quote.verification_date !== 'null' && (
-                              <div className="text-xs text-green-600 mt-1">
-                                Verified: {new Date(quote.verification_date).toLocaleDateString()}
+                              <div className="text-xs text-green-600">
+                                {new Date(quote.verification_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                               </div>
                             )}
                           </div>
                         ) : (
-                          <span className="text-gray-400 text-sm">No accepted quote</span>
+                          <span className="text-gray-400 text-xs">No quote</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-center">
-                        <span className="font-bold">{quote.response_count || 0}</span>
+                      {/* <td className="px-2 py-2 text-center">
+                        <span className="font-bold text-xs">{quote.response_count || 0}</span>
                         {quote.accepted_count > 0 && (
-                          <span className="text-green-600 text-xs ml-1">
-                            ({quote.accepted_count} accepted)
+                          <span className="text-green-600 text-xs block">
+                            ({quote.accepted_count})
                           </span>
                         )}
-                      </td>
-                      <td className="px-6 py-4">
+                      </td> */}
+                      <td className="px-2 py-2">
                         {getStatusBadge(quote.status)}
                       </td>
-                      <td className="px-6 py-4">{new Date(quote.created_at).toLocaleDateString()}</td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2">
+                      <td className="px-2 py-2 text-xs">{new Date(quote.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</td>
+                      <td className="px-2 py-2">
+                        <div className="flex items-center">
                           <button 
                             onClick={() => handleViewDetails(quote)}
-                            className="p-2 bg-gradient-to-r from-pink-500 to-pink-600 text-white rounded-lg hover:from-pink-600 hover:to-pink-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                            className="p-1.5 bg-gradient-to-r from-pink-500 to-pink-600 text-white rounded hover:from-pink-600 hover:to-pink-700 transition-all duration-200 shadow-sm hover:shadow-md"
                             title="View Details"
                             disabled={isLoadingDetails}
                           >
-                            <FiEye className="w-4 h-4" />
+                            <FiEye className="w-3 h-3" />
                           </button>
                         </div>
                       </td>
@@ -499,37 +495,50 @@ const AllCompanyQuotesList = () => {
             </table>
           </div>
 
-          {/* Pagination */}
+          {/* Compact Pagination */}
           {totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row justify-between items-center mt-4 text-sm text-gray-600 gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-center mt-3 text-xs text-gray-600 gap-2">
               <div>
-                Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredQuotes.length)} of {filteredQuotes.length} entries
+                {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredQuotes.length)} of {filteredQuotes.length}
               </div>
               <div className="flex items-center">
                 <button 
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className="px-3 py-1 border border-gray-300 rounded-l-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2 py-1 text-xs border border-gray-300 rounded-l-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Previous
+                  Prev
                 </button>
-                {[...Array(totalPages)].map((_, i) => (
-                  <button
-                    key={i + 1}
-                    onClick={() => setCurrentPage(i + 1)}
-                    className={`px-4 py-1 border-t border-b ${
-                      currentPage === i + 1 
-                        ? 'text-white bg-[#d4b46a]' 
-                        : 'hover:bg-gray-100'
-                    }`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
+                {[...Array(Math.min(totalPages, 5))].map((_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`px-2 py-1 text-xs border-t border-b ${
+                        currentPage === pageNum 
+                          ? 'text-white bg-[#d4b46a]' 
+                          : 'hover:bg-gray-100'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
                 <button 
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-1 border border-gray-300 rounded-r-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2 py-1 text-xs border border-gray-300 rounded-r-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next
                 </button>

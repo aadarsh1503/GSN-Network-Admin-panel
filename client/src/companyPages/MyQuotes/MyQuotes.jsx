@@ -398,49 +398,49 @@ const MyQuotes = () => {
 
   if (selectedQuote) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-3">
         <div className="max-w-7xl mx-auto">
           {/* Back Button */}
           <button 
             onClick={() => setSelectedQuote(null)}
-            className="mb-6 flex items-center gap-2 text-[#CDA435] hover:text-[#D9B95B] transition-colors font-medium"
+            className="mb-3 flex items-center gap-2 text-[#CDA435] hover:text-[#D9B95B] transition-colors font-medium text-sm"
           >
-            <FiArrowLeft className="text-lg" />
+            <FiArrowLeft className="text-sm" />
             Back to My Quotes
           </button>
 
           {/* Header */}
-          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-[#CDA435] to-[#D9B95B] bg-clip-text text-transparent mb-4">
+          <div className="bg-white rounded-xl shadow-lg p-4 mb-4 border border-gray-100">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-[#CDA435] to-[#D9B95B] bg-clip-text text-transparent mb-2">
               Quote Details
             </h1>
             
             {/* Company Information */}
             {companyProfile && (
-              <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
-                <h3 className="text-lg font-semibold text-blue-800 mb-2 flex items-center gap-2">
-                  <FiUser className="text-blue-600" />
+              <div className="mb-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                <h3 className="text-sm font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                  <FiUser className="text-blue-600 text-sm" />
                   Your Company Information
                 </h3>
-                <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex flex-col md:flex-row gap-2">
                   {companyProfile.name && (
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-blue-700">Company:</span>
-                      <span className="text-sm text-blue-800 font-semibold">{companyProfile.name}</span>
+                      <span className="text-xs font-medium text-blue-700">Company:</span>
+                      <span className="text-xs text-blue-800 font-semibold">{companyProfile.name}</span>
                     </div>
                   )}
                   {companyProfile.email && (
                     <div className="flex items-center gap-2">
-                      <FiMail className="text-blue-600 text-sm" />
-                      <span className="text-sm font-medium text-blue-700">Email:</span>
-                      <span className="text-sm text-blue-800">{companyProfile.email}</span>
+                      <FiMail className="text-blue-600 text-xs" />
+                      <span className="text-xs font-medium text-blue-700">Email:</span>
+                      <span className="text-xs text-blue-800">{companyProfile.email}</span>
                     </div>
                   )}
                   {companyProfile.phone && (
                     <div className="flex items-center gap-2">
-                      <FiPhone className="text-blue-600 text-sm" />
-                      <span className="text-sm font-medium text-blue-700">Phone:</span>
-                      <span className="text-sm text-blue-800">{companyProfile.phone}</span>
+                      <FiPhone className="text-blue-600 text-xs" />
+                      <span className="text-xs font-medium text-blue-700">Phone:</span>
+                      <span className="text-xs text-blue-800">{companyProfile.phone}</span>
                     </div>
                   )}
                 </div>
@@ -1048,15 +1048,15 @@ const MyQuotes = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-2">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100">
+        <div className="bg-white rounded-xl shadow-lg p-4 mb-4 border border-gray-100">
           <div className="text-center">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-[#CDA435] to-[#D9B95B] bg-clip-text text-transparent mb-4">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-[#CDA435] to-[#D9B95B] bg-clip-text text-transparent mb-2">
               My Active Quotes
             </h1>
-            <p className="text-gray-600 text-lg mb-6">
+            <p className="text-gray-600 text-sm mb-4">
               Quotes where customers have accepted your responses or uploaded payment proof
             </p>
             
@@ -1093,87 +1093,87 @@ const MyQuotes = () => {
               </div>
             )} */}
             
-            <div className="flex items-center justify-center gap-8">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                <span className="text-sm text-gray-600">Pending</span>
+            <div className="flex items-center justify-center gap-4">
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                <span className="text-xs text-gray-600">Pending</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                <span className="text-sm text-gray-600">Approved</span>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                <span className="text-xs text-gray-600">Approved</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
-                <span className="text-sm text-gray-600">Running</span>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                <span className="text-xs text-gray-600">Running</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
-                <span className="text-sm text-gray-600">Closed</span>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                <span className="text-xs text-gray-600">Closed</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Filters Section */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 mb-8 border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                <FiFilter className="text-[#CDA435]" />
+        <div className="bg-white rounded-xl shadow-lg p-3 mb-4 border border-gray-100">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-bold text-gray-800 flex items-center gap-1">
+                <FiFilter className="text-[#CDA435] text-sm" />
                 Filters & Search
               </h2>
-              <span className="text-sm text-gray-500">
+              <span className="text-xs text-gray-500">
                 {filteredQuotes.length} of {quotes.length} quotes
               </span>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               {hasActiveFilters && (
                 <button
                   onClick={clearFilters}
-                  className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-red-600 transition-colors"
+                  className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-red-600 transition-colors"
                 >
-                  <FiX className="text-sm" />
+                  <FiX className="text-xs" />
                   Clear All
                 </button>
               )}
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                className={`flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
                   showFilters 
                     ? 'bg-[#CDA435] text-white' 
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                <FiFilter className="text-sm" />
+                <FiFilter className="text-xs" />
                 {showFilters ? 'Hide Filters' : 'Show Filters'}
               </button>
             </div>
           </div>
 
           {/* Search Bar - Always Visible */}
-          <div className="mb-4">
+          <div className="mb-2">
             <div className="relative">
-              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <FiSearch className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
               <input
                 type="text"
                 placeholder="Search quotes by ID, product, customer, country, or shipping mode..."
                 value={filters.search}
                 onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-200"
+                className="w-full pl-8 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-200"
               />
             </div>
           </div>
 
           {/* Advanced Filters - Collapsible */}
           {showFilters && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pt-4 border-t border-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 pt-2 border-t border-gray-200">
               {/* Status Filter */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Quote Status</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Quote Status</label>
                 <select
                   value={filters.status}
                   onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
                 >
                   <option value="">All Statuses</option>
                   <option value="pending">Pending</option>
@@ -1184,31 +1184,13 @@ const MyQuotes = () => {
                 </select>
               </div>
 
-              {/* Payment Status Filter */}
-              {/* <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Payment Status</label>
-                <select
-                  value={filters.paymentStatus}
-                  onChange={(e) => setFilters(prev => ({ ...prev, paymentStatus: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
-                >
-                  <option value="">All Payment Statuses</option>
-                  <option value="approved_verified">Approved & Verified</option>
-                  <option value="verified">Payment Verified</option>
-                  <option value="pending">Pending Verification</option>
-                  <option value="rejected">Payment Rejected</option>
-                  <option value="awaiting">Awaiting Payment Proof</option>
-                  <option value="no_payment">No Payment Required</option>
-                </select>
-              </div> */}
-
               {/* Shipping Mode Filter */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Shipping Mode</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Shipping Mode</label>
                 <select
                   value={filters.shippingMode}
                   onChange={(e) => setFilters(prev => ({ ...prev, shippingMode: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
                 >
                   <option value="">All Shipping Modes</option>
                   {uniqueValues.shippingModes.map(mode => (
@@ -1219,11 +1201,11 @@ const MyQuotes = () => {
 
               {/* Departure Country Filter */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">From Country</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">From Country</label>
                 <select
                   value={filters.departureCountry}
                   onChange={(e) => setFilters(prev => ({ ...prev, departureCountry: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
                 >
                   <option value="">All Departure Countries</option>
                   {uniqueValues.departureCountries.map(country => (
@@ -1234,11 +1216,11 @@ const MyQuotes = () => {
 
               {/* Arrival Country Filter */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">To Country</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">To Country</label>
                 <select
                   value={filters.arrivalCountry}
                   onChange={(e) => setFilters(prev => ({ ...prev, arrivalCountry: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
                 >
                   <option value="">All Arrival Countries</option>
                   {uniqueValues.arrivalCountries.map(country => (
@@ -1249,11 +1231,11 @@ const MyQuotes = () => {
 
               {/* Customer Name Filter */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Customer</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Customer</label>
                 <select
                   value={filters.customerName}
                   onChange={(e) => setFilters(prev => ({ ...prev, customerName: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
                 >
                   <option value="">All Customers</option>
                   {uniqueValues.customerNames.map(name => (
@@ -1264,85 +1246,30 @@ const MyQuotes = () => {
 
               {/* Price Range Filters */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Min Price ($)</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Min Price ($)</label>
                 <input
                   type="number"
                   placeholder="0"
                   value={filters.priceMin}
                   onChange={(e) => setFilters(prev => ({ ...prev, priceMin: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Max Price ($)</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Max Price ($)</label>
                 <input
                   type="number"
                   placeholder="10000"
                   value={filters.priceMax}
                   onChange={(e) => setFilters(prev => ({ ...prev, priceMax: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
                 />
               </div>
-
-              {/* Date Range Filters */}
-              {/* <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Delivery From</label>
-                <input
-                  type="date"
-                  value={filters.dateFrom}
-                  onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Delivery To</label>
-                <input
-                  type="date"
-                  value={filters.dateTo}
-                  onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
-                />
-              </div> */}
 
               {/* Quick Filter Buttons */}
               <div className="md:col-span-2 lg:col-span-3 xl:col-span-4">
-                <label className="block text-sm font-semibold text-gray-700 mb-2"></label>
-                {/* <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => setFilters(prev => ({ ...prev, paymentStatus: 'pending' }))}
-                    className="px-3 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full hover:bg-yellow-200 transition-colors"
-                  >
-                    Pending Payments
-                  </button>
-                  <button
-                    onClick={() => setFilters(prev => ({ ...prev, status: 'running' }))}
-                    className="px-3 py-1 text-xs bg-blue-100 text-blue-800 rounded-full hover:bg-blue-200 transition-colors"
-                  >
-                    Running Orders
-                  </button>
-                  <button
-                    onClick={() => setFilters(prev => ({ ...prev, paymentStatus: 'verified' }))}
-                    className="px-3 py-1 text-xs bg-green-100 text-green-800 rounded-full hover:bg-green-200 transition-colors"
-                  >
-                    Verified Payments
-                  </button>
-                  <button
-                    onClick={() => {
-                      const today = new Date();
-                      const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-                      setFilters(prev => ({ 
-                        ...prev, 
-                        dateFrom: today.toISOString().split('T')[0],
-                        dateTo: nextWeek.toISOString().split('T')[0]
-                      }));
-                    }}
-                    className="px-3 py-1 text-xs bg-purple-100 text-purple-800 rounded-full hover:bg-purple-200 transition-colors"
-                  >
-                    Due This Week
-                  </button>
-                </div> */}
+                <label className="block text-xs font-semibold text-gray-700 mb-1"></label>
               </div>
             </div>
           )}
@@ -1350,61 +1277,61 @@ const MyQuotes = () => {
 
         {/* Quotes Table */}
         {filteredQuotes.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="p-6 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-              <FiFileText className="text-4xl text-white" />
+          <div className="text-center py-8">
+            <div className="p-4 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+              <FiFileText className="text-2xl text-white" />
             </div>
             {quotes.length === 0 ? (
               <>
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">No Active Quotes Yet</h3>
-                <p className="text-gray-600 mb-6">Quotes will appear here when customers accept your responses or upload payment proof.</p>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">No Active Quotes Yet</h3>
+                <p className="text-gray-600 mb-4 text-sm">Quotes will appear here when customers accept your responses or upload payment proof.</p>
                 <a 
                   href="/company/available-quotes" 
-                  className="px-8 py-4 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
+                  className="px-6 py-2 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 text-sm"
                 >
                   View Available Quotes
                 </a>
               </>
             ) : (
               <>
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">No Quotes Match Your Filters</h3>
-                <p className="text-gray-600 mb-6">Try adjusting your filters to see more results.</p>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">No Quotes Match Your Filters</h3>
+                <p className="text-gray-600 mb-4 text-sm">Try adjusting your filters to see more results.</p>
                 <button
                   onClick={clearFilters}
-                  className="px-8 py-4 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center gap-2 mx-auto"
+                  className="px-6 py-2 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center gap-2 mx-auto text-sm"
                 >
-                  <FiRefreshCw className="text-lg" />
+                  <FiRefreshCw className="text-sm" />
                   Clear All Filters
                 </button>
               </>
             )}
           </div>
         ) : (
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full">
                 <thead className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-semibold">Quote ID</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold">Customer</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold">Route</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold">Product</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold">Price</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold">Status</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold">Actions</th>
+                    <th className="px-2 py-2 text-left text-xs font-semibold">Quote ID</th>
+                    <th className="px-2 py-2 text-left text-xs font-semibold">Customer</th>
+                    <th className="px-2 py-2 text-left text-xs font-semibold">Route</th>
+                    <th className="px-2 py-2 text-left text-xs font-semibold">Product</th>
+                    <th className="px-2 py-2 text-left text-xs font-semibold">Price</th>
+                    <th className="px-2 py-2 text-left text-xs font-semibold">Status</th>
+                    <th className="px-2 py-2 text-left text-xs font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredQuotes.map((quote) => (
                     <tr key={quote.id} className="hover:bg-gray-50 transition-colors">
                       {/* Quote ID */}
-                      <td className="px-4 py-3 whitespace-nowrap">
+                      <td className="px-2 py-2 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="p-2 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-lg text-white mr-3">
-                            <FiFileText className="text-sm" />
+                          <div className="p-1 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-lg text-white mr-2">
+                            <FiFileText className="text-xs" />
                           </div>
                           <div>
-                            <span className="text-sm font-bold text-gray-900">#{quote.id}</span>
+                            <span className="text-xs font-bold text-gray-900">#{quote.id}</span>
                             {quote.created_at && (
                               <p className="text-xs text-gray-500">{new Date(quote.created_at).toLocaleDateString()}</p>
                             )}
@@ -1413,9 +1340,9 @@ const MyQuotes = () => {
                       </td>
 
                       {/* Customer Info - Compact */}
-                      <td className="px-4 py-3 whitespace-nowrap">
+                      <td className="px-2 py-2 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900 flex items-center gap-1">
+                          <div className="text-xs font-medium text-gray-900 flex items-center gap-1">
                             <FiUser className="text-gray-400 text-xs" />
                             {quote.user_name || 'N/A'}
                           </div>
@@ -1427,14 +1354,14 @@ const MyQuotes = () => {
                       </td>
 
                       {/* Route - Compact */}
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-5 h-4 flex-shrink-0">
+                      <td className="px-2 py-2 whitespace-nowrap">
+                        <div className="flex items-center space-x-1">
+                          <div className="w-4 h-3 flex-shrink-0">
                             <Flag code={getCountryCode(quote.departure_country)} className="w-full h-full object-cover rounded" />
                           </div>
                           <span className="text-xs font-medium text-gray-800">{quote.departure_country}</span>
                           <FiArrowLeft className="text-[#CDA435] rotate-180 text-xs" />
-                          <div className="w-5 h-4 flex-shrink-0">
+                          <div className="w-4 h-3 flex-shrink-0">
                             <Flag code={getCountryCode(quote.arrival_country)} className="w-full h-full object-cover rounded" />
                           </div>
                           <span className="text-xs font-medium text-gray-800">{quote.arrival_country}</span>
@@ -1442,14 +1369,14 @@ const MyQuotes = () => {
                       </td>
 
                       {/* Product - Compact */}
-                      <td className="px-4 py-3">
-                        <div className="max-w-[200px]">
-                          <div className="text-sm font-medium text-gray-900 truncate" title={quote.product_description}>
-                            {quote.product_description?.length > 40 
-                              ? `${quote.product_description.substring(0, 40)}...` 
+                      <td className="px-2 py-2">
+                        <div className="max-w-[150px]">
+                          <div className="text-xs font-medium text-gray-900 truncate" title={quote.product_description}>
+                            {quote.product_description?.length > 30 
+                              ? `${quote.product_description.substring(0, 30)}...` 
                               : quote.product_description}
                           </div>
-                          <div className="text-xs text-gray-500 flex items-center gap-2">
+                          <div className="text-xs text-gray-500 flex items-center gap-1">
                             <FiTruck className="text-gray-400" />
                             {quote.shipping_mode}
                           </div>
@@ -1457,9 +1384,9 @@ const MyQuotes = () => {
                       </td>
 
                       {/* Price - Compact */}
-                      <td className="px-4 py-3 whitespace-nowrap">
+                      <td className="px-2 py-2 whitespace-nowrap">
                         <div className="text-center">
-                          <span className="text-lg font-bold text-green-600">${quote.price}</span>
+                          <span className="text-sm font-bold text-green-600">${quote.price}</span>
                           <div className="text-xs text-gray-500 flex items-center justify-center gap-1">
                             <FiCalendar className="text-gray-400" />
                             {new Date(quote.arrival_date).toLocaleDateString()}
@@ -1468,13 +1395,13 @@ const MyQuotes = () => {
                       </td>
 
                       {/* Status - Compact */}
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="space-y-2">
+                      <td className="px-2 py-2 whitespace-nowrap">
+                        <div className="space-y-1">
                           <select
                             value={quote.status}
                             onChange={(e) => handleStatusChange(quote.id, e.target.value)}
                             disabled={statusUpdatingId === quote.id}
-                            className={`px-3 py-1 text-xs font-bold rounded-full border-2 focus:ring-2 focus:ring-[#CDA435] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${
+                            className={`px-2 py-1 text-xs font-bold rounded-full border-2 focus:ring-2 focus:ring-[#CDA435] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${
                               quote.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
                               quote.status === 'approved' ? 'bg-green-100 text-green-800 border-green-300' :
                               quote.status === 'rejected' ? 'bg-red-100 text-red-800 border-red-300' :
@@ -1489,7 +1416,7 @@ const MyQuotes = () => {
                             <option value="closed">Closed</option>
                           </select>
                           {statusUpdatingId === quote.id && (
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#CDA435] mx-auto"></div>
+                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-[#CDA435] mx-auto"></div>
                           )}
                           <div className="text-xs">
                             {getPaymentStatusBadge(quote)}
@@ -1498,13 +1425,13 @@ const MyQuotes = () => {
                       </td>
 
                       {/* Actions */}
-                      <td className="px-4 py-3 whitespace-nowrap">
+                      <td className="px-2 py-2 whitespace-nowrap">
                         <button
                           onClick={() => handleViewDetails(quote)}
-                          className="gradient-btn quotes-btn flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-all duration-200 text-sm font-medium hover:shadow-lg transform hover:-translate-y-0.5"
+                          className="gradient-btn quotes-btn flex items-center gap-1 px-3 py-1 text-white rounded-lg transition-all duration-200 text-xs font-medium hover:shadow-lg transform hover:-translate-y-0.5"
                           title="View Complete Quote Details"
                         >
-                          <FiEye className="text-sm" />
+                          <FiEye className="text-xs" />
                           View
                         </button>
                       </td>

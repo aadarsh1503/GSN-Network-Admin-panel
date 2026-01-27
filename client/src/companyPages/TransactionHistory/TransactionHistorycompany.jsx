@@ -291,37 +291,34 @@ const TransactionHistorycompany = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-2">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100">
+        <div className="bg-white rounded-xl shadow-lg p-4 mb-4 border border-gray-100">
           <div className="text-center">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-[#CDA435] to-[#D9B95B] bg-clip-text text-transparent mb-4">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-[#CDA435] to-[#D9B95B] bg-clip-text text-transparent mb-2">
               Transaction History
             </h1>
-            <p className="text-gray-600 text-lg mb-6">
-              View your payment verifications and subscription transactions
-            </p>
             
             {/* Toggle Buttons */}
-            <div className="flex items-center justify-center gap-4">
+            <div className="flex items-center justify-center gap-2">
               <button
                 onClick={() => setViewMode('verifications')}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                className={`flex items-center gap-1 px-4 py-2 rounded-lg font-semibold transition-all duration-200 text-sm ${
                   viewMode === 'verifications'
                     ? 'bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white shadow-lg'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                <FiShield className="text-lg" />
+                <FiShield className="text-sm" />
                 Payment Verifications
               </button>
               <button
                 onClick={() => setViewMode('subscriptions')}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                className={`flex items-center gap-1 px-4 py-2 rounded-lg font-semibold transition-all duration-200 text-sm ${
                   viewMode === 'subscriptions'
                     ? 'bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white shadow-lg'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                <FiRepeat className="text-lg" />
+                <FiRepeat className="text-sm" />
                 Subscription Transactions
               </button>
             </div>
@@ -329,45 +326,45 @@ const TransactionHistorycompany = () => {
         </div>
 
         {/* Filters Section */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 mb-8 border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                <FiFilter className="text-[#CDA435]" />
+        <div className="bg-white rounded-xl shadow-lg p-3 mb-4 border border-gray-100">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold text-gray-800 flex items-center gap-1">
+                <FiFilter className="text-[#CDA435] text-xs" />
                 Filters & Search
               </h2>
-              <span className="text-sm text-gray-500">
+              <span className="text-xs text-gray-500">
                 {filteredData.length} of {currentData.length} {viewMode === 'verifications' ? 'verifications' : 'transactions'}
               </span>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               {hasActiveFilters && (
                 <button
                   onClick={clearFilters}
-                  className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-red-600 transition-colors"
+                  className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-red-600 transition-colors"
                 >
-                  <FiX className="text-sm" />
+                  <FiX className="text-xs" />
                   Clear All
                 </button>
               )}
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                className={`flex items-center gap-1 px-3 py-1 rounded-lg font-medium transition-all duration-200 text-xs ${
                   showFilters 
                     ? 'bg-[#CDA435] text-white' 
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                <FiFilter className="text-sm" />
+                <FiFilter className="text-xs" />
                 {showFilters ? 'Hide Filters' : 'Show Filters'}
               </button>
             </div>
           </div>
 
           {/* Search Bar - Always Visible */}
-          <div className="mb-4">
+          <div className="mb-2">
             <div className="relative">
-              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <FiSearch className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
               <input
                 type="text"
                 placeholder={viewMode === 'verifications' 
@@ -376,21 +373,21 @@ const TransactionHistorycompany = () => {
                 }
                 value={filters.search}
                 onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-200"
+                className="w-full pl-8 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-200"
               />
             </div>
           </div>
 
           {/* Advanced Filters - Collapsible */}
           {showFilters && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pt-4 border-t border-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 pt-2 border-t border-gray-200">
               {/* Status Filter */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Status</label>
                 <select
                   value={filters.status}
                   onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
                 >
                   <option value="">All Statuses</option>
                   {viewMode === 'verifications' ? (
@@ -413,58 +410,58 @@ const TransactionHistorycompany = () => {
               {/* Customer Name Filter - Only for verifications */}
               {viewMode === 'verifications' && (
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Customer Name</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Customer Name</label>
                   <input
                     type="text"
                     placeholder="Customer name"
                     value={filters.customerName}
                     onChange={(e) => setFilters(prev => ({ ...prev, customerName: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                    className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
                   />
                 </div>
               )}
 
               {/* Amount Range Filters */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Min Amount ($)</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Min Amount ($)</label>
                 <input
                   type="number"
                   placeholder="0"
                   value={filters.amountMin}
                   onChange={(e) => setFilters(prev => ({ ...prev, amountMin: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Max Amount ($)</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Max Amount ($)</label>
                 <input
                   type="number"
                   placeholder="10000"
                   value={filters.amountMax}
                   onChange={(e) => setFilters(prev => ({ ...prev, amountMax: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
                 />
               </div>
 
               {/* Date Range Filters */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">From Date</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">From Date</label>
                 <input
                   type="date"
                   value={filters.dateFrom}
                   onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">To Date</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">To Date</label>
                 <input
                   type="date"
                   value={filters.dateTo}
                   onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
                 />
               </div>
             </div>
@@ -473,20 +470,20 @@ const TransactionHistorycompany = () => {
 
         {/* Data Table */}
         {filteredData.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="p-6 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+          <div className="text-center py-8">
+            <div className="p-4 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
               {viewMode === 'verifications' ? (
-                <FiShield className="text-4xl text-white" />
+                <FiShield className="text-2xl text-white" />
               ) : (
-                <FiRepeat className="text-4xl text-white" />
+                <FiRepeat className="text-2xl text-white" />
               )}
             </div>
             {currentData.length === 0 ? (
               <>
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                <h3 className="text-xl font-bold text-gray-800 mb-2">
                   No {viewMode === 'verifications' ? 'Payment Verifications' : 'Subscription Transactions'} Yet
                 </h3>
-                <p className="text-gray-600 mb-6">
+                <p className="text-gray-600 mb-4 text-sm">
                   {viewMode === 'verifications' 
                     ? 'Payment verifications you perform will appear here.'
                     : 'Your subscription transactions will appear here.'
@@ -495,20 +492,20 @@ const TransactionHistorycompany = () => {
               </>
             ) : (
               <>
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">No Results Match Your Filters</h3>
-                <p className="text-gray-600 mb-6">Try adjusting your filters to see more results.</p>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">No Results Match Your Filters</h3>
+                <p className="text-gray-600 mb-4 text-sm">Try adjusting your filters to see more results.</p>
                 <button
                   onClick={clearFilters}
-                  className="px-8 py-4 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center gap-2 mx-auto"
+                  className="px-6 py-2 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center gap-2 mx-auto text-sm"
                 >
-                  <FiRefreshCw className="text-lg" />
+                  <FiRefreshCw className="text-sm" />
                   Clear All Filters
                 </button>
               </>
             )}
           </div>
         ) : (
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
             <div className="table-container">
               <table className="min-w-full">
                 <thead className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white">
@@ -516,24 +513,24 @@ const TransactionHistorycompany = () => {
                     {viewMode === 'verifications' ? (
                       // Payment Verifications Table Headers
                       <>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Quote ID</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Customer</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Route</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Amount</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Date</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Action</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold">Quote ID</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold">Customer</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold">Route</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold">Amount</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold">Status</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold">Date</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold">Action</th>
                       </>
                     ) : (
                       // Subscription Transactions Table Headers
                       <>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Transaction ID</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Plan Name</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Amount</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Payment Method</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Date</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Action</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold">Transaction ID</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold">Plan Name</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold">Amount</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold">Payment Method</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold">Status</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold">Date</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold">Action</th>
                       </>
                     )}
                   </tr>
@@ -544,30 +541,30 @@ const TransactionHistorycompany = () => {
                       {viewMode === 'verifications' ? (
                         // Payment Verification Row
                         <>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-3 py-2 whitespace-nowrap">
                             <div className="flex items-center">
-                              <div className="p-2 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-lg text-white mr-3">
-                                <FiFileText className="text-sm" />
+                              <div className="p-1 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-lg text-white mr-2">
+                                <FiFileText className="text-xs" />
                               </div>
-                              <span className="text-sm font-medium text-gray-900">#{item.quote_id}</span>
+                              <span className="text-xs font-medium text-gray-900">#{item.quote_id}</span>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-3 py-2 whitespace-nowrap">
                             <div>
-                              <div className="text-sm font-medium text-gray-900">{item.user_name}</div>
-                              <div className="text-sm text-gray-500">{item.user_email}</div>
+                              <div className="text-xs font-medium text-gray-900">{item.user_name}</div>
+                              <div className="text-xs text-gray-500">{item.user_email}</div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center space-x-2">
+                          <td className="px-3 py-2 whitespace-nowrap">
+                            <div className="flex items-center space-x-1">
                               {item.departure_country && (
                                 <>
-                                  <div className="w-5 h-4 flex-shrink-0">
+                                  <div className="w-4 h-3 flex-shrink-0">
                                     <Flag code={getCountryCode(item.departure_country)} className="w-full h-full object-cover rounded" />
                                   </div>
                                   <span className="text-xs text-gray-600">{item.departure_country}</span>
                                   <span className="text-gray-400">→</span>
-                                  <div className="w-5 h-4 flex-shrink-0">
+                                  <div className="w-4 h-3 flex-shrink-0">
                                     <Flag code={getCountryCode(item.arrival_country)} className="w-full h-full object-cover rounded" />
                                   </div>
                                   <span className="text-xs text-gray-600">{item.arrival_country}</span>
@@ -575,22 +572,22 @@ const TransactionHistorycompany = () => {
                               )}
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="text-lg font-bold text-green-600">${item.price}</span>
+                          <td className="px-3 py-2 whitespace-nowrap">
+                            <span className="text-sm font-bold text-green-600">${item.price}</span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-3 py-2 whitespace-nowrap">
                             {getVerificationStatusBadge(item.payment_status)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-500">
                             {formatDate(item.verification_date || item.payment_proof_date)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-3 py-2 whitespace-nowrap">
                             <button
                               onClick={() => handleViewDetails(item)}
-                              className="gradient-btn transaction-view-btn flex items-center gap-2 px-3 py-2 text-white rounded-lg transition-all duration-200 text-sm font-medium"
+                              className="gradient-btn transaction-view-btn flex items-center gap-1 px-2 py-1 text-white rounded-lg transition-all duration-200 text-xs font-medium"
                               title="View Verification Details"
                             >
-                              <FiEye className="text-sm" />
+                              <FiEye className="text-xs" />
                               <span className="mobile-hide-text">View</span>
                             </button>
                           </td>
@@ -598,44 +595,44 @@ const TransactionHistorycompany = () => {
                       ) : (
                         // Subscription Transaction Row
                         <>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-3 py-2 whitespace-nowrap">
                             <div className="flex items-center">
-                              <div className="p-2 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-lg text-white mr-3">
-                                <FiRepeat className="text-sm" />
+                              <div className="p-1 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-lg text-white mr-2">
+                                <FiRepeat className="text-xs" />
                               </div>
-                              <span className="text-sm font-medium text-gray-900">#{item.id}</span>
+                              <span className="text-xs font-medium text-gray-900">#{item.id}</span>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-3 py-2 whitespace-nowrap">
                             <div>
-                              <div className="text-sm font-medium text-gray-900">{item.plan_name}</div>
+                              <div className="text-xs font-medium text-gray-900">{item.plan_name}</div>
                               {item.plan_description && (
-                                <div className="text-sm text-gray-500">{item.plan_description}</div>
+                                <div className="text-xs text-gray-500">{item.plan_description}</div>
                               )}
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="text-lg font-bold text-green-600">${item.amount_paid}</span>
+                          <td className="px-3 py-2 whitespace-nowrap">
+                            <span className="text-sm font-bold text-green-600">${item.amount_paid}</span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center space-x-2">
+                          <td className="px-3 py-2 whitespace-nowrap">
+                            <div className="flex items-center space-x-1">
                               {getPaymentIcon(item.payment_method)}
-                              <span className="text-sm text-gray-900">{getPaymentMethodName(item.payment_method)}</span>
+                              <span className="text-xs text-gray-900">{getPaymentMethodName(item.payment_method)}</span>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-3 py-2 whitespace-nowrap">
                             {getSubscriptionStatusBadge(item.payment_status)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-500">
                             {formatDate(item.created_at)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-3 py-2 whitespace-nowrap">
                             <button
                               onClick={() => handleViewDetails(item)}
-                              className="gradient-btn transaction-view-btn flex items-center gap-2 px-3 py-2 text-white rounded-lg transition-all duration-200 text-sm font-medium"
+                              className="gradient-btn transaction-view-btn flex items-center gap-1 px-2 py-1 text-white rounded-lg transition-all duration-200 text-xs font-medium"
                               title="View Transaction Details"
                             >
-                              <FiEye className="text-sm" />
+                              <FiEye className="text-xs" />
                               <span className="mobile-hide-text">View</span>
                             </button>
                           </td>
@@ -653,59 +650,59 @@ const TransactionHistorycompany = () => {
       {/* Modal for viewing details */}
       {showModal && selectedVerification && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-8">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-[#CDA435] to-[#D9B95B] bg-clip-text text-transparent">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-bold bg-gradient-to-r from-[#CDA435] to-[#D9B95B] bg-clip-text text-transparent">
                   {viewMode === 'verifications' ? 'Payment Verification Details' : 'Transaction Details'}
                 </h2>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  <FiX className="text-2xl text-gray-500" />
+                  <FiX className="text-lg text-gray-500" />
                 </button>
               </div>
               
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {viewMode === 'verifications' ? (
                   <>
-                    <div className="p-4 bg-gray-50 rounded-xl">
-                      <h3 className="font-semibold text-gray-800 mb-2">Quote Information</h3>
-                      <p><strong>Quote ID:</strong> #{selectedVerification.quote_id}</p>
-                      <p><strong>Amount:</strong> ${selectedVerification.price}</p>
-                      <p><strong>Status:</strong> {selectedVerification.payment_status}</p>
-                      <p><strong>Verified At:</strong> {formatDate(selectedVerification.verification_date || selectedVerification.payment_proof_date)}</p>
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <h3 className="font-semibold text-gray-800 mb-2 text-sm">Quote Information</h3>
+                      <p className="text-sm"><strong>Quote ID:</strong> #{selectedVerification.quote_id}</p>
+                      <p className="text-sm"><strong>Amount:</strong> ${selectedVerification.price}</p>
+                      <p className="text-sm"><strong>Status:</strong> {selectedVerification.payment_status}</p>
+                      <p className="text-sm"><strong>Verified At:</strong> {formatDate(selectedVerification.verification_date || selectedVerification.payment_proof_date)}</p>
                     </div>
                     
-                    <div className="p-4 bg-blue-50 rounded-xl">
-                      <h3 className="font-semibold text-gray-800 mb-2">Customer Information</h3>
-                      <p><strong>Name:</strong> {selectedVerification.user_name}</p>
-                      <p><strong>Email:</strong> {selectedVerification.user_email}</p>
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                      <h3 className="font-semibold text-gray-800 mb-2 text-sm">Customer Information</h3>
+                      <p className="text-sm"><strong>Name:</strong> {selectedVerification.user_name}</p>
+                      <p className="text-sm"><strong>Email:</strong> {selectedVerification.user_email}</p>
                     </div>
                     
                     {selectedVerification.payment_notes && (
-                      <div className="p-4 bg-yellow-50 rounded-xl">
-                        <h3 className="font-semibold text-gray-800 mb-2">Verification Notes</h3>
-                        <p>{selectedVerification.payment_notes}</p>
+                      <div className="p-3 bg-yellow-50 rounded-lg">
+                        <h3 className="font-semibold text-gray-800 mb-2 text-sm">Verification Notes</h3>
+                        <p className="text-sm">{selectedVerification.payment_notes}</p>
                       </div>
                     )}
                   </>
                 ) : (
                   <>
-                    <div className="p-4 bg-gray-50 rounded-xl">
-                      <h3 className="font-semibold text-gray-800 mb-2">Subscription Details</h3>
-                      <p><strong>Plan:</strong> {selectedVerification.plan_name}</p>
-                      <p><strong>Amount:</strong> ${selectedVerification.amount_paid}</p>
-                      <p><strong>Status:</strong> {selectedVerification.payment_status}</p>
-                      <p><strong>Payment Method:</strong> {getPaymentMethodName(selectedVerification.payment_method)}</p>
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <h3 className="font-semibold text-gray-800 mb-2 text-sm">Subscription Details</h3>
+                      <p className="text-sm"><strong>Plan:</strong> {selectedVerification.plan_name}</p>
+                      <p className="text-sm"><strong>Amount:</strong> ${selectedVerification.amount_paid}</p>
+                      <p className="text-sm"><strong>Status:</strong> {selectedVerification.payment_status}</p>
+                      <p className="text-sm"><strong>Payment Method:</strong> {getPaymentMethodName(selectedVerification.payment_method)}</p>
                     </div>
                     
-                    <div className="p-4 bg-green-50 rounded-xl">
-                      <h3 className="font-semibold text-gray-800 mb-2">Subscription Period</h3>
-                      <p><strong>Start Date:</strong> {formatDate(selectedVerification.start_date)}</p>
-                      <p><strong>End Date:</strong> {formatDate(selectedVerification.end_date)}</p>
-                      <p><strong>Transaction Date:</strong> {formatDate(selectedVerification.created_at)}</p>
+                    <div className="p-3 bg-green-50 rounded-lg">
+                      <h3 className="font-semibold text-gray-800 mb-2 text-sm">Subscription Period</h3>
+                      <p className="text-sm"><strong>Start Date:</strong> {formatDate(selectedVerification.start_date)}</p>
+                      <p className="text-sm"><strong>End Date:</strong> {formatDate(selectedVerification.end_date)}</p>
+                      <p className="text-sm"><strong>Transaction Date:</strong> {formatDate(selectedVerification.created_at)}</p>
                     </div>
                   </>
                 )}

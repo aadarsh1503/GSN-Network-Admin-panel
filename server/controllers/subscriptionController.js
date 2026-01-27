@@ -2,6 +2,7 @@
 import db from '../config/db.js';
 import { createInvoice } from './invoiceController.js';
 import { queueSubscriptionEmails } from '../services/emailQueue.js';
+import { sendSubscriptionPaymentProofNotificationToAdmin } from '../services/adminNotificationService.js';
 
 // @desc    Get all membership plans
 // @route   GET /api/subscriptions/plans
@@ -369,6 +370,21 @@ const submitBankTransferRequest = async (req, res) => {
         }).catch(error => {
             console.error('❌ Failed to queue payment proof submission emails:', error);
         });
+
+        // 🔔 CREATE ADMIN NOTIFICATION - Subscription Payment Proof Submitted
+        try {
+            await sendSubscriptionPaymentProofNotificationToAdmin(
+                userId,
+                user.name || 'N/A',
+                plan.name,
+                plan.price,
+                transactionId,
+                result.insertId
+            );
+        } catch (notificationError) {
+            console.error('❌ Failed to create admin notification for subscription payment proof:', notificationError);
+            // Don't fail the request if notification creation fails
+        }
 
         res.status(201).json({
             message: 'Subscription request submitted successfully',

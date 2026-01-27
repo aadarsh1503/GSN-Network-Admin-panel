@@ -198,13 +198,13 @@ const CompanyTicketsManager = () => {
   };
 
   const SortableHeader = ({ children, sortKey }) => (
-    <th className="py-4 px-6 text-left font-semibold cursor-pointer hover:bg-yellow-100 transition-colors duration-200" onClick={() => handleSort(sortKey)}>
+    <th className="py-3 px-4 text-left font-semibold cursor-pointer hover:bg-yellow-100 transition-colors duration-200 text-sm" onClick={() => handleSort(sortKey)}>
       <div className="flex items-center">
         {children}
         {sortConfig.key === sortKey ? (
           sortConfig.direction === 'ascending' ? 
-            <FiChevronUp className="ml-1 text-yellow-600" /> : 
-            <FiChevronDown className="ml-1 text-yellow-600" />
+            <FiChevronUp className="ml-1 text-yellow-600" size={16} /> : 
+            <FiChevronDown className="ml-1 text-yellow-600" size={16} />
         ) : null}
       </div>
     </th>
@@ -301,10 +301,10 @@ const CompanyTicketsManager = () => {
       <div className="flex items-center justify-center h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50">
         <div className="text-center">
           <div className="relative">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-yellow-200 border-t-yellow-600 mx-auto"></div>
-            <FiMail className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-yellow-600 animate-pulse" size={24} />
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-yellow-200 border-t-yellow-600 mx-auto"></div>
+            <FiMail className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-yellow-600 animate-pulse" size={20} />
           </div>
-          <p className="mt-4 text-lg font-medium text-gray-700 animate-pulse">Loading Tickets...</p>
+          <p className="mt-3 text-base font-medium text-gray-700 animate-pulse">Loading Tickets...</p>
         </div>
       </div>
     );
@@ -314,12 +314,12 @@ const CompanyTicketsManager = () => {
     return (
       <div className="flex items-center justify-center h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50">
         <div className="text-center">
-          <FiAlertTriangle className="mx-auto text-red-500 mb-4" size={48} />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Tickets</h3>
-          <p className="text-red-500 mb-4">{error}</p>
+          <FiAlertTriangle className="mx-auto text-red-500 mb-3" size={40} />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Tickets</h3>
+          <p className="text-red-500 mb-3 text-sm">{error}</p>
           <button 
             onClick={fetchAllTickets}
-            className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-yellow-600 hover:to-amber-700 transition-all duration-300"
+            className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white px-5 py-2 rounded-lg font-semibold hover:from-yellow-600 hover:to-amber-700 transition-all duration-300 text-sm"
           >
             Try Again
           </button>
@@ -329,43 +329,38 @@ const CompanyTicketsManager = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 p-3">
       <div className="max-w-7xl mx-auto">
-        {/* Futuristic Header */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 p-8 mb-8">
-          <div className="flex flex-col lg:flex-row justify-between items-center">
-            <div className="flex items-center space-x-4 mb-4 lg:mb-0">
-              <div className="p-3 bg-gradient-to-r from-yellow-500 to-amber-600 rounded-xl">
-                <FiHome className="text-white" size={32} />
+        {/* Compact Header */}
+        <div className="bg-white/80 backdrop-blur-lg rounded-lg shadow-lg border border-white/20 p-4 mb-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-gradient-to-r from-yellow-500 to-amber-600 rounded-lg">
+                <FiHome className="text-white" size={20} />
               </div>
-              <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                  Company Ticket Manager
-                </h1>
-                <p className="text-gray-600 mt-1">Manage all your company tickets in one place</p>
-              </div>
+              <h1 className="text-xl font-bold text-gray-800">Ticket Manager</h1>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               <button 
                 onClick={fetchAllTickets}
-                className="flex items-center space-x-2 bg-gradient-to-r from-yellow-500 to-amber-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-yellow-600 hover:to-amber-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                className="flex items-center space-x-2 bg-gradient-to-r from-yellow-500 to-amber-600 text-white font-medium py-2 px-4 rounded-lg hover:from-yellow-600 hover:to-amber-700 transition-all duration-300 text-sm"
               >
-                <FiRefreshCw size={20} />
+                <FiRefreshCw size={16} />
                 <span>Refresh</span>
               </button>
               <button 
                 onClick={() => window.location.href = '/company/create-Ticket'}
-                className="flex items-center space-x-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                className="flex items-center space-x-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium py-2 px-4 rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300 text-sm"
               >
-                <FiPlus size={20} />
-                <span>Create Ticket</span>
+                <FiPlus size={16} />
+                <span>Create</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 mb-8 overflow-hidden">
+        {/* Compact Tab Navigation */}
+        <div className="bg-white/80 backdrop-blur-lg rounded-lg shadow-lg border border-white/20 mb-4 overflow-hidden">
           <div className="flex">
             <button
               onClick={() => {
@@ -373,13 +368,13 @@ const CompanyTicketsManager = () => {
                 setCurrentPage(1);
                 resetFilters();
               }}
-              className={`flex-1 flex items-center justify-center space-x-3 px-6 py-4 font-medium text-sm transition-all duration-300 ${
+              className={`flex-1 flex items-center justify-center space-x-3 px-6 py-3 font-medium text-sm transition-all duration-300 ${
                 activeTab === 'received'
                   ? 'bg-gradient-to-r from-yellow-500 to-amber-600 text-white shadow-lg'
                   : 'text-gray-600 hover:text-gray-800 hover:bg-yellow-50'
               }`}
             >
-              <FiInbox size={18} />
+              <FiInbox size={16} />
               <span>Customer Tickets</span>
               <span className={`px-2 py-1 rounded-full text-xs font-bold ${
                 activeTab === 'received' ? 'bg-white/20 text-white' : 'bg-yellow-100 text-yellow-800'
@@ -393,13 +388,13 @@ const CompanyTicketsManager = () => {
                 setCurrentPage(1);
                 resetFilters();
               }}
-              className={`flex-1 flex items-center justify-center space-x-3 px-6 py-4 font-medium text-sm transition-all duration-300 ${
+              className={`flex-1 flex items-center justify-center space-x-3 px-6 py-3 font-medium text-sm transition-all duration-300 ${
                 activeTab === 'created'
                   ? 'bg-gradient-to-r from-yellow-500 to-amber-600 text-white shadow-lg'
                   : 'text-gray-600 hover:text-gray-800 hover:bg-yellow-50'
               }`}
             >
-              <FiEdit size={18} />
+              <FiEdit size={16} />
               <span>My Tickets</span>
               <span className={`px-2 py-1 rounded-full text-xs font-bold ${
                 activeTab === 'created' ? 'bg-white/20 text-white' : 'bg-yellow-100 text-yellow-800'
@@ -410,79 +405,51 @@ const CompanyTicketsManager = () => {
           </div>
         </div>
 
-        {/* Tab Content Description */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 p-6 mb-8">
-          <div className="flex items-center space-x-4">
-            <div className={`p-3 rounded-xl ${
-              activeTab === 'received' 
-                ? 'bg-gradient-to-r from-blue-100 to-cyan-100' 
-                : 'bg-gradient-to-r from-green-100 to-emerald-100'
-            }`}>
-              {activeTab === 'received' ? (
-                <FiInbox className="text-blue-600" size={24} />
-              ) : (
-                <FiEdit className="text-green-600" size={24} />
-              )}
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-gray-900">
-                {activeTab === 'received' ? 'Customer Support Tickets' : 'My Support Requests'}
-              </h3>
-              <p className="text-gray-600">
-                {activeTab === 'received' 
-                  ? 'Tickets sent to your company by customers - respond and provide support'
-                  : 'Tickets you created and sent to admin - track your support requests'
-                }
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Compact Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
           {[
-            { label: 'Total Tickets', value: counts.all, icon: FiMail, color: 'from-yellow-500 to-amber-500' },
+            { label: 'Total', value: counts.all, icon: FiMail, color: 'from-yellow-500 to-amber-500' },
             { label: 'Pending', value: counts.pending, icon: FiClock, color: 'from-orange-500 to-red-500' },
             { label: 'Answered', value: counts.answered, icon: FiMessageSquare, color: 'from-blue-500 to-cyan-500' },
             { label: 'Closed', value: counts.closed, icon: FiCheckCircle, color: 'from-green-500 to-emerald-500' }
           ].map((stat, index) => (
-            <div key={index} className="bg-white/80 backdrop-blur-lg rounded-xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
+            <div key={index} className="bg-white/80 backdrop-blur-lg rounded-lg shadow-lg border border-white/20 p-4 hover:shadow-xl transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                  <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
                 </div>
-                <div className={`p-3 bg-gradient-to-r ${stat.color} rounded-lg`}>
-                  <stat.icon className="text-white" size={24} />
+                <div className={`p-2 bg-gradient-to-r ${stat.color} rounded-lg`}>
+                  <stat.icon className="text-white" size={20} />
                 </div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Advanced Filters */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 p-6 mb-8">
-          <div className="flex flex-col lg:flex-row items-center justify-between space-y-4 lg:space-y-0 lg:space-x-6">
+        {/* Compact Filters */}
+        <div className="bg-white/80 backdrop-blur-lg rounded-lg shadow-lg border border-white/20 p-4 mb-4">
+          <div className="flex flex-col lg:flex-row items-center justify-between space-y-3 lg:space-y-0 lg:space-x-4">
             {/* Search */}
             <div className="relative flex-1 max-w-md">
-              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
               <input
                 type="text"
-                placeholder="Search tickets, users, subjects..."
+                placeholder="Search tickets..."
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className="w-full pl-10 pr-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300"
+                className="w-full pl-10 pr-4 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300 text-sm"
               />
             </div>
 
             {/* Filters */}
-            <div className="flex flex-wrap items-center space-x-4">
+            <div className="flex flex-wrap items-center space-x-3">
               <select
                 value={statusFilter}
                 onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-                className="px-4 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300"
+                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300 text-sm"
               >
-                <option value="all">All Status ({counts.all})</option>
+                <option value="all">All ({counts.all})</option>
                 <option value="pending">Pending ({counts.pending})</option>
                 <option value="answered">Answered ({counts.answered})</option>
                 <option value="closed">Closed ({counts.closed})</option>
@@ -491,7 +458,7 @@ const CompanyTicketsManager = () => {
               <select
                 value={priorityFilter}
                 onChange={(e) => { setPriorityFilter(e.target.value); setCurrentPage(1); }}
-                className="px-4 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300"
+                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300 text-sm"
               >
                 <option value="all">All Priorities</option>
                 <option value="low">Low</option>
@@ -503,40 +470,39 @@ const CompanyTicketsManager = () => {
               <select
                 value={itemsPerPage}
                 onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
-                className="px-4 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300"
+                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300 text-sm"
               >
-                <option value="5">5 per page</option>
-                <option value="10">10 per page</option>
-                <option value="25">25 per page</option>
-                <option value="50">50 per page</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
               </select>
 
               <button
                 onClick={resetFilters}
-                className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all duration-300"
+                className="flex items-center space-x-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all duration-300 text-sm"
               >
-                <FiX size={16} />
+                <FiX size={14} />
                 <span>Reset</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* Tickets Table */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+        {/* Compact Tickets Table */}
+        <div className="bg-white/80 backdrop-blur-lg rounded-lg shadow-lg border border-white/20 overflow-hidden">
           {sortedTickets.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="p-4 bg-gradient-to-r from-yellow-100 to-amber-200 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-                <FiMail className="text-yellow-600" size={48} />
+            <div className="text-center py-8">
+              <div className="p-2 bg-gradient-to-r from-yellow-100 to-amber-200 rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                <FiMail className="text-yellow-600" size={24} />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="text-base font-semibold text-gray-900 mb-1">
                 {searchTerm ? 'No Matching Tickets' : `No ${activeTab === 'received' ? 'Customer' : 'Created'} Tickets Found`}
               </h3>
-              <p className="text-gray-500 max-w-md mx-auto">
+              <p className="text-gray-500 max-w-md mx-auto text-xs">
                 {searchTerm 
-                  ? `No tickets match your search criteria "${searchTerm}"`
+                  ? `No tickets match "${searchTerm}"`
                   : activeTab === 'received'
-                    ? 'No customers have sent support tickets to your company yet.'
+                    ? 'No customers have sent support tickets yet.'
                     : 'You haven\'t created any support tickets yet.'
                 }
               </p>
@@ -555,26 +521,23 @@ const CompanyTicketsManager = () => {
                 <table className="w-full">
                   <thead className="bg-gradient-to-r from-yellow-50 to-amber-50">
                     <tr>
-                      <SortableHeader sortKey="ticket_number">Ticket Info</SortableHeader>
+                      <SortableHeader sortKey="ticket_number">Ticket</SortableHeader>
                       <SortableHeader sortKey={activeTab === 'received' ? 'user_name' : 'subject'}>
                         {activeTab === 'received' ? 'Customer' : 'Subject'}
                       </SortableHeader>
-                      <SortableHeader sortKey="subject">
-                        {activeTab === 'received' ? 'Subject & Category' : 'Category'}
-                      </SortableHeader>
                       <SortableHeader sortKey="priority">Priority</SortableHeader>
                       <SortableHeader sortKey="status">Status</SortableHeader>
-                      <SortableHeader sortKey="created_at">Created</SortableHeader>
-                      <th className="py-4 px-6 text-left font-semibold">Actions</th>
+                      <SortableHeader sortKey="created_at">Date</SortableHeader>
+                      <th className="py-3 px-4 text-left font-semibold text-sm">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {paginatedTickets.map((ticket, index) => (
                       <tr key={ticket.id} className="hover:bg-gradient-to-r hover:from-yellow-50/50 hover:to-amber-50/50 transition-all duration-300">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center space-x-3">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center space-x-2">
                             <div className="p-2 bg-gradient-to-r from-yellow-100 to-amber-100 rounded-lg">
-                              <FiMail className="text-yellow-600" size={16} />
+                              <FiMail className="text-yellow-600" size={14} />
                             </div>
                             <div>
                               <div className="text-sm font-bold text-gray-900">{ticket.ticket_number}</div>
@@ -584,16 +547,15 @@ const CompanyTicketsManager = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-3">
                           {activeTab === 'received' ? (
-                            <div className="flex items-center space-x-3">
+                            <div className="flex items-center space-x-2">
                               <div className="p-2 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-lg">
                                 {getUserTypeIcon(ticket.user_role)}
                               </div>
                               <div>
                                 <div className="text-sm font-semibold text-gray-900">{ticket.user_name}</div>
-                                <div className="text-xs text-gray-500 mb-1">{ticket.user_email}</div>
-                                {getUserTypeBadge(ticket.user_role)}
+                                <div className="text-xs text-gray-500">{ticket.user_email}</div>
                               </div>
                             </div>
                           ) : (
@@ -602,52 +564,36 @@ const CompanyTicketsManager = () => {
                             </div>
                           )}
                         </td>
-                        <td className="px-6 py-4">
-                          {activeTab === 'received' ? (
-                            <div>
-                              <div className="text-sm font-medium text-gray-900 max-w-xs truncate" title={ticket.subject}>
-                                {ticket.subject}
-                              </div>
-                              <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-lg mt-1 inline-block capitalize">
-                                {ticket.category}
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-lg inline-block capitalize">
-                              {ticket.category}
-                            </div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-3">
                           {getPriorityBadge(ticket.priority)}
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-3">
                           {getStatusBadge(ticket.status)}
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-3">
                           <div className="text-sm font-medium text-gray-900">
                             {new Date(ticket.created_at).toLocaleDateString()}
                           </div>
                           <div className="text-xs text-gray-500">
-                            {new Date(ticket.created_at).toLocaleTimeString()}
+                            {new Date(ticket.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                           </div>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-3">
                           <div className="flex items-center space-x-2">
                             <button
                               onClick={() => openDetailsModal(ticket)}
                               className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
                               title="View Details"
                             >
-                              <FiEye size={16} />
+                              <FiEye size={14} />
                             </button>
                             {activeTab === 'received' && (
                               <button
                                 onClick={() => openResponseModal(ticket)}
                                 className="p-2 bg-gradient-to-r from-yellow-500 to-amber-600 text-white rounded-lg hover:from-yellow-600 hover:to-amber-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
-                                title="Respond to Ticket"
+                                title="Respond"
                               >
-                                <FiMessageSquare size={16} />
+                                <FiMessageSquare size={14} />
                               </button>
                             )}
                           </div>
