@@ -123,15 +123,20 @@ class DatabaseRetry {
   // Get connection pool status
   getPoolStatus() {
     try {
+      // Safely access pool internals
+      const pool = db.pool || db;
       return {
-        totalConnections: db.pool._allConnections?.length || 0,
-        freeConnections: db.pool._freeConnections?.length || 0,
-        acquiringConnections: db.pool._acquiringConnections?.length || 0,
+        totalConnections: pool._allConnections?.length || 0,
+        freeConnections: pool._freeConnections?.length || 0,
+        acquiringConnections: pool._acquiringConnections?.length || 0,
         timestamp: new Date().toISOString()
       };
     } catch (error) {
       console.warn('Could not get pool status:', error.message);
-      return { error: 'Unable to get pool status' };
+      return { 
+        error: 'Unable to get pool status',
+        timestamp: new Date().toISOString()
+      };
     }
   }
 }

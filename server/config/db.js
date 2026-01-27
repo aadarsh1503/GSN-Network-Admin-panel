@@ -20,7 +20,6 @@ const pool = mysql.createPool({
   // Connection timeout settings
   connectTimeout: 30000, // 30 seconds (increased from 20)
   acquireTimeout: 30000, // 30 seconds to acquire connection
-  timeout: 30000, // 30 seconds for queries
   
   // Reconnection settings
   reconnect: true,
@@ -35,7 +34,7 @@ const pool = mysql.createPool({
   handleDisconnects: true
 });
 
-// Enhanced connection testing with retry logic
+// Simplified connection testing without problematic pool status access
 const testConnection = async (retryCount = 0) => {
   const maxRetries = 3;
   
@@ -43,18 +42,15 @@ const testConnection = async (retryCount = 0) => {
     console.log(`🔍 [DB] Testing database connection (attempt ${retryCount + 1}/${maxRetries + 1})...`);
     
     const conn = await pool.getConnection();
+    console.log(`🔗 [DB] New database connection established (ID: ${conn.threadId})`);
     
     // Test with a simple query
     await conn.execute('SELECT 1 as test');
     
     console.log("✅ [DB] MySQL Database connected and tested successfully!");
-    console.log(`📊 [DB] Connection pool status:`, {
-      totalConnections: pool.pool._allConnections.length,
-      freeConnections: pool.pool._freeConnections.length,
-      acquiringConnections: pool.pool._acquiringConnections.length
-    });
     
     conn.release();
+    return true;
   } catch (err) {
     console.error(`❌ [DB] MySQL Database connection failed (attempt ${retryCount + 1}):`, {
       error: err.message,
@@ -65,14 +61,18 @@ const testConnection = async (retryCount = 0) => {
     
     // Retry logic for connection failures
     if (retryCount < maxRetries) {
-      const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 10000); // Exponential backoff
+      const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 4000); // Exponential backoff, max 4 seconds
       console.log(`🔄 [DB] Retrying database connection in ${retryDelay}ms...`);
       
-      setTimeout(() => {
-        testConnection(retryCount + 1);
-      }, retryDelay);
+      return new Promise((resolve) => {
+        setTimeout(async () => {
+          const result = await testConnection(retryCount + 1);
+          resolve(result);
+        }, retryDelay);
+      });
     } else {
       console.error(`🚫 [DB] Database connection failed after ${maxRetries + 1} attempts`);
+      return false;
     }
   }
 };
