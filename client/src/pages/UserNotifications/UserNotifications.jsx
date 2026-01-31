@@ -249,11 +249,11 @@ const UserNotifications = () => {
 
   const getNotificationIcon = (notification) => {
     if (notification.type === 'quote_response') {
-      return <FaDollarSign className="text-green-600" />;
+      return <FaDollarSign className="text-white" />;
     } else if (notification.title?.toLowerCase().includes('status')) {
-      return <FaInfoCircle className="text-blue-600" />;
+      return <FaInfoCircle className="text-white" />;
     } else if (notification.title?.toLowerCase().includes('accepted')) {
-      return <FaCheckCircle className="text-green-600" />;
+      return <FaCheckCircle className="text-white" />;
     } else if (notification.title?.toLowerCase().includes('rejected')) {
       return <FaTimesCircle className="text-red-600" />;
     } else if (notification.title?.toLowerCase().includes('dispute')) {
@@ -275,7 +275,7 @@ const UserNotifications = () => {
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#CDA435]"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#bca142]"></div>
           </div>
         </div>
       </div>
@@ -283,27 +283,27 @@ const UserNotifications = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-2xl p-6 text-white">
+        {/* Compact Header */}
+        <div className="mb-4">
+          <div className="bg-gradient-to-r from-[#bca142] to-[#D9B95B] rounded-xl p-4 text-white">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                  <FaBell className="text-2xl" />
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                  <FaBell className="text-lg" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold">User Notifications</h1>
-                  <p className="text-white text-opacity-90">Stay updated with your quote activities</p>
+                  <h1 className="text-xl font-bold">User Notifications</h1>
+                  <p className="text-white text-opacity-90 text-sm">Stay updated with your quote activities</p>
                 </div>
               </div>
               {unreadCount > 0 ? (
-                <div className="bg-red-500 text-white px-4 py-2 rounded-full text-sm font-bold">
+                <div className="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold">
                   {unreadCount} unread
                 </div>
               ) : (
-                <div className="bg-green-500 text-white px-4 py-2 rounded-full text-sm font-bold">
+                <div className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold">
                   All viewed
                 </div>
               )}
@@ -311,46 +311,46 @@ const UserNotifications = () => {
           </div>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="mb-6">
-          <div className="bg-white rounded-xl shadow-sm p-2 inline-flex">
+        {/* Compact Filter Tabs */}
+        <div className="mb-4">
+          <div className="bg-white rounded-lg shadow-sm p-1 inline-flex">
             {[
-              { key: 'all', label: 'All Notifications', icon: FaBell },
-              { key: 'quote_responses', label: 'Quote Responses', icon: FaDollarSign },
-              { key: 'status_updates', label: 'Status Updates', icon: FaInfoCircle },
+              { key: 'all', label: 'All', icon: FaBell },
+              { key: 'quote_responses', label: 'Quotes', icon: FaDollarSign },
+              { key: 'status_updates', label: 'Status', icon: FaInfoCircle },
               { key: 'general', label: 'General', icon: FaBuilding }
             ].map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
                 onClick={() => setFilter(key)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+                className={`flex items-center gap-1 px-3 py-2 rounded-md font-medium transition-all duration-300 text-sm ${
                   filter === key
-                    ? 'bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white shadow-lg'
+                    ? 'bg-gradient-to-r from-[#bca142] to-[#D9B95B] text-white shadow-lg'
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                <Icon className="text-sm" />
+                <Icon className="text-xs" />
                 {label}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Notifications */}
+        {/* Compact Notifications */}
         {!Array.isArray(filteredNotifications) || filteredNotifications.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <FaBell className="text-3xl text-gray-400" />
+          <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <FaBell className="text-2xl text-gray-400" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No notifications found</h3>
-            <p className="text-gray-600">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No notifications found</h3>
+            <p className="text-gray-600 text-sm">
               {filter === 'all' 
                 ? "You don't have any notifications yet." 
                 : `No ${filter.replace('_', ' ')} notifications found.`}
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-2">
             {filteredNotifications.map((notification) => {
               if (!notification || !notification.id) {
                 return null;
@@ -360,141 +360,142 @@ const UserNotifications = () => {
                 <div 
                   key={notification.id} 
                   onClick={() => handleNotificationClick(notification)}
-                  className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-2 cursor-pointer border-gray-200 hover:border-[#CDA435]"
+                  className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200 hover:border-[#bca142] cursor-pointer"
                 >
-                  <div className="p-6">
-                    <div className="flex items-start gap-4">
-                      {/* Icon */}
-                      <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gray-100">
+                  <div className="p-3">
+                    <div className="flex items-center gap-3">
+                      {/* Compact Icon */}
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 flex-shrink-0">
                         {getNotificationIcon(notification)}
                       </div>
 
-                      {/* Content */}
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h3 className="text-lg font-bold text-gray-900 mb-1">
-                              {notification.title || notification.subject || 'Notification'}
-                            </h3>
-                            <div className="flex items-center gap-4 text-sm text-gray-600">
-                              <div className="flex items-center gap-1">
-                                <FiClock />
-                                <span>{notification.created_at ? formatDate(notification.created_at) : 'No Date'}</span>
-                              </div>
+                      {/* Main Content - Horizontal Layout */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <h3 className="text-sm font-semibold text-gray-900 truncate pr-2">
+                            {notification.title || notification.subject || 'Notification'}
+                          </h3>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {/* Company Logo - Smaller */}
+                            {(notification.image || (notification.data && notification.data.company_logo)) && (
+                              <img 
+                                src={notification.image || notification.data.company_logo} 
+                                alt={notification.title || 'Company'} 
+                                className="h-8 w-10 object-contain border rounded bg-white p-0.5" 
+                              />
+                            )}
+                            {/* Date */}
+                            <div className="flex items-center gap-1 text-xs text-gray-500">
+                              <FiClock className="text-xs" />
+                              <span>{notification.created_at ? formatDate(notification.created_at) : 'No Date'}</span>
                             </div>
                           </div>
-
-                          {/* Company Logo */}
-                          {(notification.image || (notification.data && notification.data.company_logo)) && (
-                            <img 
-                              src={notification.image || notification.data.company_logo} 
-                              alt={notification.title || 'Company'} 
-                              className="h-16 w-20 object-contain border rounded-lg bg-white p-1" 
-                            />
-                          )}
                         </div>
 
-                        {/* Message */}
-                        <p className="text-gray-700 mb-4 leading-relaxed">
+                        {/* Message - Single Line with Truncation */}
+                        <p className="text-xs text-gray-600 mb-2 truncate">
                           {notification.message || 'No message content'}
                         </p>
 
-                        {/* Quote Details (if available) */}
+                        {/* Quote Details - Compact Horizontal Layout */}
                         {notification.data && notification.data.quote_id && (
-                          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 mb-4 border border-blue-200">
-                            <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
-                              <FiPackage />
-                              Quote Details
-                            </h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                              <div className="flex items-center gap-2">
-                                <FaTruck className="text-blue-600" />
-                                <span className="text-blue-700">Quote ID: #{notification.data.quote_id}</span>
+                          <div className="bg-[#bca142] rounded-md p-2 mb-2 border border-blue-200">
+                            <div className="flex items-center gap-4 text-xs">
+                              <div className="flex items-center gap-1">
+                                <FiPackage className="text-white" />
+                                <span className="text-white font-medium">Quote #{notification.data.quote_id}</span>
                               </div>
                               {notification.data.price && (
-                                <div className="flex items-center gap-2">
-                                  <FaDollarSign className="text-green-600" />
-                                  <span className="text-blue-700">Price: ${notification.data.price}</span>
+                                <div className="flex items-center gap-1">
+                                  <FaDollarSign className="text-white" />
+                                  <span className="text-white">${notification.data.price}</span>
                                 </div>
                               )}
                               {notification.data.company_name && (
-                                <div className="flex items-center gap-2">
-                                  <FiUser className="text-blue-600" />
-                                  <span className="text-blue-700">Company: {notification.data.company_name}</span>
+                                <div className="flex items-center gap-1">
+                                  <FiUser className="text-white" />
+                                  <span className="text-white truncate max-w-24">{notification.data.company_name}</span>
                                 </div>
                               )}
                               {notification.data.transit_time && (
-                                <div className="flex items-center gap-2">
-                                  <FaCalendarAlt className="text-blue-600" />
-                                  <span className="text-blue-700">Transit: {notification.data.transit_time}</span>
+                                <div className="flex items-center gap-1">
+                                  <FaCalendarAlt className="text-white" />
+                                  <span className="text-white">{notification.data.transit_time}</span>
                                 </div>
                               )}
                             </div>
                           </div>
                         )}
 
-                        {/* Actions */}
-                        <div className="flex items-center gap-3">
+                        {/* Actions - Compact */}
+                        <div className="flex items-center justify-between">
                           {notification.type === 'quote_response' && !notification.user_response ? (
-                            <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex space-x-1" onClick={(e) => e.stopPropagation()}>
                               <button
                                 onClick={() => handleQuoteResponse(notification.id, notification.data.quote_response_id, 'accept')}
                                 disabled={processingResponse === notification.id}
-                                className="bg-green-600 text-white px-4 py-2 rounded-xl hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium transition-all duration-300 transform hover:scale-105"
+                                className="bg-[#bca142] text-white px-2 py-1 rounded-md hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 font-medium transition-all duration-300 text-xs"
                               >
                                 {processingResponse === notification.id ? (
-                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
                                 ) : (
-                                  <FaCheck />
+                                  <FaCheck className="text-xs" />
                                 )}
-                                Accept Quote
+                                Accept
                               </button>
                               <button
                                 onClick={() => handleQuoteResponse(notification.id, notification.data.quote_response_id, 'reject')}
                                 disabled={processingResponse === notification.id}
-                                className="bg-red-600 text-white px-4 py-2 rounded-xl hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium transition-all duration-300 transform hover:scale-105"
+                                className="bg-black text-white px-2 py-1 rounded-md hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 font-medium transition-all duration-300 text-xs"
                               >
-                                <FaTimes />
-                                Reject Quote
+                                <FaTimes className="text-xs" />
+                                Reject
                               </button>
                             </div>
                           ) : notification.user_response ? (
-                            <span className={`inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium ${
+                            <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${
                               notification.user_response === 'accepted' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-red-100 text-red-800'
+                                ? 'bg-[#bca142] text-white' 
+                                : 'bg-black text-white'
                             }`}>
                               {notification.user_response === 'accepted' ? (
-                                <FaCheck className="mr-2" />
+                                <FaCheck className="mr-1 text-xs" />
                               ) : (
-                                <FaTimes className="mr-2" />
+                                <FaTimes className="mr-1 text-xs" />
                               )}
-                              {notification.user_response === 'accepted' ? 'Quote Accepted' : 'Quote Rejected'}
+                              {notification.user_response === 'accepted' ? 'Accepted' : 'Rejected'}
                             </span>
                           ) : (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation(); // Prevent card click
-                                handleNotificationClick(notification);
-                              }}
-                              className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:scale-105 font-medium flex items-center gap-2"
-                            >
-                              <FaEye />
-                              {(() => {
-                                const destination = getNotificationDestination(notification);
-                                if (destination.path) {
-                                  if (notification.data?.quote_id) {
-                                    return `View Quote #${notification.data.quote_id}`;
+                            <div className="bg-gradient-to-r from-[#bca142] to-[#D9B95B] bg-opacity-10 rounded-md px-2 py-1 border border-[#bca142] border-opacity-30">
+                              <p className="text-xs text-[#bca142] font-medium flex items-center gap-1">
+                                <FaEye className="text-xs" />
+                                {(() => {
+                                  const destination = getNotificationDestination(notification);
+                                  if (destination.path) {
+                                    if (notification.data?.quote_id) {
+                                      return `Quote #${notification.data.quote_id}`;
+                                    } else {
+                                      const pageName = destination.path.split('/').pop();
+                                      return `View ${pageName}`;
+                                    }
                                   } else {
-                                    const pageName = destination.path.split('/').pop();
-                                    return `View in ${pageName.charAt(0).toUpperCase() + pageName.slice(1)} Quote`;
+                                    return 'View details';
                                   }
-                                } else {
-                                  return 'View Details';
-                                }
-                              })()}
-                            </button>
+                                })()}
+                              </p>
+                            </div>
                           )}
+                          
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleNotificationClick(notification);
+                            }}
+                            className="bg-gradient-to-r from-[#bca142] to-[#D9B95B] text-white px-3 py-1 rounded-md hover:shadow-md transition-all duration-300 text-xs font-medium flex items-center gap-1"
+                          >
+                            <FaEye className="text-xs" />
+                            View
+                          </button>
                         </div>
                       </div>
                     </div>

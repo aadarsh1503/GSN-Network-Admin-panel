@@ -2,12 +2,10 @@ import { useState, useEffect } from 'react';
 import { 
   FaBell, 
   FaCheck, 
-  FaTimes, 
-  FaEye,
+  FaTimes,
   FaQuoteLeft,
   FaUser,
   FaTicketAlt,
-  FaChevronRight,
   FaSort,
   FaSortUp,
   FaSortDown,
@@ -150,8 +148,8 @@ const AdminNotifications = () => {
   const getSortIcon = (field) => {
     if (sortField !== field) return <FaSort className="text-gray-400" size={12} />;
     return sortDirection === 'asc' ? 
-      <FaSortUp className="text-[#CDA435]" size={12} /> : 
-      <FaSortDown className="text-[#CDA435]" size={12} />;
+      <FaSortUp className="text-[#bca142]" size={12} /> : 
+      <FaSortDown className="text-[#bca142]" size={12} />;
   };
 
   const filteredAndSortedNotifications = () => {
@@ -180,47 +178,38 @@ const AdminNotifications = () => {
     });
   };
 
-  const getNotificationIcon = (type) => {
+  const getNotificationIcon = (type, isRead) => {
+    const iconColor = isRead ? 'text-[#bca142]' : 'text-white';
     switch (type) {
       case 'quote':
-        return <FaQuoteLeft className="text-[#CDA435]" size={18} />;
+        return <FaQuoteLeft className={iconColor} size={18} />;
       case 'registration':
-        return <FaUser className="text-emerald-500" size={18} />;
+        return <FaUser className={iconColor} size={18} />;
       case 'ticket':
-        return <FaTicketAlt className="text-orange-500" size={18} />;
+        return <FaTicketAlt className={iconColor} size={18} />;
       case 'subscription':
-        return <FaCreditCard className="text-purple-500" size={18} />;
+        return <FaCreditCard className={iconColor} size={18} />;
       default:
-        return <FaBell className="text-gray-500" size={18} />;
+        return <FaBell className={iconColor} size={18} />;
     }
   };
 
   const getNotificationGradient = (type, isRead) => {
-    switch (type) {
-      case 'quote':
-        return isRead ? 'bg-[#CDA435]/5' : 'bg-[#CDA435]/10';
-      case 'registration':
-        return isRead ? 'bg-emerald-500/5' : 'bg-emerald-500/10';
-      case 'ticket':
-        return isRead ? 'bg-orange-500/5' : 'bg-orange-500/10';
-      case 'subscription':
-        return isRead ? 'bg-purple-500/5' : 'bg-purple-500/10';
-      default:
-        return isRead ? 'bg-gray-500/5' : 'bg-gray-500/10';
-    }
+    // Only unread notifications get #bca142 background, read ones stay white
+    return !isRead ? 'bg-[#bca142]' : 'bg-white';
   };
 
   const FuturisticLoader = () => (
     <div className="flex items-center justify-center h-64">
       <div className="relative">
         {/* Outer rotating ring */}
-        <div className="w-16 h-16 border-4 border-[#CDA435]/20 rounded-full animate-spin">
-          <div className="absolute top-0 left-0 w-full h-full border-4 border-transparent border-t-[#CDA435] rounded-full animate-spin"></div>
-          <div className="absolute top-2 left-2 w-12 h-12 border-4 border-transparent border-t-[#D9B95B] rounded-full animate-spin" style={{animationDirection: 'reverse', animationDuration: '1.5s'}}></div>
+        <div className="w-16 h-16 border-4 border-[#bca142] rounded-full animate-spin">
+          <div className="absolute top-0 left-0 w-full h-full border-4 border-transparent border-t-[#bca142] rounded-full animate-spin"></div>
+          <div className="absolute top-2 left-2 w-12 h-12 border-4 border-transparent border-t-[#bca142] rounded-full animate-spin" style={{animationDirection: 'reverse', animationDuration: '1.5s'}}></div>
         </div>
         {/* Inner pulsing core */}
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-          <div className="w-6 h-6 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-full animate-pulse shadow-lg"></div>
+          <div className="w-6 h-6 bg-[#bca142] rounded-full animate-pulse shadow-lg"></div>
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full animate-ping"></div>
         </div>
       </div>
@@ -229,23 +218,22 @@ const AdminNotifications = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 p-6">
+      <div className="min-h-screen bg-white p-6">
         <FuturisticLoader />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 p-2">
+    <div className="min-h-screen bg-white p-2">
       <div className="max-w-7xl mx-auto">
-        {/* Futuristic Header */}
+        {/* Header */}
         <div className="mb-8">
-          <div className="relative overflow-hidden bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-2xl p-4 shadow-2xl">
-            <div className="absolute inset-0 bg-gradient-to-r from-[#CDA435]/95 to-[#D9B95B]/95 backdrop-blur-sm"></div>
+          <div className="relative overflow-hidden bg-[#bca142] rounded-2xl p-4 shadow-2xl">
             <div className="relative z-10">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm shadow-lg">
+                  <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center shadow-lg">
                     <FiZap className="text-white" size={32} />
                   </div>
                   <div>
@@ -260,7 +248,7 @@ const AdminNotifications = () => {
                 
                 {unreadCount > 0 && (
                   <div className="flex items-center gap-4">
-                    <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/30">
+                    <div className="bg-white/20 rounded-xl px-4 py-2 border border-white/30">
                       <div className="flex items-center gap-2 text-white">
                         <div className="w-3 h-3 bg-red-400 rounded-full animate-pulse"></div>
                         <span className="font-bold text-lg">{unreadCount}</span>
@@ -269,7 +257,7 @@ const AdminNotifications = () => {
                     </div>
                     <button
                       onClick={markAllAsRead}
-                      className="bg-white/20 backdrop-blur-sm text-white px-6 py-3 rounded-xl hover:bg-white/30 transition-all duration-300 flex items-center gap-2 border border-white/30 shadow-lg hover:shadow-xl"
+                      className="bg-white/20 text-white px-6 py-3 rounded-xl hover:bg-white/30 transition-all duration-300 flex items-center gap-2 border border-white/30 shadow-lg hover:shadow-xl"
                     >
                       <FiCheckCircle size={18} />
                       <span className="font-semibold">Mark All Read</span>
@@ -278,11 +266,6 @@ const AdminNotifications = () => {
                 )}
               </div>
             </div>
-            
-            {/* Floating particles */}
-            <div className="absolute top-4 right-4 w-2 h-2 bg-white/40 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
-            <div className="absolute top-8 right-16 w-1 h-1 bg-white/60 rounded-full animate-bounce" style={{animationDelay: '0.5s'}}></div>
-            <div className="absolute bottom-4 left-8 w-2 h-2 bg-white/30 rounded-full animate-bounce" style={{animationDelay: '1s'}}></div>
           </div>
         </div>
 
@@ -293,7 +276,7 @@ const AdminNotifications = () => {
               <select 
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
-                className="px-3 py-2 border border-gray-200 rounded-lg focus:border-[#CDA435] focus:ring-1 focus:ring-[#CDA435]/20 text-sm"
+                className="px-3 py-2 border border-gray-200 rounded-lg focus:border-[#bca142] focus:ring-1 focus:ring-[#bca142] text-sm"
               >
                 <option value="all">All Types</option>
                 <option value="quote">Quote</option>
@@ -305,7 +288,7 @@ const AdminNotifications = () => {
               <select 
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-3 py-2 border border-gray-200 rounded-lg focus:border-[#CDA435] focus:ring-1 focus:ring-[#CDA435]/20 text-sm"
+                className="px-3 py-2 border border-gray-200 rounded-lg focus:border-[#bca142] focus:ring-1 focus:ring-[#bca142] text-sm"
               >
                 <option value="all">All Status</option>
                 <option value="unread">Unread</option>
@@ -316,7 +299,7 @@ const AdminNotifications = () => {
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
-                className="bg-[#CDA435] text-white px-4 py-2 rounded-lg hover:bg-[#D9B95B] transition-all duration-300 flex items-center gap-2 text-sm font-medium"
+                className="bg-[#bca142] text-white px-4 py-2 rounded-lg hover:bg-black transition-all duration-300 flex items-center gap-2 text-sm font-medium"
               >
                 <FiCheckCircle size={16} />
                 Mark All Read ({unreadCount})
@@ -329,10 +312,10 @@ const AdminNotifications = () => {
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
           {!Array.isArray(notifications) || notifications.length === 0 ? (
             <div className="text-center py-16">
-              <div className="w-20 h-20 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+              <div className="w-20 h-20 bg-[#bca142] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
                 <FaBell size={32} className="text-white" />
               </div>
-              <h3 className="text-xl font-bold mb-2 text-gray-800">All Clear!</h3>
+              <h3 className="text-xl font-bold mb-2 text-black">All Clear!</h3>
               <p className="text-gray-500">No notifications to display. You're all caught up with platform activities.</p>
             </div>
           ) : (
@@ -343,7 +326,7 @@ const AdminNotifications = () => {
                     <th className="px-4 py-3 text-left">
                       <button 
                         onClick={() => handleSort('type')}
-                        className="flex items-center gap-2 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-[#CDA435] transition-colors"
+                        className="flex items-center gap-2 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-[#bca142] transition-colors"
                       >
                         Type {getSortIcon('type')}
                       </button>
@@ -351,7 +334,7 @@ const AdminNotifications = () => {
                     <th className="px-4 py-3 text-left">
                       <button 
                         onClick={() => handleSort('title')}
-                        className="flex items-center gap-2 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-[#CDA435] transition-colors"
+                        className="flex items-center gap-2 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-[#bca142] transition-colors"
                       >
                         Title {getSortIcon('title')}
                       </button>
@@ -362,7 +345,7 @@ const AdminNotifications = () => {
                     <th className="px-4 py-3 text-left">
                       <button 
                         onClick={() => handleSort('user_name')}
-                        className="flex items-center gap-2 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-[#CDA435] transition-colors"
+                        className="flex items-center gap-2 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-[#bca142] transition-colors"
                       >
                         User {getSortIcon('user_name')}
                       </button>
@@ -370,7 +353,7 @@ const AdminNotifications = () => {
                     <th className="px-4 py-3 text-left">
                       <button 
                         onClick={() => handleSort('created_at')}
-                        className="flex items-center gap-2 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-[#CDA435] transition-colors"
+                        className="flex items-center gap-2 text-xs font-semibold text-gray-600 uppercase tracking-wider hover:text-[#bca142] transition-colors"
                       >
                         Date {getSortIcon('created_at')}
                       </button>
@@ -388,21 +371,19 @@ const AdminNotifications = () => {
                     <tr
                       key={notification.id}
                       className={`hover:bg-gray-50 transition-colors cursor-pointer ${
-                        !notification.is_read ? 'bg-blue-50/30' : ''
-                      } ${getNotificationGradient(notification.type, notification.is_read)}`}
+                        !notification.is_read ? 'bg-[#bca142]' : 'bg-white'
+                      }`}
                       onClick={() => handleViewDetails(notification)}
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white shadow-sm">
-                            {getNotificationIcon(notification.type)}
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shadow-sm ${
+                            !notification.is_read ? 'bg-white' : 'bg-gray-100'
+                          }`}>
+                            {getNotificationIcon(notification.type, notification.is_read)}
                           </div>
                           <span className={`px-2 py-1 rounded-full text-xs font-semibold uppercase ${
-                            notification.type === 'quote' ? 'bg-[#CDA435]/20 text-[#CDA435]' :
-                            notification.type === 'registration' ? 'bg-emerald-500/20 text-emerald-700' :
-                            notification.type === 'ticket' ? 'bg-orange-500/20 text-orange-700' :
-                            notification.type === 'subscription' ? 'bg-purple-500/20 text-purple-700' :
-                            'bg-gray-500/20 text-gray-700'
+                            !notification.is_read ? 'bg-white text-[#bca142]' : 'bg-[#bca142] text-white'
                           }`}>
                             {notification.type}
                           </span>
@@ -411,18 +392,18 @@ const AdminNotifications = () => {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <span className={`font-semibold text-sm ${
-                            notification.is_read ? 'text-gray-600' : 'text-gray-900'
+                            !notification.is_read ? 'text-white' : 'text-gray-900'
                           }`}>
                             {notification.title}
                           </span>
                           {!notification.is_read && (
-                            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
                           )}
                         </div>
                       </td>
                       <td className="px-4 py-3">
                         <p className={`text-sm max-w-xs truncate ${
-                          notification.is_read ? 'text-gray-500' : 'text-gray-700'
+                          !notification.is_read ? 'text-white' : 'text-gray-700'
                         }`}>
                           {formatMessagePreview(notification.message)}
                         </p>
@@ -430,27 +411,33 @@ const AdminNotifications = () => {
                       <td className="px-4 py-3">
                         {notification.user_name ? (
                           <div className="flex items-center gap-2">
-                            <FaUser className="text-[#CDA435]" size={12} />
-                            <span className="text-sm text-gray-700 font-medium">{notification.user_name}</span>
+                            <FaUser className={!notification.is_read ? 'text-white' : 'text-[#bca142]'} size={12} />
+                            <span className={`text-sm font-medium ${
+                              !notification.is_read ? 'text-white' : 'text-gray-700'
+                            }`}>{notification.user_name}</span>
                           </div>
                         ) : (
-                          <span className="text-sm text-gray-400">-</span>
+                          <span className={`text-sm ${
+                            !notification.is_read ? 'text-white' : 'text-gray-400'
+                          }`}>-</span>
                         )}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <FiClock className="text-[#CDA435]" size={12} />
-                          <span className="text-sm text-gray-600">{formatDateShort(notification.created_at)}</span>
+                          <FiClock className={!notification.is_read ? 'text-white' : 'text-[#bca142]'} size={12} />
+                          <span className={`text-sm ${
+                            !notification.is_read ? 'text-white' : 'text-gray-600'
+                          }`}>{formatDateShort(notification.created_at)}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3">
                         {notification.is_read ? (
-                          <div className="flex items-center gap-1 text-emerald-600">
+                          <div className="flex items-center gap-1 text-[#bca142]">
                             <FiCheckCircle size={14} />
                             <span className="text-xs font-semibold">Read</span>
                           </div>
                         ) : (
-                          <div className="flex items-center gap-1 text-blue-600">
+                          <div className="flex items-center gap-1 text-white">
                             <FiAlertCircle size={14} />
                             <span className="text-xs font-semibold">Unread</span>
                           </div>
@@ -463,7 +450,11 @@ const AdminNotifications = () => {
                               e.stopPropagation();
                               handleViewDetails(notification);
                             }}
-                            className="w-8 h-8 bg-[#CDA435] text-white rounded-lg flex items-center justify-center hover:bg-[#D9B95B] transition-colors"
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+                              !notification.is_read 
+                                ? 'bg-white text-[#bca142] hover:bg-gray-100' 
+                                : 'bg-[#bca142] text-white hover:bg-black'
+                            }`}
                             title="View Details"
                           >
                             <FiEye size={14} />
@@ -474,7 +465,7 @@ const AdminNotifications = () => {
                                 e.stopPropagation();
                                 markAsRead(notification.id);
                               }}
-                              className="w-8 h-8 bg-blue-500 text-white rounded-lg flex items-center justify-center hover:bg-blue-600 transition-colors"
+                              className="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors"
                               title="Mark as read"
                             >
                               <FaCheck size={12} />
@@ -495,12 +486,11 @@ const AdminNotifications = () => {
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden">
               {/* Fixed Header */}
-              <div className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B] p-6 relative overflow-hidden flex-shrink-0">
-                <div className="absolute inset-0 bg-gradient-to-r from-[#CDA435]/95 to-[#D9B95B]/95 backdrop-blur-sm"></div>
+              <div className="bg-[#bca142] p-6 relative overflow-hidden flex-shrink-0">
                 <div className="relative z-10 flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                      {getNotificationIcon(selectedNotification.type)}
+                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                      {getNotificationIcon(selectedNotification.type, selectedNotification.is_read)}
                     </div>
                     <div>
                       <h2 className="text-2xl font-bold text-white">Notification Details</h2>
@@ -509,7 +499,7 @@ const AdminNotifications = () => {
                   </div>
                   <button
                     onClick={() => setShowDetails(false)}
-                    className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all duration-300"
+                    className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all duration-300"
                   >
                     <FaTimes size={18} />
                   </button>
@@ -522,16 +512,16 @@ const AdminNotifications = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-3">
                       <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide block">Title</label>
-                      <p className="text-lg font-bold text-gray-900">{selectedNotification.title}</p>
+                      <p className="text-lg font-bold text-black">{selectedNotification.title}</p>
                     </div>
                     <div className="space-y-3">
                       <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide block">Type</label>
                       <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold uppercase tracking-wide ${
-                        selectedNotification.type === 'quote' ? 'bg-[#CDA435]/20 text-[#CDA435]' :
-                        selectedNotification.type === 'registration' ? 'bg-emerald-500/20 text-emerald-700' :
-                        selectedNotification.type === 'ticket' ? 'bg-orange-500/20 text-orange-700' :
-                        selectedNotification.type === 'subscription' ? 'bg-purple-500/20 text-purple-700' :
-                        'bg-gray-500/20 text-gray-700'
+                        selectedNotification.type === 'quote' ? 'bg-[#bca142] text-white' :
+                        selectedNotification.type === 'registration' ? 'bg-[#bca142] text-white' :
+                        selectedNotification.type === 'ticket' ? 'bg-black text-white' :
+                        selectedNotification.type === 'subscription' ? 'bg-[#bca142] text-white' :
+                        'bg-gray-500 text-white'
                       }`}>
                         {selectedNotification.type}
                       </span>
@@ -540,7 +530,7 @@ const AdminNotifications = () => {
                   
                   <div className="space-y-3">
                     <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide block">Message</label>
-                    <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6 rounded-xl border border-gray-200 max-h-96 overflow-y-auto">
+                    <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 max-h-96 overflow-y-auto">
                       <pre className="text-gray-700 leading-relaxed text-base whitespace-pre-wrap font-sans">
                         {selectedNotification.message}
                       </pre>
@@ -556,14 +546,14 @@ const AdminNotifications = () => {
                       <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide block">Status</label>
                       <div className="flex items-center gap-3">
                         {selectedNotification.is_read ? (
-                          <div className="flex items-center gap-2 bg-emerald-50 px-3 py-2 rounded-lg">
-                            <FiCheckCircle className="text-emerald-500" size={16} />
-                            <span className="text-emerald-600 font-semibold">Read</span>
+                          <div className="flex items-center gap-2 bg-[#bca142] px-3 py-2 rounded-lg">
+                            <FiCheckCircle className="text-white" size={16} />
+                            <span className="text-white font-semibold">Read</span>
                           </div>
                         ) : (
-                          <div className="flex items-center gap-2 bg-blue-50 px-3 py-2 rounded-lg">
-                            <FiAlertCircle className="text-blue-500" size={16} />
-                            <span className="text-blue-600 font-semibold">Unread</span>
+                          <div className="flex items-center gap-2 bg-black px-3 py-2 rounded-lg">
+                            <FiAlertCircle className="text-white" size={16} />
+                            <span className="text-white font-semibold">Unread</span>
                           </div>
                         )}
                       </div>
@@ -573,9 +563,9 @@ const AdminNotifications = () => {
                   {selectedNotification.user_name && (
                     <div className="space-y-3">
                       <label className="text-sm font-semibold text-gray-500 uppercase tracking-wide block">Related User</label>
-                      <div className="flex items-center gap-3 bg-gradient-to-r from-[#CDA435]/10 to-[#D9B95B]/10 p-4 rounded-xl border border-[#CDA435]/20">
-                        <FaUser className="text-[#CDA435]" size={16} />
-                        <p className="text-gray-700 font-semibold">{selectedNotification.user_name}</p>
+                      <div className="flex items-center gap-3 bg-[#bca142] p-4 rounded-xl border border-[#bca142]">
+                        <FaUser className="text-white" size={16} />
+                        <p className="text-white font-semibold">{selectedNotification.user_name}</p>
                       </div>
                     </div>
                   )}

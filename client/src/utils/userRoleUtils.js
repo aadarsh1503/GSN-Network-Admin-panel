@@ -15,41 +15,41 @@ import { FaCrown, FaBuilding, FaUser as FaUserIcon } from 'react-icons/fa';
 export const USER_ROLES = {
   admin: {
     label: 'Admin',
-    color: 'text-red-600',
-    bgColor: 'bg-red-100',
-    borderColor: 'border-red-500',
+    color: 'text-white',
+    bgColor: 'bg-[#bca142]',
+    borderColor: 'border-[#bca142]',
     icon: FiShield,
     description: 'Platform Administrator'
   },
   business: {
-    label: 'Business User',
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-100',
-    borderColor: 'border-blue-500',
+    label: 'Business',
+    color: 'text-white',
+    bgColor: 'bg-[#bca142]',
+    borderColor: 'border-[#bca142]',
     icon: FiBriefcase,
     description: 'Business Owner'
   },
   company: {
     label: 'Company',
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-100',
-    borderColor: 'border-purple-500',
+    color: 'text-white',
+    bgColor: 'bg-[#bca142]',
+    borderColor: 'border-[#bca142]',
     icon: FaBuilding,
     description: 'Logistics Company'
   },
   user: {
     label: 'Member',
-    color: 'text-green-600',
-    bgColor: 'bg-green-100',
-    borderColor: 'border-green-500',
+    color: 'text-white',
+    bgColor: 'bg-black',
+    borderColor: 'border-black',
     icon: FiUser,
     description: 'Platform Member'
   },
   default: {
     label: 'User',
-    color: 'text-gray-600',
-    bgColor: 'bg-gray-100',
-    borderColor: 'border-gray-500',
+    color: 'text-black',
+    bgColor: 'bg-white',
+    borderColor: 'border-gray-300',
     icon: FiUser,
     description: 'Platform User'
   }
@@ -88,6 +88,7 @@ export const getRoleBadgeProps = (role, user = {}, size = 'sm') => {
   const roleInfo = getRoleInfo(role, user);
   
   const sizeClasses = {
+    xs: 'text-[10px] px-1.5 py-0.5',
     sm: 'text-xs px-2 py-1',
     md: 'text-sm px-3 py-1',
     lg: 'text-base px-4 py-2'

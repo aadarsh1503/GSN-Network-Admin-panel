@@ -107,7 +107,7 @@ const AdminHeader = ({ toggleSidebar, toggleFullscreen, isFullscreen }) => {
                 <FiChevronDown className="h-3 w-3" />
             </div>
             <div className="relative ml-3">
-              <img src="https://res.cloudinary.com/ds1dt3qub/image/upload/v1769023793/payment_proofs/tiuj0ygbuvrcxon4y3ss.jpg" alt="Admin" className="w-10 h-10 rounded-full" />
+              <img src="https://res.cloudinary.com/ds1dt3qub/image/upload/v1769604932/gulf_star_network_4_znl5cm.png" alt="Admin" className="w-10 h-10 rounded-full object-contain" />
               <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
             </div>
           </button>
@@ -117,7 +117,7 @@ const AdminHeader = ({ toggleSidebar, toggleFullscreen, isFullscreen }) => {
               ${isDropdownOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
           >
             <div className="p-6 text-center border-b">
-                <img src="https://res.cloudinary.com/ds1dt3qub/image/upload/v1769023793/payment_proofs/tiuj0ygbuvrcxon4y3ss.jpg" alt="Admin" className="w-20 h-20 rounded-full mx-auto mb-3" />
+                <img src="https://res.cloudinary.com/ds1dt3qub/image/upload/v1769604932/gulf_star_network_4_znl5cm.png" alt="Admin" className="w-24 h-24 rounded-full object-contain mx-auto mb-3" />
                 <h3 className="font-bold text-gray-800">ADMIN</h3>
                 {/* <p className="text-sm text-gray-500">admin@gmail.com</p> */}
             </div>

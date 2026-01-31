@@ -30,10 +30,10 @@ const emailTemplates = {
         <style>
           body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
           .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: linear-gradient(135deg, #CDA435, #D9B95B); color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+          .header { background: linear-gradient(135deg, #bca142, #D9B95B); color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
           .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
-          .info-box { background: white; padding: 20px; margin: 15px 0; border-radius: 6px; border-left: 4px solid #CDA435; }
-          .cta-button { display: inline-block; background: #CDA435; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; margin: 15px 0; }
+          .info-box { background: white; padding: 20px; margin: 15px 0; border-radius: 6px; border-left: 4px solid #bca142; }
+          .cta-button { display: inline-block; background: #bca142; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; margin: 15px 0; }
           .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
         </style>
       </head>
@@ -92,7 +92,7 @@ const emailTemplates = {
         <style>
           body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
           .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: linear-gradient(135deg, #CDA435, #D9B95B); color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+          .header { background: linear-gradient(135deg, #bca142, #D9B95B); color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
           .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
           .info-box { background: white; padding: 20px; margin: 15px 0; border-radius: 6px; border-left: 4px solid #28a745; }
           .status-badge { background: #ffc107; color: #212529; padding: 8px 15px; border-radius: 20px; font-weight: bold; display: inline-block; }
@@ -150,7 +150,7 @@ const emailTemplates = {
           .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
           .info-box { background: white; padding: 20px; margin: 15px 0; border-radius: 6px; border-left: 4px solid #28a745; }
           .success-badge { background: #28a745; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; display: inline-block; }
-          .cta-button { display: inline-block; background: #CDA435; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; margin: 15px 0; }
+          .cta-button { display: inline-block; background: #bca142; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; margin: 15px 0; }
           .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
         </style>
       </head>
@@ -269,7 +269,7 @@ const emailTemplates = {
           .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
           .info-box { background: white; padding: 20px; margin: 15px 0; border-radius: 6px; border-left: 4px solid #dc3545; }
           .rejection-badge { background: #dc3545; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; display: inline-block; }
-          .cta-button { display: inline-block; background: #CDA435; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; margin: 15px 0; }
+          .cta-button { display: inline-block; background: #bca142; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; margin: 15px 0; }
           .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
         </style>
       </head>

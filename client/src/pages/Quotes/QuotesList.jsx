@@ -380,7 +380,7 @@ const QuotesList = () => {
               </button>
               <button 
                 onClick={handleStatusUpdate}
-                className="px-4 py-2 bg-[#CDA435] text-white rounded-md hover:bg-opacity-90"
+                className="px-4 py-2 bg-[#bca142] text-white rounded-md hover:bg-opacity-90"
               >
                 Update Status
               </button>
@@ -486,7 +486,7 @@ const QuotesList = () => {
                     closeViewModal();
                     openStatusModal(viewingQuote);
                   }}
-                  className="px-4 py-2 bg-[#CDA435] text-white rounded-md hover:bg-opacity-90"
+                  className="px-4 py-2 bg-[#bca142] text-white rounded-md hover:bg-opacity-90"
                 >
                   Update Status
                 </button>

@@ -315,7 +315,7 @@ const MyQuotes = () => {
     // For approved quotes, show the approval status prominently
     if (quote.status === 'approved' && quote.payment_status === 'verified') {
       return (
-        <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-300">
+        <span className="px-2 py-1 rounded-full text-xs font-medium bg-[#bca142] text-white border border-[#bca142]">
           ✅ Auto-Approved (Payment Verified)
         </span>
       );
@@ -331,7 +331,7 @@ const MyQuotes = () => {
 
     if (quote.payment_status === 'verified') {
       return (
-        <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+        <span className="px-2 py-1 rounded-full text-xs font-medium bg-[#bca142] text-white">
           ✓ Payment Verified
         </span>
       );
@@ -339,7 +339,7 @@ const MyQuotes = () => {
 
     if (quote.payment_status === 'rejected') {
       return (
-        <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+        <span className="px-2 py-1 rounded-full text-xs font-medium bg-black text-white">
           ✗ Payment Rejected
         </span>
       );
@@ -347,14 +347,14 @@ const MyQuotes = () => {
 
     if (quote.payment_proof_url) {
       return (
-        <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+        <span className="px-2 py-1 rounded-full text-xs font-medium bg-[#bca142]/20 text-black">
           ⏳ Payment Pending Verification
         </span>
       );
     }
 
     return (
-      <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+      <span className="px-2 py-1 rounded-full text-xs font-medium bg-[#bca142]/20 text-black">
         💳 Awaiting Payment Proof
       </span>
     );
@@ -362,10 +362,10 @@ const MyQuotes = () => {
 
   const getStatusBadge = (status) => {
     const colors = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      approved: 'bg-green-100 text-green-800',
-      rejected: 'bg-red-100 text-red-800',
-      running: 'bg-blue-100 text-blue-800',
+      pending: 'bg-[#bca142] text-black',
+      approved: 'bg-[#bca142] text-white',
+      rejected: 'bg-black text-white',
+      running: 'bg-[#bca142] text-black',
       closed: 'bg-gray-100 text-gray-800'
     };
     return (
@@ -387,9 +387,9 @@ const MyQuotes = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#CDA435] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#bca142] mx-auto mb-4"></div>
           <p className="text-xl text-gray-600">Loading your quotes...</p>
         </div>
       </div>
@@ -398,12 +398,12 @@ const MyQuotes = () => {
 
   if (selectedQuote) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-3">
+      <div className="min-h-screen bg-gray-50 p-3">
         <div className="max-w-7xl mx-auto">
           {/* Back Button */}
           <button 
             onClick={() => setSelectedQuote(null)}
-            className="mb-3 flex items-center gap-2 text-[#CDA435] hover:text-[#D9B95B] transition-colors font-medium text-sm"
+            className="mb-3 flex items-center gap-2 text-[#bca142] hover:text-black transition-colors font-medium text-sm"
           >
             <FiArrowLeft className="text-sm" />
             Back to My Quotes
@@ -411,36 +411,36 @@ const MyQuotes = () => {
 
           {/* Header */}
           <div className="bg-white rounded-xl shadow-lg p-4 mb-4 border border-gray-100">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-[#CDA435] to-[#D9B95B] bg-clip-text text-transparent mb-2">
+            <h1 className="text-2xl font-bold text-[#bca142] mb-2">
               Quote Details
             </h1>
             
             {/* Company Information */}
             {companyProfile && (
-              <div className="mb-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                <h3 className="text-sm font-semibold text-blue-800 mb-2 flex items-center gap-2">
-                  <FiUser className="text-blue-600 text-sm" />
+              <div className="mb-3 p-3 bg-[#bca142]/10 rounded-lg border border-[#bca142]/30">
+                <h3 className="text-sm font-semibold text-[#bca142] mb-2 flex items-center gap-2">
+                  <FiUser className="text-[#bca142] text-sm" />
                   Your Company Information
                 </h3>
                 <div className="flex flex-col md:flex-row gap-2">
                   {companyProfile.name && (
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-blue-700">Company:</span>
-                      <span className="text-xs text-blue-800 font-semibold">{companyProfile.name}</span>
+                      <span className="text-xs font-medium text-black">Company:</span>
+                      <span className="text-xs text-black font-semibold">{companyProfile.name}</span>
                     </div>
                   )}
                   {companyProfile.email && (
                     <div className="flex items-center gap-2">
-                      <FiMail className="text-blue-600 text-xs" />
-                      <span className="text-xs font-medium text-blue-700">Email:</span>
-                      <span className="text-xs text-blue-800">{companyProfile.email}</span>
+                      <FiMail className="text-[#bca142] text-xs" />
+                      <span className="text-xs font-medium text-black">Email:</span>
+                      <span className="text-xs text-black">{companyProfile.email}</span>
                     </div>
                   )}
                   {companyProfile.phone && (
                     <div className="flex items-center gap-2">
-                      <FiPhone className="text-blue-600 text-xs" />
-                      <span className="text-xs font-medium text-blue-700">Phone:</span>
-                      <span className="text-xs text-blue-800">{companyProfile.phone}</span>
+                      <FiPhone className="text-[#bca142] text-xs" />
+                      <span className="text-xs font-medium text-black">Phone:</span>
+                      <span className="text-xs text-black">{companyProfile.phone}</span>
                     </div>
                   )}
                 </div>
@@ -453,7 +453,7 @@ const MyQuotes = () => {
                 <Flag code={getCountryCode(selectedQuote.departure_country)} className="w-full h-full object-cover rounded" />
               </div>
               <span className="text-gray-800">{selectedQuote.departure_country}</span>
-              <FiArrowLeft className="text-[#CDA435] rotate-180" />
+              <FiArrowLeft className="text-[#bca142] rotate-180" />
               <div className="w-10 h-8 flex-shrink-0">
                 <Flag code={getCountryCode(selectedQuote.arrival_country)} className="w-full h-full object-cover rounded" />
               </div>
@@ -469,7 +469,7 @@ const MyQuotes = () => {
                     value={selectedQuote.status}
                     onChange={(e) => handleStatusChangeFromModal(e.target.value)}
                     disabled={updatingStatus}
-                    className="px-3 py-2 text-sm font-medium rounded-xl border-2 border-gray-300 focus:ring-2 focus:ring-[#CDA435] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed bg-white"
+                    className="px-3 py-2 text-sm font-medium rounded-xl border-2 border-gray-300 focus:ring-2 focus:ring-[#bca142] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed bg-white"
                   >
                     <option value="pending">Pending</option>
                     <option value="approved">Approved</option>
@@ -478,14 +478,14 @@ const MyQuotes = () => {
                     <option value="closed">Closed</option>
                   </select>
                   {updatingStatus && (
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#CDA435]"></div>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#bca142]"></div>
                   )}
                 </div>
               </div>
               
               <button 
                 onClick={handleMessageCustomer}
-                className="px-6 py-3 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white font-semibold rounded-xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2"
+                className="px-6 py-3 bg-[#bca142] text-white font-semibold rounded-xl hover:bg-black transform hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2"
               >
                 <FiMessageSquare className="text-lg" />
                 Message Customer
@@ -499,7 +499,7 @@ const MyQuotes = () => {
               {/* Quote Information */}
               <div className="bg-white rounded-2xl shadow-xl border-2 border-gray-200 p-6">
                 <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                  <FiFileText className="text-[#CDA435]" />
+                  <FiFileText className="text-[#bca142]" />
                   Complete Quote Information
                 </h3>
                 
@@ -509,15 +509,15 @@ const MyQuotes = () => {
                     <h4 className="font-semibold text-gray-700 border-b pb-2">Basic Details</h4>
                     
                     <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                      <FiDollarSign className="text-[#CDA435] text-lg" />
+                      <FiDollarSign className="text-[#bca142] text-lg" />
                       <div>
                         <p className="text-sm text-gray-500">Your Quote Price</p>
-                        <p className="font-bold text-xl text-[#CDA435]">${selectedQuote.price}</p>
+                        <p className="font-bold text-xl text-[#bca142]">${selectedQuote.price}</p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                      <FiTruck className="text-[#CDA435] text-lg" />
+                      <FiTruck className="text-[#bca142] text-lg" />
                       <div>
                         <p className="text-sm text-gray-500">Shipping Mode</p>
                         <p className="font-medium text-gray-800">{selectedQuote.shipping_mode}</p>
@@ -525,7 +525,7 @@ const MyQuotes = () => {
                     </div>
 
                     <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                      <FiCalendar className="text-[#CDA435] text-lg" />
+                      <FiCalendar className="text-[#bca142] text-lg" />
                       <div>
                         <p className="text-sm text-gray-500">Delivery Date</p>
                         <p className="font-medium text-gray-800">{new Date(selectedQuote.arrival_date).toLocaleDateString()}</p>
@@ -534,7 +534,7 @@ const MyQuotes = () => {
 
                     {selectedQuote.transit_time && (
                       <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                        <FiClock className="text-[#CDA435] text-lg" />
+                        <FiClock className="text-[#bca142] text-lg" />
                         <div>
                           <p className="text-sm text-gray-500">Transit Time</p>
                           <p className="font-medium text-gray-800">{selectedQuote.transit_time}</p>
@@ -543,11 +543,11 @@ const MyQuotes = () => {
                     )}
 
                     {selectedQuote.valid_until && (
-                      <div className="flex items-center gap-3 p-3 bg-amber-50 rounded-xl border border-amber-200">
-                        <FiCalendar className="text-amber-600 text-lg" />
+                      <div className="flex items-center gap-3 p-3 bg-[#bca142]/20 rounded-xl border border-[#bca142]/30">
+                        <FiCalendar className="text-[#bca142] text-lg" />
                         <div>
-                          <p className="text-sm text-amber-600">Quote Valid Until</p>
-                          <p className="font-medium text-amber-800">{new Date(selectedQuote.valid_until).toLocaleDateString()}</p>
+                          <p className="text-sm text-black">Quote Valid Until</p>
+                          <p className="font-medium text-black">{new Date(selectedQuote.valid_until).toLocaleDateString()}</p>
                         </div>
                       </div>
                     )}
@@ -558,7 +558,7 @@ const MyQuotes = () => {
                     <h4 className="font-semibold text-gray-700 border-b pb-2">Cargo Details</h4>
                     
                     <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
-                      <FiPackage className="text-[#CDA435] text-lg mt-1" />
+                      <FiPackage className="text-[#bca142] text-lg mt-1" />
                       <div className="flex-1">
                         <p className="text-sm text-gray-500">Product Description</p>
                         <p className="font-medium text-gray-800">{selectedQuote.product_description}</p>
@@ -567,7 +567,7 @@ const MyQuotes = () => {
 
                     {selectedQuote.quantity && (
                       <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                        <FiPackage className="text-[#CDA435] text-lg" />
+                        <FiPackage className="text-[#bca142] text-lg" />
                         <div>
                           <p className="text-sm text-gray-500">Quantity</p>
                           <p className="font-medium text-gray-800">{selectedQuote.quantity}</p>
@@ -577,7 +577,7 @@ const MyQuotes = () => {
 
                     {selectedQuote.weight && (
                       <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                        <FiPackage className="text-[#CDA435] text-lg" />
+                        <FiPackage className="text-[#bca142] text-lg" />
                         <div>
                           <p className="text-sm text-gray-500">Weight</p>
                           <p className="font-medium text-gray-800">{selectedQuote.weight}</p>
@@ -587,7 +587,7 @@ const MyQuotes = () => {
 
                     {selectedQuote.packing && (
                       <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                        <FiPackage className="text-[#CDA435] text-lg" />
+                        <FiPackage className="text-[#bca142] text-lg" />
                         <div>
                           <p className="text-sm text-gray-500">Packing Type</p>
                           <p className="font-medium text-gray-800">{selectedQuote.packing}</p>
@@ -596,11 +596,11 @@ const MyQuotes = () => {
                     )}
 
                     {selectedQuote.incoterms && (
-                      <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl border border-blue-200">
-                        <FiFileText className="text-blue-600 text-lg" />
+                      <div className="flex items-center gap-3 p-3 bg-[#bca142]/10 rounded-xl border border-[#bca142]/30">
+                        <FiFileText className="text-[#bca142] text-lg" />
                         <div>
-                          <p className="text-sm text-blue-600">Incoterms</p>
-                          <p className="font-medium text-blue-800">{selectedQuote.incoterms}</p>
+                          <p className="text-sm text-black">Incoterms</p>
+                          <p className="font-medium text-black">{selectedQuote.incoterms}</p>
                         </div>
                       </div>
                     )}
@@ -609,92 +609,92 @@ const MyQuotes = () => {
 
                 {/* Dimensions Section */}
                 {(selectedQuote.length || selectedQuote.width || selectedQuote.height || selectedQuote.dimension_unit) && (
-                  <div className="mt-6 p-4 bg-green-50 rounded-xl border border-green-200">
-                    <h4 className="font-semibold text-green-700 mb-3 flex items-center gap-2">
-                      <FiPackage className="text-green-600" />
+                  <div className="mt-6 p-4 bg-[#bca142]/10 rounded-xl border border-[#bca142]/30">
+                    <h4 className="font-semibold text-[#bca142] mb-3 flex items-center gap-2">
+                      <FiPackage className="text-[#bca142]" />
                       Cargo Dimensions
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                       {selectedQuote.length && (
-                        <div className="text-center p-2 bg-white rounded-lg border border-green-200">
-                          <p className="text-xs text-green-600">Length</p>
-                          <p className="font-bold text-green-800">{selectedQuote.length}</p>
+                        <div className="text-center p-2 bg-white rounded-lg border border-[#bca142]/30">
+                          <p className="text-xs text-black">Length</p>
+                          <p className="font-bold text-black">{selectedQuote.length}</p>
                         </div>
                       )}
                       {selectedQuote.width && (
-                        <div className="text-center p-2 bg-white rounded-lg border border-green-200">
-                          <p className="text-xs text-green-600">Width</p>
-                          <p className="font-bold text-green-800">{selectedQuote.width}</p>
+                        <div className="text-center p-2 bg-white rounded-lg border border-[#bca142]/30">
+                          <p className="text-xs text-black">Width</p>
+                          <p className="font-bold text-black">{selectedQuote.width}</p>
                         </div>
                       )}
                       {selectedQuote.height && (
-                        <div className="text-center p-2 bg-white rounded-lg border border-green-200">
-                          <p className="text-xs text-green-600">Height</p>
-                          <p className="font-bold text-green-800">{selectedQuote.height}</p>
+                        <div className="text-center p-2 bg-white rounded-lg border border-[#bca142]/30">
+                          <p className="text-xs text-black">Height</p>
+                          <p className="font-bold text-black">{selectedQuote.height}</p>
                         </div>
                       )}
                       {selectedQuote.dimension_unit && (
-                        <div className="text-center p-2 bg-white rounded-lg border border-green-200">
-                          <p className="text-xs text-green-600">Unit</p>
-                          <p className="font-bold text-green-800">{selectedQuote.dimension_unit}</p>
+                        <div className="text-center p-2 bg-white rounded-lg border border-[#bca142]/30">
+                          <p className="text-xs text-black">Unit</p>
+                          <p className="font-bold text-black">{selectedQuote.dimension_unit}</p>
                         </div>
                       )}
                     </div>
                     {(!selectedQuote.length && !selectedQuote.width && !selectedQuote.height) && selectedQuote.dimension_unit && (
-                      <div className="text-center p-3 bg-white rounded-lg border border-green-200">
-                        <p className="text-sm text-green-700">Dimensions not specified, Unit: {selectedQuote.dimension_unit}</p>
+                      <div className="text-center p-3 bg-white rounded-lg border border-[#bca142]/30">
+                        <p className="text-sm text-black">Dimensions not specified, Unit: {selectedQuote.dimension_unit}</p>
                       </div>
                     )}
                   </div>
                 )}
 
                 {/* Route Details */}
-                <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
-                  <h4 className="font-semibold text-blue-700 mb-3 flex items-center gap-2">
-                    <FiMapPin className="text-blue-600" />
+                <div className="mt-6 p-4 bg-[#bca142]/10 rounded-xl border border-[#bca142]/30">
+                  <h4 className="font-semibold text-[#bca142] mb-3 flex items-center gap-2">
+                    <FiMapPin className="text-[#bca142]" />
                     Route Information
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Departure Details */}
                     <div className="space-y-3">
-                      <h5 className="font-medium text-blue-800">Departure</h5>
+                      <h5 className="font-medium text-black">Departure</h5>
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <div className="w-6 h-4">
                             <Flag code={getCountryCode(selectedQuote.departure_country)} className="w-full h-full object-cover rounded" />
                           </div>
-                          <span className="font-medium text-blue-800">{selectedQuote.departure_country}</span>
+                          <span className="font-medium text-black">{selectedQuote.departure_country}</span>
                         </div>
                         {selectedQuote.departure_state && (
-                          <p className="text-sm text-blue-700 ml-8">State: {selectedQuote.departure_state}</p>
+                          <p className="text-sm text-black ml-8">State: {selectedQuote.departure_state}</p>
                         )}
                         {selectedQuote.departure_city && (
-                          <p className="text-sm text-blue-700 ml-8">City: {selectedQuote.departure_city}</p>
+                          <p className="text-sm text-black ml-8">City: {selectedQuote.departure_city}</p>
                         )}
                         {selectedQuote.departure_type && (
-                          <p className="text-sm text-blue-700 ml-8">Type: {selectedQuote.departure_type}</p>
+                          <p className="text-sm text-black ml-8">Type: {selectedQuote.departure_type}</p>
                         )}
                       </div>
                     </div>
 
                     {/* Arrival Details */}
                     <div className="space-y-3">
-                      <h5 className="font-medium text-blue-800">Arrival</h5>
+                      <h5 className="font-medium text-black">Arrival</h5>
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <div className="w-6 h-4">
                             <Flag code={getCountryCode(selectedQuote.arrival_country)} className="w-full h-full object-cover rounded" />
                           </div>
-                          <span className="font-medium text-blue-800">{selectedQuote.arrival_country}</span>
+                          <span className="font-medium text-black">{selectedQuote.arrival_country}</span>
                         </div>
                         {selectedQuote.arrival_state && (
-                          <p className="text-sm text-blue-700 ml-8">State: {selectedQuote.arrival_state}</p>
+                          <p className="text-sm text-black ml-8">State: {selectedQuote.arrival_state}</p>
                         )}
                         {selectedQuote.arrival_city && (
-                          <p className="text-sm text-blue-700 ml-8">City: {selectedQuote.arrival_city}</p>
+                          <p className="text-sm text-black ml-8">City: {selectedQuote.arrival_city}</p>
                         )}
                         {selectedQuote.arrival_type && (
-                          <p className="text-sm text-blue-700 ml-8">Type: {selectedQuote.arrival_type}</p>
+                          <p className="text-sm text-black ml-8">Type: {selectedQuote.arrival_type}</p>
                         )}
                       </div>
                     </div>
@@ -703,45 +703,45 @@ const MyQuotes = () => {
 
                 {/* Special Requirements */}
                 {(selectedQuote.is_stackable || selectedQuote.is_hazardous || selectedQuote.has_insurance || selectedQuote.cargo_type) && (
-                  <div className="mt-6 p-4 bg-purple-50 rounded-xl border border-purple-200">
-                    <h4 className="font-semibold text-purple-700 mb-3 flex items-center gap-2">
-                      <FiAlertCircle className="text-purple-600" />
+                  <div className="mt-6 p-4 bg-[#bca142]/10 rounded-xl border border-[#bca142]/30">
+                    <h4 className="font-semibold text-[#bca142] mb-3 flex items-center gap-2">
+                      <FiAlertCircle className="text-[#bca142]" />
                       Special Requirements & Cargo Type
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                       {selectedQuote.cargo_type && (
-                        <div className="flex items-center gap-2 p-3 bg-white rounded-lg border border-purple-200">
-                          <FiPackage className="text-purple-600" />
+                        <div className="flex items-center gap-2 p-3 bg-white rounded-lg border border-[#bca142]/30">
+                          <FiPackage className="text-[#bca142]" />
                           <div>
-                            <p className="text-xs text-purple-600">Cargo Type</p>
-                            <p className="text-sm font-medium text-purple-800">{selectedQuote.cargo_type}</p>
+                            <p className="text-xs text-black">Cargo Type</p>
+                            <p className="text-sm font-medium text-black">{selectedQuote.cargo_type}</p>
                           </div>
                         </div>
                       )}
                       {selectedQuote.is_stackable === 1 && (
-                        <div className="flex items-center gap-2 p-3 bg-white rounded-lg border border-purple-200">
-                          <FiCheckCircle className="text-green-600" />
-                          <span className="text-sm font-medium text-purple-800">📦 Stackable Cargo</span>
+                        <div className="flex items-center gap-2 p-3 bg-white rounded-lg border border-[#bca142]/30">
+                          <FiCheckCircle className="text-[#bca142]" />
+                          <span className="text-sm font-medium text-black">📦 Stackable Cargo</span>
                         </div>
                       )}
                       {selectedQuote.is_hazardous === 1 && (
-                        <div className="flex items-center gap-2 p-3 bg-white rounded-lg border border-purple-200">
-                          <FiAlertCircle className="text-red-600" />
-                          <span className="text-sm font-medium text-purple-800">⚠️ Hazardous Materials</span>
+                        <div className="flex items-center gap-2 p-3 bg-white rounded-lg border border-[#bca142]/30">
+                          <FiAlertCircle className="text-black" />
+                          <span className="text-sm font-medium text-black">⚠️ Hazardous Materials</span>
                         </div>
                       )}
                       {selectedQuote.has_insurance === 1 && (
-                        <div className="flex items-center gap-2 p-3 bg-white rounded-lg border border-purple-200">
-                          <FiShield className="text-blue-600" />
-                          <span className="text-sm font-medium text-purple-800">🛡️ Insurance Required</span>
+                        <div className="flex items-center gap-2 p-3 bg-white rounded-lg border border-[#bca142]/30">
+                          <FiShield className="text-[#bca142]" />
+                          <span className="text-sm font-medium text-black">🛡️ Insurance Required</span>
                         </div>
                       )}
                     </div>
                     
                     {/* Show if no special requirements */}
                     {!selectedQuote.cargo_type && !selectedQuote.is_stackable && !selectedQuote.is_hazardous && !selectedQuote.has_insurance && (
-                      <div className="text-center p-3 bg-white rounded-lg border border-purple-200">
-                        <p className="text-sm text-purple-700">No special requirements specified</p>
+                      <div className="text-center p-3 bg-white rounded-lg border border-[#bca142]/30">
+                        <p className="text-sm text-black">No special requirements specified</p>
                       </div>
                     )}
                   </div>
@@ -749,46 +749,46 @@ const MyQuotes = () => {
 
                 {/* Your Quote Response Details */}
                 {(selectedQuote.inclusions || selectedQuote.value_added_services || selectedQuote.terms || selectedQuote.response_notes) && (
-                  <div className="mt-6 p-4 bg-yellow-50 rounded-xl border border-yellow-200">
-                    <h4 className="font-semibold text-yellow-700 mb-3 flex items-center gap-2">
-                      <FiStar className="text-yellow-600" />
+                  <div className="mt-6 p-4 bg-[#bca142]/10 rounded-xl border border-[#bca142]/30">
+                    <h4 className="font-semibold text-[#bca142] mb-3 flex items-center gap-2">
+                      <FiStar className="text-[#bca142]" />
                       Your Quote Response Details
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {selectedQuote.inclusions && (
-                        <div className="p-3 bg-white rounded-lg border border-yellow-200">
-                          <h5 className="font-medium text-yellow-800 mb-2 flex items-center gap-2">
-                            <FiCheckCircle className="text-green-600" />
+                        <div className="p-3 bg-white rounded-lg border border-[#bca142]/30">
+                          <h5 className="font-medium text-[#bca142] mb-2 flex items-center gap-2">
+                            <FiCheckCircle className="text-[#bca142]" />
                             Inclusions
                           </h5>
-                          <p className="text-sm text-yellow-700">{selectedQuote.inclusions}</p>
+                          <p className="text-sm text-black">{selectedQuote.inclusions}</p>
                         </div>
                       )}
                       {selectedQuote.value_added_services && (
-                        <div className="p-3 bg-white rounded-lg border border-yellow-200">
-                          <h5 className="font-medium text-yellow-800 mb-2 flex items-center gap-2">
-                            <FiStar className="text-yellow-600" />
+                        <div className="p-3 bg-white rounded-lg border border-[#bca142]/30">
+                          <h5 className="font-medium text-[#bca142] mb-2 flex items-center gap-2">
+                            <FiStar className="text-[#bca142]" />
                             Value Added Services
                           </h5>
-                          <p className="text-sm text-yellow-700">{selectedQuote.value_added_services}</p>
+                          <p className="text-sm text-black">{selectedQuote.value_added_services}</p>
                         </div>
                       )}
                       {selectedQuote.terms && (
-                        <div className="p-3 bg-white rounded-lg border border-yellow-200">
-                          <h5 className="font-medium text-yellow-800 mb-2 flex items-center gap-2">
-                            <FiShield className="text-blue-600" />
+                        <div className="p-3 bg-white rounded-lg border border-[#bca142]/30">
+                          <h5 className="font-medium text-[#bca142] mb-2 flex items-center gap-2">
+                            <FiShield className="text-[#bca142]" />
                             Terms & Conditions
                           </h5>
-                          <p className="text-sm text-yellow-700">{selectedQuote.terms}</p>
+                          <p className="text-sm text-black">{selectedQuote.terms}</p>
                         </div>
                       )}
                       {selectedQuote.response_notes && (
-                        <div className="p-3 bg-white rounded-lg border border-yellow-200">
-                          <h5 className="font-medium text-yellow-800 mb-2 flex items-center gap-2">
-                            <FiFileText className="text-gray-600" />
+                        <div className="p-3 bg-white rounded-lg border border-[#bca142]/30">
+                          <h5 className="font-medium text-[#bca142] mb-2 flex items-center gap-2">
+                            <FiFileText className="text-[#bca142]" />
                             Additional Notes
                           </h5>
-                          <p className="text-sm text-yellow-700">{selectedQuote.response_notes}</p>
+                          <p className="text-sm text-black">{selectedQuote.response_notes}</p>
                         </div>
                       )}
                     </div>
@@ -797,13 +797,13 @@ const MyQuotes = () => {
 
                 {/* Customer's Additional Notes */}
                 {selectedQuote.customer_notes && (
-                  <div className="mt-6 p-4 bg-indigo-50 rounded-xl border border-indigo-200">
-                    <h4 className="font-semibold text-indigo-700 mb-3 flex items-center gap-2">
-                      <FiMessageSquare className="text-indigo-600" />
+                  <div className="mt-6 p-4 bg-[#bca142]/10 rounded-xl border border-[#bca142]/30">
+                    <h4 className="font-semibold text-[#bca142] mb-3 flex items-center gap-2">
+                      <FiMessageSquare className="text-[#bca142]" />
                       Customer's Additional Notes
                     </h4>
-                    <div className="p-3 bg-white rounded-lg border border-indigo-200">
-                      <p className="text-sm text-indigo-700 leading-relaxed">{selectedQuote.customer_notes}</p>
+                    <div className="p-3 bg-white rounded-lg border border-[#bca142]/30">
+                      <p className="text-sm text-black leading-relaxed">{selectedQuote.customer_notes}</p>
                     </div>
                   </div>
                 )}
@@ -839,39 +839,39 @@ const MyQuotes = () => {
 
               {/* Company Information */}
               {companyProfile && (
-                <div className="bg-white rounded-2xl shadow-xl border-2 border-blue-200 p-6">
+                <div className="bg-white rounded-2xl shadow-xl border-2 border-[#bca142]/30 p-6">
                   <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                    <FiUser className="text-blue-600" />
+                    <FiUser className="text-[#bca142]" />
                     Your Company Information
                   </h3>
                   
                   <div className="space-y-4">
                     {companyProfile.name && (
-                      <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl border border-blue-200">
-                        <FiUser className="text-blue-600 text-lg" />
+                      <div className="flex items-center gap-3 p-3 bg-[#bca142]/10 rounded-xl border border-[#bca142]/30">
+                        <FiUser className="text-[#bca142] text-lg" />
                         <div>
-                          <p className="text-sm text-blue-600">Company Name</p>
-                          <p className="font-medium text-blue-800">{companyProfile.name}</p>
+                          <p className="text-sm text-black">Company Name</p>
+                          <p className="font-medium text-black">{companyProfile.name}</p>
                         </div>
                       </div>
                     )}
 
                     {companyProfile.email && (
-                      <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl border border-blue-200">
-                        <FiMail className="text-blue-600 text-lg" />
+                      <div className="flex items-center gap-3 p-3 bg-[#bca142]/10 rounded-xl border border-[#bca142]/30">
+                        <FiMail className="text-[#bca142] text-lg" />
                         <div>
-                          <p className="text-sm text-blue-600">Company Email</p>
-                          <p className="font-medium text-blue-800">{companyProfile.email}</p>
+                          <p className="text-sm text-black">Company Email</p>
+                          <p className="font-medium text-black">{companyProfile.email}</p>
                         </div>
                       </div>
                     )}
 
                     {companyProfile.phone && (
-                      <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl border border-blue-200">
-                        <FiPhone className="text-blue-600 text-lg" />
+                      <div className="flex items-center gap-3 p-3 bg-[#bca142]/10 rounded-xl border border-[#bca142]/30">
+                        <FiPhone className="text-[#bca142] text-lg" />
                         <div>
-                          <p className="text-sm text-blue-600">Company Phone</p>
-                          <p className="font-medium text-blue-800">{companyProfile.phone}</p>
+                          <p className="text-sm text-black">Company Phone</p>
+                          <p className="font-medium text-black">{companyProfile.phone}</p>
                         </div>
                       </div>
                     )}
@@ -881,39 +881,39 @@ const MyQuotes = () => {
 
               {/* Customer Information */}
               {(selectedQuote.user_name || selectedQuote.user_email) && (
-                <div className="bg-white rounded-2xl shadow-xl border-2 border-purple-200 p-6">
+                <div className="bg-white rounded-2xl shadow-xl border-2 border-[#bca142]/30 p-6">
                   <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                    <FiUser className="text-purple-600" />
+                    <FiUser className="text-[#bca142]" />
                     Customer Information
                   </h3>
                   
                   <div className="space-y-4">
                     {selectedQuote.user_name && (
-                      <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-xl border border-purple-200">
-                        <FiUser className="text-purple-600 text-lg" />
+                      <div className="flex items-center gap-3 p-3 bg-[#bca142]/10 rounded-xl border border-[#bca142]/30">
+                        <FiUser className="text-[#bca142] text-lg" />
                         <div>
-                          <p className="text-sm text-purple-600">Customer Name</p>
-                          <p className="font-medium text-purple-800">{selectedQuote.user_name}</p>
+                          <p className="text-sm text-black">Customer Name</p>
+                          <p className="font-medium text-black">{selectedQuote.user_name}</p>
                         </div>
                       </div>
                     )}
 
                     {selectedQuote.user_email && (
-                      <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-xl border border-purple-200">
-                        <FiMail className="text-purple-600 text-lg" />
+                      <div className="flex items-center gap-3 p-3 bg-[#bca142]/10 rounded-xl border border-[#bca142]/30">
+                        <FiMail className="text-[#bca142] text-lg" />
                         <div>
-                          <p className="text-sm text-purple-600">Customer Email</p>
-                          <p className="font-medium text-purple-800">{selectedQuote.user_email}</p>
+                          <p className="text-sm text-black">Customer Email</p>
+                          <p className="font-medium text-black">{selectedQuote.user_email}</p>
                         </div>
                       </div>
                     )}
 
                     {selectedQuote.user_phone && (
-                      <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-xl border border-purple-200">
-                        <FiPhone className="text-purple-600 text-lg" />
+                      <div className="flex items-center gap-3 p-3 bg-[#bca142]/10 rounded-xl border border-[#bca142]/30">
+                        <FiPhone className="text-[#bca142] text-lg" />
                         <div>
-                          <p className="text-sm text-purple-600">Customer Phone</p>
-                          <p className="font-medium text-purple-800">{selectedQuote.user_phone}</p>
+                          <p className="text-sm text-black">Customer Phone</p>
+                          <p className="font-medium text-black">{selectedQuote.user_phone}</p>
                         </div>
                       </div>
                     )}
@@ -925,7 +925,7 @@ const MyQuotes = () => {
                     <div className="flex flex-wrap gap-3">
                       <button 
                         onClick={handleMessageCustomer}
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
+                        className="flex items-center gap-2 px-4 py-2 bg-[#bca142] text-white font-medium rounded-lg hover:bg-black transform hover:-translate-y-0.5 transition-all duration-200"
                       >
                         <FiMessageSquare className="text-sm" />
                         Message
@@ -934,7 +934,7 @@ const MyQuotes = () => {
                       {selectedQuote.user_email && (
                         <a 
                           href={`mailto:${selectedQuote.user_email}?subject=Regarding Your Quote #${selectedQuote.id}`}
-                          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white font-medium rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
+                          className="flex items-center gap-2 px-4 py-2 bg-gray-500 text-white font-medium rounded-lg hover:bg-black transform hover:-translate-y-0.5 transition-all duration-200"
                         >
                           <FiMail className="text-sm" />
                           Email
@@ -944,7 +944,7 @@ const MyQuotes = () => {
                       {selectedQuote.user_phone && (
                         <a 
                           href={`tel:${selectedQuote.user_phone}`}
-                          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white font-medium rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
+                          className="flex items-center gap-2 px-4 py-2 bg-[#bca142] text-white font-medium rounded-lg hover:bg-black transform hover:-translate-y-0.5 transition-all duration-200"
                         >
                           <FiPhone className="text-sm" />
                           Call
@@ -961,7 +961,7 @@ const MyQuotes = () => {
               {/* Payment Status */}
               <div className="bg-white rounded-2xl shadow-xl border-2 border-gray-200 p-6">
                 <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                  <FiCreditCard className="text-[#CDA435]" />
+                  <FiCreditCard className="text-[#bca142]" />
                   Payment Status
                 </h3>
                 
@@ -1008,7 +1008,7 @@ const MyQuotes = () => {
                   {selectedQuote.payment_proof_url && !selectedQuote.payment_status && (
                     <button
                       onClick={() => navigate('/company/payment-management')}
-                      className="w-full px-4 py-3 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white font-semibold rounded-xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2"
+                      className="w-full px-4 py-3 bg-[#bca142] text-white font-semibold rounded-xl hover:bg-black transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2"
                     >
                       <FiEye className="text-lg" />
                       Verify Payment Now
@@ -1018,7 +1018,7 @@ const MyQuotes = () => {
                   {selectedQuote.payment_proof_url && (
                     <button
                       onClick={() => window.open(selectedQuote.payment_proof_url, '_blank')}
-                      className="w-full px-4 py-3 border-2 border-[#CDA435] text-[#CDA435] font-semibold rounded-xl hover:bg-[#CDA435] hover:text-white transition-all duration-200 flex items-center justify-center gap-2"
+                      className="w-full px-4 py-3 border-2 border-[#bca142] text-[#bca142] font-semibold rounded-xl hover:bg-[#bca142] hover:text-white transition-all duration-200 flex items-center justify-center gap-2"
                     >
                       <FiFileText className="text-lg" />
                       View Payment Proof
@@ -1028,13 +1028,13 @@ const MyQuotes = () => {
               </div>
 
               {/* Business Notes */}
-              <div className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-2xl p-6 border-2 border-yellow-200">
+              <div className="bg-[#bca142]/10 rounded-2xl p-6 border-2 border-[#bca142]/30">
                 <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                  <FiStar className="text-yellow-500" />
+                  <FiStar className="text-[#bca142]" />
                   Business Notes
                 </h3>
-                <div className="bg-white/80 rounded-xl p-4 border border-yellow-200">
-                  <p className="text-sm text-yellow-800 leading-relaxed">
+                <div className="bg-white rounded-xl p-4 border border-[#bca142]/30">
+                  <p className="text-sm text-black leading-relaxed">
                     💡 <strong>Tip:</strong> This customer has {selectedQuote.status === 'approved' ? 'approved' : 'accepted'} your quote. 
                     Keep them updated on shipment progress and maintain good communication for future business opportunities.
                   </p>
@@ -1048,12 +1048,12 @@ const MyQuotes = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-2">
+    <div className="min-h-screen bg-gray-50 p-2">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-xl shadow-lg p-4 mb-4 border border-gray-100">
           <div className="text-center">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-[#CDA435] to-[#D9B95B] bg-clip-text text-transparent mb-2">
+            <h1 className="text-2xl font-bold text-[#bca142] mb-2">
               My Active Quotes
             </h1>
             <p className="text-gray-600 text-sm mb-4">
@@ -1093,7 +1093,7 @@ const MyQuotes = () => {
               </div>
             )} */}
             
-            <div className="flex items-center justify-center gap-4">
+            {/* <div className="flex items-center justify-center gap-4">
               <div className="flex items-center gap-1">
                 <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
                 <span className="text-xs text-gray-600">Pending</span>
@@ -1110,7 +1110,7 @@ const MyQuotes = () => {
                 <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
                 <span className="text-xs text-gray-600">Closed</span>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -1119,7 +1119,7 @@ const MyQuotes = () => {
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-bold text-gray-800 flex items-center gap-1">
-                <FiFilter className="text-[#CDA435] text-sm" />
+                <FiFilter className="text-[#bca142] text-sm" />
                 Filters & Search
               </h2>
               <span className="text-xs text-gray-500">
@@ -1140,7 +1140,7 @@ const MyQuotes = () => {
                 onClick={() => setShowFilters(!showFilters)}
                 className={`flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
                   showFilters 
-                    ? 'bg-[#CDA435] text-white' 
+                    ? 'bg-[#bca142] text-white' 
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -1159,7 +1159,7 @@ const MyQuotes = () => {
                 placeholder="Search quotes by ID, product, customer, country, or shipping mode..."
                 value={filters.search}
                 onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                className="w-full pl-8 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-200"
+                className="w-full pl-8 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-200"
               />
             </div>
           </div>
@@ -1173,7 +1173,7 @@ const MyQuotes = () => {
                 <select
                   value={filters.status}
                   onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
-                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent"
                 >
                   <option value="">All Statuses</option>
                   <option value="pending">Pending</option>
@@ -1190,7 +1190,7 @@ const MyQuotes = () => {
                 <select
                   value={filters.shippingMode}
                   onChange={(e) => setFilters(prev => ({ ...prev, shippingMode: e.target.value }))}
-                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent"
                 >
                   <option value="">All Shipping Modes</option>
                   {uniqueValues.shippingModes.map(mode => (
@@ -1205,7 +1205,7 @@ const MyQuotes = () => {
                 <select
                   value={filters.departureCountry}
                   onChange={(e) => setFilters(prev => ({ ...prev, departureCountry: e.target.value }))}
-                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent"
                 >
                   <option value="">All Departure Countries</option>
                   {uniqueValues.departureCountries.map(country => (
@@ -1220,7 +1220,7 @@ const MyQuotes = () => {
                 <select
                   value={filters.arrivalCountry}
                   onChange={(e) => setFilters(prev => ({ ...prev, arrivalCountry: e.target.value }))}
-                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent"
                 >
                   <option value="">All Arrival Countries</option>
                   {uniqueValues.arrivalCountries.map(country => (
@@ -1235,7 +1235,7 @@ const MyQuotes = () => {
                 <select
                   value={filters.customerName}
                   onChange={(e) => setFilters(prev => ({ ...prev, customerName: e.target.value }))}
-                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent"
                 >
                   <option value="">All Customers</option>
                   {uniqueValues.customerNames.map(name => (
@@ -1252,7 +1252,7 @@ const MyQuotes = () => {
                   placeholder="0"
                   value={filters.priceMin}
                   onChange={(e) => setFilters(prev => ({ ...prev, priceMin: e.target.value }))}
-                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent"
                 />
               </div>
 
@@ -1263,7 +1263,7 @@ const MyQuotes = () => {
                   placeholder="10000"
                   value={filters.priceMax}
                   onChange={(e) => setFilters(prev => ({ ...prev, priceMax: e.target.value }))}
-                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent"
                 />
               </div>
 
@@ -1278,7 +1278,7 @@ const MyQuotes = () => {
         {/* Quotes Table */}
         {filteredQuotes.length === 0 ? (
           <div className="text-center py-8">
-            <div className="p-4 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+            <div className="p-4 bg-[#bca142] rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
               <FiFileText className="text-2xl text-white" />
             </div>
             {quotes.length === 0 ? (
@@ -1287,7 +1287,7 @@ const MyQuotes = () => {
                 <p className="text-gray-600 mb-4 text-sm">Quotes will appear here when customers accept your responses or upload payment proof.</p>
                 <a 
                   href="/company/available-quotes" 
-                  className="px-6 py-2 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 text-sm"
+                  className="px-6 py-2 bg-[#bca142] text-white font-semibold rounded-lg shadow-lg hover:bg-black transform hover:-translate-y-1 transition-all duration-300 text-sm"
                 >
                   View Available Quotes
                 </a>
@@ -1298,7 +1298,7 @@ const MyQuotes = () => {
                 <p className="text-gray-600 mb-4 text-sm">Try adjusting your filters to see more results.</p>
                 <button
                   onClick={clearFilters}
-                  className="px-6 py-2 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center gap-2 mx-auto text-sm"
+                  className="px-6 py-2 bg-[#bca142] text-white font-semibold rounded-lg shadow-lg hover:bg-black transform hover:-translate-y-1 transition-all duration-300 flex items-center gap-2 mx-auto text-sm"
                 >
                   <FiRefreshCw className="text-sm" />
                   Clear All Filters
@@ -1310,7 +1310,7 @@ const MyQuotes = () => {
           <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full">
-                <thead className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white">
+                <thead className="bg-[#bca142] text-white">
                   <tr>
                     <th className="px-2 py-2 text-left text-xs font-semibold">Quote ID</th>
                     <th className="px-2 py-2 text-left text-xs font-semibold">Customer</th>
@@ -1327,7 +1327,7 @@ const MyQuotes = () => {
                       {/* Quote ID */}
                       <td className="px-2 py-2 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="p-1 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-lg text-white mr-2">
+                          <div className="p-1 bg-[#bca142] rounded-lg text-white mr-2">
                             <FiFileText className="text-xs" />
                           </div>
                           <div>
@@ -1360,7 +1360,7 @@ const MyQuotes = () => {
                             <Flag code={getCountryCode(quote.departure_country)} className="w-full h-full object-cover rounded" />
                           </div>
                           <span className="text-xs font-medium text-gray-800">{quote.departure_country}</span>
-                          <FiArrowLeft className="text-[#CDA435] rotate-180 text-xs" />
+                          <FiArrowLeft className="text-[#bca142] rotate-180 text-xs" />
                           <div className="w-4 h-3 flex-shrink-0">
                             <Flag code={getCountryCode(quote.arrival_country)} className="w-full h-full object-cover rounded" />
                           </div>
@@ -1401,11 +1401,11 @@ const MyQuotes = () => {
                             value={quote.status}
                             onChange={(e) => handleStatusChange(quote.id, e.target.value)}
                             disabled={statusUpdatingId === quote.id}
-                            className={`px-2 py-1 text-xs font-bold rounded-full border-2 focus:ring-2 focus:ring-[#CDA435] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${
-                              quote.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
-                              quote.status === 'approved' ? 'bg-green-100 text-green-800 border-green-300' :
-                              quote.status === 'rejected' ? 'bg-red-100 text-red-800 border-red-300' :
-                              quote.status === 'running' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                            className={`px-2 py-1 text-xs font-bold rounded-full border-2 focus:ring-2 focus:ring-[#bca142] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${
+                              quote.status === 'pending' ? 'bg-[#bca142]/20 text-black border-[#bca142]/30' :
+                              quote.status === 'approved' ? 'bg-[#bca142] text-white border-[#bca142]' :
+                              quote.status === 'rejected' ? 'bg-black text-white border-black' :
+                              quote.status === 'running' ? 'bg-[#bca142]/20 text-black border-[#bca142]/30' :
                               'bg-gray-100 text-gray-800 border-gray-300'
                             }`}
                           >
@@ -1416,7 +1416,7 @@ const MyQuotes = () => {
                             <option value="closed">Closed</option>
                           </select>
                           {statusUpdatingId === quote.id && (
-                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-[#CDA435] mx-auto"></div>
+                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-[#bca142] mx-auto"></div>
                           )}
                           <div className="text-xs">
                             {getPaymentStatusBadge(quote)}

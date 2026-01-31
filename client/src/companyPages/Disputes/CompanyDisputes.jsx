@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { FiEye, FiClock, FiCheckCircle, FiAlertTriangle, FiMessageSquare, FiUser, FiPlus, FiX, FiEdit } from 'react-icons/fi';
 import { api } from '../../utils/api';
 import { toast } from 'react-hot-toast';
@@ -242,8 +242,8 @@ const CompanyDisputes = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
+        <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#bca142]"></div>
       </div>
     );
   }
@@ -260,7 +260,7 @@ const CompanyDisputes = () => {
           <div className="flex space-x-2">
             <button 
               onClick={fetchDisputeData}
-              className="flex items-center bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
+              className="flex items-center bg-[#bca142] text-white font-bold py-2 px-4 rounded-md hover:bg-black transition-colors"
               title="Refresh Data"
             >
               🔄 Refresh
@@ -268,7 +268,7 @@ const CompanyDisputes = () => {
             {activeTab === 'by' && (
               <button 
                 onClick={() => setShowCreateModal(true)}
-                className="flex items-center bg-yellow-500 text-white font-bold py-2 px-4 rounded-md hover:bg-yellow-600 transition-colors"
+                className="flex items-center bg-black text-white font-bold py-2 px-4 rounded-md hover:bg-[#bca142] transition-colors"
               >
                 <FiPlus className="mr-2" />
                 File New Dispute
@@ -288,14 +288,14 @@ const CompanyDisputes = () => {
                 }}
                 className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                   activeTab === 'against'
-                    ? 'border-yellow-500 text-yellow-600'
+                    ? 'border-[#bca142] text-[#bca142]'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
                 Disputes Against Us
                 {disputesAgainstCompany.length > 0 && (
                   <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                    activeTab === 'against' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-600'
+                    activeTab === 'against' ? 'bg-[#bca142] text-white' : 'bg-gray-100 text-gray-600'
                   }`}>
                     {disputesAgainstCompany.length}
                   </span>
@@ -308,14 +308,14 @@ const CompanyDisputes = () => {
                 }}
                 className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                   activeTab === 'by'
-                    ? 'border-yellow-500 text-yellow-600'
+                    ? 'border-[#bca142] text-[#bca142]'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
                 Our Disputes
                 {disputesByCompany.length > 0 && (
                   <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                    activeTab === 'by' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-600'
+                    activeTab === 'by' ? 'bg-[#bca142] text-white' : 'bg-gray-100 text-gray-600'
                   }`}>
                     {disputesByCompany.length}
                   </span>
@@ -341,14 +341,14 @@ const CompanyDisputes = () => {
                   onClick={() => setFilter(tab.key)}
                   className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                     filter === tab.key
-                      ? 'border-yellow-500 text-yellow-600'
+                      ? 'border-[#bca142] text-[#bca142]'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
                   {tab.label}
                   {tab.count > 0 && (
                     <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                      filter === tab.key ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-600'
+                      filter === tab.key ? 'bg-[#bca142] text-white' : 'bg-gray-100 text-gray-600'
                     }`}>
                       {tab.count}
                     </span>
@@ -382,7 +382,7 @@ const CompanyDisputes = () => {
               {activeTab === 'by' && filter === 'all' && (
                 <button 
                   onClick={() => setShowCreateModal(true)}
-                  className="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition-colors"
+                  className="bg-[#bca142] text-white px-4 py-2 rounded-md hover:bg-black transition-colors"
                 >
                   File Your First Dispute
                 </button>
@@ -391,17 +391,17 @@ const CompanyDisputes = () => {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-yellow-50">
+                <thead className="bg-[#bca142] text-white">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dispute</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Dispute</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                       {activeTab === 'against' ? 'User' : 'Against'}
                     </th>
-                    {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th> */}
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    {/* <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Reason</th> */}
+                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Priority</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Created</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -451,14 +451,14 @@ const CompanyDisputes = () => {
                             setSelectedDispute(dispute);
                             setShowDetailsModal(true);
                           }}
-                          className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition-colors mr-2"
+                          className="bg-[#bca142] text-white p-2 rounded-md hover:bg-black transition-colors mr-2"
                           title="View Details"
                         >
                           <FiEye size={16} />
                         </button>
                         <button
                           onClick={() => handleOpenChat(dispute)}
-                          className="bg-purple-500 text-white p-2 rounded-md hover:bg-purple-600 transition-colors mr-2"
+                          className="bg-black text-white p-2 rounded-md hover:bg-[#bca142] transition-colors mr-2"
                           title="Open Chat"
                         >
                           <FiMessageSquare size={16} />
@@ -470,7 +470,7 @@ const CompanyDisputes = () => {
                               setNewStatus(dispute.status); // Initialize with current status
                               setShowResponseModal(true);
                             }}
-                            className="bg-green-500 text-white p-2 rounded-md hover:bg-green-600 transition-colors"
+                            className="bg-gray-500 text-white p-2 rounded-md hover:bg-gray-600 transition-colors"
                             title="Respond & Update Status"
                           >
                             <FiEdit size={16} />
@@ -490,7 +490,7 @@ const CompanyDisputes = () => {
       {showDetailsModal && selectedDispute && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 px-6 py-4 flex items-center justify-between">
+            <div className="bg-[#bca142] px-6 py-4 flex items-center justify-between">
               <h2 className="text-2xl font-bold text-white">Dispute Details #{selectedDispute.id}</h2>
               <button
                 onClick={() => setShowDetailsModal(false)}
@@ -787,7 +787,7 @@ const CompanyDisputes = () => {
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 px-6 py-4 flex items-center justify-between">
+            <div className="bg-[#bca142] px-6 py-4 flex items-center justify-between">
               <h3 className="text-xl font-bold text-white">File Dispute Against Platform</h3>
               <button 
                 onClick={() => setShowCreateModal(false)}
@@ -813,7 +813,7 @@ const CompanyDisputes = () => {
                   <select
                     value={formData.dispute_reason_id}
                     onChange={(e) => setFormData({...formData, dispute_reason_id: e.target.value})}
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-[#bca142] focus:border-transparent"
                     required
                   >
                     <option value="">Select a reason</option>
@@ -831,7 +831,7 @@ const CompanyDisputes = () => {
                     type="text"
                     value={formData.title}
                     onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-[#bca142] focus:border-transparent"
                     placeholder="Brief description of the issue"
                     required
                   />
@@ -844,7 +844,7 @@ const CompanyDisputes = () => {
                   <select
                     value={formData.priority}
                     onChange={(e) => setFormData({...formData, priority: e.target.value})}
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-[#bca142] focus:border-transparent"
                   >
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
@@ -860,7 +860,7 @@ const CompanyDisputes = () => {
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-[#bca142] focus:border-transparent"
                     rows="4"
                     placeholder="Provide detailed information about your concern with the platform..."
                     required
@@ -878,7 +878,7 @@ const CompanyDisputes = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                  className="px-4 py-2 bg-[#bca142] text-white rounded hover:bg-black transition-colors"
                 >
                   File Dispute
                 </button>
@@ -907,7 +907,7 @@ const CompanyDisputes = () => {
               </div>
             )}
             
-            <div className="bg-gradient-to-r from-green-500 to-blue-500 px-6 py-4 flex items-center justify-between">
+            <div className="bg-[#bca142] px-6 py-4 flex items-center justify-between">
               <h3 className="text-xl font-bold text-white">Respond & Update Status - Dispute #{selectedDispute.id}</h3>
               <button 
                 onClick={() => {
@@ -955,7 +955,7 @@ const CompanyDisputes = () => {
                       className={`w-full p-3 border rounded-lg transition-all duration-200 ${
                         submitting 
                           ? 'bg-gray-100 cursor-not-allowed opacity-60' 
-                          : 'focus:ring-2 focus:ring-yellow-500 focus:border-transparent hover:border-yellow-300'
+                          : 'focus:ring-2 focus:ring-[#bca142] focus:border-transparent hover:border-gray-300'
                       }`}
                       required
                     >
@@ -983,7 +983,7 @@ const CompanyDisputes = () => {
                       className={`w-full p-3 border rounded-lg transition-all duration-200 ${
                         submitting 
                           ? 'bg-gray-100 cursor-not-allowed opacity-60' 
-                          : 'focus:ring-2 focus:ring-yellow-500 focus:border-transparent hover:border-yellow-300'
+                          : 'focus:ring-2 focus:ring-[#bca142] focus:border-transparent hover:border-gray-300'
                       }`}
                       rows="6"
                       placeholder="Provide your response to this dispute and explain any status changes. This message will be shared with the user."
@@ -1024,8 +1024,8 @@ const CompanyDisputes = () => {
                     disabled={submitting}
                     className={`px-6 py-3 text-white rounded-lg font-medium transition-all duration-200 flex items-center justify-center min-w-[200px] ${
                       submitting 
-                        ? 'bg-gradient-to-r from-yellow-400 to-orange-400 cursor-not-allowed' 
-                        : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 transform hover:scale-105 shadow-lg hover:shadow-xl'
+                        ? 'bg-gray-400 cursor-not-allowed' 
+                        : 'bg-[#bca142] hover:bg-black transform hover:scale-105 shadow-lg hover:shadow-xl'
                     }`}
                   >
                     {submitting ? (

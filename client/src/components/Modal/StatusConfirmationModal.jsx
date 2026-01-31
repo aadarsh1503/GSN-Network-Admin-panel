@@ -16,30 +16,30 @@ const StatusConfirmationModal = ({
   const getIcon = () => {
     switch (type) {
       case 'activate':
-        return <FaCheck className="text-green-500 text-4xl" />;
+        return <FaCheck className="text-[#bca142] text-4xl" />;
       case 'deactivate':
-        return <FaBan className="text-red-500 text-4xl" />;
+        return <FaBan className="text-black text-4xl" />;
       case 'blacklist':
-        return <FaExclamationTriangle className="text-yellow-500 text-4xl" />;
+        return <FaExclamationTriangle className="text-[#bca142] text-4xl" />;
       case 'unblacklist':
-        return <FaCheck className="text-green-500 text-4xl" />;
+        return <FaCheck className="text-[#bca142] text-4xl" />;
       default:
-        return <FaExclamationTriangle className="text-blue-500 text-4xl" />;
+        return <FaExclamationTriangle className="text-[#bca142] text-4xl" />;
     }
   };
 
   const getButtonColor = () => {
     switch (type) {
       case 'activate':
-        return 'bg-green-600 hover:bg-green-700';
+        return 'bg-[#bca142] hover:bg-black';
       case 'deactivate':
-        return 'bg-red-600 hover:bg-red-700';
+        return 'bg-black hover:bg-[#bca142]';
       case 'blacklist':
-        return 'bg-yellow-600 hover:bg-yellow-700';
+        return 'bg-[#bca142] hover:bg-black';
       case 'unblacklist':
-        return 'bg-green-600 hover:bg-green-700';
+        return 'bg-[#bca142] hover:bg-black';
       default:
-        return 'bg-blue-600 hover:bg-blue-700';
+        return 'bg-[#bca142] hover:bg-black';
     }
   };
 

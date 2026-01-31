@@ -49,7 +49,7 @@ const NotificationPage = () => {
       </div>;
     } else if (title.includes('Quote Not Selected')) {
       return <div className="w-10 h-10 bg-yellow-50 rounded-full flex items-center justify-center">
-        <FiClock className="w-5 h-5 text-[#CDA435]" />
+        <FiClock className="w-5 h-5 text-[#bca142]" />
       </div>;
     } else {
       return <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">

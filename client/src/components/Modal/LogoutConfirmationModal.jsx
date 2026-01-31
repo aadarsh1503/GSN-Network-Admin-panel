@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { 
   FiLogOut, FiX, FiShield, FiZap, FiUser, FiHome, 
-  FiCheck, FiAlertTriangle 
+  FiAlertTriangle 
 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { performLogout } from '../../utils/logout';
@@ -73,39 +73,39 @@ const LogoutConfirmationModal = ({
     switch (userRole) {
       case 'admin':
         return {
-          color: 'red',
+          color: '[#bca142]',
           icon: <FiShield className="w-8 h-8" />,
           title: 'Admin Logout',
           description: 'You are about to logout from the admin panel',
-          gradient: 'from-red-500 to-pink-600',
-          glowColor: 'red-500/20'
+          gradient: 'from-[#bca142] to-black',
+          glowColor: '[#bca142]/20'
         };
       case 'company':
         return {
-          color: 'blue',
+          color: '[#bca142]',
           icon: <FiZap className="w-8 h-8" />,
           title: 'Member Logout',
           description: 'You are about to logout from the member panel',
-          gradient: 'from-blue-500 to-cyan-600',
-          glowColor: 'blue-500/20'
+          gradient: 'from-[#bca142] to-black',
+          glowColor: '[#bca142]/20'
         };
       case 'business':
         return {
-          color: 'purple',
+          color: '[#bca142]',
           icon: <FiZap className="w-8 h-8" />,
           title: 'Business Logout',
           description: 'You are about to logout from the business panel',
-          gradient: 'from-purple-500 to-indigo-600',
-          glowColor: 'purple-500/20'
+          gradient: 'from-[#bca142] to-black',
+          glowColor: '[#bca142]/20'
         };
       default:
         return {
-          color: 'green',
+          color: '[#bca142]',
           icon: <FiUser className="w-8 h-8" />,
           title: 'User Logout',
           description: 'You are about to logout from your account',
-          gradient: 'from-green-500 to-emerald-600',
-          glowColor: 'green-500/20'
+          gradient: 'from-[#bca142] to-black',
+          glowColor: '[#bca142]/20'
         };
     }
   };
@@ -135,10 +135,10 @@ const LogoutConfirmationModal = ({
           className="relative w-full max-w-md mx-auto"
         >
           {/* Glow effect */}
-          <div className={`absolute inset-0 bg-gradient-to-r ${config.gradient} rounded-3xl blur-xl opacity-20 animate-pulse`} />
+          <div className={`absolute inset-0 bg-[#bca142] rounded-3xl blur-xl opacity-20 animate-pulse`} />
           
           {/* Main modal */}
-          <div className="relative bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
+          <div className="relative bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200 overflow-hidden">
             
             {/* Animated background pattern */}
             <div className="absolute inset-0 opacity-5">
@@ -178,12 +178,12 @@ const LogoutConfirmationModal = ({
 
               {/* Icon with glow */}
               <div className="relative inline-block mb-6">
-                <div className={`absolute inset-0 bg-${config.color}-500 rounded-full blur-lg opacity-30 animate-pulse`} />
+                <div className={`absolute inset-0 bg-[#bca142] rounded-full blur-lg opacity-30 animate-pulse`} />
                 <motion.div
                   initial={{ rotate: 0 }}
                   animate={{ rotate: 360 }}
                   transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                  className={`relative p-4 bg-gradient-to-r ${config.gradient} rounded-full text-white shadow-lg`}
+                  className={`relative p-4 bg-[#bca142] rounded-full text-white shadow-lg`}
                 >
                   {config.icon}
                 </motion.div>
@@ -225,10 +225,10 @@ const LogoutConfirmationModal = ({
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.5 }}
-                className="flex items-center justify-center p-3 bg-amber-50 border border-amber-200 rounded-xl mb-6"
+                className="flex items-center justify-center p-3 bg-gray-50 border border-gray-200 rounded-xl mb-6"
               >
-                <FiAlertTriangle className="w-5 h-5 text-amber-600 mr-2" />
-                <span className="text-sm text-amber-700">
+                <FiAlertTriangle className="w-5 h-5 text-black mr-2" />
+                <span className="text-sm text-black">
                   Any unsaved changes will be lost
                 </span>
               </motion.div>
@@ -259,7 +259,7 @@ const LogoutConfirmationModal = ({
                   transition={{ delay: 0.7 }}
                   onClick={handleLogout}
                   disabled={isLoggingOut}
-                  className={`flex-1 px-6 py-3 bg-gradient-to-r ${config.gradient} hover:shadow-lg text-white font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105`}
+                  className={`flex-1 px-6 py-3 bg-[#bca142] hover:bg-black hover:shadow-lg text-white font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105`}
                 >
                   <div className="flex items-center justify-center">
                     {isLoggingOut ? (
@@ -292,7 +292,7 @@ const LogoutConfirmationModal = ({
                     <motion.div
                       animate={{ rotate: 360 }}
                       transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      className={`w-8 h-8 border-3 border-${config.color}-200 border-t-${config.color}-500 rounded-full mx-auto mb-2`}
+                      className={`w-8 h-8 border-3 border-gray-200 border-t-[#bca142] rounded-full mx-auto mb-2`}
                     />
                     <p className="text-sm text-gray-600">Securing your session...</p>
                   </div>

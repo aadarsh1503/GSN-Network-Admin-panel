@@ -30,8 +30,8 @@ const BlacklistReasonModal = ({ isOpen, onClose, onConfirm, userName }) => {
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-red-100 rounded-full">
-                <FaExclamationTriangle className="text-red-600 text-2xl" />
+              <div className="p-3 bg-[#bca142] rounded-full">
+                <FaExclamationTriangle className="text-white text-2xl" />
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-gray-900">Blacklist Company</h3>
@@ -48,12 +48,12 @@ const BlacklistReasonModal = ({ isOpen, onClose, onConfirm, userName }) => {
           </div>
 
           {/* Warning Message */}
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-r-lg">
+          <div className="bg-gray-50 border-l-4 border-[#bca142] p-4 mb-6 rounded-r-lg">
             <div className="flex items-start">
-              <FaExclamationTriangle className="text-red-500 mt-1 mr-3 flex-shrink-0" />
+              <FaExclamationTriangle className="text-[#bca142] mt-1 mr-3 flex-shrink-0" />
               <div>
-                <h4 className="text-red-800 font-semibold mb-1">Important Notice</h4>
-                <p className="text-red-700 text-sm">
+                <h4 className="text-black font-semibold mb-1">Important Notice</h4>
+                <p className="text-gray-700 text-sm">
                   You are about to blacklist <span className="font-bold">{userName}</span>. 
                   This action will restrict their access and activities on the platform. 
                   Please provide a clear and detailed reason for this action.
@@ -75,13 +75,13 @@ const BlacklistReasonModal = ({ isOpen, onClose, onConfirm, userName }) => {
           {/* Reason Input */}
           <div className="mb-6">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Reason for Blacklisting <span className="text-red-500">*</span>
+              Reason for Blacklisting <span className="text-[#bca142]">*</span>
             </label>
             <textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Please provide a detailed reason for blacklisting this company. This will be visible to the company and other administrators."
-              className="w-full p-4 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none transition-all"
+              className="w-full p-4 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142] resize-none transition-all"
               rows="6"
               disabled={isSubmitting}
               required
@@ -90,7 +90,7 @@ const BlacklistReasonModal = ({ isOpen, onClose, onConfirm, userName }) => {
               Minimum 10 characters required. Be specific and professional.
             </p>
             {reason.trim() && reason.trim().length < 10 && (
-              <p className="text-sm text-red-600 mt-1">
+              <p className="text-sm text-[#bca142] mt-1">
                 Reason must be at least 10 characters long
               </p>
             )}
@@ -107,7 +107,7 @@ const BlacklistReasonModal = ({ isOpen, onClose, onConfirm, userName }) => {
             </button>
             <button
               onClick={handleSubmit}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold rounded-lg hover:from-red-700 hover:to-red-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-[#bca142] to-black text-white font-semibold rounded-lg hover:from-black hover:to-[#bca142] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
               disabled={isSubmitting || !reason.trim() || reason.trim().length < 10}
             >
               {isSubmitting ? (

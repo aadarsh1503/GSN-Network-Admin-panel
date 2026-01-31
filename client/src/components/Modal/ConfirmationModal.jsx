@@ -18,24 +18,24 @@ const ConfirmationModal = ({
     switch (type) {
       case 'danger':
         return {
-          gradient: 'from-red-500 to-pink-600',
-          icon: 'text-red-500',
-          confirmBtn: 'from-red-500 to-red-600 hover:from-red-600 hover:to-red-700',
-          accent: 'border-red-200 bg-red-50'
+          gradient: 'from-[#bca142] to-black',
+          icon: 'text-[#bca142]',
+          confirmBtn: 'from-[#bca142] to-black hover:from-black hover:to-[#bca142]',
+          accent: 'border-gray-200 bg-gray-50'
         };
       case 'warning':
         return {
-          gradient: 'from-yellow-500 to-orange-600',
-          icon: 'text-yellow-500',
-          confirmBtn: 'from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700',
-          accent: 'border-yellow-200 bg-yellow-50'
+          gradient: 'from-[#bca142] to-black',
+          icon: 'text-[#bca142]',
+          confirmBtn: 'from-[#bca142] to-black hover:from-black hover:to-[#bca142]',
+          accent: 'border-gray-200 bg-gray-50'
         };
       default:
         return {
-          gradient: 'from-blue-500 to-indigo-600',
-          icon: 'text-blue-500',
-          confirmBtn: 'from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700',
-          accent: 'border-blue-200 bg-blue-50'
+          gradient: 'from-[#bca142] to-black',
+          icon: 'text-[#bca142]',
+          confirmBtn: 'from-[#bca142] to-black hover:from-black hover:to-[#bca142]',
+          accent: 'border-gray-200 bg-gray-50'
         };
     }
   };
@@ -49,7 +49,7 @@ const ConfirmationModal = ({
         {isLoading && (
           <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-10 rounded-2xl">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-red-500 mx-auto mb-4"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-[#bca142] mx-auto mb-4"></div>
               <p className="text-lg font-medium text-gray-700 animate-pulse">
                 Processing...
               </p>

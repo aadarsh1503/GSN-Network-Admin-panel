@@ -154,30 +154,30 @@ const AdminDisputes = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'pending':
-        return 'bg-gradient-to-r from-yellow-100 to-amber-100 text-yellow-800 border border-yellow-200';
+        return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
       case 'running':
-        return 'bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800 border border-blue-200';
+        return 'bg-blue-100 text-blue-800 border border-blue-200';
       case 'resolved':
-        return 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200';
+        return 'bg-green-100 text-green-800 border border-green-200';
       case 'closed':
-        return 'bg-gradient-to-r from-gray-100 to-slate-100 text-gray-800 border border-gray-200';
+        return 'bg-gray-100 text-gray-800 border border-gray-200';
       default:
-        return 'bg-gradient-to-r from-gray-100 to-slate-100 text-gray-800 border border-gray-200';
+        return 'bg-gray-100 text-gray-800 border border-gray-200';
     }
   };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
       case 'urgent':
-        return 'bg-gradient-to-r from-red-100 to-pink-100 text-red-800 border border-red-200';
+        return 'bg-red-100 text-red-800 border border-red-200';
       case 'high':
-        return 'bg-gradient-to-r from-orange-100 to-red-100 text-orange-800 border border-orange-200';
+        return 'bg-orange-100 text-orange-800 border border-orange-200';
       case 'medium':
-        return 'bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-800 border border-yellow-200';
+        return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
       case 'low':
-        return 'bg-gradient-to-r from-green-100 to-teal-100 text-green-800 border border-green-200';
+        return 'bg-green-100 text-green-800 border border-green-200';
       default:
-        return 'bg-gradient-to-r from-gray-100 to-slate-100 text-gray-800 border border-gray-200';
+        return 'bg-gray-100 text-gray-800 border border-gray-200';
     }
   };
 
@@ -286,11 +286,11 @@ const AdminDisputes = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="flex items-center justify-center h-screen bg-[#bca142]/10">
         <div className="text-center">
           <div className="relative">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto"></div>
-            <FiZap className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-blue-600 animate-pulse" size={24} />
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#bca142]/30 border-t-[#bca142] mx-auto"></div>
+            <FiZap className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-[#bca142] animate-pulse" size={24} />
           </div>
           <p className="mt-4 text-lg font-medium text-gray-700 animate-pulse">Loading Disputes...</p>
         </div>
@@ -299,17 +299,17 @@ const AdminDisputes = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-3">
+    <div className="min-h-screen bg-[#bca142]/10 p-3">
       <div className="max-w-6xl mx-auto">
         {/* Compact Header */}
         <div className="bg-white/80 backdrop-blur-lg rounded-xl shadow-xl border border-white/20 p-4 mb-4">
           <div className="flex flex-col lg:flex-row justify-between items-center">
             <div className="flex items-center space-x-3 mb-2 lg:mb-0">
-              <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg">
+              <div className="p-2 bg-[#bca142] rounded-lg">
                 <FiShield className="text-white" size={20} />
               </div>
               <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                <h1 className="text-xl font-bold text-black">
                   Admin Disputes
                 </h1>
                 <p className="text-gray-600 text-sm">Manage disputes</p>
@@ -317,7 +317,7 @@ const AdminDisputes = () => {
             </div>
             <button 
               onClick={fetchDisputes}
-              className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-2 px-4 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-lg text-sm"
+              className="flex items-center space-x-2 bg-[#bca142] text-white font-semibold py-2 px-4 rounded-lg hover:bg-black transition-all duration-300 shadow-lg text-sm"
             >
               <FiRefreshCw size={16} />
               <span>Refresh</span>
@@ -328,10 +328,10 @@ const AdminDisputes = () => {
         {/* Compact Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
           {[
-            { label: 'Total', value: counts.all, icon: FiUsers, color: 'from-blue-500 to-cyan-500' },
-            { label: 'Pending', value: counts.pending, icon: FiClock, color: 'from-yellow-500 to-orange-500' },
-            { label: 'Running', value: counts.running, icon: FiZap, color: 'from-purple-500 to-pink-500' },
-            { label: 'Resolved', value: counts.resolved, icon: FiCheckCircle, color: 'from-green-500 to-emerald-500' }
+            { label: 'Total', value: counts.all, icon: FiUsers, color: 'bg-[#bca142]' },
+            { label: 'Pending', value: counts.pending, icon: FiClock, color: 'bg-[#bca142]' },
+            { label: 'Running', value: counts.running, icon: FiZap, color: 'bg-[#bca142]' },
+            { label: 'Resolved', value: counts.resolved, icon: FiCheckCircle, color: 'bg-[#bca142]' }
           ].map((stat, index) => (
             <div key={index} className="bg-white/80 backdrop-blur-lg rounded-lg shadow-lg border border-white/20 p-3 hover:shadow-xl transition-all duration-300">
               <div className="flex items-center justify-between">
@@ -339,7 +339,7 @@ const AdminDisputes = () => {
                   <p className="text-xs font-medium text-gray-600">{stat.label}</p>
                   <p className="text-xl font-bold text-gray-900">{stat.value}</p>
                 </div>
-                <div className={`p-2 bg-gradient-to-r ${stat.color} rounded-lg`}>
+                <div className={`p-2 ${stat.color} rounded-lg`}>
                   <stat.icon className="text-white" size={16} />
                 </div>
               </div>
@@ -358,7 +358,7 @@ const AdminDisputes = () => {
                 placeholder="Search disputes..."
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className="w-full pl-9 pr-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-sm"
+                className="w-full pl-9 pr-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 text-sm"
               />
             </div>
 
@@ -367,7 +367,7 @@ const AdminDisputes = () => {
               <select
                 value={userTypeFilter}
                 onChange={(e) => { setUserTypeFilter(e.target.value); setCurrentPage(1); }}
-                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 text-sm"
+                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] transition-all duration-300 text-sm"
               >
                 <option value="all">All Users</option>
                 <option value="user">Users</option>
@@ -379,7 +379,7 @@ const AdminDisputes = () => {
               <select
                 value={priorityFilter}
                 onChange={(e) => { setPriorityFilter(e.target.value); setCurrentPage(1); }}
-                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 text-sm"
+                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] transition-all duration-300 text-sm"
               >
                 <option value="all">All Priorities</option>
                 <option value="urgent">Urgent</option>
@@ -391,7 +391,7 @@ const AdminDisputes = () => {
               <select
                 value={itemsPerPage}
                 onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
-                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 text-sm"
+                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] transition-all duration-300 text-sm"
               >
                 <option value="10">10</option>
                 <option value="25">25</option>
@@ -413,7 +413,7 @@ const AdminDisputes = () => {
         <div className="bg-white/80 backdrop-blur-lg rounded-xl shadow-xl border border-white/20 overflow-hidden">
           {sortedDisputes.length === 0 ? (
             <div className="text-center py-12">
-              <div className="p-3 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+              <div className="p-3 bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <FiCheckCircle className="text-gray-400" size={32} />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -433,24 +433,24 @@ const AdminDisputes = () => {
             <>
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gradient-to-r from-gray-50 to-blue-50">
+                  <thead className="bg-[#bca142]">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Dispute Info</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Filed By</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Against</th>
-                      {/* <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Reason</th> */}
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Priority</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Created</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Dispute Info</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Filed By</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Against</th>
+                      {/* <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Reason</th> */}
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Priority</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Status</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Created</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {paginatedDisputes.map((dispute, index) => (
-                      <tr key={dispute.id} className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-all duration-300">
+                      <tr key={dispute.id} className="hover:bg-[#bca142]/10 transition-all duration-300">
                         <td className="px-4 py-3">
                           <div className="flex items-center space-x-2">
-                            <div className="p-1.5 bg-gradient-to-r from-blue-100 to-purple-100 rounded-lg">
+                            <div className="p-1.5 bg-[#bca142]/20 rounded-lg">
                               {getStatusIcon(dispute.status)}
                             </div>
                             <div>
@@ -461,7 +461,7 @@ const AdminDisputes = () => {
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center space-x-2">
-                            <div className="p-1.5 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-lg">
+                            <div className="p-1.5 bg-[#bca142]/20 rounded-lg">
                               {getUserTypeIcon(dispute.user_role)}
                             </div>
                             <div>
@@ -482,7 +482,7 @@ const AdminDisputes = () => {
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center space-x-2">
-                            <div className="p-1.5 bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg">
+                            <div className="p-1.5 bg-[#bca142]/20 rounded-lg">
                               {getUserTypeIcon(dispute.company_role)}
                             </div>
                             <div>
@@ -533,14 +533,14 @@ const AdminDisputes = () => {
                                 setSelectedDispute(dispute);
                                 setShowDetailsModal(true);
                               }}
-                              className="p-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                              className="p-1.5 bg-black text-white rounded-lg hover:bg-[#bca142] transition-all duration-300 transform hover:scale-105 shadow-lg"
                               title="View Details"
                             >
                               <FiEye size={12} />
                             </button>
                             <button
                               onClick={() => handleOpenChat(dispute)}
-                              className="p-1.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                              className="p-1.5 bg-[#bca142] text-white rounded-lg hover:bg-black transition-all duration-300 transform hover:scale-105 shadow-lg"
                               title="Open Chat"
                             >
                               <FiMessageSquare size={12} />
@@ -552,7 +552,7 @@ const AdminDisputes = () => {
                                   setNewStatus(dispute.status);
                                   setShowResponseModal(true);
                                 }}
-                                className="p-1.5 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                                className="p-1.5 bg-[#bca142] text-white rounded-lg hover:bg-black transition-all duration-300 transform hover:scale-105 shadow-lg"
                                 title="Update Status"
                               >
                                 <FiEdit size={12} />
@@ -563,7 +563,7 @@ const AdminDisputes = () => {
                                 setDisputeToDelete(dispute);
                                 setShowDeleteModal(true);
                               }}
-                              className="p-1.5 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:from-red-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                              className="p-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
                               title="Delete Dispute"
                             >
                               <FiTrash2 size={12} />
@@ -577,12 +577,12 @@ const AdminDisputes = () => {
               </div>
               
               {/* Enhanced Pagination */}
-              <div className="bg-gradient-to-r from-gray-50 to-blue-50 px-6 py-4 border-t border-gray-200">
+              <div className="bg-[#bca142] px-6 py-4 border-t border-gray-200">
                 <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
-                  <div className="text-sm text-gray-700">
-                    Showing <span className="font-bold text-blue-600">{startIndex + 1}</span> to{' '}
-                    <span className="font-bold text-blue-600">{Math.min(endIndex, sortedDisputes.length)}</span> of{' '}
-                    <span className="font-bold text-blue-600">{sortedDisputes.length}</span> results
+                  <div className="text-sm text-white">
+                    Showing <span className="font-bold text-white">{startIndex + 1}</span> to{' '}
+                    <span className="font-bold text-white">{Math.min(endIndex, sortedDisputes.length)}</span> of{' '}
+                    <span className="font-bold text-white">{sortedDisputes.length}</span> results
                   </div>
                   
                   <div className="flex items-center space-x-2">
@@ -614,7 +614,7 @@ const AdminDisputes = () => {
                             onClick={() => setCurrentPage(pageNum)}
                             className={`px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${
                               currentPage === pageNum
-                                ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg transform scale-105'
+                                ? 'bg-black text-white shadow-lg transform scale-105'
                                 : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
                             }`}
                           >
@@ -643,14 +643,14 @@ const AdminDisputes = () => {
       {showDetailsModal && selectedDispute && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white/95 backdrop-blur-lg rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20">
-            <div className="bg-gradient-to-r from-blue-500 via-purple-600 to-pink-500 px-8 py-6 flex items-center justify-between">
+            <div className="bg-[#bca142] px-8 py-6 flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <div className="p-3 bg-white/20 rounded-xl">
                   <FiShield className="text-white" size={24} />
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-white">Dispute Details #{selectedDispute.id}</h2>
-                  <p className="text-blue-100">Advanced dispute analysis & management</p>
+                  <p className="text-gray-100">Advanced dispute analysis & management</p>
                 </div>
               </div>
               <button
@@ -665,15 +665,15 @@ const AdminDisputes = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Left Column */}
                 <div className="space-y-6">
-                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-xl border border-blue-200">
+                  <div className="bg-blue-50 p-6 rounded-xl border border-blue-200">
                     <label className="block text-sm font-bold text-gray-700 mb-2">Dispute Title</label>
                     <p className="text-lg font-semibold text-gray-900">{selectedDispute.title}</p>
                   </div>
                   
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200">
+                  <div className="bg-green-50 p-6 rounded-xl border border-green-200">
                     <label className="block text-sm font-bold text-gray-700 mb-3">Filed By (User Profile)</label>
                     <div className="flex items-center space-x-4">
-                      <div className="p-3 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-xl">
+                      <div className="p-3 bg-blue-100 rounded-xl">
                         {getUserTypeIcon(selectedDispute.user_role)}
                       </div>
                       <div>
@@ -684,10 +684,10 @@ const AdminDisputes = () => {
                     </div>
                   </div>
                   
-                  <div className="bg-gradient-to-r from-orange-50 to-red-50 p-6 rounded-xl border border-orange-200">
+                  <div className="bg-orange-50 p-6 rounded-xl border border-orange-200">
                     <label className="block text-sm font-bold text-gray-700 mb-3">Against (Target Profile)</label>
                     <div className="flex items-center space-x-4">
-                      <div className="p-3 bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl">
+                      <div className="p-3 bg-green-100 rounded-xl">
                         {getUserTypeIcon(selectedDispute.company_role)}
                       </div>
                       <div>
@@ -698,7 +698,7 @@ const AdminDisputes = () => {
                     </div>
                   </div>
                   
-                  <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-xl border border-yellow-200">
+                  <div className="bg-yellow-50 p-6 rounded-xl border border-yellow-200">
                     <label className="block text-sm font-bold text-gray-700 mb-2">Dispute Reason</label>
                     <p className="text-lg font-semibold text-gray-900 bg-white px-4 py-2 rounded-lg">{selectedDispute.reason_title}</p>
                   </div>
@@ -707,7 +707,7 @@ const AdminDisputes = () => {
                 {/* Right Column */}
                 <div className="space-y-6">
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-xl border border-purple-200">
+                    <div className="bg-purple-50 p-4 rounded-xl border border-purple-200">
                       <label className="block text-sm font-bold text-gray-700 mb-2">Status</label>
                       <span className={`inline-flex items-center px-3 py-2 text-sm font-bold rounded-lg ${getStatusColor(selectedDispute.status)}`}>
                         {getStatusIcon(selectedDispute.status)}
@@ -715,7 +715,7 @@ const AdminDisputes = () => {
                       </span>
                     </div>
                     
-                    <div className="bg-gradient-to-r from-red-50 to-pink-50 p-4 rounded-xl border border-red-200">
+                    <div className="bg-red-50 p-4 rounded-xl border border-red-200">
                       <label className="block text-sm font-bold text-gray-700 mb-2">Priority</label>
                       <span className={`inline-flex items-center px-3 py-2 text-sm font-bold rounded-lg ${getPriorityColor(selectedDispute.priority)}`}>
                         <FiTrendingUp className="mr-1" size={14} />
@@ -724,13 +724,13 @@ const AdminDisputes = () => {
                     </div>
                   </div>
                   
-                  <div className="bg-gradient-to-r from-gray-50 to-slate-50 p-6 rounded-xl border border-gray-200">
+                  <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
                     <label className="block text-sm font-bold text-gray-700 mb-2">Filed On</label>
                     <p className="text-lg font-semibold text-gray-900">{new Date(selectedDispute.created_at).toLocaleString()}</p>
                   </div>
 
                   {selectedDispute.resolved_at && (
-                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200">
+                    <div className="bg-green-50 p-6 rounded-xl border border-green-200">
                       <label className="block text-sm font-bold text-gray-700 mb-2">Resolved On</label>
                       <p className="text-lg font-semibold text-gray-900">{new Date(selectedDispute.resolved_at).toLocaleString()}</p>
                     </div>
@@ -738,7 +738,7 @@ const AdminDisputes = () => {
 
                   {/* Special Admin vs User indicator */}
                   {(selectedDispute.user_role === 'admin' || selectedDispute.company_role === 'admin') && (
-                    <div className="bg-gradient-to-r from-red-100 to-pink-100 p-6 rounded-xl border-2 border-red-300">
+                    <div className="bg-red-100 p-6 rounded-xl border-2 border-red-300">
                       <div className="flex items-center space-x-3">
                         <FiShield className="text-red-600" size={24} />
                         <div>
@@ -752,7 +752,7 @@ const AdminDisputes = () => {
 
                 {/* Full Width Description */}
                 <div className="lg:col-span-2">
-                  <div className="bg-gradient-to-r from-slate-50 to-gray-50 p-6 rounded-xl border border-slate-200">
+                  <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">
                     <label className="block text-sm font-bold text-gray-700 mb-3">Dispute Description</label>
                     <div className="bg-white p-4 rounded-lg border border-gray-200 max-h-40 overflow-y-auto">
                       <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{selectedDispute.description}</p>
@@ -762,7 +762,7 @@ const AdminDisputes = () => {
 
                 {selectedDispute.company_response && (
                   <div className="lg:col-span-2">
-                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200">
+                    <div className="bg-green-50 p-6 rounded-xl border border-green-200">
                       <label className="block text-sm font-bold text-gray-700 mb-3">Company Response</label>
                       <div className="bg-white p-4 rounded-lg border border-green-300">
                         <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{selectedDispute.company_response}</p>
@@ -778,7 +778,7 @@ const AdminDisputes = () => {
 
                 {selectedDispute.admin_response && (
                   <div className="lg:col-span-2">
-                    <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-6 rounded-xl border border-blue-200">
+                    <div className="bg-blue-50 p-6 rounded-xl border border-blue-200">
                       <label className="block text-sm font-bold text-gray-700 mb-3">Admin Response</label>
                       <div className="bg-white p-4 rounded-lg border border-blue-300">
                         <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{selectedDispute.admin_response}</p>
@@ -794,10 +794,10 @@ const AdminDisputes = () => {
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-gray-50 to-slate-50 px-8 py-6 flex justify-end border-t border-gray-200">
+            <div className="bg-gray-50 px-8 py-6 flex justify-end border-t border-gray-200">
               <button
                 onClick={() => setShowDetailsModal(false)}
-                className="bg-gradient-to-r from-gray-500 to-slate-600 hover:from-gray-600 hover:to-slate-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
+                className="bg-[#bca142] hover:bg-black text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
               >
                 Close Details
               </button>
@@ -825,14 +825,14 @@ const AdminDisputes = () => {
               </div>
             )}
             
-            <div className="bg-gradient-to-r from-orange-500 to-red-500 px-8 py-6 flex items-center justify-between">
+            <div className="bg-[#bca142] px-8 py-6 flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <div className="p-3 bg-white/20 rounded-xl">
                   <FiEdit className="text-white" size={20} />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-white">Update Dispute #{selectedDispute.id}</h3>
-                  <p className="text-orange-100">Admin status management</p>
+                  <p className="text-gray-100">Admin status management</p>
                 </div>
               </div>
               <button 
@@ -855,7 +855,7 @@ const AdminDisputes = () => {
             
             <div className="p-8">
               {/* Dispute Summary */}
-              <div className="bg-gradient-to-r from-gray-50 to-blue-50 p-6 rounded-xl mb-6 border border-gray-200">
+              <div className="bg-gray-50 p-6 rounded-xl mb-6 border border-gray-200">
                 <h4 className="font-bold text-gray-900 mb-4 flex items-center">
                   <FiShield className="mr-2 text-blue-600" />
                   Dispute Summary
@@ -890,7 +890,7 @@ const AdminDisputes = () => {
                       className={`w-full p-4 border rounded-xl transition-all duration-300 ${
                         submitting 
                           ? 'bg-gray-100 cursor-not-allowed opacity-60' 
-                          : 'focus:ring-2 focus:ring-orange-500 focus:border-transparent hover:border-orange-300 bg-white/50'
+                          : 'focus:ring-2 focus:ring-[#bca142] focus:border-transparent hover:border-orange-300 bg-white/50'
                       }`}
                       required
                     >
@@ -912,7 +912,7 @@ const AdminDisputes = () => {
                       className={`w-full p-4 border rounded-xl transition-all duration-300 ${
                         submitting 
                           ? 'bg-gray-100 cursor-not-allowed opacity-60' 
-                          : 'focus:ring-2 focus:ring-orange-500 focus:border-transparent hover:border-orange-300 bg-white/50'
+                          : 'focus:ring-2 focus:ring-[#bca142] focus:border-transparent hover:border-orange-300 bg-white/50'
                       }`}
                       rows="6"
                       placeholder="Provide your admin response and any resolution notes. This will be shared with both the user and company."
@@ -920,7 +920,7 @@ const AdminDisputes = () => {
                     />
                   </div>
                   
-                  <div className="bg-gradient-to-r from-orange-50 to-red-50 p-6 rounded-xl border border-orange-200">
+                  <div className="bg-orange-50 p-6 rounded-xl border border-orange-200">
                     <div className="flex items-start space-x-3">
                       <FiShield className="text-orange-600 mt-1" size={20} />
                       <div>
@@ -950,7 +950,7 @@ const AdminDisputes = () => {
                     className={`px-6 py-3 text-white rounded-xl font-semibold transition-all duration-300 ${
                       submitting 
                         ? 'bg-gray-400 cursor-not-allowed opacity-60' 
-                        : 'bg-gradient-to-r from-gray-500 to-slate-600 hover:from-gray-600 hover:to-slate-700 transform hover:scale-105 shadow-lg'
+                        : 'bg-gray-500 hover:bg-gray-600 transform hover:scale-105 shadow-lg'
                     }`}
                   >
                     Cancel
@@ -960,8 +960,8 @@ const AdminDisputes = () => {
                     disabled={submitting}
                     className={`px-8 py-3 text-white rounded-xl font-semibold transition-all duration-300 flex items-center justify-center min-w-[200px] ${
                       submitting 
-                        ? 'bg-gradient-to-r from-yellow-400 to-orange-400 cursor-not-allowed' 
-                        : 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 transform hover:scale-105 shadow-lg hover:shadow-xl'
+                        ? 'bg-yellow-400 cursor-not-allowed' 
+                        : 'bg-[#bca142] hover:bg-black transform hover:scale-105 shadow-lg hover:shadow-xl'
                     }`}
                   >
                     {submitting ? (

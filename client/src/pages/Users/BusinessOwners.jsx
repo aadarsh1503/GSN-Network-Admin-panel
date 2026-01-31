@@ -24,7 +24,7 @@ const ToggleSwitch = ({ checked, onChange }) => {
   return (
     <label className="relative inline-flex items-center cursor-pointer">
       <input type="checkbox" checked={checked} onChange={onChange} className="sr-only peer" />
-      <div className={`w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 ${checked ? 'peer-checked:bg-green-600' : ''}`}></div>
+      <div className={`w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-yellow-300 dark:peer-focus:ring-yellow-800 dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 ${checked ? 'peer-checked:bg-[#bca142]' : ''}`}></div>
     </label>
   );
 };
@@ -530,7 +530,7 @@ function BusinessOwners() {
                 {children}
                 <span>
                     {isSorted ? 
-                        (sortConfig.direction === 'ascending' ? <FaArrowUp className="text-gray-600" /> : <FaArrowDown className="text-gray-600" />) 
+                        (sortConfig.direction === 'ascending' ? <FaArrowUp className="text-white" /> : <FaArrowDown className="text-white" />) 
                         : null
                     }
                 </span>
@@ -568,7 +568,7 @@ function BusinessOwners() {
                 <button 
                   type="button" 
                   onClick={() => { setFilters({ status: '', blacklist: '' }); setSearchTerm(''); }}
-                  className="w-full flex items-center justify-center bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md"
+                  className="w-full flex items-center justify-center bg-[#bca142] hover:bg-[#B8941F] text-white font-bold py-2 px-4 rounded-md"
                 >
                     Reset Filters
                 </button>
@@ -615,7 +615,7 @@ function BusinessOwners() {
           {/* --- Users Table --- */}
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left text-gray-500">
-              <thead className="text-xs text-gray-700 uppercase" style={{ backgroundColor: '#eaddc0' }}>
+              <thead className="text-xs text-white uppercase" style={{ backgroundColor: '#bca142' }}>
                 <tr>
                   <SortableHeader name="id">Sr.No</SortableHeader>
                   <SortableHeader name="name">Name</SortableHeader>
@@ -650,7 +650,7 @@ function BusinessOwners() {
                         <div className="flex space-x-2">
                           <button 
                             onClick={() => handleEditUser(user)}
-                            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400"
+                            className="p-2 bg-[#bca142] text-white rounded hover:bg-[#B8941F] disabled:bg-gray-400"
                             title="Edit User"
                             disabled={loading}
                           >
@@ -658,7 +658,7 @@ function BusinessOwners() {
                           </button>
                           <button 
                             onClick={() => handleViewUser(user)}
-                            className="p-2 bg-pink-500 text-white rounded hover:bg-pink-600"
+                            className="p-2 bg-black text-white rounded hover:bg-gray-800"
                             title="View Details"
                           >
                             <FaEye />
@@ -690,7 +690,7 @@ function BusinessOwners() {
                 Previous
               </button>
               
-              <span className="px-3 py-1 border-t border-b text-white" style={{backgroundColor: '#eaddc0'}}>
+              <span className="px-3 py-1 border-t border-b text-white" style={{backgroundColor: '#bca142'}}>
                 {currentPage}
               </span>
 
@@ -711,7 +711,7 @@ function BusinessOwners() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden shadow-2xl">
             {/* Modal Header */}
-            <div className="bg-yellow-500 p-6 text-white">
+            <div className="bg-[#bca142] p-6 text-white">
               <div className="flex justify-between items-center">
                 <div className="flex items-center space-x-4">
                   {(viewingUser.logo || viewingUser.profile_image || viewingUser.image) && (
@@ -726,12 +726,12 @@ function BusinessOwners() {
                   )}
                   <div>
                     <h3 className="text-2xl font-bold">{viewingUser.name}</h3>
-                    <p className="text-blue-100">Business Profile</p>
+                    <p className="text-yellow-100">Business Profile</p>
                   </div>
                 </div>
                 <button 
                   onClick={() => setViewingUser(null)}
-                  className="text-white hover:text-blue-200 transition-colors p-2 rounded-full hover:bg-white hover:bg-opacity-20"
+                  className="text-white hover:text-yellow-200 transition-colors p-2 rounded-full hover:bg-white hover:bg-opacity-20"
                 >
                   <FaTimes size={24} />
                 </button>
@@ -783,7 +783,7 @@ function BusinessOwners() {
                     {/* Status Badges */}
                     <div className="flex flex-col items-start lg:items-end space-y-3">
                       <div className={`px-4 py-2 rounded-full text-sm font-bold ${
-                        viewingUser.status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        viewingUser.status ? 'bg-[#bca142] text-white' : 'bg-red-100 text-red-800'
                       }`}>
                         {viewingUser.status ? 'Active Account' : 'Inactive Account'}
                       </div>
@@ -810,7 +810,7 @@ function BusinessOwners() {
                     <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
                       <div className="p-6 border-b border-gray-200">
                         <h4 className="text-lg font-semibold text-gray-800 flex items-center">
-                          <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-5 h-5 mr-2 text-[#bca142]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                           </svg>
                           Business Information
@@ -857,7 +857,7 @@ function BusinessOwners() {
                       <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
                         <div className="p-6 border-b border-gray-200">
                           <h4 className="text-lg font-semibold text-gray-800 flex items-center">
-                            <span className="w-5 h-5 mr-2 text-green-600">👤</span>
+                            <span className="w-5 h-5 mr-2 text-[#bca142]">👤</span>
                             Contact Information
                           </h4>
                         </div>
@@ -897,7 +897,7 @@ function BusinessOwners() {
                       <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
                         <div className="p-6 border-b border-gray-200">
                           <h4 className="text-lg font-semibold text-gray-800 flex items-center">
-                            <svg className="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5 mr-2 text-[#bca142]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9" />
                             </svg>
                             Additional Information
@@ -912,7 +912,7 @@ function BusinessOwners() {
                                   href={viewingUser.website.startsWith('http') ? viewingUser.website : `https://${viewingUser.website}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="p-3 bg-gray-50 rounded-lg border text-blue-600 hover:text-blue-800 block"
+                                  className="p-3 bg-gray-50 rounded-lg border text-[#bca142] hover:text-[#B8941F] block"
                                 >
                                   {viewingUser.website}
                                 </a>
@@ -952,7 +952,7 @@ function BusinessOwners() {
                       <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
                         <div className="p-6 border-b border-gray-200">
                           <h4 className="text-lg font-semibold text-gray-800 flex items-center">
-                            <span className="w-5 h-5 mr-2 text-purple-600">🌐</span>
+                            <span className="w-5 h-5 mr-2 text-[#bca142]">🌐</span>
                             Social Media & Online Presence
                           </h4>
                         </div>
@@ -965,7 +965,7 @@ function BusinessOwners() {
                                   href={viewingUser.facebook.startsWith('http') ? viewingUser.facebook : `https://${viewingUser.facebook}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="p-3 bg-gray-50 rounded-lg border text-blue-600 hover:text-blue-800 block"
+                                  className="p-3 bg-gray-50 rounded-lg border text-[#bca142] hover:text-[#B8941F] block"
                                 >
                                   {viewingUser.facebook}
                                 </a>
@@ -978,7 +978,7 @@ function BusinessOwners() {
                                   href={viewingUser.twitter.startsWith('http') ? viewingUser.twitter : `https://${viewingUser.twitter}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="p-3 bg-gray-50 rounded-lg border text-blue-600 hover:text-blue-800 block"
+                                  className="p-3 bg-gray-50 rounded-lg border text-[#bca142] hover:text-[#B8941F] block"
                                 >
                                   {viewingUser.twitter}
                                 </a>
@@ -991,7 +991,7 @@ function BusinessOwners() {
                                   href={viewingUser.instagram.startsWith('http') ? viewingUser.instagram : `https://${viewingUser.instagram}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="p-3 bg-gray-50 rounded-lg border text-blue-600 hover:text-blue-800 block"
+                                  className="p-3 bg-gray-50 rounded-lg border text-[#bca142] hover:text-[#B8941F] block"
                                 >
                                   {viewingUser.instagram}
                                 </a>
@@ -1004,7 +1004,7 @@ function BusinessOwners() {
                                   href={viewingUser.linkedin.startsWith('http') ? viewingUser.linkedin : `https://${viewingUser.linkedin}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="p-3 bg-gray-50 rounded-lg border text-blue-600 hover:text-blue-800 block"
+                                  className="p-3 bg-gray-50 rounded-lg border text-[#bca142] hover:text-[#B8941F] block"
                                 >
                                   {viewingUser.linkedin}
                                 </a>
@@ -1020,7 +1020,7 @@ function BusinessOwners() {
                       <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
                         <div className="p-6 border-b border-gray-200">
                           <h4 className="text-lg font-semibold text-gray-800 flex items-center">
-                            <svg className="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5 mr-2 text-[#bca142]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                             </svg>
                             Business Categories
@@ -1054,7 +1054,7 @@ function BusinessOwners() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
                                       {categoriesToShow.map((category, index) => (
                                         <div key={index} className="flex items-center p-2 bg-white rounded border">
-                                          <svg className="w-4 h-4 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <svg className="w-4 h-4 mr-2 text-[#bca142]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                           </svg>
                                           <span className="text-sm text-gray-800">{formatCategoryName(category)}</span>
@@ -1064,7 +1064,7 @@ function BusinessOwners() {
                                     <div className="text-center">
                                       <button
                                         onClick={() => setShowAllCategories(!showAllCategories)}
-                                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-purple-600 bg-white border border-purple-200 rounded-lg hover:bg-purple-50 transition-colors"
+                                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-[#bca142] bg-white border border-[#bca142] rounded-lg hover:bg-yellow-50 transition-colors"
                                       >
                                         {showAllCategories ? (
                                           <>
@@ -1110,7 +1110,7 @@ function BusinessOwners() {
                               }}
                             />
                           ) : (
-                            <div className="w-20 h-20 rounded-full mx-auto bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center border-4 border-gray-100 text-white text-2xl font-bold shadow-sm">
+                            <div className="w-20 h-20 rounded-full mx-auto bg-[#bca142] flex items-center justify-center border-4 border-gray-100 text-white text-2xl font-bold shadow-sm">
                               {(viewingUser.owner_name || viewingUser.name || 'B').charAt(0).toUpperCase()}
                             </div>
                           )}
@@ -1133,7 +1133,7 @@ function BusinessOwners() {
                       <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
                         <div className="p-6 border-b border-gray-200">
                           <h4 className="text-lg font-semibold text-gray-800 flex items-center">
-                            <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5 mr-2 text-[#bca142]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9" />
                             </svg>
                             Online Presence
@@ -1166,7 +1166,7 @@ function BusinessOwners() {
                     <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
                       <div className="p-6 border-b border-gray-200">
                         <h4 className="text-lg font-semibold text-gray-800 flex items-center">
-                          <svg className="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-5 h-5 mr-2 text-[#bca142]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                           </svg>
@@ -1212,7 +1212,7 @@ function BusinessOwners() {
                   setViewingUser(null);
                   handleEditUser(viewingUser);
                 }}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                className="px-6 py-2 bg-[#bca142] text-white rounded-lg hover:bg-[#B8941F] transition-colors flex items-center"
               >
                 <FaPen className="mr-2" />
                 Edit Profile
@@ -1227,7 +1227,7 @@ function BusinessOwners() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden">
             {/* Modal Header */}
-            <div className="bg-yellow-500 px-6 py-4 flex justify-between items-center">
+            <div className="bg-[#bca142] px-6 py-4 flex justify-between items-center">
               <h3 className="text-xl font-semibold text-white flex items-center">
                 <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -1236,7 +1236,7 @@ function BusinessOwners() {
               </h3>
               <button 
                 onClick={handleCancelEdit}
-                className="text-white hover:text-gray-200 transition-colors"
+                className="text-white hover:text-yellow-200 transition-colors"
               >
                 <FaTimes size={24} />
               </button>
@@ -1250,7 +1250,7 @@ function BusinessOwners() {
                   {/* Company Logo Section */}
                   <div className="bg-slate-50 rounded-2xl p-6">
                     <h4 className="text-xl font-bold text-slate-800 mb-6 flex items-center">
-                      <Building className="h-6 w-6 mr-3 text-[#CDA435]" />
+                      <Building className="h-6 w-6 mr-3 text-[#bca142]" />
                       Company Logo
                     </h4>
                     
@@ -1276,7 +1276,7 @@ function BusinessOwners() {
                         </p>
                         
                         <div className="flex space-x-3">
-                          <label className="flex items-center space-x-2 bg-gradient-to-r from-[#CDA435] to-[#B8941F] hover:from-[#B8941F] hover:to-[#CDA435] text-white px-4 py-2 rounded-xl transition-all duration-300 cursor-pointer">
+                          <label className="flex items-center space-x-2 bg-gradient-to-r from-[#bca142] to-[#B8941F] hover:from-[#B8941F] hover:to-[#bca142] text-white px-4 py-2 rounded-xl transition-all duration-300 cursor-pointer">
                             <Upload className="h-4 w-4" />
                             <span>Upload Logo</span>
                             <input
@@ -1304,7 +1304,7 @@ function BusinessOwners() {
                   {/* Business Information Section */}
                   <div className="bg-slate-50 rounded-2xl p-6">
                     <h4 className="text-xl font-bold text-slate-800 mb-6 flex items-center">
-                      <Building className="h-6 w-6 mr-3 text-[#CDA435]" />
+                      <Building className="h-6 w-6 mr-3 text-[#bca142]" />
                       Business Information
                     </h4>
                     
@@ -1319,7 +1319,7 @@ function BusinessOwners() {
                             type="text"
                             value={editForm.name || ''}
                             onChange={(e) => setEditForm({...editForm, name: e.target.value})}
-                            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300"
+                            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                             placeholder="Enter business name"
                             required
                           />
@@ -1336,7 +1336,7 @@ function BusinessOwners() {
                             type="email"
                             value={editForm.email || ''}
                             onChange={(e) => setEditForm({...editForm, email: e.target.value})}
-                            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300"
+                            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                             placeholder="Enter email address"
                             required
                           />
@@ -1353,7 +1353,7 @@ function BusinessOwners() {
                             type="tel"
                             value={editForm.mobile || ''}
                             onChange={(e) => setEditForm({...editForm, mobile: e.target.value})}
-                            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300"
+                            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                             placeholder="Enter phone number"
                           />
                         </div>
@@ -1369,7 +1369,7 @@ function BusinessOwners() {
                               key={category}
                               className={`flex items-center space-x-2 p-3 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
                                 editForm.category && editForm.category.includes(category)
-                                  ? 'border-[#CDA435] bg-yellow-50 text-[#CDA435]'
+                                  ? 'border-[#bca142] bg-yellow-50 text-[#bca142]'
                                   : 'border-slate-200 bg-white hover:border-slate-300'
                               }`}
                             >
@@ -1381,7 +1381,7 @@ function BusinessOwners() {
                               />
                               <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
                                 editForm.category && editForm.category.includes(category)
-                                  ? 'border-[#CDA435] bg-[#CDA435]'
+                                  ? 'border-[#bca142] bg-[#bca142]'
                                   : 'border-slate-300'
                               }`}>
                                 {editForm.category && editForm.category.includes(category) && (
@@ -1393,8 +1393,8 @@ function BusinessOwners() {
                           ))}
                         </div>
                         {editForm.category && editForm.category.length > 0 && (
-                          <div className="mt-3 p-3 bg-green-50 rounded-xl border border-green-200">
-                            <p className="text-sm text-green-700">
+                          <div className="mt-3 p-3 bg-yellow-50 rounded-xl border border-[#bca142]">
+                            <p className="text-sm text-[#bca142]">
                               <CheckCircle className="inline h-4 w-4 mr-1" />
                               {editForm.category.length} categor{editForm.category.length !== 1 ? 'ies' : 'y'} selected: {editForm.category.join(', ')}
                             </p>
@@ -1412,7 +1412,7 @@ function BusinessOwners() {
                             type="text"
                             value={editForm.country || ''}
                             onChange={(e) => setEditForm({...editForm, country: e.target.value})}
-                            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300"
+                            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                             placeholder="Enter country"
                           />
                         </div>
@@ -1428,7 +1428,7 @@ function BusinessOwners() {
                             type="text"
                             value={editForm.state || ''}
                             onChange={(e) => setEditForm({...editForm, state: e.target.value})}
-                            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300"
+                            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                             placeholder="Enter state/province"
                           />
                         </div>
@@ -1443,7 +1443,7 @@ function BusinessOwners() {
                         value={editForm.about_company || ''}
                         onChange={(e) => setEditForm({...editForm, about_company: e.target.value})}
                         rows={4}
-                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300"
+                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                         placeholder="Describe your business and what products/services you need logistics for..."
                       />
                     </div>
@@ -1452,7 +1452,7 @@ function BusinessOwners() {
                   {/* Additional Information Section */}
                   <div className="bg-slate-50 rounded-2xl p-6">
                     <h4 className="text-xl font-bold text-slate-800 mb-6 flex items-center">
-                      <Globe className="h-6 w-6 mr-3 text-[#CDA435]" />
+                      <Globe className="h-6 w-6 mr-3 text-[#bca142]" />
                       Additional Information
                     </h4>
                     
@@ -1467,7 +1467,7 @@ function BusinessOwners() {
                             type="url"
                             value={editForm.website || ''}
                             onChange={(e) => setEditForm({...editForm, website: e.target.value})}
-                            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300"
+                            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                             placeholder="https://www.example.com"
                           />
                         </div>
@@ -1483,7 +1483,7 @@ function BusinessOwners() {
                             type="text"
                             value={editForm.city || ''}
                             onChange={(e) => setEditForm({...editForm, city: e.target.value})}
-                            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300"
+                            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                             placeholder="Enter city"
                           />
                         </div>
@@ -1507,7 +1507,7 @@ function BusinessOwners() {
               </button>
               <button 
                 onClick={handleSaveEdit}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                className="px-6 py-2 bg-[#bca142] text-white rounded-lg hover:bg-[#B8941F] transition-colors flex items-center"
               >
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />

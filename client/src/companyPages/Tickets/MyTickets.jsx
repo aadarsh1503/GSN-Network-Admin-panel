@@ -19,6 +19,7 @@ const MyTickets = () => {
   const [sortConfig, setSortConfig] = useState({ key: 'created_at', direction: 'descending' });
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
+  const [userTypeFilter, setUserTypeFilter] = useState('all');
  
 
   // Modal states
@@ -103,27 +104,27 @@ const MyTickets = () => {
   const getUserTypeIcon = (role) => {
     switch (role) {
       case 'user':
-        return <FiUser className="text-blue-500" />;
+        return <FiUser className="text-black" />;
       case 'business':
-        return <FiBriefcase className="text-purple-500" />;
+        return <FiBriefcase className="text-black" />;
       case 'company':
-        return <FiHome className="text-green-500" />;
+        return <FiHome className="text-black" />;
       default:
-        return <FiUser className="text-gray-500" />;
+        return <FiUser className="text-black" />;
     }
   };
 
   const getUserTypeBadge = (role) => {
     const configs = {
-      user: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Regular User' },
-      business: { bg: 'bg-purple-100', text: 'text-purple-800', label: 'Business Owner' },
-      company: { bg: 'bg-green-100', text: 'text-green-800', label: 'Company Member' }
+      user: { bg: 'bg-white', text: 'text-black', label: 'Regular User' },
+      business: { bg: 'bg-white', text: 'text-black', label: 'Business Owner' },
+      company: { bg: 'bg-white', text: 'text-black', label: 'Company Member' }
     };
     
-    const config = configs[role] || { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Unknown' };
+    const config = configs[role] || { bg: 'bg-white', text: 'text-black', label: 'Unknown' };
     
     return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border border-black ${config.bg} ${config.text}`}>
         {getUserTypeIcon(role)}
         <span className="ml-1">{config.label}</span>
       </span>
@@ -179,13 +180,13 @@ const MyTickets = () => {
   };
 
   const SortableHeader = ({ children, sortKey }) => (
-    <th className="py-1 px-2 text-left font-semibold cursor-pointer hover:bg-yellow-100 transition-colors duration-200 text-xs" onClick={() => handleSort(sortKey)}>
-      <div className="flex items-center">
+    <th className="py-1 px-2 text-left font-semibold cursor-pointer hover:bg-black transition-colors duration-200 text-xs" onClick={() => handleSort(sortKey)}>
+      <div className="flex items-center text-white">
         {children}
         {sortConfig.key === sortKey ? (
           sortConfig.direction === 'ascending' ? 
-            <FiChevronUp className="ml-1 text-yellow-600" size={12} /> : 
-            <FiChevronDown className="ml-1 text-yellow-600" size={12} />
+            <FiChevronUp className="ml-1 text-white" size={12} /> : 
+            <FiChevronDown className="ml-1 text-white" size={12} />
         ) : null}
       </div>
     </th>
@@ -194,21 +195,21 @@ const MyTickets = () => {
   const getStatusBadge = (status) => {
     const statusConfigs = {
       pending: { 
-        bg: 'bg-gradient-to-r from-yellow-100 to-amber-100', 
-        text: 'text-yellow-800', 
-        border: 'border-yellow-200',
+        bg: 'bg-[#bca142]', 
+        text: 'text-white', 
+        border: 'border-[#bca142]',
         icon: <FiClock className="mr-1" size={12} />
       },
       answered: { 
-        bg: 'bg-gradient-to-r from-blue-100 to-cyan-100', 
-        text: 'text-blue-800', 
-        border: 'border-blue-200',
+        bg: 'bg-[#bca142]', 
+        text: 'text-white', 
+        border: 'border-[#bca142]',
         icon: <FiMessageSquare className="mr-1" size={12} />
       },
       closed: { 
-        bg: 'bg-gradient-to-r from-gray-100 to-slate-100', 
-        text: 'text-gray-800', 
-        border: 'border-gray-200',
+        bg: 'bg-black', 
+        text: 'text-white', 
+        border: 'border-black',
         icon: <FiCheckCircle className="mr-1" size={12} />
       }
     };
@@ -226,27 +227,27 @@ const MyTickets = () => {
   const getPriorityBadge = (priority) => {
     const priorityConfigs = {
       low: { 
-        bg: 'bg-gradient-to-r from-green-100 to-emerald-100', 
-        text: 'text-green-800', 
-        border: 'border-green-200',
+        bg: 'bg-[#bca142]', 
+        text: 'text-white', 
+        border: 'border-[#bca142]',
         icon: <FiStar className="mr-1" size={12} />
       },
       medium: { 
-        bg: 'bg-gradient-to-r from-yellow-100 to-orange-100', 
-        text: 'text-yellow-800', 
-        border: 'border-yellow-200',
+        bg: 'bg-[#bca142]', 
+        text: 'text-white', 
+        border: 'border-[#bca142]',
         icon: <FiStar className="mr-1" size={12} />
       },
       high: { 
-        bg: 'bg-gradient-to-r from-orange-100 to-red-100', 
-        text: 'text-orange-800', 
-        border: 'border-orange-200',
+        bg: 'bg-black', 
+        text: 'text-white', 
+        border: 'border-black',
         icon: <FiStar className="mr-1" size={12} />
       },
       urgent: { 
-        bg: 'bg-gradient-to-r from-red-100 to-pink-100', 
-        text: 'text-red-800', 
-        border: 'border-red-200',
+        bg: 'bg-black', 
+        text: 'text-white', 
+        border: 'border-black',
         icon: <FiAlertTriangle className="mr-1" size={12} />
       }
     };
@@ -288,11 +289,11 @@ const MyTickets = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50">
+      <div className="flex items-center justify-center h-screen bg-white">
         <div className="text-center">
           <div className="relative">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-yellow-200 border-t-yellow-600 mx-auto"></div>
-            <FiMail className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-yellow-600 animate-pulse" size={20} />
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-[#bca142] mx-auto"></div>
+            <FiMail className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-[#bca142] animate-pulse" size={20} />
           </div>
           <p className="mt-3 text-base font-medium text-gray-700 animate-pulse">Loading Company Tickets...</p>
         </div>
@@ -302,14 +303,14 @@ const MyTickets = () => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50">
+      <div className="flex items-center justify-center h-screen bg-white">
         <div className="text-center">
-          <FiAlertTriangle className="mx-auto text-red-500 mb-3" size={40} />
+          <FiAlertTriangle className="mx-auto text-black mb-3" size={40} />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Tickets</h3>
-          <p className="text-red-500 mb-3 text-sm">{error}</p>
+          <p className="text-black mb-3 text-sm">{error}</p>
           <button 
             onClick={fetchCompanyTickets}
-            className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white px-5 py-2 rounded-lg font-semibold hover:from-yellow-600 hover:to-amber-700 transition-all duration-300 text-sm"
+            className="bg-[#bca142] text-white px-5 py-2 rounded-lg font-semibold hover:bg-black transition-all duration-300 text-sm"
           >
             Try Again
           </button>
@@ -319,20 +320,20 @@ const MyTickets = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 p-1">
+    <div className="min-h-screen bg-white p-1">
       <div className="max-w-7xl mx-auto">
         {/* Minimal Header */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-md shadow-md border border-white/20 p-2 mb-2">
+        <div className="bg-white border border-gray-200 rounded-md shadow-md p-2 mb-2">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-2">
-              <div className="p-1 bg-gradient-to-r from-yellow-500 to-amber-600 rounded-md">
+              <div className="p-1 bg-[#bca142] rounded-md">
                 <FiHome className="text-white" size={16} />
               </div>
               <h1 className="text-lg font-bold text-gray-800">My Tickets</h1>
             </div>
             <button 
               onClick={fetchCompanyTickets}
-              className="flex items-center space-x-1 bg-gradient-to-r from-yellow-500 to-amber-600 text-white font-medium py-1 px-3 rounded-md hover:from-yellow-600 hover:to-amber-700 transition-all duration-300 text-xs"
+              className="flex items-center space-x-1 bg-[#bca142] text-white font-medium py-1 px-3 rounded-md hover:bg-black transition-all duration-300 text-xs"
             >
               <FiRefreshCw size={12} />
               <span>Refresh</span>
@@ -343,18 +344,18 @@ const MyTickets = () => {
         {/* Ultra Compact Stats */}
         <div className="grid grid-cols-4 gap-1 mb-2">
           {[
-            { label: 'Total', value: counts.all, icon: FiMail, color: 'from-yellow-500 to-amber-500' },
-            { label: 'Pending', value: counts.pending, icon: FiClock, color: 'from-orange-500 to-red-500' },
-            { label: 'Answered', value: counts.answered, icon: FiMessageSquare, color: 'from-blue-500 to-cyan-500' },
-            { label: 'Closed', value: counts.closed, icon: FiCheckCircle, color: 'from-green-500 to-emerald-500' }
+            { label: 'Total', value: counts.all, icon: FiMail, color: '#bca142' },
+            { label: 'Pending', value: counts.pending, icon: FiClock, color: '#bca142' },
+            { label: 'Answered', value: counts.answered, icon: FiMessageSquare, color: '#bca142' },
+            { label: 'Closed', value: counts.closed, icon: FiCheckCircle, color: 'black' }
           ].map((stat, index) => (
-            <div key={index} className="bg-white/80 backdrop-blur-lg rounded-md shadow-sm border border-white/20 p-2 hover:shadow-md transition-all duration-300">
+            <div key={index} className="bg-white border border-gray-200 rounded-md shadow-sm p-2 hover:shadow-md transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-medium text-gray-600">{stat.label}</p>
                   <p className="text-sm font-bold text-gray-900">{stat.value}</p>
                 </div>
-                <div className={`p-1 bg-gradient-to-r ${stat.color} rounded-md`}>
+                <div className={`p-1 rounded-md`} style={{ backgroundColor: stat.color }}>
                   <stat.icon className="text-white" size={12} />
                 </div>
               </div>
@@ -363,7 +364,7 @@ const MyTickets = () => {
         </div>
 
         {/* Ultra Compact Filters */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-md shadow-md border border-white/20 p-2 mb-2">
+        <div className="bg-white border border-gray-200 rounded-md shadow-md p-2 mb-2">
           <div className="flex flex-col lg:flex-row items-center justify-between space-y-1 lg:space-y-0 lg:space-x-2">
             {/* Search */}
             <div className="relative flex-1 max-w-md">
@@ -373,7 +374,7 @@ const MyTickets = () => {
                 placeholder="Search tickets..."
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className="w-full pl-6 pr-2 py-1 bg-white/50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-yellow-500 focus:border-transparent transition-all duration-300 text-xs"
+                className="w-full pl-6 pr-2 py-1 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 text-xs"
               />
             </div>
 
@@ -382,7 +383,7 @@ const MyTickets = () => {
               <select
                 value={statusFilter}
                 onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-                className="px-2 py-1 bg-white/50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-all duration-300 text-xs"
+                className="px-2 py-1 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#bca142] transition-all duration-300 text-xs"
               >
                 <option value="all">All ({counts.all})</option>
                 <option value="pending">Pending ({counts.pending})</option>
@@ -393,7 +394,7 @@ const MyTickets = () => {
               <select
                 value={userTypeFilter}
                 onChange={(e) => { setUserTypeFilter(e.target.value); setCurrentPage(1); }}
-                className="px-2 py-1 bg-white/50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-all duration-300 text-xs"
+                className="px-2 py-1 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#bca142] transition-all duration-300 text-xs"
               >
                 <option value="all">All Types</option>
                 <option value="user">Users</option>
@@ -403,7 +404,7 @@ const MyTickets = () => {
               <select
                 value={priorityFilter}
                 onChange={(e) => { setPriorityFilter(e.target.value); setCurrentPage(1); }}
-                className="px-2 py-1 bg-white/50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-all duration-300 text-xs"
+                className="px-2 py-1 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#bca142] transition-all duration-300 text-xs"
               >
                 <option value="all">All Priorities</option>
                 <option value="low">Low</option>
@@ -415,7 +416,7 @@ const MyTickets = () => {
               <select
                 value={itemsPerPage}
                 onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
-                className="px-2 py-1 bg-white/50 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-all duration-300 text-xs"
+                className="px-2 py-1 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#bca142] transition-all duration-300 text-xs"
               >
                 <option value="10">10</option>
                 <option value="25">25</option>
@@ -434,11 +435,11 @@ const MyTickets = () => {
         </div>
 
         {/* Ultra Compact Tickets Table */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-md shadow-md border border-white/20 overflow-hidden">
+        <div className="bg-white border border-gray-200 rounded-md shadow-md overflow-hidden">
           {sortedTickets.length === 0 ? (
             <div className="text-center py-8">
-              <div className="p-2 bg-gradient-to-r from-yellow-100 to-amber-200 rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                <FiMail className="text-yellow-600" size={24} />
+              <div className="p-2 bg-[#bca142] rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                <FiMail className="text-white" size={24} />
               </div>
               <h3 className="text-base font-semibold text-gray-900 mb-1">
                 {searchTerm ? 'No Matching Tickets' : 'No Tickets Found'}
@@ -454,23 +455,23 @@ const MyTickets = () => {
             <>
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gradient-to-r from-yellow-50 to-amber-50">
+                  <thead className="bg-[#bca142]">
                     <tr>
                       <SortableHeader sortKey="ticket_number">Ticket</SortableHeader>
                       <SortableHeader sortKey="user_name">Customer</SortableHeader>
                       <SortableHeader sortKey="priority">Priority</SortableHeader>
                       <SortableHeader sortKey="status">Status</SortableHeader>
                       <SortableHeader sortKey="created_at">Date</SortableHeader>
-                      <th className="py-1 px-2 text-left font-semibold text-xs">Actions</th>
+                      <th className="py-1 px-2 text-left font-semibold text-xs text-white">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {paginatedTickets.map((ticket, index) => (
-                      <tr key={ticket.id} className="hover:bg-gradient-to-r hover:from-yellow-50/50 hover:to-amber-50/50 transition-all duration-300">
+                      <tr key={ticket.id} className="hover:bg-gray-50 transition-all duration-300">
                         <td className="px-2 py-1">
                           <div className="flex items-center space-x-1">
-                            <div className="p-1 bg-gradient-to-r from-yellow-100 to-amber-100 rounded-md">
-                              <FiMail className="text-yellow-600" size={10} />
+                            <div className="p-1 bg-[#bca142] rounded-md">
+                              <FiMail className="text-white" size={10} />
                             </div>
                             <div>
                               <div className="text-xs font-bold text-gray-900">{ticket.ticket_number}</div>
@@ -482,7 +483,7 @@ const MyTickets = () => {
                         </td>
                         <td className="px-2 py-1">
                           <div className="flex items-center space-x-1">
-                            <div className="p-1 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-md">
+                            <div className="p-1 bg-white border border-gray-200 rounded-md">
                               {getUserTypeIcon(ticket.user_role)}
                             </div>
                             <div>
@@ -509,14 +510,14 @@ const MyTickets = () => {
                           <div className="flex items-center space-x-1">
                             <button
                               onClick={() => openDetailsModal(ticket)}
-                              className="p-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-md hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 transform hover:scale-105 shadow-sm"
+                              className="p-1 bg-black text-white rounded-md hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 shadow-sm"
                               title="View Details"
                             >
                               <FiEye size={10} />
                             </button>
                             <button
                               onClick={() => openResponseModal(ticket)}
-                              className="p-1 bg-gradient-to-r from-yellow-500 to-amber-600 text-white rounded-md hover:from-yellow-600 hover:to-amber-700 transition-all duration-300 transform hover:scale-105 shadow-sm"
+                              className="p-1 bg-[#bca142] text-white rounded-md hover:bg-black transition-all duration-300 transform hover:scale-105 shadow-sm"
                               title="Respond"
                             >
                               <FiMessageSquare size={10} />
@@ -530,12 +531,12 @@ const MyTickets = () => {
               </div>
               
               {/* Ultra Compact Pagination */}
-              <div className="bg-gradient-to-r from-yellow-50 to-amber-50 px-3 py-2 border-t border-gray-200">
+              <div className="bg-[#bca142] px-3 py-2 border-t border-gray-200">
                 <div className="flex flex-col sm:flex-row items-center justify-between space-y-1 sm:space-y-0">
-                  <div className="text-xs text-gray-700">
-                    Showing <span className="font-bold text-yellow-600">{sortedTickets.length > 0 ? startEntry : 0}</span> to{' '}
-                    <span className="font-bold text-yellow-600">{endEntry}</span> of{' '}
-                    <span className="font-bold text-yellow-600">{sortedTickets.length}</span> results
+                  <div className="text-xs text-white">
+                    Showing <span className="font-bold text-white">{sortedTickets.length > 0 ? startEntry : 0}</span> to{' '}
+                    <span className="font-bold text-white">{endEntry}</span> of{' '}
+                    <span className="font-bold text-white">{sortedTickets.length}</span> results
                   </div>
                   
                   <div className="flex items-center space-x-1">
@@ -567,7 +568,7 @@ const MyTickets = () => {
                             onClick={() => setCurrentPage(pageNum)}
                             className={`px-2 py-1 text-xs font-medium rounded-md transition-all duration-300 ${
                               currentPage === pageNum
-                                ? 'bg-gradient-to-r from-yellow-500 to-amber-600 text-white shadow-sm transform scale-105'
+                                ? 'bg-black text-white shadow-sm transform scale-105'
                                 : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
                             }`}
                           >
@@ -596,14 +597,14 @@ const MyTickets = () => {
       {isDetailsModalOpen && selectedTicket && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white/95 backdrop-blur-lg rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20">
-            <div className="bg-gradient-to-r from-yellow-500 via-amber-600 to-orange-500 px-6 py-4 flex items-center justify-between">
+            <div className="bg-[#bca142] px-6 py-4 flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="p-2 bg-white/20 rounded-lg">
                   <FiMail className="text-white" size={20} />
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-white">Ticket Details {selectedTicket.ticket_number}</h2>
-                  <p className="text-yellow-100 text-sm">Customer support request</p>
+                  <p className="text-white text-sm">Customer support request</p>
                 </div>
               </div>
               <button
@@ -618,7 +619,7 @@ const MyTickets = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Left Column */}
                 <div className="space-y-4">
-                  <div className="bg-gradient-to-r from-yellow-50 to-amber-50 p-4 rounded-lg border border-yellow-200">
+                  <div className="bg-white border border-gray-200 p-4 rounded-lg">
                     <label className="block text-xs font-bold text-gray-700 mb-2">Ticket Information</label>
                     <div className="space-y-1">
                       <p className="text-base font-semibold text-gray-900">{selectedTicket.ticket_number}</p>
@@ -626,10 +627,10 @@ const MyTickets = () => {
                     </div>
                   </div>
                   
-                  <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-4 rounded-lg border border-blue-200">
+                  <div className="bg-white border border-gray-200 p-4 rounded-lg">
                     <label className="block text-xs font-bold text-gray-700 mb-2">Customer Information</label>
                     <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-lg">
+                      <div className="p-2 bg-white border border-gray-200 rounded-lg">
                         {getUserTypeIcon(selectedTicket.user_role)}
                       </div>
                       <div>
@@ -640,7 +641,7 @@ const MyTickets = () => {
                     </div>
                   </div>
                   
-                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg border border-purple-200">
+                  <div className="bg-white border border-gray-200 p-4 rounded-lg">
                     <label className="block text-xs font-bold text-gray-700 mb-2">Subject</label>
                     <p className="text-sm font-semibold text-gray-900">{selectedTicket.subject}</p>
                   </div>
@@ -649,28 +650,28 @@ const MyTickets = () => {
                 {/* Right Column */}
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-3 rounded-lg border border-green-200">
+                    <div className="bg-white border border-gray-200 p-3 rounded-lg">
                       <label className="block text-xs font-bold text-gray-700 mb-2">Status</label>
                       {getStatusBadge(selectedTicket.status)}
                     </div>
                     
-                    <div className="bg-gradient-to-r from-orange-50 to-red-50 p-3 rounded-lg border border-orange-200">
+                    <div className="bg-white border border-gray-200 p-3 rounded-lg">
                       <label className="block text-xs font-bold text-gray-700 mb-2">Priority</label>
                       {getPriorityBadge(selectedTicket.priority)}
                     </div>
                   </div>
                   
-                  <div className="bg-gradient-to-r from-gray-50 to-slate-50 p-4 rounded-lg border border-gray-200">
+                  <div className="bg-white border border-gray-200 p-4 rounded-lg">
                     <label className="block text-xs font-bold text-gray-700 mb-2">Category</label>
-                    <p className="text-sm font-semibold text-gray-900 capitalize bg-white px-3 py-2 rounded-lg">{selectedTicket.category}</p>
+                    <p className="text-sm font-semibold text-gray-900 capitalize bg-gray-50 px-3 py-2 rounded-lg">{selectedTicket.category}</p>
                   </div>
                 </div>
 
                 {/* Full Width Description */}
                 <div className="lg:col-span-2">
-                  <div className="bg-gradient-to-r from-slate-50 to-gray-50 p-4 rounded-lg border border-slate-200">
+                  <div className="bg-white border border-gray-200 p-4 rounded-lg">
                     <label className="block text-xs font-bold text-gray-700 mb-2">Customer Message</label>
-                    <div className="bg-white p-3 rounded-lg border border-gray-200 max-h-32 overflow-y-auto">
+                    <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 max-h-32 overflow-y-auto">
                       <p className="text-gray-700 whitespace-pre-wrap leading-relaxed text-sm">{selectedTicket.description}</p>
                     </div>
                   </div>
@@ -678,12 +679,12 @@ const MyTickets = () => {
 
                 {selectedTicket.company_response && (
                   <div className="lg:col-span-2">
-                    <div className="bg-gradient-to-r from-yellow-50 to-amber-50 p-4 rounded-lg border border-yellow-200">
+                    <div className="bg-white border border-gray-200 p-4 rounded-lg">
                       <label className="block text-xs font-bold text-gray-700 mb-2">Your Response</label>
-                      <div className="bg-white p-3 rounded-lg border border-yellow-300">
+                      <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
                         <p className="text-gray-700 whitespace-pre-wrap leading-relaxed text-sm">{selectedTicket.company_response}</p>
                         {selectedTicket.company_responded_at && (
-                          <p className="text-xs text-yellow-600 mt-2 font-medium">
+                          <p className="text-xs text-[#bca142] mt-2 font-medium">
                             Responded on {new Date(selectedTicket.company_responded_at).toLocaleString()}
                           </p>
                         )}
@@ -694,12 +695,12 @@ const MyTickets = () => {
 
                 {selectedTicket.admin_response && (
                   <div className="lg:col-span-2">
-                    <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-4 rounded-lg border border-blue-200">
+                    <div className="bg-white border border-gray-200 p-4 rounded-lg">
                       <label className="block text-xs font-bold text-gray-700 mb-2">Admin Response</label>
-                      <div className="bg-white p-3 rounded-lg border border-blue-300">
+                      <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
                         <p className="text-gray-700 whitespace-pre-wrap leading-relaxed text-sm">{selectedTicket.admin_response}</p>
                         {selectedTicket.responded_at && (
-                          <p className="text-xs text-blue-600 mt-2 font-medium">
+                          <p className="text-xs text-black mt-2 font-medium">
                             Admin responded on {new Date(selectedTicket.responded_at).toLocaleString()}
                           </p>
                         )}
@@ -710,10 +711,10 @@ const MyTickets = () => {
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-yellow-50 to-amber-50 px-6 py-4 flex justify-end border-t border-gray-200">
+            <div className="bg-[#bca142] px-6 py-4 flex justify-end border-t border-gray-200">
               <button
                 onClick={closeModal}
-                className="bg-gradient-to-r from-gray-500 to-slate-600 hover:from-gray-600 hover:to-slate-700 text-white px-5 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg text-sm"
+                className="bg-black hover:bg-gray-800 text-white px-5 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg text-sm"
               >
                 Close Details
               </button>
@@ -730,7 +731,7 @@ const MyTickets = () => {
             {submitting && (
               <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
                 <div className="text-center">
-                  <div className="animate-spin rounded-full h-10 w-10 border-4 border-yellow-500 border-t-transparent mx-auto mb-3"></div>
+                  <div className="animate-spin rounded-full h-10 w-10 border-4 border-[#bca142] border-t-transparent mx-auto mb-3"></div>
                   <p className="text-base font-medium text-gray-700 animate-pulse">
                     Submitting response...
                   </p>
@@ -741,14 +742,14 @@ const MyTickets = () => {
               </div>
             )}
             
-            <div className="bg-gradient-to-r from-yellow-500 to-amber-600 px-6 py-4 flex items-center justify-between">
+            <div className="bg-[#bca142] px-6 py-4 flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="p-2 bg-white/20 rounded-lg">
                   <FiMessageSquare className="text-white" size={18} />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-white">Respond to Ticket {selectedTicket.ticket_number}</h3>
-                  <p className="text-yellow-100 text-sm">Company customer support</p>
+                  <p className="text-white text-sm">Company customer support</p>
                 </div>
               </div>
               <button 
@@ -764,9 +765,9 @@ const MyTickets = () => {
             
             <div className="p-6">
               {/* Ticket Summary */}
-              <div className="bg-gradient-to-r from-yellow-50 to-amber-50 p-4 rounded-lg mb-4 border border-yellow-200">
+              <div className="bg-white border border-gray-200 p-4 rounded-lg mb-4">
                 <h4 className="font-bold text-gray-900 mb-3 flex items-center text-sm">
-                  <FiMail className="mr-2 text-yellow-600" />
+                  <FiMail className="mr-2 text-[#bca142]" />
                   Customer Request
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
@@ -787,7 +788,7 @@ const MyTickets = () => {
                 </div>
                 <div className="mt-3">
                   <strong className="text-gray-700 text-xs">Customer Message:</strong>
-                  <div className="mt-2 p-3 bg-white rounded-lg border border-yellow-300 text-xs max-h-24 overflow-y-auto">
+                  <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200 text-xs max-h-24 overflow-y-auto">
                     {selectedTicket.description}
                   </div>
                 </div>
@@ -805,7 +806,7 @@ const MyTickets = () => {
                     className={`w-full p-3 border rounded-lg transition-all duration-300 text-sm ${
                       submitting 
                         ? 'bg-gray-100 cursor-not-allowed opacity-60' 
-                        : 'focus:ring-2 focus:ring-yellow-500 focus:border-transparent hover:border-yellow-300 bg-white/50'
+                        : 'focus:ring-2 focus:ring-[#bca142] focus:border-transparent hover:border-[#bca142] bg-white'
                     }`}
                     rows="6"
                     placeholder="Enter your response to the customer. This will be sent to them and also appear in the Messages system."
@@ -813,14 +814,14 @@ const MyTickets = () => {
                   />
                 </div>
                 
-                <div className="bg-gradient-to-r from-yellow-50 to-amber-50 p-4 rounded-lg border border-yellow-200">
+                <div className="bg-white border border-gray-200 p-4 rounded-lg">
                   <div className="flex items-start space-x-2">
-                    <FiMail className="text-yellow-600 mt-1" size={16} />
+                    <FiMail className="text-[#bca142] mt-1" size={16} />
                     <div>
-                      <p className="text-xs text-yellow-800 font-medium">
+                      <p className="text-xs text-black font-medium">
                         <strong>Company Response:</strong> Your response will be sent to the customer and logged in the ticket history.
                       </p>
-                      <p className="text-xs text-yellow-700 mt-1">
+                      <p className="text-xs text-gray-700 mt-1">
                         This will also create a message in the Messages system for better communication tracking.
                       </p>
                     </div>
@@ -835,7 +836,7 @@ const MyTickets = () => {
                   className={`px-5 py-2 text-white rounded-lg font-semibold transition-all duration-300 text-sm ${
                     submitting 
                       ? 'bg-gray-400 cursor-not-allowed opacity-60' 
-                      : 'bg-gradient-to-r from-gray-500 to-slate-600 hover:from-gray-600 hover:to-slate-700 transform hover:scale-105 shadow-lg'
+                      : 'bg-black hover:bg-gray-800 transform hover:scale-105 shadow-lg'
                   }`}
                 >
                   Cancel
@@ -846,7 +847,7 @@ const MyTickets = () => {
                   className={`px-6 py-2 text-white rounded-lg font-semibold transition-all duration-300 flex items-center justify-center min-w-[160px] text-sm ${
                     submitting || !companyResponse.trim()
                       ? 'bg-gray-400 cursor-not-allowed opacity-60' 
-                      : 'bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 transform hover:scale-105 shadow-lg hover:shadow-xl'
+                      : 'bg-[#bca142] hover:bg-black transform hover:scale-105 shadow-lg hover:shadow-xl'
                   }`}
                 >
                   {submitting ? (

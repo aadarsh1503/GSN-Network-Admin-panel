@@ -164,7 +164,7 @@ const CompanyMessages = () => {
         <div className="flex flex-col items-center gap-3">
           <div className="relative">
             <div className="h-12 w-12 border-4 border-gray-200 rounded-full animate-spin">
-              <div className="h-12 w-12 border-4 border-transparent border-t-[#CDA435] rounded-full animate-spin"></div>
+              <div className="h-12 w-12 border-4 border-transparent border-t-[#bca142] rounded-full animate-spin"></div>
             </div>
           </div>
           <p className="text-gray-600 font-medium">Loading messages...</p>
@@ -262,7 +262,7 @@ const CompanyMessages = () => {
                                 {formatDate(conv.last_message_time)}
                               </span>
                               {conv.unread_count > 0 && (
-                                <span className="bg-[#CDA435] text-white text-xs px-2 py-0.5 rounded-full min-w-[20px] text-center">
+                                <span className="bg-[#bca142] text-white text-xs px-2 py-0.5 rounded-full min-w-[20px] text-center">
                                   {conv.unread_count}
                                 </span>
                               )}
@@ -341,7 +341,7 @@ const CompanyMessages = () => {
                           }`}>
                             <div className="flex items-center gap-2 mb-2">
                               {systemType === 'response' && <FaCheck className="text-green-600" />}
-                              {systemType === 'status' && <FaClock className="text-[#CDA435]" />}
+                              {systemType === 'status' && <FaClock className="text-[#bca142]" />}
                               {systemType === 'dispute' && <FaReply className="text-red-600" />}
                               <p className={`text-xs font-medium ${
                                 systemType === 'response' ? 'text-green-700' :
@@ -363,7 +363,7 @@ const CompanyMessages = () => {
                     
                     return (
                       <div key={msg.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[70%] ${isOwn ? 'bg-[#CDA435] text-white' : 'bg-white'} rounded-lg p-3 shadow-sm`}>
+                        <div className={`max-w-[70%] ${isOwn ? 'bg-[#bca142] text-white' : 'bg-white'} rounded-lg p-3 shadow-sm`}>
                           {!isOwn && (
                             <div className="flex items-center gap-2 mb-2">
                               <UserAvatar 
@@ -436,7 +436,7 @@ const CompanyMessages = () => {
                     <button
                       type="submit"
                       disabled={sendingMessage || !newMessage.trim()}
-                      className="bg-[#CDA435] text-white px-6 py-3 rounded-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="bg-[#bca142] text-white px-6 py-3 rounded-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {sendingMessage ? (
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>

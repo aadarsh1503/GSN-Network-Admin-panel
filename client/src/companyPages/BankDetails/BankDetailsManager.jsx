@@ -125,8 +125,8 @@ const BankDetailsManager = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-yellow-200 border-t-yellow-500 mx-auto mb-4"></div>
-          <p className="text-xl font-semibold text-slate-700">Loading bank details...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-[#bca142] mx-auto mb-4"></div>
+          <p className="text-xl font-semibold text-black">Loading bank details...</p>
         </div>
       </div>
     );
@@ -135,17 +135,17 @@ const BankDetailsManager = () => {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-2xl p-8 border border-blue-200/50">
+      <div className="bg-white rounded-2xl p-8 border border-gray-200">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+            <h1 className="text-4xl font-bold text-[#bca142] mb-2">
               Bank Details Management
             </h1>
-            <p className="text-slate-600 text-lg">Manage your company's bank accounts for quote responses</p>
+            <p className="text-black text-lg">Manage your company's bank accounts for quote responses</p>
           </div>
           <button
             onClick={() => setShowForm(true)}
-            className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+            className="flex items-center space-x-2 bg-[#bca142] hover:bg-[#a89139] text-white px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
           >
             <FaPlus className="h-4 w-4" />
             <span>Add Bank Details</span>
@@ -156,15 +156,15 @@ const BankDetailsManager = () => {
       {/* Bank Details List */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {bankDetails.length === 0 ? (
-          <div className="col-span-full bg-white/80 backdrop-blur-lg rounded-2xl p-12 text-center border border-white/20">
-            <div className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-full p-8 w-32 h-32 mx-auto mb-6 flex items-center justify-center">
-              <FaBank className="text-slate-400 h-16 w-16" />
+          <div className="col-span-full bg-white rounded-2xl p-12 text-center border border-gray-200">
+            <div className="bg-gray-100 rounded-full p-8 w-32 h-32 mx-auto mb-6 flex items-center justify-center">
+              <FaBank className="text-gray-400 h-16 w-16" />
             </div>
-            <h3 className="text-2xl font-bold text-slate-800 mb-4">No Bank Details Yet</h3>
-            <p className="text-slate-600 mb-6">Add your first bank account to start receiving payments</p>
+            <h3 className="text-2xl font-bold text-black mb-4">No Bank Details Yet</h3>
+            <p className="text-gray-600 mb-6">Add your first bank account to start receiving payments</p>
             <button
               onClick={() => setShowForm(true)}
-              className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="inline-flex items-center space-x-2 bg-[#bca142] hover:bg-[#a89139] text-white px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               <FaPlus className="h-4 w-4" />
               <span>Add Bank Details</span>
@@ -174,37 +174,37 @@ const BankDetailsManager = () => {
           bankDetails.map((bank) => (
             <div
               key={bank.id}
-              className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:shadow-xl transition-all duration-300"
+              className="bg-white rounded-2xl p-6 border border-gray-200 hover:shadow-xl transition-all duration-300"
             >
               {/* Header */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-3">
-                  <div className="p-3 bg-blue-100 rounded-2xl">
-                    <FaBank className="h-6 w-6 text-blue-600" />
+                  <div className="p-3 bg-[#bca142] rounded-2xl">
+                    <FaBank className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-slate-800">{bank.bank_name}</h3>
-                    <p className="text-sm text-slate-600">{bank.branch_name}</p>
+                    <h3 className="text-lg font-bold text-black">{bank.bank_name}</h3>
+                    <p className="text-sm text-gray-600">{bank.branch_name}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   {bank.is_default && (
-                    <div className="flex items-center space-x-1 bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
+                    <div className="flex items-center space-x-1 bg-[#bca142] text-white px-2 py-1 rounded-full text-xs font-medium">
                       <FaStar className="h-3 w-3" />
                       <span>Default</span>
                     </div>
                   )}
                   <button
                     onClick={() => handleEdit(bank)}
-                    className="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors duration-300"
+                    className="p-2 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors duration-300"
                   >
-                    <FaEdit className="h-4 w-4 text-slate-600" />
+                    <FaEdit className="h-4 w-4 text-gray-600" />
                   </button>
                   <button
                     onClick={() => handleDelete(bank.id)}
-                    className="p-2 bg-red-100 hover:bg-red-200 rounded-xl transition-colors duration-300"
+                    className="p-2 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors duration-300"
                   >
-                    <FaTrash className="h-4 w-4 text-red-600" />
+                    <FaTrash className="h-4 w-4 text-black" />
                   </button>
                 </div>
               </div>
@@ -212,58 +212,58 @@ const BankDetailsManager = () => {
               {/* Bank Details */}
               <div className="space-y-3">
                 <div className="grid grid-cols-1 gap-3">
-                  <div className="flex items-center space-x-3 p-3 bg-slate-50 rounded-xl">
-                    <User className="h-4 w-4 text-slate-500" />
+                  <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
+                    <User className="h-4 w-4 text-[#bca142]" />
                     <div>
-                      <p className="text-xs text-slate-500">Account Holder</p>
-                      <p className="text-sm font-medium text-slate-800">{bank.account_holder_name}</p>
+                      <p className="text-xs text-gray-500">Account Holder</p>
+                      <p className="text-sm font-medium text-black">{bank.account_holder_name}</p>
                     </div>
                   </div>
                   
-                  <div className="flex items-center space-x-3 p-3 bg-slate-50 rounded-xl">
-                    <CreditCard className="h-4 w-4 text-slate-500" />
+                  <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
+                    <CreditCard className="h-4 w-4 text-[#bca142]" />
                     <div>
-                      <p className="text-xs text-slate-500">Account Number</p>
-                      <p className="text-sm font-medium text-slate-800">
+                      <p className="text-xs text-gray-500">Account Number</p>
+                      <p className="text-sm font-medium text-black">
                         ****{bank.account_number.slice(-4)}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-3 p-3 bg-slate-50 rounded-xl">
-                    <Hash className="h-4 w-4 text-slate-500" />
+                  <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
+                    <Hash className="h-4 w-4 text-[#bca142]" />
                     <div>
-                      <p className="text-xs text-slate-500">IFSC Code</p>
-                      <p className="text-sm font-medium text-slate-800">{bank.ifsc_code}</p>
+                      <p className="text-xs text-gray-500">IFSC Code</p>
+                      <p className="text-sm font-medium text-black">{bank.ifsc_code}</p>
                     </div>
                   </div>
 
                   {bank.swift_code && (
-                    <div className="flex items-center space-x-3 p-3 bg-slate-50 rounded-xl">
-                      <Globe className="h-4 w-4 text-slate-500" />
+                    <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
+                      <Globe className="h-4 w-4 text-[#bca142]" />
                       <div>
-                        <p className="text-xs text-slate-500">SWIFT Code</p>
-                        <p className="text-sm font-medium text-slate-800">{bank.swift_code}</p>
+                        <p className="text-xs text-gray-500">SWIFT Code</p>
+                        <p className="text-sm font-medium text-black">{bank.swift_code}</p>
                       </div>
                     </div>
                   )}
 
                   {bank.branch_address && (
-                    <div className="flex items-start space-x-3 p-3 bg-slate-50 rounded-xl">
-                      <MapPin className="h-4 w-4 text-slate-500 mt-0.5" />
+                    <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-xl">
+                      <MapPin className="h-4 w-4 text-[#bca142] mt-0.5" />
                       <div>
-                        <p className="text-xs text-slate-500">Branch Address</p>
-                        <p className="text-sm text-slate-800">{bank.branch_address}</p>
+                        <p className="text-xs text-gray-500">Branch Address</p>
+                        <p className="text-sm text-black">{bank.branch_address}</p>
                       </div>
                     </div>
                   )}
 
                   {bank.instructions && (
-                    <div className="flex items-start space-x-3 p-3 bg-slate-50 rounded-xl">
-                      <FileText className="h-4 w-4 text-slate-500 mt-0.5" />
+                    <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-xl">
+                      <FileText className="h-4 w-4 text-[#bca142] mt-0.5" />
                       <div>
-                        <p className="text-xs text-slate-500">Instructions</p>
-                        <p className="text-sm text-slate-800">{bank.instructions}</p>
+                        <p className="text-xs text-gray-500">Instructions</p>
+                        <p className="text-sm text-black">{bank.instructions}</p>
                       </div>
                     </div>
                   )}
@@ -279,21 +279,21 @@ const BankDetailsManager = () => {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-slate-800">
+              <h2 className="text-2xl font-bold text-black">
                 {editingId ? 'Edit Bank Details' : 'Add Bank Details'}
               </h2>
               <button
                 onClick={resetForm}
-                className="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors duration-300"
+                className="p-2 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors duration-300"
               >
-                <FaTimes className="h-4 w-4 text-slate-600" />
+                <FaTimes className="h-4 w-4 text-gray-600" />
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-black mb-2">
                     Bank Name *
                   </label>
                   <input
@@ -302,13 +302,13 @@ const BankDetailsManager = () => {
                     value={formData.bank_name}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                     placeholder="Enter bank name"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-black mb-2">
                     Branch Name *
                   </label>
                   <input
@@ -317,13 +317,13 @@ const BankDetailsManager = () => {
                     value={formData.branch_name}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                     placeholder="Enter branch name"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-black mb-2">
                     Account Holder Name *
                   </label>
                   <input
@@ -332,13 +332,13 @@ const BankDetailsManager = () => {
                     value={formData.account_holder_name}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                     placeholder="Enter account holder name"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-black mb-2">
                     Account Number *
                   </label>
                   <input
@@ -347,13 +347,13 @@ const BankDetailsManager = () => {
                     value={formData.account_number}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                     placeholder="Enter account number"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-black mb-2">
                     IFSC Code *
                   </label>
                   <input
@@ -362,13 +362,13 @@ const BankDetailsManager = () => {
                     value={formData.ifsc_code}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                     placeholder="Enter IFSC code"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-black mb-2">
                     SWIFT Code
                   </label>
                   <input
@@ -376,13 +376,13 @@ const BankDetailsManager = () => {
                     name="swift_code"
                     value={formData.swift_code}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                     placeholder="Enter SWIFT code (optional)"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-black mb-2">
                     Routing Number
                   </label>
                   <input
@@ -390,14 +390,14 @@ const BankDetailsManager = () => {
                     name="routing_number"
                     value={formData.routing_number}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                     placeholder="Enter routing number (optional)"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-black mb-2">
                   Branch Address
                 </label>
                 <textarea
@@ -405,13 +405,13 @@ const BankDetailsManager = () => {
                   value={formData.branch_address}
                   onChange={handleInputChange}
                   rows={3}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                   placeholder="Enter branch address (optional)"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-black mb-2">
                   Payment Instructions
                 </label>
                 <textarea
@@ -419,7 +419,7 @@ const BankDetailsManager = () => {
                   value={formData.instructions}
                   onChange={handleInputChange}
                   rows={3}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                   placeholder="Enter any special payment instructions (optional)"
                 />
               </div>
@@ -431,24 +431,24 @@ const BankDetailsManager = () => {
                   name="is_default"
                   checked={formData.is_default}
                   onChange={handleInputChange}
-                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                  className="w-4 h-4 text-[#bca142] bg-gray-100 border-gray-300 rounded focus:ring-[#bca142]"
                 />
-                <label htmlFor="is_default" className="text-sm font-medium text-slate-700">
+                <label htmlFor="is_default" className="text-sm font-medium text-black">
                   Set as default bank account
                 </label>
               </div>
 
-              <div className="flex items-center justify-end space-x-4 pt-6 border-t border-slate-200">
+              <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-colors duration-300"
+                  className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-black rounded-xl transition-colors duration-300"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl"
+                  className="flex items-center space-x-2 bg-[#bca142] hover:bg-[#a89139] text-white px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl"
                 >
                   <FaCheck className="h-4 w-4" />
                   <span>{editingId ? 'Update' : 'Create'} Bank Details</span>

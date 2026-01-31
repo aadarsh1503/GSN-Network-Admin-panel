@@ -118,30 +118,30 @@ const CompanyTicketsManager = () => {
   const getUserTypeIcon = (role) => {
     switch (role) {
       case 'user':
-        return <FiUser className="text-blue-500" />;
+        return <FiUser className="text-black" />;
       case 'business':
-        return <FiBriefcase className="text-purple-500" />;
+        return <FiBriefcase className="text-black" />;
       case 'company':
-        return <FiHome className="text-green-500" />;
+        return <FiHome className="text-black" />;
       case 'admin':
-        return <FiStar className="text-red-500" />;
+        return <FiStar className="text-black" />;
       default:
-        return <FiUser className="text-gray-500" />;
+        return <FiUser className="text-black" />;
     }
   };
 
   const getUserTypeBadge = (role) => {
     const configs = {
-      user: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Regular User' },
-      business: { bg: 'bg-purple-100', text: 'text-purple-800', label: 'Business Owner' },
-      company: { bg: 'bg-green-100', text: 'text-green-800', label: 'Company Member' },
-      admin: { bg: 'bg-red-100', text: 'text-red-800', label: 'Admin' }
+      user: { bg: 'bg-white', text: 'text-black', label: 'Regular User' },
+      business: { bg: 'bg-white', text: 'text-black', label: 'Business Owner' },
+      company: { bg: 'bg-white', text: 'text-black', label: 'Company Member' },
+      admin: { bg: 'bg-white', text: 'text-black', label: 'Admin' }
     };
     
-    const config = configs[role] || { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Unknown' };
+    const config = configs[role] || { bg: 'bg-white', text: 'text-black', label: 'Unknown' };
     
     return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border border-black ${config.bg} ${config.text}`}>
         {getUserTypeIcon(role)}
         <span className="ml-1">{config.label}</span>
       </span>
@@ -198,13 +198,13 @@ const CompanyTicketsManager = () => {
   };
 
   const SortableHeader = ({ children, sortKey }) => (
-    <th className="py-3 px-4 text-left font-semibold cursor-pointer hover:bg-yellow-100 transition-colors duration-200 text-sm" onClick={() => handleSort(sortKey)}>
+    <th className="py-3 px-4 text-left font-semibold cursor-pointer hover:bg-black hover:text-white transition-colors duration-200 text-sm" onClick={() => handleSort(sortKey)}>
       <div className="flex items-center">
         {children}
         {sortConfig.key === sortKey ? (
           sortConfig.direction === 'ascending' ? 
-            <FiChevronUp className="ml-1 text-yellow-600" size={16} /> : 
-            <FiChevronDown className="ml-1 text-yellow-600" size={16} />
+            <FiChevronUp className="ml-1 text-white" size={16} /> : 
+            <FiChevronDown className="ml-1 text-white" size={16} />
         ) : null}
       </div>
     </th>
@@ -213,21 +213,21 @@ const CompanyTicketsManager = () => {
   const getStatusBadge = (status) => {
     const statusConfigs = {
       pending: { 
-        bg: 'bg-gradient-to-r from-yellow-100 to-amber-100', 
-        text: 'text-yellow-800', 
-        border: 'border-yellow-200',
+        bg: 'bg-[#bca142]', 
+        text: 'text-white', 
+        border: 'border-[#bca142]',
         icon: <FiClock className="mr-1" size={12} />
       },
       answered: { 
-        bg: 'bg-gradient-to-r from-blue-100 to-cyan-100', 
-        text: 'text-blue-800', 
-        border: 'border-blue-200',
+        bg: 'bg-[#bca142]', 
+        text: 'text-white', 
+        border: 'border-[#bca142]',
         icon: <FiMessageSquare className="mr-1" size={12} />
       },
       closed: { 
-        bg: 'bg-gradient-to-r from-gray-100 to-slate-100', 
-        text: 'text-gray-800', 
-        border: 'border-gray-200',
+        bg: 'bg-black', 
+        text: 'text-white', 
+        border: 'border-black',
         icon: <FiCheckCircle className="mr-1" size={12} />
       }
     };
@@ -245,27 +245,27 @@ const CompanyTicketsManager = () => {
   const getPriorityBadge = (priority) => {
     const priorityConfigs = {
       low: { 
-        bg: 'bg-gradient-to-r from-green-100 to-emerald-100', 
-        text: 'text-green-800', 
-        border: 'border-green-200',
+        bg: 'bg-[#bca142]', 
+        text: 'text-white', 
+        border: 'border-[#bca142]',
         icon: <FiStar className="mr-1" size={12} />
       },
       medium: { 
-        bg: 'bg-gradient-to-r from-yellow-100 to-orange-100', 
-        text: 'text-yellow-800', 
-        border: 'border-yellow-200',
+        bg: 'bg-[#bca142]', 
+        text: 'text-white', 
+        border: 'border-[#bca142]',
         icon: <FiStar className="mr-1" size={12} />
       },
       high: { 
-        bg: 'bg-gradient-to-r from-orange-100 to-red-100', 
-        text: 'text-orange-800', 
-        border: 'border-orange-200',
+        bg: 'bg-[#bca142]', 
+        text: 'text-white', 
+        border: 'border-[#bca142]',
         icon: <FiStar className="mr-1" size={12} />
       },
       urgent: { 
-        bg: 'bg-gradient-to-r from-red-100 to-pink-100', 
-        text: 'text-red-800', 
-        border: 'border-red-200',
+        bg: 'bg-[#bca142]', 
+        text: 'text-white', 
+        border: 'border-[#bca142]',
         icon: <FiAlertTriangle className="mr-1" size={12} />
       }
     };
@@ -298,11 +298,11 @@ const CompanyTicketsManager = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50">
+      <div className="flex items-center justify-center h-screen bg-white">
         <div className="text-center">
           <div className="relative">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-yellow-200 border-t-yellow-600 mx-auto"></div>
-            <FiMail className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-yellow-600 animate-pulse" size={20} />
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-[#bca142] mx-auto"></div>
+            <FiMail className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-[#bca142] animate-pulse" size={20} />
           </div>
           <p className="mt-3 text-base font-medium text-gray-700 animate-pulse">Loading Tickets...</p>
         </div>
@@ -312,14 +312,14 @@ const CompanyTicketsManager = () => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50">
+      <div className="flex items-center justify-center h-screen bg-white">
         <div className="text-center">
-          <FiAlertTriangle className="mx-auto text-red-500 mb-3" size={40} />
+          <FiAlertTriangle className="mx-auto text-black mb-3" size={40} />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Tickets</h3>
-          <p className="text-red-500 mb-3 text-sm">{error}</p>
+          <p className="text-black mb-3 text-sm">{error}</p>
           <button 
             onClick={fetchAllTickets}
-            className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white px-5 py-2 rounded-lg font-semibold hover:from-yellow-600 hover:to-amber-700 transition-all duration-300 text-sm"
+            className="bg-[#bca142] text-white px-5 py-2 rounded-lg font-semibold hover:bg-black transition-all duration-300 text-sm"
           >
             Try Again
           </button>
@@ -329,13 +329,13 @@ const CompanyTicketsManager = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 p-3">
+    <div className="min-h-screen bg-white p-3">
       <div className="max-w-7xl mx-auto">
         {/* Compact Header */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-lg shadow-lg border border-white/20 p-4 mb-4">
+        <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 mb-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-gradient-to-r from-yellow-500 to-amber-600 rounded-lg">
+              <div className="p-2 bg-[#bca142] rounded-lg">
                 <FiHome className="text-white" size={20} />
               </div>
               <h1 className="text-xl font-bold text-gray-800">Ticket Manager</h1>
@@ -343,14 +343,14 @@ const CompanyTicketsManager = () => {
             <div className="flex items-center space-x-3">
               <button 
                 onClick={fetchAllTickets}
-                className="flex items-center space-x-2 bg-gradient-to-r from-yellow-500 to-amber-600 text-white font-medium py-2 px-4 rounded-lg hover:from-yellow-600 hover:to-amber-700 transition-all duration-300 text-sm"
+                className="flex items-center space-x-2 bg-[#bca142] text-white font-medium py-2 px-4 rounded-lg hover:bg-black transition-all duration-300 text-sm"
               >
                 <FiRefreshCw size={16} />
                 <span>Refresh</span>
               </button>
               <button 
                 onClick={() => window.location.href = '/company/create-Ticket'}
-                className="flex items-center space-x-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium py-2 px-4 rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300 text-sm"
+                className="flex items-center space-x-2 bg-black text-white font-medium py-2 px-4 rounded-lg hover:bg-gray-800 transition-all duration-300 text-sm"
               >
                 <FiPlus size={16} />
                 <span>Create</span>
@@ -360,7 +360,7 @@ const CompanyTicketsManager = () => {
         </div>
 
         {/* Compact Tab Navigation */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-lg shadow-lg border border-white/20 mb-4 overflow-hidden">
+        <div className="bg-white border border-gray-200 rounded-lg shadow-lg mb-4 overflow-hidden">
           <div className="flex">
             <button
               onClick={() => {
@@ -370,14 +370,14 @@ const CompanyTicketsManager = () => {
               }}
               className={`flex-1 flex items-center justify-center space-x-3 px-6 py-3 font-medium text-sm transition-all duration-300 ${
                 activeTab === 'received'
-                  ? 'bg-gradient-to-r from-yellow-500 to-amber-600 text-white shadow-lg'
-                  : 'text-gray-600 hover:text-gray-800 hover:bg-yellow-50'
+                  ? 'bg-[#bca142] text-white shadow-lg'
+                  : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
               }`}
             >
               <FiInbox size={16} />
               <span>Customer Tickets</span>
               <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                activeTab === 'received' ? 'bg-white/20 text-white' : 'bg-yellow-100 text-yellow-800'
+                activeTab === 'received' ? 'bg-white/20 text-white' : 'bg-gray-100 text-black'
               }`}>
                 {receivedTickets.length}
               </span>
@@ -390,14 +390,14 @@ const CompanyTicketsManager = () => {
               }}
               className={`flex-1 flex items-center justify-center space-x-3 px-6 py-3 font-medium text-sm transition-all duration-300 ${
                 activeTab === 'created'
-                  ? 'bg-gradient-to-r from-yellow-500 to-amber-600 text-white shadow-lg'
-                  : 'text-gray-600 hover:text-gray-800 hover:bg-yellow-50'
+                  ? 'bg-[#bca142] text-white shadow-lg'
+                  : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
               }`}
             >
               <FiEdit size={16} />
               <span>My Tickets</span>
               <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                activeTab === 'created' ? 'bg-white/20 text-white' : 'bg-yellow-100 text-yellow-800'
+                activeTab === 'created' ? 'bg-white/20 text-white' : 'bg-gray-100 text-black'
               }`}>
                 {createdTickets.length}
               </span>
@@ -408,18 +408,18 @@ const CompanyTicketsManager = () => {
         {/* Compact Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
           {[
-            { label: 'Total', value: counts.all, icon: FiMail, color: 'from-yellow-500 to-amber-500' },
-            { label: 'Pending', value: counts.pending, icon: FiClock, color: 'from-orange-500 to-red-500' },
-            { label: 'Answered', value: counts.answered, icon: FiMessageSquare, color: 'from-blue-500 to-cyan-500' },
-            { label: 'Closed', value: counts.closed, icon: FiCheckCircle, color: 'from-green-500 to-emerald-500' }
+            { label: 'Total', value: counts.all, icon: FiMail, color: '#bca142' },
+            { label: 'Pending', value: counts.pending, icon: FiClock, color: '#bca142' },
+            { label: 'Answered', value: counts.answered, icon: FiMessageSquare, color: '#bca142' },
+            { label: 'Closed', value: counts.closed, icon: FiCheckCircle, color: 'black' }
           ].map((stat, index) => (
-            <div key={index} className="bg-white/80 backdrop-blur-lg rounded-lg shadow-lg border border-white/20 p-4 hover:shadow-xl transition-all duration-300">
+            <div key={index} className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 hover:shadow-xl transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">{stat.label}</p>
                   <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
                 </div>
-                <div className={`p-2 bg-gradient-to-r ${stat.color} rounded-lg`}>
+                <div className={`p-2 rounded-lg`} style={{ backgroundColor: stat.color }}>
                   <stat.icon className="text-white" size={20} />
                 </div>
               </div>
@@ -428,7 +428,7 @@ const CompanyTicketsManager = () => {
         </div>
 
         {/* Compact Filters */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-lg shadow-lg border border-white/20 p-4 mb-4">
+        <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 mb-4">
           <div className="flex flex-col lg:flex-row items-center justify-between space-y-3 lg:space-y-0 lg:space-x-4">
             {/* Search */}
             <div className="relative flex-1 max-w-md">
@@ -438,7 +438,7 @@ const CompanyTicketsManager = () => {
                 placeholder="Search tickets..."
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className="w-full pl-10 pr-4 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300 text-sm"
+                className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 text-sm"
               />
             </div>
 
@@ -447,7 +447,7 @@ const CompanyTicketsManager = () => {
               <select
                 value={statusFilter}
                 onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300 text-sm"
+                className="px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] transition-all duration-300 text-sm"
               >
                 <option value="all">All ({counts.all})</option>
                 <option value="pending">Pending ({counts.pending})</option>
@@ -458,7 +458,7 @@ const CompanyTicketsManager = () => {
               <select
                 value={priorityFilter}
                 onChange={(e) => { setPriorityFilter(e.target.value); setCurrentPage(1); }}
-                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300 text-sm"
+                className="px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] transition-all duration-300 text-sm"
               >
                 <option value="all">All Priorities</option>
                 <option value="low">Low</option>
@@ -470,7 +470,7 @@ const CompanyTicketsManager = () => {
               <select
                 value={itemsPerPage}
                 onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
-                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300 text-sm"
+                className="px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] transition-all duration-300 text-sm"
               >
                 <option value="10">10</option>
                 <option value="25">25</option>
@@ -489,11 +489,11 @@ const CompanyTicketsManager = () => {
         </div>
 
         {/* Compact Tickets Table */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-lg shadow-lg border border-white/20 overflow-hidden">
+        <div className="bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
           {sortedTickets.length === 0 ? (
             <div className="text-center py-8">
-              <div className="p-2 bg-gradient-to-r from-yellow-100 to-amber-200 rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                <FiMail className="text-yellow-600" size={24} />
+              <div className="p-2 bg-[#bca142] rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                <FiMail className="text-white" size={24} />
               </div>
               <h3 className="text-base font-semibold text-gray-900 mb-1">
                 {searchTerm ? 'No Matching Tickets' : `No ${activeTab === 'received' ? 'Customer' : 'Created'} Tickets Found`}
@@ -509,7 +509,7 @@ const CompanyTicketsManager = () => {
               {activeTab === 'created' && (
                 <button 
                   onClick={() => window.location.href = '/company/create-Ticket'}
-                  className="mt-4 bg-gradient-to-r from-yellow-500 to-amber-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-yellow-600 hover:to-amber-700 transition-all duration-300"
+                  className="mt-4 bg-[#bca142] text-white px-6 py-3 rounded-xl font-semibold hover:bg-black transition-all duration-300"
                 >
                   Create Your First Ticket
                 </button>
@@ -519,7 +519,7 @@ const CompanyTicketsManager = () => {
             <>
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gradient-to-r from-yellow-50 to-amber-50">
+                  <thead className="bg-[#bca142] text-white">
                     <tr>
                       <SortableHeader sortKey="ticket_number">Ticket</SortableHeader>
                       <SortableHeader sortKey={activeTab === 'received' ? 'user_name' : 'subject'}>
@@ -528,16 +528,16 @@ const CompanyTicketsManager = () => {
                       <SortableHeader sortKey="priority">Priority</SortableHeader>
                       <SortableHeader sortKey="status">Status</SortableHeader>
                       <SortableHeader sortKey="created_at">Date</SortableHeader>
-                      <th className="py-3 px-4 text-left font-semibold text-sm">Actions</th>
+                      <th className="py-3 px-4 text-left font-semibold text-sm text-white">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {paginatedTickets.map((ticket, index) => (
-                      <tr key={ticket.id} className="hover:bg-gradient-to-r hover:from-yellow-50/50 hover:to-amber-50/50 transition-all duration-300">
+                      <tr key={ticket.id} className="hover:bg-gray-50 transition-all duration-300">
                         <td className="px-4 py-3">
                           <div className="flex items-center space-x-2">
-                            <div className="p-2 bg-gradient-to-r from-yellow-100 to-amber-100 rounded-lg">
-                              <FiMail className="text-yellow-600" size={14} />
+                            <div className="p-2 bg-[#bca142] rounded-lg">
+                              <FiMail className="text-white" size={14} />
                             </div>
                             <div>
                               <div className="text-sm font-bold text-gray-900">{ticket.ticket_number}</div>
@@ -550,7 +550,7 @@ const CompanyTicketsManager = () => {
                         <td className="px-4 py-3">
                           {activeTab === 'received' ? (
                             <div className="flex items-center space-x-2">
-                              <div className="p-2 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-lg">
+                              <div className="p-2 bg-white border border-gray-200 rounded-lg">
                                 {getUserTypeIcon(ticket.user_role)}
                               </div>
                               <div>
@@ -582,7 +582,7 @@ const CompanyTicketsManager = () => {
                           <div className="flex items-center space-x-2">
                             <button
                               onClick={() => openDetailsModal(ticket)}
-                              className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                              className="p-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 shadow-lg"
                               title="View Details"
                             >
                               <FiEye size={14} />
@@ -590,7 +590,7 @@ const CompanyTicketsManager = () => {
                             {activeTab === 'received' && (
                               <button
                                 onClick={() => openResponseModal(ticket)}
-                                className="p-2 bg-gradient-to-r from-yellow-500 to-amber-600 text-white rounded-lg hover:from-yellow-600 hover:to-amber-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                                className="p-2 bg-[#bca142] text-white rounded-lg hover:bg-black transition-all duration-300 transform hover:scale-105 shadow-lg"
                                 title="Respond"
                               >
                                 <FiMessageSquare size={14} />
@@ -605,12 +605,12 @@ const CompanyTicketsManager = () => {
               </div>
               
               {/* Enhanced Pagination */}
-              <div className="bg-gradient-to-r from-yellow-50 to-amber-50 px-6 py-4 border-t border-gray-200">
+              <div className="bg-[#bca142] px-6 py-4 border-t border-gray-200">
                 <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
-                  <div className="text-sm text-gray-700">
-                    Showing <span className="font-bold text-yellow-600">{sortedTickets.length > 0 ? startEntry : 0}</span> to{' '}
-                    <span className="font-bold text-yellow-600">{endEntry}</span> of{' '}
-                    <span className="font-bold text-yellow-600">{sortedTickets.length}</span> results
+                  <div className="text-sm text-white">
+                    Showing <span className="font-bold text-white">{sortedTickets.length > 0 ? startEntry : 0}</span> to{' '}
+                    <span className="font-bold text-white">{endEntry}</span> of{' '}
+                    <span className="font-bold text-white">{sortedTickets.length}</span> results
                   </div>
                   
                   <div className="flex items-center space-x-2">
@@ -642,7 +642,7 @@ const CompanyTicketsManager = () => {
                             onClick={() => setCurrentPage(pageNum)}
                             className={`px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${
                               currentPage === pageNum
-                                ? 'bg-gradient-to-r from-yellow-500 to-amber-600 text-white shadow-lg transform scale-105'
+                                ? 'bg-black text-white shadow-lg transform scale-105'
                                 : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
                             }`}
                           >
@@ -671,11 +671,11 @@ const CompanyTicketsManager = () => {
       {isDetailsModalOpen && selectedTicket && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white p-6 rounded-t-2xl">
+            <div className="bg-[#bca142] text-white p-6 rounded-t-2xl">
               <div className="flex justify-between items-center">
                 <div>
                   <h3 className="text-2xl font-bold">Ticket Details</h3>
-                  <p className="text-yellow-100 mt-1">{selectedTicket.ticket_number}</p>
+                  <p className="text-white mt-1">{selectedTicket.ticket_number}</p>
                 </div>
                 <button
                   onClick={closeModal}
@@ -718,7 +718,7 @@ const CompanyTicketsManager = () => {
                     <div>
                       <label className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Customer</label>
                       <div className="mt-1 flex items-center space-x-3">
-                        <div className="p-2 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-lg">
+                        <div className="p-2 bg-white border border-gray-200 rounded-lg">
                           {getUserTypeIcon(selectedTicket.user_role)}
                         </div>
                         <div>
@@ -762,10 +762,10 @@ const CompanyTicketsManager = () => {
               {selectedTicket.admin_response && (
                 <div>
                   <label className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Admin Response</label>
-                  <div className="mt-2 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                  <div className="mt-2 p-4 bg-white border border-gray-200 rounded-xl">
                     <p className="text-gray-900 whitespace-pre-wrap">{selectedTicket.admin_response}</p>
                     {selectedTicket.admin_name && (
-                      <p className="text-sm text-blue-600 mt-2 font-medium">- {selectedTicket.admin_name}</p>
+                      <p className="text-sm text-black mt-2 font-medium">- {selectedTicket.admin_name}</p>
                     )}
                   </div>
                 </div>
@@ -775,9 +775,9 @@ const CompanyTicketsManager = () => {
               {activeTab === 'received' && selectedTicket.company_response && (
                 <div>
                   <label className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Your Response</label>
-                  <div className="mt-2 p-4 bg-yellow-50 rounded-xl border border-yellow-200">
+                  <div className="mt-2 p-4 bg-white border border-gray-200 rounded-xl">
                     <p className="text-gray-900 whitespace-pre-wrap">{selectedTicket.company_response}</p>
-                    <p className="text-sm text-yellow-600 mt-2 font-medium">
+                    <p className="text-sm text-[#bca142] mt-2 font-medium">
                       Responded on {new Date(selectedTicket.company_responded_at).toLocaleDateString()}
                     </p>
                   </div>
@@ -798,7 +798,7 @@ const CompanyTicketsManager = () => {
                     closeModal();
                     openResponseModal(selectedTicket);
                   }}
-                  className="px-6 py-2 bg-gradient-to-r from-yellow-500 to-amber-600 text-white rounded-lg hover:from-yellow-600 hover:to-amber-700 transition-all duration-200"
+                  className="px-6 py-2 bg-[#bca142] text-white rounded-lg hover:bg-black transition-all duration-200"
                 >
                   Respond to Ticket
                 </button>
@@ -812,11 +812,11 @@ const CompanyTicketsManager = () => {
       {isResponseModalOpen && selectedTicket && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full">
-            <div className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white p-6 rounded-t-2xl">
+            <div className="bg-[#bca142] text-white p-6 rounded-t-2xl">
               <div className="flex justify-between items-center">
                 <div>
                   <h3 className="text-2xl font-bold">Respond to Ticket</h3>
-                  <p className="text-yellow-100 mt-1">{selectedTicket.ticket_number} - {selectedTicket.subject}</p>
+                  <p className="text-white mt-1">{selectedTicket.ticket_number} - {selectedTicket.subject}</p>
                 </div>
                 <button
                   onClick={closeModal}
@@ -829,9 +829,9 @@ const CompanyTicketsManager = () => {
 
             <div className="p-6">
               {/* Customer Info */}
-              <div className="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
+              <div className="mb-6 p-4 bg-white border border-gray-200 rounded-xl">
                 <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-lg">
+                  <div className="p-2 bg-white border border-gray-200 rounded-lg">
                     {getUserTypeIcon(selectedTicket.user_role)}
                   </div>
                   <div>

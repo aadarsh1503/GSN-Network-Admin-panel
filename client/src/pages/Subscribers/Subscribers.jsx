@@ -9,14 +9,14 @@ const SortableHeader = ({ children, sortKey, sortConfig, onSort }) => {
     const isSorted = sortConfig.key === sortKey;
     return (
         <th 
-            className="p-3 text-left text-sm font-semibold text-gray-600 tracking-wider cursor-pointer hover:bg-gray-100"
+            className="p-3 text-left text-sm font-semibold text-white tracking-wider cursor-pointer hover:bg-gray-100"
             onClick={() => onSort(sortKey)}
         >
             <div className="flex items-center">
                 <span>{children}</span>
                 <div className="flex flex-col ml-auto">
-                    <FiChevronUp className={`h-3 w-3 -mb-1 ${isSorted && sortConfig.direction === 'asc' ? 'text-gray-700' : 'text-gray-400'}`}/>
-                    <FiChevronDown className={`h-3 w-3 -mt-1 ${isSorted && sortConfig.direction === 'desc' ? 'text-gray-700' : 'text-gray-400'}`}/>
+                    <FiChevronUp className={`h-3 w-3 -mb-1 ${isSorted && sortConfig.direction === 'asc' ? 'text-white' : 'text-gray-300'}`}/>
+                    <FiChevronDown className={`h-3 w-3 -mt-1 ${isSorted && sortConfig.direction === 'desc' ? 'text-white' : 'text-gray-300'}`}/>
                 </div>
             </div>
         </th>
@@ -283,7 +283,7 @@ const Subscribers = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#CDA435]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#bca142]"></div>
       </div>
     );
   }
@@ -296,7 +296,7 @@ const Subscribers = () => {
             <p className="text-gray-600 text-sm mt-1">Manage subscription requests and active members</p>
           </div>
           <div className="flex items-center gap-4">
-            <div className="bg-yellow-50 text-[#CDA435] px-4 py-2 rounded-lg">
+            <div className="bg-yellow-50 text-[#bca142] px-4 py-2 rounded-lg">
               <span className="font-semibold">{activeTab === 'active' ? subscribers.length : incomingRequests.length}</span> 
               {activeTab === 'active' ? ' Active Subscribers' : ' Pending Requests'}
             </div>
@@ -326,7 +326,7 @@ const Subscribers = () => {
               }}
               className={`flex-1 px-4 py-2 rounded-md font-semibold transition-all duration-200 ${
                 activeTab === 'active'
-                  ? 'bg-[#CDA435] text-white shadow-md'
+                  ? 'bg-[#bca142] text-white shadow-md'
                   : 'text-gray-600 hover:text-gray-800'
               }`}
             >
@@ -395,7 +395,7 @@ const Subscribers = () => {
         {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-[#D9B95B]">
+            <thead className="bg-[#bca142]">
               <tr>
                 <SortableHeader sortKey="id" sortConfig={sortConfig} onSort={handleSort}>Sr. No</SortableHeader>
                 <SortableHeader sortKey="user_name" sortConfig={sortConfig} onSort={handleSort}>Member Name</SortableHeader>
@@ -414,7 +414,7 @@ const Subscribers = () => {
                 ) : (
                   <SortableHeader sortKey="created_at" sortConfig={sortConfig} onSort={handleSort}>Request Date</SortableHeader>
                 )}
-                <th className="p-3 text-left text-sm font-semibold text-gray-600 tracking-wider">Actions</th>
+                <th className="p-3 text-left text-sm font-semibold text-white tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -425,7 +425,7 @@ const Subscribers = () => {
                     <td className="p-3 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="w-8 h-8 bg-yellow-50 rounded-full flex items-center justify-center mr-3">
-                          <FaUser className="text-[#CDA435] text-sm" />
+                          <FaUser className="text-[#bca142] text-sm" />
                         </div>
                         <div>
                           <div className="font-medium text-gray-900">{item.user_name}</div>
@@ -489,7 +489,7 @@ const Subscribers = () => {
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => activeTab === 'active' ? handleViewSubscriber(item) : handleViewRequest(item)}
-                          className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                          className="p-2 bg-black text-white rounded hover:bg-gray-800 transition-colors"
                           title="View Details"
                         >
                           <FaEye />
@@ -556,17 +556,17 @@ const Subscribers = () => {
           </p>
           <div className="flex items-center mt-2 sm:mt-0">
             <button 
-              className="px-3 py-1 border border-[#D9B95B] text-[#D9B95B] rounded-l-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-1 border border-[#bca142] text-[#bca142] rounded-l-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
             >
               Previous
             </button>
-            <span className="px-3 py-1 border-y border-[#D9B95B] bg-[#D9B95B] text-white">
+            <span className="px-3 py-1 border-y border-[#bca142] bg-[#bca142] text-white">
               {currentPage}
             </span>
             <button 
-              className="px-3 py-1 border border-[#D9B95B] text-[#D9B95B] rounded-r-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-1 border border-[#bca142] text-[#bca142] rounded-r-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages || totalPages === 0}
             >

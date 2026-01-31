@@ -30,19 +30,19 @@ const FuturisticQuoteModal = ({ quote, isOpen, onClose, onUpdateStatus, isLoadin
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'accepted': return <FiCheck className="w-4 h-4 text-green-600" />;
+      case 'accepted': return <FiCheck className="w-4 h-4 text-[#bca142]" />;
       case 'rejected': return <FiXCircle className="w-4 h-4 text-red-600" />;
-      default: return <FiAlertCircle className="w-4 h-4 text-yellow-600" />;
+      default: return <FiAlertCircle className="w-4 h-4 text-[#bca142]" />;
     }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'accepted': return 'from-green-50 to-green-100 border-green-200';
+      case 'accepted': return 'from-yellow-50 to-yellow-100 border-[#bca142]';
       case 'rejected': return 'from-red-50 to-red-100 border-red-200';
-      case 'pending': return 'from-yellow-50 to-yellow-100 border-yellow-200';
-      case 'approved': return 'from-blue-50 to-blue-100 border-blue-200';
-      case 'running': return 'from-purple-50 to-purple-100 border-purple-200';
+      case 'pending': return 'from-yellow-50 to-yellow-100 border-[#bca142]';
+      case 'approved': return 'from-yellow-50 to-yellow-100 border-[#bca142]';
+      case 'running': return 'from-yellow-50 to-yellow-100 border-[#bca142]';
       case 'closed': return 'from-gray-50 to-gray-100 border-gray-200';
       default: return 'from-gray-50 to-gray-100 border-gray-200';
     }
@@ -62,7 +62,7 @@ const FuturisticQuoteModal = ({ quote, isOpen, onClose, onUpdateStatus, isLoadin
     <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[95vh] overflow-hidden shadow-2xl border border-gray-200">
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#CDA435] to-[#B8941F] p-6 text-white relative overflow-hidden">
+        <div className="bg-gradient-to-r from-[#bca142] to-[#B8941F] p-6 text-white relative overflow-hidden">
           <div className="absolute inset-0 bg-black bg-opacity-10"></div>
           <div className="relative z-10 flex justify-between items-center">
             <div>
@@ -97,10 +97,10 @@ const FuturisticQuoteModal = ({ quote, isOpen, onClose, onUpdateStatus, isLoadin
             {/* Left Column */}
             <div className="space-y-6">
               {/* User Information */}
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200 shadow-sm">
+              <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-6 border border-gray-200 shadow-sm">
                 <div className="flex items-center mb-4">
-                  <div className="p-3 bg-blue-100 rounded-full">
-                    <FiUser className="w-6 h-6 text-blue-600" />
+                  <div className="p-3 bg-[#bca142] rounded-full">
+                    <FiUser className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-800 ml-3">Customer Information</h3>
                 </div>
@@ -121,10 +121,10 @@ const FuturisticQuoteModal = ({ quote, isOpen, onClose, onUpdateStatus, isLoadin
               </div>
 
               {/* Shipment Route */}
-              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200 shadow-sm">
+              <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-6 border border-gray-200 shadow-sm">
                 <div className="flex items-center mb-4">
-                  <div className="p-3 bg-green-100 rounded-full">
-                    <FiMapPin className="w-6 h-6 text-green-600" />
+                  <div className="p-3 bg-[#bca142] rounded-full">
+                    <FiMapPin className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-800 ml-3">Shipping Route</h3>
                 </div>
@@ -143,7 +143,7 @@ const FuturisticQuoteModal = ({ quote, isOpen, onClose, onUpdateStatus, isLoadin
                   
                   {/* Arrow with shipping mode */}
                   <div className="flex flex-col items-center space-y-2">
-                    <div className="p-3 bg-[#CDA435] rounded-full text-white">
+                    <div className="p-3 bg-[#bca142] rounded-full text-white">
                       {getShippingIcon(quote?.shipping_mode)}
                     </div>
                     <span className="text-sm font-medium text-gray-700 capitalize">{quote?.shipping_mode}</span>
@@ -163,10 +163,10 @@ const FuturisticQuoteModal = ({ quote, isOpen, onClose, onUpdateStatus, isLoadin
               </div>
 
               {/* Product Information */}
-              <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl p-6 border border-purple-200 shadow-sm">
+              <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-6 border border-gray-200 shadow-sm">
                 <div className="flex items-center mb-4">
-                  <div className="p-3 bg-purple-100 rounded-full">
-                    <FiPackage className="w-6 h-6 text-purple-600" />
+                  <div className="p-3 bg-[#bca142] rounded-full">
+                    <FiPackage className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-800 ml-3">Product Details</h3>
                 </div>
@@ -185,15 +185,15 @@ const FuturisticQuoteModal = ({ quote, isOpen, onClose, onUpdateStatus, isLoadin
 
             {/* Right Column - Company Responses */}
             <div className="space-y-6">
-              <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-6 border border-orange-200 shadow-sm">
+              <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-6 border border-gray-200 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
-                    <div className="p-3 bg-orange-100 rounded-full">
-                      <FiDollarSign className="w-6 h-6 text-orange-600" />
+                    <div className="p-3 bg-[#bca142] rounded-full">
+                      <FiDollarSign className="w-6 h-6 text-white" />
                     </div>
                     <h3 className="text-lg font-semibold text-gray-800 ml-3">Company Responses</h3>
                   </div>
-                  <span className="bg-[#CDA435] text-white px-3 py-1 rounded-full text-sm font-medium">
+                  <span className="bg-[#bca142] text-white px-3 py-1 rounded-full text-sm font-medium">
                     {quote?.responses?.length || 0} Responses
                   </span>
                 </div>
@@ -208,7 +208,7 @@ const FuturisticQuoteModal = ({ quote, isOpen, onClose, onUpdateStatus, isLoadin
                             <p className="text-sm text-gray-600">{response.company_email}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-2xl font-bold text-[#CDA435]">${response.price}</p>
+                            <p className="text-2xl font-bold text-[#bca142]">${response.price}</p>
                             <div className="flex items-center text-sm text-gray-600 mt-1">
                               <FiClock className="w-3 h-3 mr-1" />
                               <span>{response.transit_time}</span>
@@ -259,7 +259,7 @@ const FuturisticQuoteModal = ({ quote, isOpen, onClose, onUpdateStatus, isLoadin
                 id="status-select"
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent bg-white shadow-sm"
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent bg-white shadow-sm"
               >
                 <option value="pending">Pending</option>
                 <option value="approved">Approved</option>
@@ -270,7 +270,7 @@ const FuturisticQuoteModal = ({ quote, isOpen, onClose, onUpdateStatus, isLoadin
               {selectedStatus !== quote?.status && (
                 <button
                   onClick={() => onUpdateStatus(quote?.id, selectedStatus)}
-                  className="px-4 py-2 bg-[#CDA435] text-white rounded-lg hover:bg-[#B8941F] transition-colors shadow-sm"
+                  className="px-4 py-2 bg-[#bca142] text-white rounded-lg hover:bg-[#B8941F] transition-colors shadow-sm"
                 >
                   Update
                 </button>

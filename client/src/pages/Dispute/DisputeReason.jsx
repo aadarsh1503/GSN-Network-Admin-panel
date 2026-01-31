@@ -8,14 +8,14 @@ const SortableHeader = ({ children, sortKey, sortConfig, onSort }) => {
     const isSorted = sortConfig.key === sortKey;
     return (
         <th 
-            className="p-3 text-left text-sm font-semibold text-gray-600 tracking-wider cursor-pointer hover:bg-gray-100"
+            className="p-3 text-left text-sm font-semibold text-white tracking-wider cursor-pointer hover:bg-[#b8932f]"
             onClick={() => onSort(sortKey)}
         >
             <div className="flex items-center">
                 <span>{children}</span>
                 <div className="flex flex-col ml-auto">
-                    <FiChevronUp className={`h-3 w-3 -mb-1 ${isSorted && sortConfig.direction === 'asc' ? 'text-gray-700' : 'text-gray-400'}`}/>
-                    <FiChevronDown className={`h-3 w-3 -mt-1 ${isSorted && sortConfig.direction === 'desc' ? 'text-gray-700' : 'text-gray-400'}`}/>
+                    <FiChevronUp className={`h-3 w-3 -mb-1 ${isSorted && sortConfig.direction === 'asc' ? 'text-white' : 'text-gray-300'}`}/>
+                    <FiChevronDown className={`h-3 w-3 -mt-1 ${isSorted && sortConfig.direction === 'desc' ? 'text-white' : 'text-gray-300'}`}/>
                 </div>
             </div>
         </th>
@@ -179,7 +179,7 @@ const DisputeReason = () => {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#CDA435]"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#bca142]"></div>
             </div>
         );
     }
@@ -189,8 +189,8 @@ const DisputeReason = () => {
             <div className="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow-md">
                 <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-800 mb-2">Dispute Reasons</h1>
-                        <p className="text-gray-600">Manage dispute categories and reasons</p>
+                        <h1 className="text-2xl font-bold text-black mb-2">Dispute Reasons</h1>
+                        <p className="text-black">Manage dispute categories and reasons</p>
                     </div>
                     <button 
                         onClick={() => {
@@ -198,19 +198,19 @@ const DisputeReason = () => {
                             setFormData({ title: '', description: '' });
                             setShowAddModal(true);
                         }}
-                        className="flex items-center bg-green-600 text-white font-bold py-2 px-4 rounded-md hover:bg-green-700 transition-colors"
+                        className="flex items-center bg-[#bca142] text-white font-bold py-2 px-4 rounded-md hover:bg-[#b8932f] transition-colors"
                     >
-                        <FiPlus className="mr-2" />
+                        <FiPlus className="mr-2 text-white" />
                         Add Reason
                     </button>
                 </div>
 
                 {/* Top Controls */}
                 <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
-                    <div className="flex items-center text-sm text-gray-600">
+                    <div className="flex items-center text-sm text-black">
                         <span>Show</span>
                         <select 
-                            className="mx-2 border border-gray-300 rounded-md p-1"
+                            className="mx-2 border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-[#bca142]"
                             value={entriesPerPage}
                             onChange={(e) => {
                                 setEntriesPerPage(Number(e.target.value));
@@ -223,12 +223,12 @@ const DisputeReason = () => {
                         </select>
                         <span>entries</span>
                     </div>
-                    <div className="flex items-center text-sm text-gray-600">
+                    <div className="flex items-center text-sm text-black">
                         <label htmlFor="search" className="mr-2">Search:</label>
                         <input 
                             id="search"
                             type="text" 
-                            className="border border-gray-300 rounded-md p-1.5"
+                            className="border border-gray-300 rounded-md p-1.5 focus:outline-none focus:ring-2 focus:ring-[#bca142]"
                             value={searchTerm}
                             onChange={(e) => {
                                 setSearchTerm(e.target.value);
@@ -242,23 +242,23 @@ const DisputeReason = () => {
                 {/* Table */}
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
-                        <thead className="bg-[#D9B95B]">
+                        <thead className="bg-[#bca142]">
                             <tr>
                                 <SortableHeader sortKey="id" sortConfig={sortConfig} onSort={handleSort}>Sr. No</SortableHeader>
                                 <SortableHeader sortKey="title" sortConfig={sortConfig} onSort={handleSort}>Title</SortableHeader>
-                                <th className="p-3 text-left text-sm font-semibold text-gray-600 tracking-wider">Description</th>
+                                <th className="p-3 text-left text-sm font-semibold text-white tracking-wider">Description</th>
                                 <SortableHeader sortKey="is_active" sortConfig={sortConfig} onSort={handleSort}>Status</SortableHeader>
                                 <SortableHeader sortKey="created_at" sortConfig={sortConfig} onSort={handleSort}>Created</SortableHeader>
-                                <th className="p-3 text-left text-sm font-semibold text-gray-600 tracking-wider">Actions</th>
+                                <th className="p-3 text-left text-sm font-semibold text-white tracking-wider">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
                             {currentEntries.length > 0 ? (
                                 currentEntries.map((reason, index) => (
                                     <tr key={reason.id} className="hover:bg-gray-50">
-                                        <td className="p-3 whitespace-nowrap text-gray-700">{indexOfFirstEntry + index + 1}</td>
-                                        <td className="p-3 text-gray-700 font-medium">{reason.title}</td>
-                                        <td className="p-3 text-gray-700 max-w-xs truncate">
+                                        <td className="p-3 whitespace-nowrap text-black">{indexOfFirstEntry + index + 1}</td>
+                                        <td className="p-3 text-black font-medium">{reason.title}</td>
+                                        <td className="p-3 text-black max-w-xs truncate">
                                             {reason.description || 'No description'}
                                         </td>
                                         <td className="p-3 whitespace-nowrap">
@@ -273,24 +273,24 @@ const DisputeReason = () => {
                                                 {reason.is_active ? 'Active' : 'Inactive'}
                                             </button>
                                         </td>
-                                        <td className="p-3 whitespace-nowrap text-gray-700">
+                                        <td className="p-3 whitespace-nowrap text-black">
                                             {new Date(reason.created_at).toLocaleDateString()}
                                         </td>
                                         <td className="p-3 whitespace-nowrap">
                                             <div className="flex items-center space-x-2">
                                                 <button 
                                                     onClick={() => handleEdit(reason)}
-                                                    className="bg-[#84c44e] text-white p-2 rounded-md hover:bg-[#76b046] transition-colors"
+                                                    className="bg-[#bca142] text-white p-2 rounded-md hover:bg-[#b8932f] transition-colors"
                                                     title="Edit"
                                                 >
-                                                    <FiEdit size={16} />
+                                                    <FiEdit className="text-white" size={16} />
                                                 </button>
                                                 <button 
                                                     onClick={() => handleDelete(reason.id)}
-                                                    className="bg-[#e63273] text-white p-2 rounded-md hover:bg-[#d12c66] transition-colors"
+                                                    className="bg-black text-white p-2 rounded-md hover:bg-gray-800 transition-colors"
                                                     title="Delete"
                                                 >
-                                                    <FiTrash2 size={16} />
+                                                    <FiTrash2 className="text-white" size={16} />
                                                 </button>
                                             </div>
                                         </td>
@@ -311,7 +311,7 @@ const DisputeReason = () => {
                 </div>
 
                 {/* Pagination */}
-                <div className="flex flex-col sm:flex-row justify-between items-center mt-4 text-sm text-gray-600">
+                <div className="flex flex-col sm:flex-row justify-between items-center mt-4 text-sm text-black">
                     <p>
                         Showing {filteredAndSortedReasons.length > 0 ? indexOfFirstEntry + 1 : 0} to{' '}
                         {Math.min(indexOfLastEntry, filteredAndSortedReasons.length)} of{' '}
@@ -319,17 +319,23 @@ const DisputeReason = () => {
                     </p>
                     <div className="flex items-center mt-2 sm:mt-0">
                         <button 
-                            className="px-3 py-1 border border-[#D9B95B] text-[#D9B95B] rounded-l-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-3 py-1 border border-gray-300 rounded-l-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                             disabled={currentPage === 1}
                         >
                             Previous
                         </button>
-                        <span className="px-3 py-1 border-y border-[#D9B95B] bg-[#D9B95B] text-white">
-                            {currentPage}
-                        </span>
+                        {[...Array(totalPages).keys()].slice(Math.max(0, currentPage - 3), Math.min(totalPages, currentPage + 2)).map(number => (
+                            <button 
+                                key={number + 1}
+                                onClick={() => setCurrentPage(number + 1)}
+                                className={`px-3 py-1 border-t border-b ${currentPage === number + 1 ? 'bg-[#bca142] text-white font-bold border-[#bca142]' : 'border-gray-300 hover:bg-gray-100'}`}
+                            >
+                                {number + 1}
+                            </button>
+                        ))}
                         <button 
-                            className="px-3 py-1 border border-[#D9B95B] text-[#D9B95B] rounded-r-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-3 py-1 border border-gray-300 rounded-r-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                             onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                             disabled={currentPage === totalPages || totalPages === 0}
                         >
@@ -344,7 +350,7 @@ const DisputeReason = () => {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-lg max-w-md w-full p-6">
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-bold text-gray-800">
+                            <h3 className="text-lg font-bold text-black">
                                 {editingReason ? 'Edit Dispute Reason' : 'Add New Dispute Reason'}
                             </h3>
                             <button 
@@ -362,27 +368,27 @@ const DisputeReason = () => {
                         <form onSubmit={handleSubmit}>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-black mb-1">
                                         Title *
                                     </label>
                                     <input
                                         type="text"
                                         value={formData.title}
                                         onChange={(e) => setFormData({...formData, title: e.target.value})}
-                                        className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                                        className="w-full p-2 border rounded focus:ring-2 focus:ring-[#bca142] focus:border-transparent"
                                         placeholder="Enter dispute reason title"
                                         required
                                     />
                                 </div>
                                 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-black mb-1">
                                         Description
                                     </label>
                                     <textarea
                                         value={formData.description}
                                         onChange={(e) => setFormData({...formData, description: e.target.value})}
-                                        className="w-full p-2 border rounded focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                                        className="w-full p-2 border rounded focus:ring-2 focus:ring-[#bca142] focus:border-transparent"
                                         rows="3"
                                         placeholder="Enter description (optional)"
                                     />
@@ -397,15 +403,15 @@ const DisputeReason = () => {
                                         setEditingReason(null);
                                         setFormData({ title: '', description: '' });
                                     }}
-                                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                                    className="px-4 py-2 bg-gray-200 text-black rounded hover:bg-gray-300"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex items-center px-4 py-2 bg-[#CDA435] text-white rounded hover:bg-[#B8941F]"
+                                    className="flex items-center px-4 py-2 bg-[#bca142] text-white rounded hover:bg-[#b8932f]"
                                 >
-                                    <FiSave className="mr-2" />
+                                    <FiSave className="mr-2 text-white" />
                                     {editingReason ? 'Update' : 'Create'}
                                 </button>
                             </div>

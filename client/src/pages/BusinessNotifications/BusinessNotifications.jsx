@@ -230,11 +230,11 @@ const BusinessNotifications = () => {
 
   const getNotificationIcon = (notification) => {
     if (notification.type === 'quote_response') {
-      return <FaDollarSign className="text-green-600" />;
+      return <FaDollarSign className="text-white" />;
     } else if (notification.title?.toLowerCase().includes('status')) {
-      return <FaInfoCircle className="text-blue-600" />;
+      return <FaInfoCircle className="text-white" />;
     } else if (notification.title?.toLowerCase().includes('accepted')) {
-      return <FaCheckCircle className="text-green-600" />;
+      return <FaCheckCircle className="text-white" />;
     } else if (notification.title?.toLowerCase().includes('rejected')) {
       return <FaTimesCircle className="text-red-600" />;
     } else if (notification.title?.toLowerCase().includes('dispute')) {
@@ -271,7 +271,7 @@ const BusinessNotifications = () => {
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#CDA435]"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#bca142]"></div>
           </div>
         </div>
       </div>
@@ -283,7 +283,7 @@ const BusinessNotifications = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Compact Header */}
         <div className="mb-4">
-          <div className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-xl p-4 text-white">
+          <div className="bg-gradient-to-r from-[#bca142] to-[#D9B95B] rounded-xl p-4 text-white">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
@@ -321,7 +321,7 @@ const BusinessNotifications = () => {
                 onClick={() => setFilter(key)}
                 className={`flex items-center gap-1 px-3 py-2 rounded-md font-medium transition-all duration-300 text-sm ${
                   filter === key
-                    ? 'bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white shadow-lg'
+                    ? 'bg-gradient-to-r from-[#bca142] to-[#D9B95B] text-white shadow-lg'
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
@@ -356,7 +356,7 @@ const BusinessNotifications = () => {
                 <div 
                   key={notification.id} 
                   onClick={() => handleNotificationClick(notification)}
-                  className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200 hover:border-[#CDA435] cursor-pointer"
+                  className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200 hover:border-[#bca142] cursor-pointer"
                 >
                   <div className="p-3">
                     <div className="flex items-center gap-3">
@@ -397,28 +397,28 @@ const BusinessNotifications = () => {
 
                         {/* Quote Details - Compact Horizontal Layout */}
                         {notification.data && notification.data.quote_id && (
-                          <div className="bg-blue-50 rounded-md p-2 mb-2 border border-blue-200">
+                          <div className="bg-[#bca142] rounded-md p-2 mb-2 border border-blue-200">
                             <div className="flex items-center gap-4 text-xs">
                               <div className="flex items-center gap-1">
-                                <FiPackage className="text-blue-600" />
-                                <span className="text-blue-700 font-medium">Quote #{notification.data.quote_id}</span>
+                                <FiPackage className="text-white" />
+                                <span className="text-white font-medium">Quote #{notification.data.quote_id}</span>
                               </div>
                               {notification.data.price && (
                                 <div className="flex items-center gap-1">
-                                  <FaDollarSign className="text-green-600" />
-                                  <span className="text-blue-700">${notification.data.price}</span>
+                                  <FaDollarSign className="text-white" />
+                                  <span className="text-white">${notification.data.price}</span>
                                 </div>
                               )}
                               {notification.data.company_name && (
                                 <div className="flex items-center gap-1">
-                                  <FiUser className="text-blue-600" />
-                                  <span className="text-blue-700 truncate max-w-24">{notification.data.company_name}</span>
+                                  <FiUser className="text-white" />
+                                  <span className="text-white truncate max-w-24">{notification.data.company_name}</span>
                                 </div>
                               )}
                               {notification.data.transit_time && (
                                 <div className="flex items-center gap-1">
-                                  <FaCalendarAlt className="text-blue-600" />
-                                  <span className="text-blue-700">{notification.data.transit_time}</span>
+                                  <FaCalendarAlt className="text-white" />
+                                  <span className="text-white">{notification.data.transit_time}</span>
                                 </div>
                               )}
                             </div>
@@ -427,7 +427,7 @@ const BusinessNotifications = () => {
 
                         {/* Action Button - Compact */}
                         <div className="flex items-center justify-between">
-                          <div className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B] bg-opacity-10 rounded-md px-2 py-1 border border-[#CDA435] border-opacity-30">
+                          <div className="bg-gradient-to-r from-[#bca142] to-[#D9B95B] bg-opacity-10 rounded-md px-2 py-1 border border-[#bca142] border-opacity-30">
                             <p className="text-xs text-[#ffffff] font-medium flex items-center gap-1">
                               <FaEye className="text-xs" />
                               {(() => {
@@ -451,7 +451,7 @@ const BusinessNotifications = () => {
                               e.stopPropagation();
                               handleNotificationClick(notification);
                             }}
-                            className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white px-3 py-1 rounded-md hover:shadow-md transition-all duration-300 text-xs font-medium flex items-center gap-1"
+                            className="bg-gradient-to-r from-[#bca142] to-[#D9B95B] text-white px-3 py-1 rounded-md hover:shadow-md transition-all duration-300 text-xs font-medium flex items-center gap-1"
                           >
                             <FaEye className="text-xs" />
                             View
@@ -478,7 +478,7 @@ const BusinessNotifications = () => {
             onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
           >
             {/* Modal Header */}
-            <div className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B] px-6 py-4 flex items-center justify-between">
+            <div className="bg-gradient-to-r from-[#bca142] to-[#D9B95B] px-6 py-4 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-white">{imageModal.title}</h3>
               <button
                 onClick={closeImageModal}
@@ -507,7 +507,7 @@ const BusinessNotifications = () => {
             <div className="bg-gray-50 px-6 py-4 flex justify-end">
               <button
                 onClick={closeImageModal}
-                className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white px-6 py-2 rounded-lg hover:shadow-md transition-all duration-300 font-medium"
+                className="bg-gradient-to-r from-[#bca142] to-[#D9B95B] text-white px-6 py-2 rounded-lg hover:shadow-md transition-all duration-300 font-medium"
               >
                 Close
               </button>

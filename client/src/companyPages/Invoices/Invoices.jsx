@@ -146,13 +146,13 @@ Date: ${new Date(qrData.date).toLocaleDateString()}`);
             .text-gray-600 { color: rgb(75, 85, 99) !important; }
             .text-gray-500 { color: rgb(107, 114, 128) !important; }
             .text-gray-800 { color: rgb(31, 41, 55) !important; }
-            .text-green-600 { color: rgb(22, 163, 74) !important; }
-            .bg-green-100 { background-color: rgb(220, 252, 231) !important; }
-            .text-green-800 { color: rgb(22, 101, 52) !important; }
-            .bg-yellow-100 { background-color: rgb(254, 249, 195) !important; }
-            .text-yellow-800 { color: rgb(146, 64, 14) !important; }
-            .bg-red-100 { background-color: rgb(254, 226, 226) !important; }
-            .text-red-800 { color: rgb(153, 27, 27) !important; }
+            .text-green-600 { color: rgb(0, 0, 0) !important; }
+            .bg-green-100 { background-color: rgb(0, 0, 0) !important; }
+            .text-green-800 { color: rgb(255, 255, 255) !important; }
+            .bg-yellow-100 { background-color: rgb(188, 161, 66) !important; }
+            .text-yellow-800 { color: rgb(255, 255, 255) !important; }
+            .bg-red-100 { background-color: rgb(156, 163, 175) !important; }
+            .text-red-800 { color: rgb(255, 255, 255) !important; }
             .bg-gray-100 { background-color: rgb(243, 244, 246) !important; }
             .bg-gray-50 { background-color: rgb(249, 250, 251) !important; }
             .border-gray-300 { border-color: rgb(209, 213, 219) !important; }
@@ -214,14 +214,14 @@ Date: ${new Date(qrData.date).toLocaleDateString()}`);
 
   const getStatusBadge = (status) => {
     const colors = {
-      paid: 'bg-green-100 text-green-800',
-      pending: 'bg-yellow-100 text-yellow-800',
-      overdue: 'bg-red-100 text-red-800',
-      cancelled: 'bg-gray-100 text-gray-800'
+      paid: 'bg-[#bca142] text-white',
+      pending: 'bg-[#bca142] text-white',
+      overdue: 'bg-[#bca142] text-white',
+      cancelled: 'bg-[#bca142] text-white'
     };
     
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors[status] || 'bg-gray-100 text-gray-800'}`}>
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors[status] || 'bg-[#bca142] text-white'}`}>
         {status?.charAt(0).toUpperCase() + status?.slice(1)}
       </span>
     );
@@ -267,9 +267,9 @@ Date: ${new Date(qrData.date).toLocaleDateString()}`);
 
   return (
     <div className="bg-white p-6 md:p-8 rounded-lg shadow-md w-full">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-4 flex items-center justify-between">
+      <h2 className="text-2xl font-bold text-black mb-6 border-b pb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <FaFileInvoiceDollar className="text-[#CDA435]" />
+          <FaFileInvoiceDollar className="text-[#bca142]" />
           Invoices
         </div>
        
@@ -278,19 +278,19 @@ Date: ${new Date(qrData.date).toLocaleDateString()}`);
       {invoices.length === 0 ? (
         <div className="text-center py-12">
           <FaFileInvoiceDollar className="mx-auto text-gray-400 mb-4" size={48} />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No Invoices Yet</h3>
-          <p className="text-gray-500">Your subscription invoices will appear here when you purchase plans.</p>
+          <h3 className="text-lg font-medium text-black mb-2">No Invoices Yet</h3>
+          <p className="text-gray-600">Your subscription invoices will appear here when you purchase plans.</p>
         </div>
       ) : (
         <>
           {/* Controls */}
           <div className="flex flex-col md:flex-row items-center justify-between mb-4 gap-4">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-sm text-black">
               <span>Show</span>
               <select 
                 value={entriesPerPage} 
                 onChange={(e) => { setEntriesPerPage(Number(e.target.value)); setCurrentPage(1); }}
-                className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+                className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#bca142]"
               >
                 <option value="10">10</option>
                 <option value="25">25</option>
@@ -298,7 +298,7 @@ Date: ${new Date(qrData.date).toLocaleDateString()}`);
               </select>
               <span>entries</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-sm text-black">
               <label htmlFor="search">Search:</label>
               <input 
                 id="search"
@@ -306,7 +306,7 @@ Date: ${new Date(qrData.date).toLocaleDateString()}`);
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                 placeholder="Invoice number, plan name..."
-                className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+                className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#bca142]"
               />
             </div>
           </div>
@@ -314,7 +314,7 @@ Date: ${new Date(qrData.date).toLocaleDateString()}`);
           {/* Table */}
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white">
-              <thead className="bg-[#D9CBAA] text-gray-800 text-sm">
+              <thead className="bg-[#bca142] text-white text-sm">
                 <tr>
                   <th className="p-3 text-left font-semibold">Invoice #</th>
                   <th className="p-3 text-left font-semibold">Plan</th>
@@ -328,30 +328,30 @@ Date: ${new Date(qrData.date).toLocaleDateString()}`);
               <tbody>
                 {currentEntries.map((invoice) => (
                   <tr key={invoice.id} className="border-b border-gray-200 hover:bg-gray-50">
-                    <td className="p-3 text-sm text-gray-700 font-mono">{invoice.invoice_number}</td>
-                    <td className="p-3 text-sm text-gray-700">
-                      <span className="font-semibold text-[#CDA435]">{invoice.plan_name}</span>
+                    <td className="p-3 text-sm text-black font-mono">{invoice.invoice_number}</td>
+                    <td className="p-3 text-sm text-black">
+                      <span className="font-semibold text-[#bca142]">{invoice.plan_name}</span>
                     </td>
-                    <td className="p-3 text-sm text-gray-700">
-                      <span className="font-semibold text-green-600">{formatCurrency(invoice.total_amount)}</span>
+                    <td className="p-3 text-sm text-black">
+                      <span className="font-semibold text-black">{formatCurrency(invoice.total_amount)}</span>
                     </td>
-                    <td className="p-3 text-sm text-gray-700">
+                    <td className="p-3 text-sm text-black">
                       {getStatusBadge(invoice.status)}
                     </td>
-                    <td className="p-3 text-sm text-gray-700">{formatDate(invoice.created_at)}</td>
-                    <td className="p-3 text-sm text-gray-700">{formatDate(invoice.due_date)}</td>
-                    <td className="p-3 text-sm text-gray-700">
+                    <td className="p-3 text-sm text-black">{formatDate(invoice.created_at)}</td>
+                    <td className="p-3 text-sm text-black">{formatDate(invoice.due_date)}</td>
+                    <td className="p-3 text-sm text-black">
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleViewInvoice(invoice.id)}
-                          className="bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-colors"
+                          className="bg-black text-white p-2 rounded-full hover:bg-gray-800 transition-colors"
                           title="View Invoice"
                         >
                           <FaEye size={12} />
                         </button>
                         <button
                           onClick={() => handleViewInvoice(invoice.id)}
-                          className="bg-green-500 text-white p-2 rounded-full hover:bg-green-600 transition-colors"
+                          className="bg-[#bca142] text-white p-2 rounded-full hover:bg-[#a89139] transition-colors"
                           title="Download PDF"
                         >
                           <FaDownload size={12} />
@@ -368,7 +368,7 @@ Date: ${new Date(qrData.date).toLocaleDateString()}`);
           {/* Pagination */}
           {invoices.length > 0 && (
             <div className="flex flex-col md:flex-row items-center justify-between mt-4 gap-4">
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-black">
                 Showing {filteredInvoices.length === 0 ? 0 : indexOfFirstEntry + 1} to {Math.min(indexOfLastEntry, filteredInvoices.length)} of {filteredInvoices.length} entries
               </div>
               <div className="flex items-center">
@@ -379,7 +379,7 @@ Date: ${new Date(qrData.date).toLocaleDateString()}`);
                 >
                   Previous
                 </button>
-                <span className="px-3 py-1 border-t border-b border-gray-300 text-gray-800 bg-[#D9CBAA]">
+                <span className="px-3 py-1 border-t border-b border-gray-300 text-white bg-[#bca142]">
                   {currentPage}
                 </span>
                 <button 
@@ -401,17 +401,17 @@ Date: ${new Date(qrData.date).toLocaleDateString()}`);
           <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
             <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white">
-              <h3 className="text-lg font-bold text-gray-800">Invoice Details</h3>
+              <h3 className="text-lg font-bold text-black">Invoice Details</h3>
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleDownloadPDF}
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 flex items-center gap-2 transition-colors"
+                  className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 flex items-center gap-2 transition-colors"
                 >
                   <FaDownload size={14} /> Download PDF
                 </button>
                 <button
                   onClick={() => setShowInvoiceModal(false)}
-                  className="text-gray-500 hover:text-red-500 text-xl font-bold ml-2"
+                  className="text-gray-500 hover:text-black text-xl font-bold ml-2"
                 >
                   ×
                 </button>
@@ -431,7 +431,7 @@ Date: ${new Date(qrData.date).toLocaleDateString()}`);
                       style={{ maxWidth: '48px', maxHeight: '48px' }}
                     />
                     <div>
-                      <h1 className="text-2xl font-bold mb-1" style={{ color: '#CDA435', fontSize: '24px', fontWeight: 'bold' }}>INVOICE</h1>
+                      <h1 className="text-2xl font-bold mb-1" style={{ color: '#bca142', fontSize: '24px', fontWeight: 'bold' }}>INVOICE</h1>
                       <p className="font-semibold" style={{ color: '#4B5563', fontSize: '14px', fontWeight: '600' }}>GSN Network Services</p>
                       <p className="text-xs" style={{ color: '#6B7280', fontSize: '12px' }}>Freight Forwarding & Logistics</p>
                     </div>
@@ -474,12 +474,8 @@ Date: ${new Date(qrData.date).toLocaleDateString()}`);
                       <div className="mb-1" style={{ marginBottom: '4px' }}>
                         <span className="font-semibold" style={{ fontWeight: '600' }}>Status: </span>
                         <span className="ml-2 px-2 py-1 rounded-full text-xs font-medium" style={{ 
-                          backgroundColor: selectedInvoice.status === 'paid' ? '#DCFCE7' : 
-                                         selectedInvoice.status === 'pending' ? '#FEF3C7' : 
-                                         selectedInvoice.status === 'overdue' ? '#FEE2E2' : '#F3F4F6',
-                          color: selectedInvoice.status === 'paid' ? '#166534' : 
-                                selectedInvoice.status === 'pending' ? '#92400E' : 
-                                selectedInvoice.status === 'overdue' ? '#991B1B' : '#374151',
+                          backgroundColor: '#bca142',
+                          color: '#ffffff',
                           fontSize: '10px',
                           padding: '2px 6px',
                           borderRadius: '12px'
@@ -494,11 +490,11 @@ Date: ${new Date(qrData.date).toLocaleDateString()}`);
                 {/* Invoice Items */}
                 <div className="mb-6">
                   <table className="w-full" style={{ border: '1px solid #D1D5DB', borderCollapse: 'collapse' }}>
-                    <thead style={{ backgroundColor: '#D9CBAA' }}>
+                    <thead style={{ backgroundColor: '#bca142' }}>
                       <tr>
-                        <th className="p-2 text-left" style={{ border: '1px solid #D1D5DB', padding: '8px', textAlign: 'left', fontWeight: '600', fontSize: '12px' }}>Description</th>
-                        <th className="p-2 text-center" style={{ border: '1px solid #D1D5DB', padding: '8px', textAlign: 'center', fontWeight: '600', fontSize: '12px' }}>Period</th>
-                        <th className="p-2 text-right" style={{ border: '1px solid #D1D5DB', padding: '8px', textAlign: 'right', fontWeight: '600', fontSize: '12px' }}>Amount</th>
+                        <th className="p-2 text-left" style={{ border: '1px solid #D1D5DB', padding: '8px', textAlign: 'left', fontWeight: '600', fontSize: '12px', color: '#ffffff' }}>Description</th>
+                        <th className="p-2 text-center" style={{ border: '1px solid #D1D5DB', padding: '8px', textAlign: 'center', fontWeight: '600', fontSize: '12px', color: '#ffffff' }}>Period</th>
+                        <th className="p-2 text-right" style={{ border: '1px solid #D1D5DB', padding: '8px', textAlign: 'right', fontWeight: '600', fontSize: '12px', color: '#ffffff' }}>Amount</th>
                       </tr>
                     </thead>
                     <tbody>

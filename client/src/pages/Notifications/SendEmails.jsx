@@ -215,7 +215,7 @@ const SendEmails = () => {
                 Send personalized emails to different user groups on your platform
               </p>
             </div>
-            <div className="flex items-center space-x-2 text-yellow-600">
+            <div className="flex items-center space-x-2 text-[#bca142]">
               <FiMail className="h-8 w-8" />
               <span className="text-sm font-medium">Bulk Email System</span>
             </div>
@@ -225,7 +225,7 @@ const SendEmails = () => {
           {Object.keys(userCounts).length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
               {Object.entries(userCounts).map(([type, count]) => (
-                <div key={type} className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border border-yellow-200">
+                <div key={type} className="bg-gradient-to-r from-[#bca142]/10 to-[#bca142]/20 p-4 rounded-lg border border-[#bca142]/30">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">
@@ -233,13 +233,13 @@ const SendEmails = () => {
                       </p>
                       <p className="text-2xl font-bold text-gray-900">{count}</p>
                     </div>
-                    <FiUsers className="h-8 w-8 text-yellow-600" />
+                    <FiUsers className="h-8 w-8 text-[#bca142]" />
                   </div>
                 </div>
               ))}
               
               {/* Sendy Subscriber Count */}
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
+              <div className="bg-gradient-to-r from-[#bca142]/10 to-[#bca142]/20 p-4 rounded-lg border border-[#bca142]/30">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">
@@ -247,7 +247,7 @@ const SendEmails = () => {
                     </p>
                     <p className="text-2xl font-bold text-gray-900">{sendySubscriberCount}</p>
                   </div>
-                  <FiMail className="h-8 w-8 text-blue-600" />
+                  <FiMail className="h-8 w-8 text-[#bca142]" />
                 </div>
               </div>
             </div>
@@ -255,10 +255,10 @@ const SendEmails = () => {
 
           {/* Show message when all counts are 0 */}
           {Object.keys(userCounts).length > 0 && Object.values(userCounts).every(count => count === 0) && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <div className="bg-[#bca142]/10 border border-[#bca142]/30 rounded-lg p-4 mb-6">
               <div className="flex items-center">
-                <FiUsers className="h-5 w-5 text-yellow-600 mr-2" />
-                <p className="text-sm text-yellow-800">
+                <FiUsers className="h-5 w-5 text-[#bca142] mr-2" />
+                <p className="text-sm text-gray-800">
                   <strong>Note:</strong> All user counts show 0. This may be due to database connection issues or no active users in the system.
                 </p>
               </div>
@@ -278,7 +278,7 @@ const SendEmails = () => {
                 <div 
                   className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
                     formData.emailMethod === 'sendy' 
-                      ? 'border-blue-500 bg-blue-50' 
+                      ? 'border-[#bca142] bg-[#bca142]/10' 
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                   onClick={() => setFormData(prev => ({ ...prev, emailMethod: 'sendy' }))}
@@ -296,9 +296,9 @@ const SendEmails = () => {
                       <h3 className="font-semibold text-gray-900">Sendy (Recommended)</h3>
                       <p className="text-sm text-gray-600">Professional email campaigns with analytics</p>
                       <div className="mt-2 flex flex-wrap gap-2">
-                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">Better Deliverability</span>
-                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Analytics</span>
-                        <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded">Cost Effective</span>
+                        <span className="px-2 py-1 bg-[#bca142]/20 text-[#bca142] text-xs rounded">Better Deliverability</span>
+                        <span className="px-2 py-1 bg-[#bca142]/20 text-[#bca142] text-xs rounded">Analytics</span>
+                        <span className="px-2 py-1 bg-[#bca142]/20 text-[#bca142] text-xs rounded">Cost Effective</span>
                       </div>
                     </div>
                   </div>
@@ -307,7 +307,7 @@ const SendEmails = () => {
                 <div 
                   className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
                     formData.emailMethod === 'smtp' 
-                      ? 'border-yellow-500 bg-yellow-50' 
+                      ? 'border-[#bca142] bg-[#bca142]/10' 
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                   onClick={() => setFormData(prev => ({ ...prev, emailMethod: 'smtp' }))}
@@ -325,7 +325,7 @@ const SendEmails = () => {
                       <h3 className="font-semibold text-gray-900">SMTP (Direct)</h3>
                       <p className="text-sm text-gray-600">Direct email sending via server</p>
                       <div className="mt-2 flex flex-wrap gap-2">
-                        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded">Immediate</span>
+                        <span className="px-2 py-1 bg-[#bca142]/20 text-[#bca142] text-xs rounded">Immediate</span>
                         <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded">Basic</span>
                       </div>
                     </div>
@@ -334,14 +334,14 @@ const SendEmails = () => {
               </div>
               
               {formData.emailMethod === 'sendy' && (
-                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                  <p className="text-sm text-blue-800">
+                <div className="mt-3 p-3 bg-[#bca142]/10 border border-[#bca142]/30 rounded-md">
+                  <p className="text-sm text-gray-800">
                     <strong>Sendy Campaign Process:</strong> 
                     <br />1. Selected users will be added to your Sendy subscriber list
                     <br />2. A professional email campaign will be created and sent
                     <br />3. You'll get detailed analytics in your Sendy dashboard
                   </p>
-                  <p className="text-xs text-blue-600 mt-2">
+                  <p className="text-xs text-gray-600 mt-2">
                     Current Sendy subscribers: {sendySubscriberCount} | 
                     This method provides better deliverability and professional analytics.
                   </p>
@@ -363,7 +363,7 @@ const SendEmails = () => {
                   name="userType"
                   value={formData.userType}
                   onChange={handleChange}
-                  className="w-full px-3 py-3 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                  className="w-full px-3 py-3 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142]"
                   required
                 >
                   <option value="">Choose recipient group</option>
@@ -394,7 +394,7 @@ const SendEmails = () => {
                   value={formData.subject}
                   onChange={handleChange}
                   placeholder="Enter email subject line"
-                  className="w-full px-3 py-3 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                  className="w-full px-3 py-3 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142]"
                   required
                 />
                 <p className="mt-1 text-xs text-gray-500">
@@ -412,15 +412,15 @@ const SendEmails = () => {
                 <button
                   type="button"
                   onClick={() => setShowPreview(!showPreview)}
-                  className="flex items-center text-sm text-yellow-600 hover:text-yellow-700"
+                  className="flex items-center text-sm text-[#bca142] hover:text-black"
                 >
                   <FiEye className="mr-1" />
                   {showPreview ? 'Hide Preview' : 'Show Preview'}
                 </button>
               </div>
               
-              <div className="bg-blue-50 p-3 rounded-md mb-3">
-                <p className="text-sm text-blue-800">
+              <div className="bg-[#bca142]/10 p-3 rounded-md mb-3">
+                <p className="text-sm text-gray-800">
                   <strong>Pro Tip:</strong> Use <code>{'{name}'}</code> in your content to personalize emails with recipient names.
                   Example: "Hello {'{name}'}, we have exciting news for you!"
                 </p>
@@ -472,7 +472,7 @@ const SendEmails = () => {
                 <button
                   type="submit"
                   disabled={loading || !formData.userType || !formData.subject || !editorContent}
-                  className="flex items-center px-6 py-3 bg-[#D9B95B] text-white font-semibold rounded-md hover:bg-[#c8a84a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D9B95B] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center px-6 py-3 bg-[#bca142] text-white font-semibold rounded-md hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#bca142] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? (
                     <>
@@ -495,7 +495,7 @@ const SendEmails = () => {
         {emailStats && emailStats.length > 0 && (
           <div className="bg-white p-6 rounded-lg shadow-md mt-6">
             <div className="flex items-center mb-4">
-              <FiBarChart className="h-5 w-5 text-yellow-600 mr-2" />
+              <FiBarChart className="h-5 w-5 text-[#bca142] mr-2" />
               <h3 className="text-lg font-semibold text-gray-800">Recent Email Activity</h3>
             </div>
             

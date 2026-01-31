@@ -18,7 +18,7 @@ const SimpleBankDetails = ({ bankDetails, onCopy }) => {
     <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-2xl p-8 border border-gray-200">
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
-        <div className="p-4 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-2xl text-white">
+        <div className="p-4 bg-gradient-to-r from-[#bca142] to-[#D9B95B] rounded-2xl text-white">
           <FiCreditCard className="text-3xl" />
         </div>
         <div>
@@ -33,7 +33,7 @@ const SimpleBankDetails = ({ bankDetails, onCopy }) => {
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
-              <FiUser className="text-[#CDA435] text-xl" />
+              <FiUser className="text-[#bca142] text-xl" />
               <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Account Holder</span>
             </div>
             <button
@@ -50,7 +50,7 @@ const SimpleBankDetails = ({ bankDetails, onCopy }) => {
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
-              <FiCreditCard className="text-[#CDA435] text-xl" />
+              <FiCreditCard className="text-[#bca142] text-xl" />
               <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Account Number</span>
             </div>
             <button
@@ -67,7 +67,7 @@ const SimpleBankDetails = ({ bankDetails, onCopy }) => {
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
-              <FiHash className="text-[#CDA435] text-xl" />
+              <FiHash className="text-[#bca142] text-xl" />
               <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">IFSC Code</span>
             </div>
             <button
@@ -84,7 +84,7 @@ const SimpleBankDetails = ({ bankDetails, onCopy }) => {
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
-              <FiMapPin className="text-[#CDA435] text-xl" />
+              <FiMapPin className="text-[#bca142] text-xl" />
               <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Branch Address</span>
             </div>
             <button

@@ -13,7 +13,7 @@ const ToggleSwitch = ({ checked, onChange }) => {
   return (
     <label className="relative inline-flex items-center cursor-pointer">
       <input type="checkbox" checked={checked} onChange={onChange} className="sr-only peer" />
-      <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
+      <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-[#bca142] peer-focus:ring-opacity-30 dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#bca142]"></div>
     </label>
   );
 };
@@ -275,17 +275,17 @@ function User() {
         {/* --- Filters --- */}
         <div className="bg-white p-4 rounded-t-lg shadow-sm border-b">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                <select className="w-full p-2 border rounded-md" value={filters.status} onChange={(e) => setFilters({...filters, status: e.target.value})}>
+                <select className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#bca142]" value={filters.status} onChange={(e) => setFilters({...filters, status: e.target.value})}>
                     <option value="">All Status</option>
                     <option value="true">Active</option>
                     <option value="false">Inactive</option>
                 </select>
-                <select className="w-full p-2 border rounded-md" value={filters.blacklist} onChange={(e) => setFilters({...filters, blacklist: e.target.value})}>
+                <select className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#bca142]" value={filters.blacklist} onChange={(e) => setFilters({...filters, blacklist: e.target.value})}>
                     <option value="">All Blacklist</option>
                     <option value="true">On Blacklist</option>
                     <option value="false">Not on Blacklist</option>
                 </select>
-                <button onClick={() => { setFilters({ status: '', blacklist: '' }); setSearchTerm(''); }} className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md">Reset</button>
+                <button onClick={() => { setFilters({ status: '', blacklist: '' }); setSearchTerm(''); }} className="bg-black hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-md">Reset</button>
             </div>
         </div>
 
@@ -293,18 +293,18 @@ function User() {
         <div className="bg-white p-6 rounded-b-lg shadow">
           <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
             <div>
-              <h2 className="text-2xl font-semibold">Quote Requesters</h2>
-              <p className="text-gray-600 text-sm mt-1">Users who request quotes from companies</p>
+              <h2 className="text-2xl font-semibold text-black">Quote Requesters</h2>
+              <p className="text-black text-sm mt-1">Users who request quotes from companies</p>
             </div>
             <div className="flex items-center mt-2 sm:mt-0">
-              <label className="mr-2">Search:</label>
-              <input type="text" className="p-2 border rounded-md" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <label className="mr-2 text-black">Search:</label>
+              <input type="text" className="p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#bca142]" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
           </div>
           
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left text-gray-500">
-              <thead className="text-xs text-gray-700 uppercase" style={{ backgroundColor: '#eaddc0' }}>
+              <thead className="text-xs text-white uppercase bg-[#bca142]">
                 <tr>
                   <SortableHeader name="id">Sr.No</SortableHeader>
                   <SortableHeader name="name">Name</SortableHeader>
@@ -320,15 +320,15 @@ function User() {
                   currentEntries.map((user, index) => (
                     <tr key={user.id} className="bg-white border-b hover:bg-gray-50">
                       <td className="p-3">{indexOfFirstEntry + index + 1}</td>
-                      <td className="p-3 font-medium text-gray-900">{user.name}</td>
+                      <td className="p-3 font-medium text-black">{user.name}</td>
                       <td className="p-3">{user.email}</td>
                       <td className="p-3">{user.mobile}</td>
                       <td className="p-3"><ToggleSwitch checked={user.onBlacklist} onChange={() => handleBlacklistToggle(user.id, user.name)} /></td>
                       <td className="p-3"><ToggleSwitch checked={user.status} onChange={() => handleStatusChange(user.id, user.name)} /></td>
                       <td className="p-3">
                         <div className="flex space-x-2">
-                          <button onClick={() => handleEditUser(user)} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"><FaPen /></button>
-                          <button onClick={() => handleViewUser(user)} className="p-2 bg-pink-500 text-white rounded hover:bg-pink-600"><FaEye /></button>
+                          <button onClick={() => handleEditUser(user)} className="p-2 bg-[#bca142] text-white rounded hover:bg-[#b8932f]"><FaPen className="text-white" /></button>
+                          <button onClick={() => handleViewUser(user)} className="p-2 bg-black text-white rounded hover:bg-gray-800"><FaEye className="text-white" /></button>
                         </div>
                       </td>
                     </tr>
@@ -344,7 +344,7 @@ function User() {
 
           {/* Pagination */}
           <div className="flex flex-col sm:flex-row justify-between items-center mt-4">
-            <div className="text-gray-600 mb-2 sm:mb-0">
+            <div className="text-black mb-2 sm:mb-0">
               Showing {filteredAndSortedUsers.length > 0 ? indexOfFirstEntry + 1 : 0} to {Math.min(indexOfLastEntry, filteredAndSortedUsers.length)} of {filteredAndSortedUsers.length} entries
             </div>
             <div className="flex items-center space-x-2">
@@ -372,7 +372,7 @@ function User() {
                   Previous
                 </button>
                 
-                <span className="px-3 py-1 border-t border-b text-white" style={{backgroundColor: '#eaddc0'}}>
+                <span className="px-3 py-1 border-t border-b text-white bg-[#bca142]">
                   {currentPage}
                 </span>
 
@@ -394,8 +394,8 @@ function User() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-lg w-full p-6">
             <div className="flex justify-between items-center mb-4 border-b pb-2">
-              <h3 className="text-xl font-bold">Quote Requester Details</h3>
-              <button onClick={() => setViewingUser(null)} className="text-gray-500 hover:text-black"><FaTimes size={20}/></button>
+              <h3 className="text-xl font-bold text-black">Quote Requester Details</h3>
+              <button onClick={() => setViewingUser(null)} className="text-black hover:text-gray-600"><FaTimes size={20}/></button>
             </div>
             <div className="space-y-3">
               <p><strong>Name:</strong> {viewingUser.name}</p>
@@ -404,9 +404,9 @@ function User() {
               <p><strong>Role:</strong> {viewingUser.role}</p>
               <p><strong>Country:</strong> {viewingUser.country || 'N/A'}</p>
               <p><strong>Registration Date:</strong> {new Date(viewingUser.created_at).toLocaleDateString()}</p>
-              <p><strong>Status:</strong> <span className={viewingUser.status ? 'text-green-600' : 'text-red-600'}>{viewingUser.status ? 'Active' : 'Inactive'}</span></p>
+              <p><strong>Status:</strong> <span className={viewingUser.status ? 'text-[#bca142]' : 'text-black'}>{viewingUser.status ? 'Active' : 'Inactive'}</span></p>
             </div>
-            <button onClick={() => setViewingUser(null)} className="mt-6 w-full bg-gray-200 py-2 rounded font-semibold">Close</button>
+            <button onClick={() => setViewingUser(null)} className="mt-6 w-full bg-black hover:bg-gray-800 text-white py-2 rounded font-semibold">Close</button>
           </div>
         </div>
       )}
@@ -416,30 +416,30 @@ function User() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full p-6">
             <div className="flex justify-between items-center mb-4 border-b pb-2">
-              <h3 className="text-xl font-bold">Edit Quote Requester</h3>
-              <button onClick={() => setEditingUser(null)} className="text-gray-500 hover:text-black"><FaTimes size={20}/></button>
+              <h3 className="text-xl font-bold text-black">Edit Quote Requester</h3>
+              <button onClick={() => setEditingUser(null)} className="text-black hover:text-gray-600"><FaTimes size={20}/></button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium">Name</label>
-                <input type="text" className="w-full p-2 border rounded" value={editForm.name} onChange={(e) => setEditForm({...editForm, name: e.target.value})} />
+                <input type="text" className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#bca142]" value={editForm.name} onChange={(e) => setEditForm({...editForm, name: e.target.value})} />
               </div>
               <div>
                 <label className="block text-sm font-medium">Email</label>
-                <input type="email" className="w-full p-2 border rounded" value={editForm.email} onChange={(e) => setEditForm({...editForm, email: e.target.value})} />
+                <input type="email" className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#bca142]" value={editForm.email} onChange={(e) => setEditForm({...editForm, email: e.target.value})} />
               </div>
               <div>
                 <label className="block text-sm font-medium">Mobile</label>
-                <input type="text" className="w-full p-2 border rounded" value={editForm.mobile} onChange={(e) => setEditForm({...editForm, mobile: e.target.value})} />
+                <input type="text" className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#bca142]" value={editForm.mobile} onChange={(e) => setEditForm({...editForm, mobile: e.target.value})} />
               </div>
               <div>
                 <label className="block text-sm font-medium">Country</label>
-                <input type="text" className="w-full p-2 border rounded" value={editForm.country} onChange={(e) => setEditForm({...editForm, country: e.target.value})} />
+                <input type="text" className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#bca142]" value={editForm.country} onChange={(e) => setEditForm({...editForm, country: e.target.value})} />
               </div>
             </div>
             <div className="mt-6 flex space-x-3">
-              <button onClick={handleSaveEdit} className="flex-1 bg-green-600 text-white py-2 rounded flex items-center justify-center gap-2 font-bold"><FaSave /> Save Changes</button>
-              <button onClick={() => setEditingUser(null)} className="flex-1 bg-gray-300 py-2 rounded font-bold">Cancel</button>
+              <button onClick={handleSaveEdit} className="flex-1 bg-[#bca142] hover:bg-[#b8932f] text-white py-2 rounded flex items-center justify-center gap-2 font-bold"><FaSave className="text-white" /> Save Changes</button>
+              <button onClick={() => setEditingUser(null)} className="flex-1 bg-black hover:bg-gray-800 text-white py-2 rounded font-bold">Cancel</button>
             </div>
           </div>
         </div>

@@ -70,7 +70,7 @@ const TransactionSummary = () => {
     return (
       <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 h-fit">
         <div className="flex items-center justify-center h-48">
-          <div className="animate-spin rounded-full h-8 w-8 border-4 border-yellow-200 border-t-[#CDA435]"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-4 border-[#bca142]/20 border-t-[#bca142]"></div>
         </div>
       </div>
     );
@@ -82,14 +82,14 @@ const TransactionSummary = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <FiDollarSign className="text-[#CDA435]" />
+            <FiDollarSign className="text-[#bca142]" />
             Transaction Summary
           </h3>
           <p className="text-gray-600 text-sm">Your payment verification overview</p>
         </div>
         <button
           onClick={fetchTransactionSummary}
-          className="p-2 text-gray-500 hover:text-[#CDA435] transition-colors"
+          className="p-2 text-gray-500 hover:text-[#bca142] transition-colors"
           title="Refresh Data"
         >
           <FiRefreshCw className="text-lg" />
@@ -118,38 +118,38 @@ const TransactionSummary = () => {
         </div> */}
 
         {/* Verified Payments */}
-        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200 rounded-xl p-4 hover:shadow-md transition-all duration-200">
+        <div className="bg-[#bca142]/10 border border-[#bca142]/30 rounded-xl p-4 hover:shadow-md transition-all duration-200">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 mb-1">Verified Payments</p>
-              <p className="text-2xl font-bold text-blue-600">
+              <p className="text-2xl font-bold text-[#bca142]">
                 {transactionData.verifiedPayments}
               </p>
             </div>
-            <div className="p-3 rounded-xl bg-white bg-opacity-80 backdrop-blur-sm text-blue-600">
+            <div className="p-3 rounded-xl bg-white shadow-sm text-[#bca142]">
               <FiCreditCard className="text-lg" />
             </div>
           </div>
-          <div className="flex items-center mt-2 text-xs text-blue-600">
+          <div className="flex items-center mt-2 text-xs text-[#bca142]">
             <FiArrowUpRight className="mr-1" />
             <span>Completed transactions</span>
           </div>
         </div>
 
         {/* Pending Payments */}
-        <div className="bg-gradient-to-br from-yellow-50 to-amber-50 border border-yellow-200 rounded-xl p-4 hover:shadow-md transition-all duration-200">
+        <div className="bg-black/10 border border-black/30 rounded-xl p-4 hover:shadow-md transition-all duration-200">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 mb-1">Pending Verification</p>
-              <p className="text-2xl font-bold text-yellow-600">
+              <p className="text-2xl font-bold text-black">
                 {transactionData.pendingPayments}
               </p>
             </div>
-            <div className="p-3 rounded-xl bg-white bg-opacity-80 backdrop-blur-sm text-yellow-600">
+            <div className="p-3 rounded-xl bg-white shadow-sm text-black">
               <FiCalendar className="text-lg" />
             </div>
           </div>
-          <div className="flex items-center mt-2 text-xs text-yellow-600">
+          <div className="flex items-center mt-2 text-xs text-black">
             <FiArrowDownRight className="mr-1" />
             <span>Awaiting your review</span>
           </div>
@@ -162,7 +162,7 @@ const TransactionSummary = () => {
           <h4 className="font-semibold text-gray-800">Recent Transactions</h4>
           <a 
             href="/company/transaction-History-Company"
-            className="text-sm text-[#CDA435] hover:text-[#B8941F] transition-colors flex items-center gap-1"
+            className="text-sm text-[#bca142] hover:text-black transition-colors flex items-center gap-1"
           >
             View All
             <FiEye className="text-xs" />
@@ -185,7 +185,7 @@ const TransactionSummary = () => {
                       <span className="text-sm font-medium text-gray-800">
                         Quote #{transaction.quote_id}
                       </span>
-                      <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                      <span className="px-2 py-1 bg-[#bca142] text-white text-xs rounded-full">
                         Verified
                       </span>
                     </div>
@@ -197,7 +197,7 @@ const TransactionSummary = () => {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-bold text-green-600">
+                    <p className="text-lg font-bold text-[#bca142]">
                       ${parseFloat(transaction.price || 0).toLocaleString()}
                     </p>
                   </div>
@@ -212,13 +212,13 @@ const TransactionSummary = () => {
       <div className="flex gap-3 mt-6 pt-4 border-t border-gray-200">
         <a
           href="/company/payment-management"
-          className="flex-1 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white text-center py-2 px-4 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
+          className="flex-1 bg-[#bca142] text-white text-center py-2 px-4 rounded-lg hover:bg-black hover:shadow-lg transition-all duration-200 text-sm font-medium"
         >
           Verify Payments
         </a>
         <a
           href="/company/transaction-History-Company"
-          className="flex-1 border border-[#CDA435] text-[#CDA435] text-center py-2 px-4 rounded-lg hover:bg-[#CDA435] hover:text-white transition-all duration-200 text-sm font-medium"
+          className="flex-1 border border-[#bca142] text-[#bca142] text-center py-2 px-4 rounded-lg hover:bg-[#bca142] hover:text-white transition-all duration-200 text-sm font-medium"
         >
           View History
         </a>

@@ -90,7 +90,7 @@ const CompanyHeader = ({ onMenuClick }) => {
       <div className="header-left flex items-center gap-4">
         <button
           onClick={onMenuClick}
-          className="p-2 rounded-full text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+          className="p-2 rounded-full text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#bca142]"
           aria-label="Toggle sidebar"
         >
           <FiMenu size={24} />

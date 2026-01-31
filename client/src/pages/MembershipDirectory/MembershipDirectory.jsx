@@ -95,7 +95,7 @@ const MembershipDirectory = () => {
                 className="w-12 h-12 rounded-full object-cover mr-3"
               />
             ) : (
-              <div className="w-12 h-12 bg-[#CDA435] rounded-full flex items-center justify-center mr-3">
+              <div className="w-12 h-12 bg-[#bca142] rounded-full flex items-center justify-center mr-3">
                 <span className="text-white font-bold text-lg">
                   {company.name.charAt(0).toUpperCase()}
                 </span>
@@ -125,7 +125,7 @@ const MembershipDirectory = () => {
                 href={company.website} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-[#CDA435] hover:underline"
+                className="text-[#bca142] hover:underline"
               >
                 {company.website}
               </a>
@@ -176,10 +176,10 @@ const MembershipDirectory = () => {
 
         {/* Actions */}
         <div className="flex space-x-2">
-          <button className="flex-1 bg-[#CDA435] text-white py-2 px-4 rounded-md hover:bg-opacity-90 transition-colors text-sm font-medium">
+          <button className="flex-1 bg-[#bca142] text-white py-2 px-4 rounded-md hover:bg-opacity-90 transition-colors text-sm font-medium">
             View Profile
           </button>
-          <button className="flex-1 border border-[#CDA435] text-[#CDA435] py-2 px-4 rounded-md hover:bg-[#CDA435] hover:text-white transition-colors text-sm font-medium">
+          <button className="flex-1 border border-[#bca142] text-[#bca142] py-2 px-4 rounded-md hover:bg-[#bca142] hover:text-white transition-colors text-sm font-medium">
             Contact
           </button>
         </div>
@@ -213,7 +213,7 @@ const MembershipDirectory = () => {
                     setSearchTerm(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#bca142]"
                 />
               </div>
             </div>
@@ -226,7 +226,7 @@ const MembershipDirectory = () => {
                   setSelectedCategory(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+                className="w-full py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#bca142]"
               >
                 <option value="">All Categories</option>
                 {filters.categories.map(category => (
@@ -244,7 +244,7 @@ const MembershipDirectory = () => {
                   setSelectedState(''); // Reset state when country changes
                   setCurrentPage(1);
                 }}
-                className="w-full py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+                className="w-full py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#bca142]"
               >
                 <option value="">All Countries</option>
                 {filters.countries.map(country => (
@@ -270,7 +270,7 @@ const MembershipDirectory = () => {
           <div className="text-center py-12">
             <div className="relative inline-block">
               <div className="h-8 w-8 border-4 border-gray-200 rounded-full animate-spin">
-                <div className="h-8 w-8 border-4 border-transparent border-t-[#CDA435] rounded-full animate-spin"></div>
+                <div className="h-8 w-8 border-4 border-transparent border-t-[#bca142] rounded-full animate-spin"></div>
               </div>
             </div>
             <p className="mt-3 text-gray-600 font-medium">Loading companies...</p>
@@ -323,7 +323,7 @@ const MembershipDirectory = () => {
                           onClick={() => setCurrentPage(page)}
                           className={`px-3 py-2 border rounded-md ${
                             currentPage === page
-                              ? 'bg-[#CDA435] text-white border-[#CDA435]'
+                              ? 'bg-[#bca142] text-white border-[#bca142]'
                               : 'border-gray-300 hover:bg-gray-100'
                           }`}
                         >

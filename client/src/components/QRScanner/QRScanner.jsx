@@ -20,7 +20,7 @@ const QRScanner = ({ onScan, onClose }) => {
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
         <div className="flex justify-between items-center p-4 border-b">
           <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-            <FaQrcode className="text-[#CDA435]" />
+            <FaQrcode className="text-[#bca142]" />
             Scan QR Code
           </h3>
           <button
@@ -43,14 +43,14 @@ const QRScanner = ({ onScan, onClose }) => {
               value={scannedData}
               onChange={(e) => setScannedData(e.target.value)}
               placeholder="Paste QR code JSON data here..."
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142]"
               rows="4"
             />
             
             <div className="flex gap-2">
               <button
                 onClick={handleManualInput}
-                className="flex-1 bg-[#CDA435] text-white py-2 px-4 rounded-lg hover:bg-yellow-600 transition-colors"
+                className="flex-1 bg-[#bca142] text-white py-2 px-4 rounded-lg hover:bg-yellow-600 transition-colors"
               >
                 Process Data
               </button>

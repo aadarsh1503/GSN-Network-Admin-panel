@@ -118,7 +118,7 @@ const ResetPassword = () => {
     return (
       <div className="bg-stone-100 min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-yellow-200 border-t-[#CDA435] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-yellow-200 border-t-[#bca142] mx-auto mb-4"></div>
           <p className="text-xl text-gray-600">Verifying reset link...</p>
         </div>
       </div>
@@ -151,7 +151,7 @@ const ResetPassword = () => {
               </div>
               
               <h2 className="text-2xl font-bold text-gray-800 mb-4">Invalid or Expired Link</h2>
-              <div className="w-16 h-1 bg-[#CDA435] mb-6 mx-auto"></div>
+              <div className="w-16 h-1 bg-[#bca142] mb-6 mx-auto"></div>
               
               <p className="text-gray-600 mb-6 leading-relaxed">
                 This password reset link is invalid or has expired. Reset links are only valid for 1 hour for security reasons.
@@ -160,7 +160,7 @@ const ResetPassword = () => {
               <div className="space-y-4">
                 <Link
                   to="/forgot-password"
-                  className="w-full flex justify-center py-3 px-4 bg-[#CDA435] hover:bg-opacity-90 text-white rounded-md transition-colors font-medium"
+                  className="w-full flex justify-center py-3 px-4 bg-[#bca142] hover:bg-opacity-90 text-white rounded-md transition-colors font-medium"
                 >
                   Request New Reset Link
                 </Link>
@@ -205,7 +205,7 @@ const ResetPassword = () => {
               </div>
               
               <h2 className="text-2xl font-bold text-gray-800 mb-4">Password Reset Successful!</h2>
-              <div className="w-16 h-1 bg-[#CDA435] mb-6 mx-auto"></div>
+              <div className="w-16 h-1 bg-[#bca142] mb-6 mx-auto"></div>
               
               <p className="text-gray-600 mb-6 leading-relaxed">
                 Your password has been successfully reset. You can now login with your new password.
@@ -219,7 +219,7 @@ const ResetPassword = () => {
               
               <Link
                 to="/login"
-                className="w-full flex justify-center py-3 px-4 bg-[#CDA435] hover:bg-opacity-90 text-white rounded-md transition-colors font-medium"
+                className="w-full flex justify-center py-3 px-4 bg-[#bca142] hover:bg-opacity-90 text-white rounded-md transition-colors font-medium"
               >
                 Go to Login Now
               </Link>
@@ -256,7 +256,7 @@ const ResetPassword = () => {
             </div>
             
             <h2 className="text-2xl font-bold text-gray-800 mb-2">Create New Password</h2>
-            <div className="w-16 h-1 bg-[#CDA435] mb-4 mx-auto"></div>
+            <div className="w-16 h-1 bg-[#bca142] mb-4 mx-auto"></div>
             
             {userInfo && (
               <p className="text-gray-600 leading-relaxed">
@@ -280,7 +280,7 @@ const ResetPassword = () => {
                   onChange={handleInputChange}
                   placeholder="Enter your new password"
                   required
-                  className="w-full pl-12 pr-12 py-3 bg-stone-100 rounded-md focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:bg-white transition-colors"
+                  className="w-full pl-12 pr-12 py-3 bg-stone-100 rounded-md focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:bg-white transition-colors"
                   disabled={isLoading}
                 />
                 <button
@@ -321,7 +321,7 @@ const ResetPassword = () => {
                   onChange={handleInputChange}
                   placeholder="Confirm your new password"
                   required
-                  className="w-full pl-12 pr-12 py-3 bg-stone-100 rounded-md focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:bg-white transition-colors"
+                  className="w-full pl-12 pr-12 py-3 bg-stone-100 rounded-md focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:bg-white transition-colors"
                   disabled={isLoading}
                 />
                 <button
@@ -353,7 +353,7 @@ const ResetPassword = () => {
               <button
                 type="submit"
                 disabled={isLoading || passwordErrors.length > 0 || formData.newPassword !== formData.confirmPassword}
-                className="w-full flex justify-center items-center py-3 px-4 rounded-md shadow-sm text-base font-medium text-white bg-[#CDA435] hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#CDA435] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex justify-center items-center py-3 px-4 rounded-md shadow-sm text-base font-medium text-white bg-[#bca142] hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#bca142] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <>

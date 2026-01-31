@@ -44,7 +44,7 @@ const featuresData = [
 
 const FeatureCard = ({ icon, title, description }) => (
   <div className="bg-white p-8 rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.05)] flex flex-col items-center text-center">
-    <div className="w-24 h-24 bg-[#CDA435] rounded-full flex items-center justify-center mb-6">
+    <div className="w-24 h-24 bg-[#bca142] rounded-full flex items-center justify-center mb-6">
       <span className="text-white">{icon}</span>
     </div>
     <h3 className="text-xl font-bold text-gray-800 mb-3">{title}</h3>

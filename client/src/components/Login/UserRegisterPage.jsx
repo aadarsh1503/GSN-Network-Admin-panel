@@ -203,7 +203,7 @@ const UserRegisterPage = () => {
   if (isCheckingAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#CDA435]"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#bca142]"></div>
       </div>
     );
   }
@@ -225,7 +225,7 @@ const UserRegisterPage = () => {
       <main className="container mt-44 mx-auto px-4 py-16">
         <div className="bg-white p-8 md:p-12 rounded-2xl shadow-xl max-w-2xl mx-auto -mt-48 relative z-20 border border-gray-100">
           <h2 className="text-3xl font-bold text-gray-800 mb-2">Create Your User Account!</h2>
-          <div className="w-24 h-1.5 bg-[#CDA435] rounded-full mb-4"></div>
+          <div className="w-24 h-1.5 bg-[#bca142] rounded-full mb-4"></div>
           
           {redirectMessage && (
             <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -318,10 +318,10 @@ const UserRegisterPage = () => {
                 checked={formData.termsAccepted}
                 onChange={handleChange} 
                 required
-                className="h-4 w-4 rounded border-gray-300 accent-[#CDA435] focus:ring-[#CDA435]" 
+                className="h-4 w-4 rounded border-gray-300 accent-[#bca142] focus:ring-[#bca142]" 
               />
               <label htmlFor="termsAccepted" className="ml-2 text-sm text-gray-600">
-                I agree to the <a href="/terms" className="text-[#CDA435] hover:underline">Terms and Conditions</a>
+                I agree to the <a href="/terms" className="text-[#bca142] hover:underline">Terms and Conditions</a>
               </label>
             </div>
 
@@ -329,7 +329,7 @@ const UserRegisterPage = () => {
               <button 
                 type="submit" 
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white py-3 px-6 rounded-lg font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className="w-full bg-gradient-to-r from-[#bca142] to-[#D9B95B] text-white py-3 px-6 rounded-lg font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
                 {loading ? (
                   <span className="flex items-center justify-center">
@@ -348,7 +348,7 @@ const UserRegisterPage = () => {
                 <Link
                   to="/login"
                   state={{ from: from }}
-                  className="font-medium text-[#CDA435] hover:underline"
+                  className="font-medium text-[#bca142] hover:underline"
                 >
                   Sign in here
                 </Link>
@@ -387,7 +387,7 @@ function InputWithIcon({ id, name, type = 'text', value, onChange, placeholder, 
           onChange={onChange}
           placeholder={placeholder} 
           required={required}
-          className="w-full pl-10 pr-12 py-3 bg-stone-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#CDA435] border-transparent transition"
+          className="w-full pl-10 pr-12 py-3 bg-stone-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] border-transparent transition"
         />
         {(type === 'password' || (type === 'text' && togglePassword)) && (
           <button
@@ -410,7 +410,7 @@ function CustomSelect({ label, value, onChange, options, placeholder, disabled =
       <Listbox value={value} onChange={onChange} disabled={disabled}>
         <Listbox.Label className="block text-gray-700 text-sm font-medium mb-2">{label}</Listbox.Label>
         <div className="relative">
-          <Listbox.Button className="relative w-full cursor-default rounded-lg bg-stone-100 py-3 pl-3 pr-10 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#CDA435] disabled:bg-stone-200 disabled:cursor-not-allowed">
+          <Listbox.Button className="relative w-full cursor-default rounded-lg bg-stone-100 py-3 pl-3 pr-10 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#bca142] disabled:bg-stone-200 disabled:cursor-not-allowed">
             <span className={`block truncate ${value ? 'text-gray-900' : 'text-gray-400'}`}>
               {value || placeholder}
             </span>
@@ -433,7 +433,7 @@ function CustomSelect({ label, value, onChange, options, placeholder, disabled =
                       <>
                         <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>{option}</span>
                         {selected ? (
-                          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-[#CDA435]">
+                          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-[#bca142]">
                             <Check className="h-5 w-5" aria-hidden="true" />
                           </span>
                         ) : null}

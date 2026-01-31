@@ -212,7 +212,7 @@ const UserLayout = () => {
       } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
         
         {/* Logo */}
-        <div className="flex items-center justify-between h-16 px-6 bg-[#CDA435]">
+        <div className="flex items-center justify-between h-16 px-6 bg-[#bca142]">
           <Link to="/user/dashboard" className="text-white text-xl font-bold">
             GSN User Panel
           </Link>
@@ -227,7 +227,7 @@ const UserLayout = () => {
         {/* User Info */}
         <div className="p-6 border-b">
           <div className="flex items-center">
-            <div className="w-10 h-10 bg-[#CDA435] rounded-full flex items-center justify-center text-white font-semibold overflow-hidden">
+            <div className="w-10 h-10 bg-[#bca142] rounded-full flex items-center justify-center text-white font-semibold overflow-hidden">
               {user?.logo ? (
                 <img 
                   src={user.logo} 
@@ -239,7 +239,7 @@ const UserLayout = () => {
                   }}
                 />
               ) : null}
-              <div className={`w-full h-full bg-[#CDA435] flex items-center justify-center text-white font-semibold ${user?.logo ? 'hidden' : ''}`}>
+              <div className={`w-full h-full bg-[#bca142] flex items-center justify-center text-white font-semibold ${user?.logo ? 'hidden' : ''}`}>
                 {user?.name?.charAt(0)?.toUpperCase() || 'U'}
               </div>
             </div>
@@ -260,22 +260,17 @@ const UserLayout = () => {
                 to={item.path}
                 className={`flex items-center justify-between px-6 py-3 text-sm font-medium transition-colors duration-200 ${
                   isActiveRoute(item.path)
-                    ? 'text-yellow-600 bg-yellow-50 border-r-2 border-yellow-600'
-                    : 'text-gray-600 hover:text-yellow-600 hover:bg-yellow-50'
+                    ? 'text-black bg-[#bca142]/10 border-r-2 border-[#bca142]'
+                    : 'text-gray-600 hover:text-black hover:bg-gray-50'
                 }`}
                 onClick={() => setSidebarOpen(false)}
               >
                 <div className="flex items-center">
-                  <Icon className="mr-3" size={18} />
+                  <Icon className={`mr-3 ${isActiveRoute(item.path) ? 'text-[#bca142]' : ''}`} size={18} />
                   {item.label}
                 </div>
-                {/* {item.label === 'Notifications' && unreadCount > 0 && (
-                  <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </span>
-                )} */}
                 {item.label === 'Messages' && messageUnreadCount > 0 && (
-                  <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+                  <span className="bg-[#bca142] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
                     {messageUnreadCount > 99 ? '99+' : messageUnreadCount}
                   </span>
                 )}
@@ -288,7 +283,7 @@ const UserLayout = () => {
         <div className="absolute bottom-0 w-full p-6">
           <button
             onClick={handleLogout}
-            className="flex items-center w-full px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors duration-200"
+            className="flex items-center w-full px-4 py-2 text-sm font-medium text-black hover:text-white hover:bg-black rounded-md transition-colors duration-200"
           >
             <FaSignOutAlt className="mr-3" size={18} />
             Logout
@@ -303,7 +298,7 @@ const UserLayout = () => {
           <div className="flex items-center justify-between h-16 px-6">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="text-gray-600 hover:text-yellow-600 lg:hidden"
+              className="text-gray-600 hover:text-[#bca142] lg:hidden"
             >
               <FaBars size={20} />
             </button>

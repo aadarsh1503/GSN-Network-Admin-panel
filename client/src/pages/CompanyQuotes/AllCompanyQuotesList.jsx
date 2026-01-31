@@ -158,10 +158,10 @@ const AllCompanyQuotesList = () => {
 
   const getStatusBadge = (status) => {
     const colors = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      approved: 'bg-blue-100 text-blue-800',
+      pending: 'bg-yellow-100 text-[#bca142]',
+      approved: 'bg-[#bca142] text-white',
       rejected: 'bg-red-100 text-red-800',
-      running: 'bg-green-100 text-green-800',
+      running: 'bg-[#bca142] text-white',
       closed: 'bg-gray-100 text-gray-800'
     };
     
@@ -183,7 +183,7 @@ const AllCompanyQuotesList = () => {
 
     if (quote.payment_status === 'verified') {
       return (
-        <span className="px-1 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+        <span className="px-1 py-0.5 rounded text-xs font-medium bg-[#bca142] text-white">
           ✓ Verified
         </span>
       );
@@ -199,7 +199,7 @@ const AllCompanyQuotesList = () => {
 
     if (quote.payment_proof_url && quote.payment_proof_url !== 'null') {
       return (
-        <span className="px-1 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+        <span className="px-1 py-0.5 rounded text-xs font-medium bg-yellow-100 text-[#bca142]">
           ⏳ Pending
         </span>
       );
@@ -207,7 +207,7 @@ const AllCompanyQuotesList = () => {
 
     if (quote.has_payment_proof) {
       return (
-        <span className="px-1 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+        <span className="px-1 py-0.5 rounded text-xs font-medium bg-[#bca142] text-white">
           💳 Awaiting
         </span>
       );
@@ -264,7 +264,7 @@ const AllCompanyQuotesList = () => {
                 id="date"
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
-                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#bca142] focus:border-[#bca142]"
               />
             </div>
             <div className="w-full">
@@ -275,7 +275,7 @@ const AllCompanyQuotesList = () => {
                 id="status-filter"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 bg-white"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#bca142] focus:border-[#bca142] bg-white"
               >
                 <option value="all">All</option>
                 <option value="pending">Pending</option>
@@ -296,7 +296,7 @@ const AllCompanyQuotesList = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search..."
-                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#bca142] focus:border-[#bca142]"
               />
             </div>
             <div className="w-full">
@@ -306,7 +306,7 @@ const AllCompanyQuotesList = () => {
                   setStatusFilter('all');
                   setSearchTerm('');
                 }}
-                className="w-full flex items-center justify-center px-3 py-1.5 text-sm bg-[#d4b46a] text-white font-medium rounded-md shadow-sm hover:bg-[#c8a860] transition-colors"
+                className="w-full flex items-center justify-center px-3 py-1.5 text-sm bg-[#bca142] text-white font-medium rounded-md shadow-sm hover:bg-[#B8941F] transition-colors"
               >
                 <FiFilter className="mr-1" />
                 Clear
@@ -345,12 +345,12 @@ const AllCompanyQuotesList = () => {
           {/* Compact Table */}
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left text-gray-600">
-              <thead className="bg-[#e6c98c] text-gray-700 uppercase text-xs">
+              <thead className="bg-[#bca142] text-white uppercase text-xs">
                 <tr>
                   <th scope="col" className="px-2 py-2 font-semibold">
                     <div className="flex items-center cursor-pointer" onClick={() => handleSort('id')}>
                       #
-                      <FaSort className="ml-1 h-2 w-2 text-gray-500" />
+                      <FaSort className="ml-1 h-2 w-2 text-white" />
                     </div>
                   </th>
                   <th scope="col" className="px-2 py-2 font-semibold min-w-[120px]">
@@ -362,7 +362,7 @@ const AllCompanyQuotesList = () => {
                   <th scope="col" className="px-2 py-2 font-semibold">
                     <div className="flex items-center cursor-pointer" onClick={() => handleSort('shipping_mode')}>
                       Mode
-                      <FaSort className="ml-1 h-2 w-2 text-gray-500" />
+                      <FaSort className="ml-1 h-2 w-2 text-white" />
                     </div>
                   </th>
                   <th scope="col" className="px-2 py-2 font-semibold min-w-[150px]">
@@ -380,13 +380,13 @@ const AllCompanyQuotesList = () => {
                   <th scope="col" className="px-2 py-2 font-semibold">
                     <div className="flex items-center cursor-pointer" onClick={() => handleSort('status')}>
                       Status
-                      <FaSort className="ml-1 h-2 w-2 text-gray-500" />
+                      <FaSort className="ml-1 h-2 w-2 text-white" />
                     </div>
                   </th>
                   <th scope="col" className="px-2 py-2 font-semibold">
                     <div className="flex items-center cursor-pointer" onClick={() => handleSort('created_at')}>
                       Date
-                      <FaSort className="ml-1 h-2 w-2 text-gray-500" />
+                      <FaSort className="ml-1 h-2 w-2 text-white" />
                     </div>
                   </th>
                   <th scope="col" className="px-2 py-2 font-semibold">
@@ -410,7 +410,7 @@ const AllCompanyQuotesList = () => {
                           <div className="font-medium text-xs truncate">{quote.user_name || 'Guest'}</div>
                           <div className="text-xs text-gray-500 truncate">{quote.user_email}</div>
                           {quote.user_role && (
-                            <div className="text-xs text-blue-600 capitalize">{quote.user_role}</div>
+                            <div className="text-xs text-[#bca142] capitalize">{quote.user_role}</div>
                           )}
                         </div>
                       </td>
@@ -436,10 +436,10 @@ const AllCompanyQuotesList = () => {
                       <td className="px-2 py-2">
                         {quote.company_name && quote.company_name !== 'null' ? (
                           <div className="min-w-[140px]">
-                            <div className="font-medium text-xs text-blue-600 truncate">{quote.company_name}</div>
+                            <div className="font-medium text-xs text-[#bca142] truncate">{quote.company_name}</div>
                             <div className="text-xs text-gray-500 truncate">{quote.company_email || 'No email'}</div>
                             {quote.accepted_at && (
-                              <div className="text-xs text-green-600">
+                              <div className="text-xs text-[#bca142]">
                                 {new Date(quote.accepted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                               </div>
                             )}
@@ -451,14 +451,14 @@ const AllCompanyQuotesList = () => {
                       <td className="px-2 py-2">
                         {quote.accepted_price && quote.accepted_price !== 'null' ? (
                           <div className="min-w-[120px]">
-                            <div className="font-bold text-xs text-green-600">${quote.accepted_price}</div>
-                            <div className="text-xs text-gray-500 truncate">{quote.accepted_transit_time || 'N/A'}</div>
+                            <div className="font-bold mb-2 text-xs text-[#bca142]">${quote.accepted_price}</div>
+                            {/* <div className="text-xs text-gray-500 truncate">{quote.accepted_transit_time || 'N/A'}</div> */}
                             {getPaymentStatusBadge(quote)}
-                            {quote.verification_date && quote.verification_date !== 'null' && (
-                              <div className="text-xs text-green-600">
+                            {/* {quote.verification_date && quote.verification_date !== 'null' && (
+                              <div className="text-xs text-[#bca142]">
                                 {new Date(quote.verification_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                               </div>
-                            )}
+                            )} */}
                           </div>
                         ) : (
                           <span className="text-gray-400 text-xs">No quote</span>
@@ -480,7 +480,7 @@ const AllCompanyQuotesList = () => {
                         <div className="flex items-center">
                           <button 
                             onClick={() => handleViewDetails(quote)}
-                            className="p-1.5 bg-gradient-to-r from-pink-500 to-pink-600 text-white rounded hover:from-pink-600 hover:to-pink-700 transition-all duration-200 shadow-sm hover:shadow-md"
+                            className="p-1.5 bg-black text-white rounded hover:bg-gray-800 transition-all duration-200 shadow-sm hover:shadow-md"
                             title="View Details"
                             disabled={isLoadingDetails}
                           >
@@ -527,7 +527,7 @@ const AllCompanyQuotesList = () => {
                       onClick={() => setCurrentPage(pageNum)}
                       className={`px-2 py-1 text-xs border-t border-b ${
                         currentPage === pageNum 
-                          ? 'text-white bg-[#d4b46a]' 
+                          ? 'text-white bg-[#bca142]' 
                           : 'hover:bg-gray-100'
                       }`}
                     >

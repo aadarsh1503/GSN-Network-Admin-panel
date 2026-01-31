@@ -36,7 +36,7 @@ const BlacklistedCompanies = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="relative w-20 h-20 mx-auto mb-4">
-            <div className="absolute inset-0 border-4 border-[#CDA435] border-t-transparent rounded-full animate-spin"></div>
+            <div className="absolute inset-0 border-4 border-[#bca142] border-t-transparent rounded-full animate-spin"></div>
           </div>
           <p className="text-lg text-gray-600 font-medium">Loading Blacklisted Companies...</p>
         </div>
@@ -85,7 +85,7 @@ const BlacklistedCompanies = () => {
                     }).length}
                   </p>
                 </div>
-                <FiCalendar className="text-3xl text-[#CDA435]" />
+                <FiCalendar className="text-3xl text-[#bca142]" />
               </div>
             </div>
 
@@ -110,7 +110,7 @@ const BlacklistedCompanies = () => {
               placeholder="Search by company name, email, or reason..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:border-[#CDA435] focus:ring-2 focus:ring-[#CDA435] focus:ring-opacity-20 transition-all"
+              className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:border-[#bca142] focus:ring-2 focus:ring-[#bca142] focus:ring-opacity-20 transition-all"
             />
           </div>
         </div>
@@ -130,7 +130,7 @@ const BlacklistedCompanies = () => {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B]">
+                <thead className="bg-gradient-to-r from-[#bca142] to-[#D9B95B]">
                   <tr>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-white">Company Name</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-white">Contact</th>
@@ -162,12 +162,12 @@ const BlacklistedCompanies = () => {
                       <td className="px-6 py-4">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 text-sm text-gray-700">
-                            <FiMail className="text-[#CDA435]" />
+                            <FiMail className="text-[#bca142]" />
                             <span>{company.email}</span>
                           </div>
                           {company.mobile && (
                             <div className="flex items-center gap-2 text-sm text-gray-700">
-                              <FiPhone className="text-[#CDA435]" />
+                              <FiPhone className="text-[#bca142]" />
                               <span>{company.mobile}</span>
                             </div>
                           )}
@@ -193,7 +193,7 @@ const BlacklistedCompanies = () => {
                       <td className="px-6 py-4 text-center">
                         <button
                           onClick={() => setSelectedCompany(company)}
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white text-sm font-medium rounded-lg hover:shadow-lg hover:shadow-[#CDA435]/30 transition-all"
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#bca142] to-[#D9B95B] text-white text-sm font-medium rounded-lg hover:shadow-lg hover:shadow-[#bca142]/30 transition-all"
                         >
                           <FiEye />
                           View

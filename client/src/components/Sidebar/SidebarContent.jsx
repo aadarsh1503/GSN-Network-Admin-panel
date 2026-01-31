@@ -164,23 +164,23 @@ const SidebarContent = () => {
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'high': return 'from-blue-500 to-indigo-600';
-      case 'medium': return 'from-emerald-500 to-teal-600';
-      case 'low': return 'from-slate-500 to-gray-600';
-      default: return 'from-blue-500 to-indigo-600';
+      case 'high': return 'bg-[#bca142]';
+      case 'medium': return 'bg-[#bca142]';
+      case 'low': return 'bg-[#bca142]';
+      default: return 'bg-[#bca142]';
     }
   };
 
   const getPriorityBg = (priority, isActive) => {
     if (isActive) {
       switch (priority) {
-        case 'high': return 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200';
-        case 'medium': return 'bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-200';
-        case 'low': return 'bg-gradient-to-r from-slate-50 to-gray-50 border-slate-200';
-        default: return 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200';
+        case 'high': return 'bg-[#bca142]/10 border-[#bca142]/30';
+        case 'medium': return 'bg-[#bca142]/10 border-[#bca142]/30';
+        case 'low': return 'bg-gray-50 border-gray-200';
+        default: return 'bg-[#bca142]/10 border-[#bca142]/30';
       }
     }
-    return 'hover:bg-gradient-to-r hover:from-slate-50 hover:to-gray-50';
+    return 'hover:bg-gray-50';
   };
 
   return (
@@ -201,22 +201,22 @@ const SidebarContent = () => {
                 >
                   <div className="flex items-center justify-between p-4">
                     <div className="flex items-center space-x-3">
-                      <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${getPriorityColor(item.priority)} flex items-center justify-center text-white shadow-sm`}>
+                      <div className={`w-8 h-8 rounded-lg ${getPriorityColor(item.priority)} flex items-center justify-center text-white shadow-sm`}>
                         <span className="text-sm">{item.icon}</span>
                       </div>
                       <div className="text-left">
-                        <span className={`font-semibold text-sm ${isActive ? 'text-slate-800' : 'text-slate-700'}`}>
+                        <span className={`font-semibold text-sm ${isActive ? 'text-black' : 'text-black'}`}>
                           {item.name}
                         </span>
-                        <p className="text-xs text-slate-500 mt-0.5">{item.description}</p>
+                        <p className="text-xs text-gray-600 mt-0.5">{item.description}</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
                       {item.priority === 'high' && (
-                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                        <div className="w-2 h-2 bg-[#bca142] rounded-full animate-pulse"></div>
                       )}
                       <FiChevronDown 
-                        className={`text-sm text-slate-400 transition-transform duration-300 ${
+                        className={`text-sm text-gray-600 transition-transform duration-300 ${
                           openDropdown === item.name ? 'rotate-180' : ''
                         }`} 
                       />
@@ -229,15 +229,15 @@ const SidebarContent = () => {
                     openDropdown === item.name ? 'max-h-96 mt-2' : 'max-h-0'
                   }`}
                 >
-                  <div className="bg-white/50 rounded-lg border border-slate-100 p-2 ml-4">
+                  <div className="bg-white rounded-lg border border-gray-200 p-2 ml-4">
                     {item.subItems.map((subItem, subIndex) => (
                       <Link
                         key={subIndex}
                         to={subItem.path}
                         className={`flex items-center space-x-3 p-3 rounded-lg text-sm transition-all duration-200 mb-1 ${
                           currentPathSegment === subItem.path 
-                            ? 'bg-white text-slate-800 font-medium shadow-sm border border-slate-200' 
-                            : 'text-slate-600 hover:bg-white/70 hover:text-slate-800'
+                            ? 'bg-[#bca142] text-white font-medium shadow-sm' 
+                            : 'text-black hover:bg-gray-100 hover:text-black'
                         }`}
                       >
                         <span className="text-base">{subItem.icon}</span>
@@ -260,18 +260,18 @@ const SidebarContent = () => {
             >
               <div className="flex items-center justify-between p-4">
                 <div className="flex items-center space-x-3">
-                  <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${getPriorityColor(item.priority)} flex items-center justify-center text-white shadow-sm`}>
+                  <div className={`w-8 h-8 rounded-lg ${getPriorityColor(item.priority)} flex items-center justify-center text-white shadow-sm`}>
                     <span className="text-sm">{item.icon}</span>
                   </div>
                   <div className="text-left">
-                    <span className={`font-semibold text-sm ${isActive ? 'text-slate-800' : 'text-slate-700'}`}>
+                    <span className={`font-semibold text-sm ${isActive ? 'text-black' : 'text-black'}`}>
                       {item.name}
                     </span>
-                    <p className="text-xs text-slate-500 mt-0.5">{item.description}</p>
+                    <p className="text-xs text-gray-600 mt-0.5">{item.description}</p>
                   </div>
                 </div>
                 {item.priority === 'high' && (
-                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                  <div className="w-2 h-2 bg-[#bca142] rounded-full animate-pulse"></div>
                 )}
               </div>
             </Link>
@@ -280,13 +280,13 @@ const SidebarContent = () => {
       </div>
 
       {/* Footer */}
-      <div className="mt-6 p-4 bg-gradient-to-r from-slate-50 to-gray-50 rounded-xl border border-slate-200">
+      <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
         <div className="text-center">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg mx-auto mb-2 flex items-center justify-center">
+          <div className="w-8 h-8 bg-[#bca142] rounded-lg mx-auto mb-2 flex items-center justify-center">
             <FiTrendingUp className="text-white text-sm" />
           </div>
-          <p className="text-xs text-slate-600 font-medium">Admin Dashboard</p>
-          {/* <p className="text-xs text-slate-400">v2.1.0</p> */}
+          <p className="text-xs text-black font-medium">Admin Dashboard</p>
+          {/* <p className="text-xs text-gray-400">v2.1.0</p> */}
         </div>
       </div>
 
@@ -298,11 +298,11 @@ const SidebarContent = () => {
           background: transparent;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(to bottom, #e2e8f0, #cbd5e1);
+          background: #bca142;
           border-radius: 2px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to bottom, #cbd5e1, #94a3b8);
+          background: #b8932f;
         }
       `}</style>
     </nav>

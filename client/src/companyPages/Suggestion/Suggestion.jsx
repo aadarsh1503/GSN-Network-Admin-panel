@@ -56,7 +56,7 @@ const SuggestionCompany = () => {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'pending': return <FiClock className="text-[#CDA435]" />;
+      case 'pending': return <FiClock className="text-[#bca142]" />;
       case 'reviewed': return <FiAlertCircle className="text-blue-500" />;
       case 'implemented': return <FiCheckCircle className="text-green-500" />;
       case 'rejected': return <FiXCircle className="text-red-500" />;
@@ -79,14 +79,14 @@ const SuggestionCompany = () => {
   };
 
   const labelClasses = "block text-sm font-medium text-gray-700 mb-2";
-  const inputClasses = "w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-[#CDA435]";
+  const inputClasses = "w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142]";
 
   return (
     <div className="space-y-6">
       {/* Submit Form */}
       <div className="bg-white p-6 md:p-8 rounded-lg shadow-md w-full">
         <h2 className="text-2xl font-bold text-gray-800 mb-2">Submit Suggestion</h2>
-        <div className="w-16 h-1 bg-[#CDA435] rounded mb-6"></div>
+        <div className="w-16 h-1 bg-[#bca142] rounded mb-6"></div>
         
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -139,7 +139,7 @@ const SuggestionCompany = () => {
           <button 
             type="submit" 
             disabled={loading}
-            className="bg-[#CDA435] text-white font-semibold px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-[#bca142] text-white font-semibold px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <FiSend />
             <span>{loading ? 'Submitting...' : 'Send Suggestion'}</span>
@@ -150,7 +150,7 @@ const SuggestionCompany = () => {
       {/* Suggestions History */}
       <div className="bg-white p-6 md:p-8 rounded-lg shadow-md w-full">
         <h2 className="text-2xl font-bold text-gray-800 mb-2">My Suggestions</h2>
-        <div className="w-16 h-1 bg-[#CDA435] rounded mb-6"></div>
+        <div className="w-16 h-1 bg-[#bca142] rounded mb-6"></div>
 
         {fetchingHistory ? (
           <p className="text-gray-500 text-center py-8">Loading suggestions...</p>

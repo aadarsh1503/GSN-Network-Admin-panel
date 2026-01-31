@@ -102,7 +102,7 @@ const EmailVerificationPage = () => {
       className="text-center"
     >
       <div className="mb-6">
-        <Loader2 className="w-16 h-16 text-[#CDA435] animate-spin mx-auto" />
+        <Loader2 className="w-16 h-16 text-[#bca142] animate-spin mx-auto" />
       </div>
       <h2 className="text-2xl font-bold text-gray-800 mb-4">
         Verifying Your Email
@@ -141,7 +141,7 @@ const EmailVerificationPage = () => {
       <div className="space-y-3">
         <button
           onClick={handleLoginRedirect}
-          className="w-full flex items-center justify-center gap-2 bg-[#CDA435] hover:bg-[#B8941F] text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+          className="w-full flex items-center justify-center gap-2 bg-[#bca142] hover:bg-[#B8941F] text-white font-semibold py-3 px-6 rounded-lg transition-colors"
         >
           Continue to Login
           <ArrowRight className="w-4 h-4" />
@@ -186,13 +186,13 @@ const EmailVerificationPage = () => {
             value={resendEmail}
             onChange={(e) => setResendEmail(e.target.value)}
             placeholder="Enter your email address"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent"
           />
           
           <button
             onClick={handleResendVerification}
             disabled={isResending}
-            className="w-full flex items-center justify-center gap-2 bg-[#CDA435] hover:bg-[#B8941F] disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 bg-[#bca142] hover:bg-[#B8941F] disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:cursor-not-allowed"
           >
             {isResending ? (
               <>
@@ -233,7 +233,7 @@ const EmailVerificationPage = () => {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <Mail className="w-12 h-12 text-[#CDA435] mx-auto mb-4" />
+          <Mail className="w-12 h-12 text-[#bca142] mx-auto mb-4" />
           <h1 className="text-3xl font-bold text-gray-800">Email Verification</h1>
           <p className="text-gray-600 mt-2">GSN Platform Business Account</p>
         </div>
@@ -249,7 +249,7 @@ const EmailVerificationPage = () => {
         <div className="text-center mt-6">
           <p className="text-sm text-gray-500">
             Need help? Contact us at{' '}
-            <a href="mailto:support@gsnplatform.com" className="text-[#CDA435] hover:underline">
+            <a href="mailto:support@gsnplatform.com" className="text-[#bca142] hover:underline">
               support@gsnplatform.com
             </a>
           </p>

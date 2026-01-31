@@ -47,12 +47,12 @@ const SupportTicket = () => {
   };
 
   const labelClasses = "block text-sm font-medium text-gray-700 mb-2";
-  const inputClasses = "w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-[#CDA435] transition duration-150 ease-in-out";
+  const inputClasses = "w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142] transition duration-150 ease-in-out";
 
   return (
     <div className="bg-white p-6 md:p-8 rounded-lg shadow-md w-full max-w-4xl mx-auto">
       <h2 className="text-2xl font-bold text-gray-800 mb-2">Create Support Ticket</h2>
-      <div className="w-16 h-1 bg-[#CDA435] rounded mb-6"></div>
+      <div className="w-16 h-1 bg-[#bca142] rounded mb-6"></div>
       
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 mb-6">
@@ -128,7 +128,7 @@ const SupportTicket = () => {
           <button
             type="submit"
             disabled={loading}
-            className="bg-[#CDA435] text-white font-semibold px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-[#bca142] text-white font-semibold px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <FiSend />
             <span>{loading ? 'Submitting...' : 'Submit Ticket'}</span>

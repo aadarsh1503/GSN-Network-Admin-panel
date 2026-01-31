@@ -246,7 +246,7 @@ const BusinessMessages = () => {
         <div className="flex flex-col items-center gap-3">
           <div className="relative">
             <div className="h-12 w-12 border-4 border-gray-200 rounded-full animate-spin">
-              <div className="h-12 w-12 border-4 border-transparent border-t-[#CDA435] rounded-full animate-spin"></div>
+              <div className="h-12 w-12 border-4 border-transparent border-t-[#bca142] rounded-full animate-spin"></div>
             </div>
           </div>
           <p className="text-gray-600 font-medium">Loading messages...</p>
@@ -333,7 +333,7 @@ const BusinessMessages = () => {
                                 {formatDate(conv.last_message_time)}
                               </span>
                               {conv.unread_count > 0 && (
-                                <span className="bg-[#CDA435] text-white text-xs px-2 py-0.5 rounded-full min-w-[20px] text-center">
+                                <span className="bg-[#bca142] text-white text-xs px-2 py-0.5 rounded-full min-w-[20px] text-center">
                                   {conv.unread_count}
                                 </span>
                               )}
@@ -386,31 +386,31 @@ const BusinessMessages = () => {
                       <div className="text-center">
                         <div className="relative mb-8">
                           {/* Outer rotating ring */}
-                          <div className="w-20 h-20 border-4 border-[#CDA435]/20 rounded-full animate-spin mx-auto relative">
-                            <div className="absolute top-0 left-0 w-full h-full border-4 border-transparent border-t-[#CDA435] rounded-full animate-spin"></div>
+                          <div className="w-20 h-20 border-4 border-[#bca142]/20 rounded-full animate-spin mx-auto relative">
+                            <div className="absolute top-0 left-0 w-full h-full border-4 border-transparent border-t-[#bca142] rounded-full animate-spin"></div>
                             <div className="absolute top-2 left-2 w-16 h-16 border-4 border-transparent border-t-[#D9B95B] rounded-full animate-spin" style={{animationDirection: 'reverse', animationDuration: '1.5s'}}></div>
                           </div>
                           {/* Inner pulsing core */}
                           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                            <div className="w-8 h-8 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-full animate-pulse shadow-lg"></div>
+                            <div className="w-8 h-8 bg-gradient-to-r from-[#bca142] to-[#D9B95B] rounded-full animate-pulse shadow-lg"></div>
                             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full animate-ping"></div>
                           </div>
                           {/* Floating particles */}
-                          <div className="absolute -top-2 -left-2 w-2 h-2 bg-[#CDA435] rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
+                          <div className="absolute -top-2 -left-2 w-2 h-2 bg-[#bca142] rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
                           <div className="absolute -top-2 -right-2 w-2 h-2 bg-[#D9B95B] rounded-full animate-bounce" style={{animationDelay: '0.5s'}}></div>
-                          <div className="absolute -bottom-2 -left-2 w-2 h-2 bg-[#CDA435] rounded-full animate-bounce" style={{animationDelay: '1s'}}></div>
+                          <div className="absolute -bottom-2 -left-2 w-2 h-2 bg-[#bca142] rounded-full animate-bounce" style={{animationDelay: '1s'}}></div>
                           <div className="absolute -bottom-2 -right-2 w-2 h-2 bg-[#D9B95B] rounded-full animate-bounce" style={{animationDelay: '1.5s'}}></div>
                         </div>
                         <div className="space-y-3">
-                          <h3 className="text-xl font-bold bg-gradient-to-r from-[#CDA435] to-[#D9B95B] bg-clip-text text-transparent">
+                          <h3 className="text-xl font-bold bg-gradient-to-r from-[#bca142] to-[#D9B95B] bg-clip-text text-transparent">
                             Loading Conversation
                           </h3>
                           <p className="text-gray-600 font-medium">Fetching messages...</p>
                           {/* Loading dots */}
                           <div className="flex justify-center space-x-2">
-                            <div className="w-2 h-2 bg-[#CDA435] rounded-full animate-pulse" style={{animationDelay: '0s'}}></div>
+                            <div className="w-2 h-2 bg-[#bca142] rounded-full animate-pulse" style={{animationDelay: '0s'}}></div>
                             <div className="w-2 h-2 bg-[#D9B95B] rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                            <div className="w-2 h-2 bg-[#CDA435] rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                            <div className="w-2 h-2 bg-[#bca142] rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
                           </div>
                         </div>
                       </div>
@@ -434,7 +434,7 @@ const BusinessMessages = () => {
                             <div className="flex items-center gap-2 mb-2">
                               {systemType === 'ticket' && <FaEnvelope className="text-yellow-600" />}
                               {systemType === 'response' && <FaCheck className="text-green-600" />}
-                              {systemType === 'status' && <FaClock className="text-[#CDA435]" />}
+                              {systemType === 'status' && <FaClock className="text-[#bca142]" />}
                               <p className={`text-xs font-medium ${
                                 systemType === 'ticket' ? 'text-yellow-700' :
                                 systemType === 'response' ? 'text-green-700' :
@@ -466,7 +466,7 @@ const BusinessMessages = () => {
                     
                     return (
                       <div key={msg.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[70%] ${isOwn ? 'bg-[#CDA435] text-white' : 'bg-white'} rounded-lg p-3 shadow-sm`}>
+                        <div className={`max-w-[70%] ${isOwn ? 'bg-[#bca142] text-white' : 'bg-white'} rounded-lg p-3 shadow-sm`}>
                           {!isOwn && (
                             <div className="flex items-center gap-2 mb-2">
                               <div className="w-4 h-4 bg-blue-100 rounded-md flex items-center justify-center">
@@ -507,7 +507,7 @@ const BusinessMessages = () => {
                     <button
                       type="submit"
                       disabled={sendingMessage || !newMessage.trim()}
-                      className="bg-[#CDA435] text-white px-6 py-3 rounded-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="bg-[#bca142] text-white px-6 py-3 rounded-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {sendingMessage ? (
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>

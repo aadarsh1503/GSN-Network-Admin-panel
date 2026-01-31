@@ -146,28 +146,28 @@ const CompanyProfile = ({ member, onClose }) => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-[#CDA435]/10 to-transparent rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-[#CDA435]/5 to-transparent rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-[#CDA435]/3 to-transparent rounded-full blur-3xl animate-pulse delay-500"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-[#bca142]/10 to-transparent rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-[#bca142]/5 to-transparent rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-[#bca142]/3 to-transparent rounded-full blur-3xl animate-pulse delay-500"></div>
       </div>
 
       <div className="relative z-10 p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
           <button 
             onClick={onClose} 
-            className="group flex items-center text-[#CDA435] hover:text-yellow-600 mb-6 transition-all duration-300 transform hover:scale-105"
+            className="group flex items-center text-[#bca142] hover:text-yellow-600 mb-6 transition-all duration-300 transform hover:scale-105"
           >
-            <div className="w-8 h-8 rounded-full bg-[#CDA435]/10 flex items-center justify-center mr-3 group-hover:bg-[#CDA435]/20 transition-all duration-300">
+            <div className="w-8 h-8 rounded-full bg-[#bca142]/10 flex items-center justify-center mr-3 group-hover:bg-[#bca142]/20 transition-all duration-300">
               <span className="text-lg">←</span>
             </div>
             <span className="font-medium">Back to Members Directory</span>
           </button>
 
           {/* Futuristic Header Section */}
-          <div className="relative bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-[#CDA435]/20 p-8 mb-8 overflow-hidden">
+          <div className="relative bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-[#bca142]/20 p-8 mb-8 overflow-hidden">
             {/* Glowing border effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#CDA435]/5 via-transparent to-[#CDA435]/5 rounded-3xl"></div>
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#CDA435] to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-[#bca142]/5 via-transparent to-[#bca142]/5 rounded-3xl"></div>
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#bca142] to-transparent"></div>
             
             <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
               <div className="flex items-center space-x-6">
@@ -177,31 +177,31 @@ const CompanyProfile = ({ member, onClose }) => {
                       <img 
                         src={company.logo} 
                         alt={company.name} 
-                        className="w-32 h-auto rounded-2xl object-fill shadow-2xl border-2 border-[#CDA435]/30" 
+                        className="w-32 h-auto rounded-2xl object-fill shadow-2xl border-2 border-[#bca142]/30" 
                       />
-                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-[#CDA435]/20 to-transparent"></div>
+                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-[#bca142]/20 to-transparent"></div>
                     </div>
                   ) : (
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#CDA435] to-[#8B7355] flex items-center justify-center text-white text-3xl font-bold shadow-2xl border border-[#CDA435]/30 relative overflow-hidden">
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#bca142] to-[#8B7355] flex items-center justify-center text-white text-3xl font-bold shadow-2xl border border-[#bca142]/30 relative overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent"></div>
                       <span className="relative z-10">{company.name?.charAt(0)}</span>
                     </div>
                   )}
-                  <div className="absolute -inset-2 bg-gradient-to-r from-[#CDA435]/20 to-transparent rounded-3xl blur-lg animate-pulse"></div>
+                  <div className="absolute -inset-2 bg-gradient-to-r from-[#bca142]/20 to-transparent rounded-3xl blur-lg animate-pulse"></div>
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-2">
                     {company.name}
                   </h1>
                   <div className="flex items-center space-x-3 mb-3">
-                    <span className="px-3 py-1 bg-[#CDA435]/10 text-[#CDA435] rounded-full text-sm font-medium border border-[#CDA435]/30">
+                    <span className="px-3 py-1 bg-[#bca142]/10 text-[#bca142] rounded-full text-sm font-medium border border-[#bca142]/30">
                       {formatCategory(company.category)}
                     </span>
-                    <FiZap className="text-[#CDA435] animate-pulse" />
+                    <FiZap className="text-[#bca142] animate-pulse" />
                   </div>
                   {company.average_rating > 0 && (
                     <div className="flex items-center space-x-2">
-                      <div className="flex items-center text-[#CDA435]">
+                      <div className="flex items-center text-[#bca142]">
                         {[...Array(5)].map((_, i) => (
                           <FiStar key={i} className={`${i < Math.floor(company.average_rating) ? 'fill-current' : ''} transition-all duration-300`} />
                         ))}
@@ -220,9 +220,9 @@ const CompanyProfile = ({ member, onClose }) => {
                     href={company.website} 
                     target="_blank" 
                     rel="noopener noreferrer" 
-                    className="group flex items-center space-x-2 px-4 py-2 bg-gray-50 rounded-xl hover:bg-[#CDA435]/10 transition-all duration-300 border border-gray-200 hover:border-[#CDA435]/50"
+                    className="group flex items-center space-x-2 px-4 py-2 bg-gray-50 rounded-xl hover:bg-[#bca142]/10 transition-all duration-300 border border-gray-200 hover:border-[#bca142]/50"
                   >
-                    <FiGlobe className="text-[#CDA435] group-hover:animate-spin" />
+                    <FiGlobe className="text-[#bca142] group-hover:animate-spin" />
                     <span>Website</span>
                   </a>
                 )}
@@ -234,7 +234,7 @@ const CompanyProfile = ({ member, onClose }) => {
                   <span>Wishlist</span>
                 </button>
                 <div className="flex items-center space-x-2 px-4 py-2 bg-gray-50 rounded-xl border border-gray-200">
-                  <FiMapPin className="text-[#CDA435]" />
+                  <FiMapPin className="text-[#bca142]" />
                   <span>
                     {company.city && `${company.city}, `}{company.state && `${company.state}, `}{company.country}
                   </span>
@@ -292,12 +292,12 @@ const CompanyProfile = ({ member, onClose }) => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
               {/* About Company */}
-              <div className="relative bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-[#CDA435]/20 p-8 overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#CDA435] to-transparent"></div>
+              <div className="relative bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-[#bca142]/20 p-8 overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#bca142] to-transparent"></div>
                 <div className="relative z-10">
                   <div className="flex items-center space-x-3 mb-6">
-                    <div className="w-10 h-10 rounded-xl bg-[#CDA435]/10 flex items-center justify-center">
-                      <FiShield className="text-[#CDA435]" />
+                    <div className="w-10 h-10 rounded-xl bg-[#bca142]/10 flex items-center justify-center">
+                      <FiShield className="text-[#bca142]" />
                     </div>
                     <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
                       About Company
@@ -327,12 +327,12 @@ const CompanyProfile = ({ member, onClose }) => {
 
               {/* Branches */}
               {branches.length > 0 && (
-                <div className="relative bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-[#CDA435]/20 p-8 overflow-hidden">
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#CDA435] to-transparent"></div>
+                <div className="relative bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-[#bca142]/20 p-8 overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#bca142] to-transparent"></div>
                   <div className="relative z-10">
                     <div className="flex items-center space-x-3 mb-6">
-                      <div className="w-10 h-10 rounded-xl bg-[#CDA435]/10 flex items-center justify-center">
-                        <FiMapPin className="text-[#CDA435]" />
+                      <div className="w-10 h-10 rounded-xl bg-[#bca142]/10 flex items-center justify-center">
+                        <FiMapPin className="text-[#bca142]" />
                       </div>
                       <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
                         Branch Locations
@@ -343,11 +343,11 @@ const CompanyProfile = ({ member, onClose }) => {
                         <div key={branch.id} className="bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-200 overflow-hidden">
                           <button
                             onClick={() => setExpandedBranch(expandedBranch === branch.id ? null : branch.id)}
-                            className="w-full p-6 flex justify-between items-center hover:bg-[#CDA435]/5 transition-all duration-300 group"
+                            className="w-full p-6 flex justify-between items-center hover:bg-[#bca142]/5 transition-all duration-300 group"
                           >
                             <div className="flex items-center space-x-4">
-                              <div className="w-8 h-8 rounded-lg bg-[#CDA435]/10 flex items-center justify-center group-hover:bg-[#CDA435]/20 transition-all duration-300">
-                                <FiMapPin className="text-[#CDA435]" />
+                              <div className="w-8 h-8 rounded-lg bg-[#bca142]/10 flex items-center justify-center group-hover:bg-[#bca142]/20 transition-all duration-300">
+                                <FiMapPin className="text-[#bca142]" />
                               </div>
                               <div className="text-left">
                                 <span className="font-medium text-gray-800 text-lg">{branch.branch_name}</span>
@@ -356,7 +356,7 @@ const CompanyProfile = ({ member, onClose }) => {
                                 </p>
                               </div>
                             </div>
-                            <div className="text-[#CDA435] group-hover:scale-110 transition-transform duration-300">
+                            <div className="text-[#bca142] group-hover:scale-110 transition-transform duration-300">
                               {expandedBranch === branch.id ? <FiChevronUp /> : <FiChevronDown />}
                             </div>
                           </button>
@@ -365,19 +365,19 @@ const CompanyProfile = ({ member, onClose }) => {
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 text-sm">
                                 {branch.branch_phone && (
                                   <div className="flex items-center space-x-2 text-gray-700">
-                                    <FiPhone className="text-[#CDA435]" />
+                                    <FiPhone className="text-[#bca142]" />
                                     <span>{branch.branch_phone}</span>
                                   </div>
                                 )}
                                 {branch.branch_email && (
                                   <div className="flex items-center space-x-2 text-gray-700">
-                                    <FiMail className="text-[#CDA435]" />
+                                    <FiMail className="text-[#bca142]" />
                                     <span>{branch.branch_email}</span>
                                   </div>
                                 )}
                                 {branch.address && (
                                   <div className="md:col-span-2 flex items-start space-x-2 text-gray-700">
-                                    <FiMapPin className="text-[#CDA435] mt-1 flex-shrink-0" />
+                                    <FiMapPin className="text-[#bca142] mt-1 flex-shrink-0" />
                                     <span>{branch.address}</span>
                                   </div>
                                 )}
@@ -393,12 +393,12 @@ const CompanyProfile = ({ member, onClose }) => {
 
               {/* Key Staff */}
               {members.length > 0 && (
-                <div className="relative bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-[#CDA435]/20 p-8 overflow-hidden">
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#CDA435] to-transparent"></div>
+                <div className="relative bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-[#bca142]/20 p-8 overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#bca142] to-transparent"></div>
                   <div className="relative z-10">
                     <div className="flex items-center space-x-3 mb-6">
-                      <div className="w-10 h-10 rounded-xl bg-[#CDA435]/10 flex items-center justify-center">
-                        <FiZap className="text-[#CDA435]" />
+                      <div className="w-10 h-10 rounded-xl bg-[#bca142]/10 flex items-center justify-center">
+                        <FiZap className="text-[#bca142]" />
                       </div>
                       <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
                         Key Staff / Directors
@@ -406,16 +406,16 @@ const CompanyProfile = ({ member, onClose }) => {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       {members.map((m) => (
-                        <div key={m.id} className="group flex items-center space-x-4 p-6 bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-200 hover:border-[#CDA435]/50 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-lg">
+                        <div key={m.id} className="group flex items-center space-x-4 p-6 bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-200 hover:border-[#bca142]/50 transition-all duration-300 hover:transform hover:scale-105 hover:shadow-lg">
                           <div className="relative">
-                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#CDA435] to-[#8B7355] flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#bca142] to-[#8B7355] flex items-center justify-center text-white font-bold text-xl shadow-lg">
                               {m.member_name?.charAt(0)}
                             </div>
-                            <div className="absolute -inset-1 bg-gradient-to-r from-[#CDA435]/20 to-transparent rounded-2xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            <div className="absolute -inset-1 bg-gradient-to-r from-[#bca142]/20 to-transparent rounded-2xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                           </div>
                           <div>
                             <p className="font-medium text-gray-800 text-lg">{m.member_name}</p>
-                            <p className="text-[#CDA435] text-sm font-medium">{m.member_role || 'Staff'}</p>
+                            <p className="text-[#bca142] text-sm font-medium">{m.member_role || 'Staff'}</p>
                             {m.member_email && <p className="text-gray-600 text-xs mt-1">{m.member_email}</p>}
                           </div>
                         </div>
@@ -427,12 +427,12 @@ const CompanyProfile = ({ member, onClose }) => {
 
               {/* Reviews */}
               {reviews.length > 0 && (
-                <div className="relative bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-[#CDA435]/20 p-8 overflow-hidden">
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#CDA435] to-transparent"></div>
+                <div className="relative bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-[#bca142]/20 p-8 overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#bca142] to-transparent"></div>
                   <div className="relative z-10">
                     <div className="flex items-center space-x-3 mb-6">
-                      <div className="w-10 h-10 rounded-xl bg-[#CDA435]/10 flex items-center justify-center">
-                        <FiStar className="text-[#CDA435]" />
+                      <div className="w-10 h-10 rounded-xl bg-[#bca142]/10 flex items-center justify-center">
+                        <FiStar className="text-[#bca142]" />
                       </div>
                       <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
                         Client Reviews
@@ -440,7 +440,7 @@ const CompanyProfile = ({ member, onClose }) => {
                     </div>
                     <div className="space-y-6">
                       {reviews.map((review) => (
-                        <div key={review.id} className="group p-6 bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-200 hover:border-[#CDA435]/50 transition-all duration-300 hover:shadow-lg">
+                        <div key={review.id} className="group p-6 bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-200 hover:border-[#bca142]/50 transition-all duration-300 hover:shadow-lg">
                           <div className="flex justify-between items-start mb-4">
                             <div>
                               <p className="font-medium text-gray-800 text-lg">{review.reviewer_name}</p>
@@ -448,7 +448,7 @@ const CompanyProfile = ({ member, onClose }) => {
                                 {[...Array(5)].map((_, i) => (
                                   <FiStar 
                                     key={i} 
-                                    className={`${i < review.rating ? 'fill-current text-[#CDA435]' : 'text-gray-400'} transition-all duration-300`} 
+                                    className={`${i < review.rating ? 'fill-current text-[#bca142]' : 'text-gray-400'} transition-all duration-300`} 
                                     size={16} 
                                   />
                                 ))}
@@ -468,12 +468,12 @@ const CompanyProfile = ({ member, onClose }) => {
 
               {/* Interactive Google Map using Coordinates */}
               {company.latitude && company.longitude && (
-                <div className="relative bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-[#CDA435]/20 p-8 overflow-hidden">
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#CDA435] to-transparent"></div>
+                <div className="relative bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-[#bca142]/20 p-8 overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#bca142] to-transparent"></div>
                   <div className="relative z-10">
                     <div className="flex items-center space-x-3 mb-6">
-                      <div className="w-10 h-10 rounded-xl bg-[#CDA435]/10 flex items-center justify-center">
-                        <FiMapPin className="text-[#CDA435]" />
+                      <div className="w-10 h-10 rounded-xl bg-[#bca142]/10 flex items-center justify-center">
+                        <FiMapPin className="text-[#bca142]" />
                       </div>
                       <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
                         Our Location
@@ -564,12 +564,12 @@ const CompanyProfile = ({ member, onClose }) => {
 
               {/* Google Maps Location Card - Only show if mapLocation exists and no coordinates */}
               {company.map_location && !company.latitude && !company.longitude && (
-                <div className="relative bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-[#CDA435]/20 p-8 overflow-hidden">
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#CDA435] to-transparent"></div>
+                <div className="relative bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-[#bca142]/20 p-8 overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#bca142] to-transparent"></div>
                   <div className="relative z-10">
                     <div className="flex items-center space-x-3 mb-6">
-                      <div className="w-10 h-10 rounded-xl bg-[#CDA435]/10 flex items-center justify-center">
-                        <FiMapPin className="text-[#CDA435]" />
+                      <div className="w-10 h-10 rounded-xl bg-[#bca142]/10 flex items-center justify-center">
+                        <FiMapPin className="text-[#bca142]" />
                       </div>
                       <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
                         Our Location
@@ -594,8 +594,8 @@ const CompanyProfile = ({ member, onClose }) => {
 
             {/* Right Column - Contact */}
             <div className="lg:col-span-1 space-y-8">
-              <div className="relative bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-[#CDA435]/20 p-8 overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#CDA435] to-transparent"></div>
+              <div className="relative bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-[#bca142]/20 p-8 overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#bca142] to-transparent"></div>
                 <div className="relative z-10">
                   <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-6 text-center">
                     Contact Information
@@ -614,38 +614,38 @@ const CompanyProfile = ({ member, onClose }) => {
                             }}
                           />
                         ) : (
-                          <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-[#CDA435] to-[#8B7355] flex items-center justify-center text-white text-3xl font-bold mx-auto mb-4 shadow-2xl">
+                          <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-[#bca142] to-[#8B7355] flex items-center justify-center text-white text-3xl font-bold mx-auto mb-4 shadow-2xl">
                             {company.incharge_name?.charAt(0)}
                           </div>
                         )}
-                        <div className="absolute -inset-2 bg-gradient-to-r from-[#CDA435]/20 to-transparent rounded-3xl blur-lg animate-pulse"></div>
+                        <div className="absolute -inset-2 bg-gradient-to-r from-[#bca142]/20 to-transparent rounded-3xl blur-lg animate-pulse"></div>
                       </div>
                       <p className="font-medium text-gray-800 text-xl">{company.incharge_name}</p>
-                      <p className="text-[#CDA435] text-sm font-medium">Incharge</p>
+                      <p className="text-[#bca142] text-sm font-medium">Incharge</p>
                     </div>
                   )}
 
                   <div className="space-y-4 mb-8">
                     {company.phone && (
                       <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                        <div className="w-10 h-10 rounded-xl bg-[#CDA435]/10 flex items-center justify-center">
-                          <FiPhone className="text-[#CDA435]" />
+                        <div className="w-10 h-10 rounded-xl bg-[#bca142]/10 flex items-center justify-center">
+                          <FiPhone className="text-[#bca142]" />
                         </div>
                         <span className="text-gray-700">{company.phone}</span>
                       </div>
                     )}
                     {company.email && (
                       <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                        <div className="w-10 h-10 rounded-xl bg-[#CDA435]/10 flex items-center justify-center">
-                          <FiMail className="text-[#CDA435]" />
+                        <div className="w-10 h-10 rounded-xl bg-[#bca142]/10 flex items-center justify-center">
+                          <FiMail className="text-[#bca142]" />
                         </div>
                         <span className="text-gray-700">{company.email}</span>
                       </div>
                     )}
                     {company.skype && (
                       <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                        <div className="w-10 h-10 rounded-xl bg-[#CDA435]/10 flex items-center justify-center">
-                          <FaSkype className="text-[#CDA435]" />
+                        <div className="w-10 h-10 rounded-xl bg-[#bca142]/10 flex items-center justify-center">
+                          <FaSkype className="text-[#bca142]" />
                         </div>
                         <span className="text-gray-700">{company.skype}</span>
                       </div>
@@ -654,7 +654,7 @@ const CompanyProfile = ({ member, onClose }) => {
 
                   <button 
                     onClick={() => setShowMessageForm(!showMessageForm)}
-                    className="group w-full bg-gradient-to-r from-[#CDA435] to-[#8B7355] text-white font-bold py-4 rounded-xl shadow-2xl hover:shadow-[#CDA435]/25 transition-all duration-300 flex items-center justify-center space-x-3 hover:transform hover:scale-105 relative overflow-hidden"
+                    className="group w-full bg-gradient-to-r from-[#bca142] to-[#8B7355] text-white font-bold py-4 rounded-xl shadow-2xl hover:shadow-[#bca142]/25 transition-all duration-300 flex items-center justify-center space-x-3 hover:transform hover:scale-105 relative overflow-hidden"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     <FiMessageSquare className="group-hover:animate-pulse" />
@@ -668,7 +668,7 @@ const CompanyProfile = ({ member, onClose }) => {
                         placeholder="Subject"
                         value={messageData.subject}
                         onChange={(e) => setMessageData({...messageData, subject: e.target.value})}
-                        className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent text-gray-800 placeholder-gray-500 transition-all duration-300"
+                        className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent text-gray-800 placeholder-gray-500 transition-all duration-300"
                         required
                       />
                       <textarea
@@ -676,7 +676,7 @@ const CompanyProfile = ({ member, onClose }) => {
                         value={messageData.message}
                         onChange={(e) => setMessageData({...messageData, message: e.target.value})}
                         rows="4"
-                        className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent text-gray-800 placeholder-gray-500 transition-all duration-300 resize-none"
+                        className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent text-gray-800 placeholder-gray-500 transition-all duration-300 resize-none"
                         required
                       />
                       <button

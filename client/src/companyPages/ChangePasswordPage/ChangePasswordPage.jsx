@@ -66,7 +66,7 @@ const ChangePasswordPage = () => {
           name={name}
           value={value}
           onChange={handleChange}
-          className="w-full pl-10 pr-12 py-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+          className="w-full pl-10 pr-12 py-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142]"
           placeholder={`Enter ${label.toLowerCase()}`}
           required
         />
@@ -84,7 +84,7 @@ const ChangePasswordPage = () => {
   return (
     <div className="bg-white p-6 md:p-8 rounded-lg shadow-md w-full max-w-xl mx-auto">
       <h2 className="text-2xl font-bold text-gray-800 mb-2">Change Password</h2>
-      <div className="w-16 h-1 bg-[#CDA435] rounded mb-6"></div>
+      <div className="w-16 h-1 bg-[#bca142] rounded mb-6"></div>
 
       <form onSubmit={handleSubmit}>
         <PasswordInput
@@ -114,7 +114,7 @@ const ChangePasswordPage = () => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-[#CDA435] text-white font-semibold py-3 rounded-lg hover:bg-opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-[#bca142] text-white font-semibold py-3 rounded-lg hover:bg-opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Changing Password...' : 'Change Password'}
         </button>

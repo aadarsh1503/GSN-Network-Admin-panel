@@ -122,17 +122,17 @@ const CompanySidebarContent = () => {
         <li key={uniqueKey} className="mb-2">
           <button
             onClick={() => handleDropdownClick(item.name)}
-            className={`w-full group flex items-center justify-between p-3 rounded-xl text-slate-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:text-blue-600 hover:shadow-md transition-all duration-300 transform hover:scale-[1.02] ${
-              isParentActive ? 'bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-600 shadow-md font-semibold border border-blue-100' : ''
+            className={`w-full group flex items-center justify-between p-3 rounded-xl text-black hover:bg-gray-50 hover:text-black hover:shadow-md transition-all duration-300 transform hover:scale-[1.02] ${
+              isParentActive ? 'bg-[#bca142]/10 text-black shadow-md font-semibold border border-[#bca142]/30' : ''
             }`}
           >
             <div className="flex items-center">
-              <span className={`mr-3 text-lg transition-all duration-300 ${isParentActive ? 'text-blue-500 scale-110' : 'group-hover:text-blue-500 group-hover:scale-110'}`}>
+              <span className={`mr-3 text-lg transition-all duration-300 ${isParentActive ? 'text-[#bca142] scale-110' : 'group-hover:text-[#bca142] group-hover:scale-110'}`}>
                 {item.icon}
               </span>
               <span className="font-medium">{item.name}</span>
             </div>
-            <FiChevronDown className={`text-sm transition-all duration-300 ${openDropdown === item.name ? 'rotate-180 text-blue-500' : 'group-hover:text-blue-500'}`} />
+            <FiChevronDown className={`text-sm transition-all duration-300 ${openDropdown === item.name ? 'rotate-180 text-[#bca142]' : 'group-hover:text-[#bca142]'}`} />
           </button>
           <div className={`overflow-hidden transition-all duration-500 ease-in-out ${openDropdown === item.name ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
             <ul className="pl-6 pt-2 space-y-1">
@@ -142,8 +142,8 @@ const CompanySidebarContent = () => {
                     to={subItem.path} 
                     className={({ isActive }) => `flex items-center p-2.5 rounded-lg text-sm transition-all duration-300 transform hover:scale-[1.02] ${
                       isActive 
-                        ? 'bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 font-semibold shadow-sm border-l-3 border-blue-400' 
-                        : 'text-slate-600 hover:bg-gradient-to-r hover:from-slate-50 hover:to-blue-50 hover:text-blue-600'
+                        ? 'bg-[#bca142] text-white font-semibold shadow-sm border-l-3 border-[#bca142]' 
+                        : 'text-black hover:bg-gray-50 hover:text-black'
                     }`}
                   >
                     <div className="w-2 h-2 rounded-full bg-current opacity-60 mr-3"></div>
@@ -162,10 +162,10 @@ const CompanySidebarContent = () => {
         {item.name === 'Request Quote' ? (
           <button
             onClick={handleQuoteRequestClick}
-            className="w-full group flex items-center justify-between p-3 rounded-xl text-slate-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:text-blue-600 hover:shadow-md transition-all duration-300 transform hover:scale-[1.02]"
+            className="w-full group flex items-center justify-between p-3 rounded-xl text-black hover:bg-gray-50 hover:text-black hover:shadow-md transition-all duration-300 transform hover:scale-[1.02]"
           >
             <div className="flex items-center">
-              <span className="mr-3 text-lg transition-all duration-300 group-hover:text-blue-500 group-hover:scale-110">
+              <span className="mr-3 text-lg transition-all duration-300 group-hover:text-[#bca142] group-hover:scale-110">
                 {item.icon}
               </span>
               <span className="font-medium">{item.name}</span>
@@ -181,25 +181,25 @@ const CompanySidebarContent = () => {
             }}
             className={({ isActive }) => `group flex items-center justify-between p-3 rounded-xl transition-all duration-300 transform hover:scale-[1.02] ${
               isActive 
-                ? 'bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-600 shadow-md font-semibold border border-blue-100' 
-                : 'text-slate-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:text-blue-600 hover:shadow-md'
+                ? 'bg-[#bca142]/10 text-black shadow-md font-semibold border border-[#bca142]/30' 
+                : 'text-black hover:bg-gray-50 hover:text-black hover:shadow-md'
             }`}
           >
             <div className="flex items-center">
               <span className={`mr-3 text-lg transition-all duration-300 ${
-                location.pathname === item.path ? 'text-blue-500 scale-110' : 'group-hover:text-blue-500 group-hover:scale-110'
+                location.pathname === item.path ? 'text-[#bca142] scale-110' : 'group-hover:text-[#bca142] group-hover:scale-110'
               }`}>
                 {item.icon}
               </span>
               <span className="font-medium">{item.name}</span>
             </div>
-            {item.name === 'Notifications' && unreadCount > 0 && (
-              <span className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center animate-bounce shadow-lg font-bold">
+            {/* {item.name === 'Notifications' && unreadCount > 0 && (
+              <span className="bg-black text-white text-xs rounded-full h-6 w-6 flex items-center justify-center animate-bounce shadow-lg font-bold">
                 {unreadCount > 99 ? '99+' : unreadCount}
               </span>
-            )}
+            )} */}
             {item.name === 'Messages' && messageUnreadCount > 0 && (
-              <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center animate-bounce shadow-lg font-bold">
+              <span className="bg-[#bca142] text-white text-xs rounded-full h-6 w-6 flex items-center justify-center animate-bounce shadow-lg font-bold">
                 {messageUnreadCount > 99 ? '99+' : messageUnreadCount}
               </span>
             )}
@@ -210,9 +210,9 @@ const CompanySidebarContent = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-b from-white via-slate-50 to-blue-50">
+    <div className="flex flex-col h-full bg-white">
       {/* User Card Section */}
-      <div className="p-4 border-b border-slate-200/50">
+      <div className="p-4 border-b border-gray-200 bg-[#bca142]">
         <UserCard />
       </div>
 
@@ -223,11 +223,11 @@ const CompanySidebarContent = () => {
             <div key={sectionIndex} className="space-y-3">
               {/* Section Header */}
               <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-0.5 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full"></div>
-                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <div className="w-8 h-0.5 bg-[#bca142] rounded-full"></div>
+                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
                   {section.title}
                 </h3>
-                <div className="flex-1 h-0.5 bg-gradient-to-r from-slate-200 to-transparent rounded-full"></div>
+                <div className="flex-1 h-0.5 bg-gray-200 rounded-full"></div>
               </div>
               
               {/* Section Items */}
@@ -242,8 +242,8 @@ const CompanySidebarContent = () => {
         </div>
       </nav>
 
-      {/* Footer Gradient */}
-      <div className="h-4 bg-gradient-to-t from-blue-100 to-transparent"></div>
+      {/* Footer */}
+      <div className="h-4 bg-gray-50"></div>
 
       {/* Company Restriction Modal */}
       <CompanyQuoteRestrictionModal

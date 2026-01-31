@@ -13,13 +13,13 @@ import { api } from '../../utils/api';
 
 // Website color palette matching the existing design
 const COLORS = {
-  primary: '#eab308', // yellow-500
-  secondary: '#f59e0b', // amber-500
-  success: '#10b981', // emerald-500
-  warning: '#f59e0b', // amber-500
-  danger: '#ef4444', // red-500
-  info: '#06b6d4', // cyan-500
-  gradient: ['#eab308', '#f59e0b', '#06b6d4', '#10b981', '#ef4444', '#8b5cf6']
+  primary: '#bca142', // Main gold color
+  secondary: '#bca142', // Same gold color
+  success: '#bca142', // Use gold instead of green
+  warning: '#bca142', // Use gold instead of amber
+  danger: '#000000', // Black for danger/errors
+  info: '#bca142', // Use gold instead of cyan
+  gradient: ['#bca142', '#bca142', '#bca142', '#bca142', '#000000', '#bca142']
 };
 
 // Enhanced Metric Card Component matching website design
@@ -75,34 +75,34 @@ const MetricCard = ({
   
   const colorClasses = {
     yellow: {
-      bg: 'bg-white border-l-4 border-yellow-500',
-      icon: 'bg-yellow-100 text-yellow-600',
-      trend: 'text-yellow-600'
+      bg: 'bg-white border-l-4 border-[#bca142]',
+      icon: 'bg-[#bca142] bg-opacity-10 text-[#bca142]',
+      trend: 'text-black'
     },
     green: {
-      bg: 'bg-white border-l-4 border-green-500',
-      icon: 'bg-green-100 text-green-600',
-      trend: 'text-green-600'
+      bg: 'bg-white border-l-4 border-[#bca142]',
+      icon: 'bg-[#bca142] bg-opacity-10 text-[#bca142]',
+      trend: 'text-black'
     },
     blue: {
-      bg: 'bg-white border-l-4 border-blue-500',
-      icon: 'bg-blue-100 text-blue-600',
-      trend: 'text-blue-600'
+      bg: 'bg-white border-l-4 border-[#bca142]',
+      icon: 'bg-[#bca142] bg-opacity-10 text-[#bca142]',
+      trend: 'text-black'
     },
     orange: {
-      bg: 'bg-white border-l-4 border-orange-500',
-      icon: 'bg-orange-100 text-orange-600',
-      trend: 'text-orange-600'
+      bg: 'bg-white border-l-4 border-[#bca142]',
+      icon: 'bg-[#bca142] bg-opacity-10 text-[#bca142]',
+      trend: 'text-black'
     },
     red: {
-      bg: 'bg-white border-l-4 border-red-500',
-      icon: 'bg-red-100 text-red-600',
-      trend: 'text-red-600'
+      bg: 'bg-white border-l-4 border-black',
+      icon: 'bg-black bg-opacity-10 text-black',
+      trend: 'text-black'
     },
     purple: {
-      bg: 'bg-white border-l-4 border-purple-500',
-      icon: 'bg-purple-100 text-purple-600',
-      trend: 'text-purple-600'
+      bg: 'bg-white border-l-4 border-[#bca142]',
+      icon: 'bg-[#bca142] bg-opacity-10 text-[#bca142]',
+      trend: 'text-black'
     }
   };
 
@@ -120,7 +120,7 @@ const MetricCard = ({
       <div className="relative z-10">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <div className={`p-3 rounded-xl ${colors.icon} bg-opacity-20 backdrop-blur-sm group-hover:bg-opacity-30 transition-all duration-300`}>
+          <div className={`p-3 rounded-xl ${colors.icon} backdrop-blur-sm group-hover:bg-opacity-30 transition-all duration-300`}>
             <Icon className="h-6 w-6" />
           </div>
           
@@ -138,16 +138,16 @@ const MetricCard = ({
         
         {/* Content */}
         <div className="space-y-1">
-          <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">
+          <p className="text-sm font-medium text-black uppercase tracking-wide">
             {title}
           </p>
-          <p className="text-3xl font-bold text-gray-800">
+          <p className="text-3xl font-bold text-black">
             {prefix}
             {displayValue.toLocaleString()}
             {suffix}
           </p>
           {trend && (
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-black">
               {trend.isPositive ? 'Increased' : 'Decreased'} from last period
             </p>
           )}
@@ -172,19 +172,19 @@ const RevenueChart = ({ data, transactionData }) => {
     <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-xl font-bold text-gray-800">Revenue Analytics</h3>
-          <p className="text-gray-600">Monthly revenue breakdown by source</p>
+          <h3 className="text-xl font-bold text-black">Revenue Analytics</h3>
+          <p className="text-black">Monthly revenue breakdown by source</p>
         </div>
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-            <span className="text-sm text-gray-600">Quotes</span>
+            <div className="w-3 h-3 rounded-full bg-[#bca142]"></div>
+            <span className="text-sm text-black">Quotes</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-            <span className="text-sm text-gray-600">Subscriptions</span>
+            <div className="w-3 h-3 rounded-full bg-[#bca142]"></div>
+            <span className="text-sm text-black">Subscriptions</span>
           </div>
-          <div className="flex items-center space-x-2 text-green-600">
+          <div className="flex items-center space-x-2 text-black">
             <TrendingUp className="h-4 w-4" />
             <span className="font-semibold text-sm">+24.5%</span>
           </div>
@@ -243,12 +243,12 @@ const UserGrowthChart = ({ data }) => (
   <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300">
     <div className="flex items-center justify-between mb-6">
       <div>
-        <h3 className="text-xl font-bold text-gray-800">User Growth Trends</h3>
-        <p className="text-gray-600">New registrations vs active users</p>
+        <h3 className="text-xl font-bold text-black">User Growth Trends</h3>
+        <p className="text-black">New registrations vs active users</p>
       </div>
       <div className="text-right">
-        <p className="text-2xl font-bold text-yellow-600">+{data[data.length - 1]?.newUsers || 0}</p>
-        <p className="text-sm text-gray-500">This month</p>
+        <p className="text-2xl font-bold text-[#bca142]">+{data[data.length - 1]?.newUsers || 0}</p>
+        <p className="text-sm text-black">This month</p>
       </div>
     </div>
     
@@ -279,10 +279,10 @@ const StatusDistributionChart = ({ data, title, totalLabel }) => {
   return (
     <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-bold text-gray-800">{title}</h3>
+        <h3 className="text-xl font-bold text-black">{title}</h3>
         <div className="text-right">
-          <p className="text-2xl font-bold text-gray-800">{total}</p>
-          <p className="text-sm text-gray-500">{totalLabel}</p>
+          <p className="text-2xl font-bold text-black">{total}</p>
+          <p className="text-sm text-black">{totalLabel}</p>
         </div>
       </div>
       
@@ -315,11 +315,11 @@ const StatusDistributionChart = ({ data, title, totalLabel }) => {
                   className="w-4 h-4 rounded-full" 
                   style={{ backgroundColor: COLORS.gradient[index % COLORS.gradient.length] }}
                 ></div>
-                <span className="text-sm font-medium capitalize text-gray-700">{entry.status}</span>
+                <span className="text-sm font-medium capitalize text-black">{entry.status}</span>
               </div>
               <div className="text-right">
-                <span className="text-sm font-bold text-gray-800">{entry.count}</span>
-                <span className="text-xs text-gray-500 ml-2">({percentage}%)</span>
+                <span className="text-sm font-bold text-black">{entry.count}</span>
+                <span className="text-xs text-black ml-2">({percentage}%)</span>
               </div>
             </div>
           );
@@ -333,20 +333,20 @@ const StatusDistributionChart = ({ data, title, totalLabel }) => {
 const RecentActivity = ({ activities }) => (
   <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300">
     <div className="flex items-center justify-between mb-6">
-      <h3 className="text-xl font-bold text-gray-800">Recent Activity</h3>
-      <Activity className="h-5 w-5 text-gray-400" />
+      <h3 className="text-xl font-bold text-black">Recent Activity</h3>
+      <Activity className="h-5 w-5 text-black" />
     </div>
     
     <div className="space-y-4 max-h-80 overflow-y-auto">
       {activities.map((activity, index) => (
-        <div key={index} className="flex items-center space-x-4 p-4 rounded-xl bg-gray-50 hover:bg-yellow-50 transition-all duration-300 border border-gray-100 hover:border-yellow-200">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 flex items-center justify-center text-black font-bold shadow-lg">
+        <div key={index} className="flex items-center space-x-4 p-4 rounded-xl bg-white hover:bg-[#bca142] transition-all duration-300 border border-gray-100 hover:border-[#bca142] group">
+          <div className="w-12 h-12 rounded-full bg-[#bca142] flex items-center justify-center text-white font-bold shadow-lg">
             {activity.title?.charAt(0) || 'U'}
           </div>
           <div className="flex-1">
-            <p className="font-semibold text-gray-800">{activity.title || 'New User'}</p>
-            <p className="text-sm text-gray-600">{activity.description}</p>
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="font-semibold text-black group-hover:text-white">{activity.title || 'New User'}</p>
+            <p className="text-sm text-black group-hover:text-white">{activity.description}</p>
+            <p className="text-xs text-black group-hover:text-white mt-1">
               {new Date(activity.created_at).toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
@@ -355,7 +355,7 @@ const RecentActivity = ({ activities }) => (
               })}
             </p>
           </div>
-          <div className="w-2 h-2 rounded-full bg-green-400"></div>
+          <div className="w-2 h-2 rounded-full bg-[#bca142] group-hover:bg-white"></div>
         </div>
       ))}
     </div>
@@ -398,26 +398,26 @@ const PerformanceMetrics = ({ stats, realTimeData }) => {
       {metrics.map((metric, index) => (
         <div key={index} className="bg-white rounded-xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-800">{metric.title}</h3>
-            <metric.icon className={`h-5 w-5 ${metric.color === 'yellow' ? 'text-yellow-600' : 'text-green-600'}`} />
+            <h3 className="text-lg font-bold text-black">{metric.title}</h3>
+            <metric.icon className="h-5 w-5 text-[#bca142]" />
           </div>
           
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-3xl font-bold text-gray-800">{metric.value}%</span>
-              <span className="text-sm text-gray-500">Target: {metric.target}%</span>
+              <span className="text-3xl font-bold text-black">{metric.value}%</span>
+              <span className="text-sm text-black">Target: {metric.target}%</span>
             </div>
             
             <div className="w-full bg-gray-200 rounded-full h-3">
               <div 
-                className={`${metric.color === 'yellow' ? 'bg-yellow-500' : 'bg-green-500'} h-3 rounded-full transition-all duration-1000 ease-out`}
+                className="bg-[#bca142] h-3 rounded-full transition-all duration-1000 ease-out"
                 style={{ width: `${Math.min((metric.value / metric.target) * 100, 100)}%` }}
               ></div>
             </div>
             
             <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Current</span>
-              <span className={`font-semibold ${metric.value >= metric.target ? 'text-green-600' : 'text-orange-600'}`}>
+              <span className="text-black">Current</span>
+              <span className={`font-semibold ${metric.value >= metric.target ? 'text-[#bca142]' : 'text-black'}`}>
                 {metric.value >= metric.target ? 'Target Achieved' : 'Below Target'}
               </span>
             </div>
@@ -438,7 +438,7 @@ const DetailedDataModal = ({ modalData, onClose }) => {
     if (loading) {
       return (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-yellow-200 border-t-yellow-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#bca142] border-opacity-20 border-t-[#bca142]"></div>
         </div>
       );
     }
@@ -477,9 +477,9 @@ const DetailedDataModal = ({ modalData, onClose }) => {
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{user.email}</td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        user.role === 'admin' ? 'bg-red-100 text-red-800' :
-                        user.role === 'company' ? 'bg-blue-100 text-blue-800' :
-                        'bg-green-100 text-green-800'
+                        user.role === 'admin' ? 'bg-black text-white' :
+                        user.role === 'company' ? 'bg-[#bca142] text-white' :
+                        'bg-white text-black border border-gray-300'
                       }`}>
                         {user.role}
                       </span>
@@ -487,7 +487,7 @@ const DetailedDataModal = ({ modalData, onClose }) => {
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{user.country || 'N/A'}</td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        user.status === 1 || user.status === true ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        user.status === 1 || user.status === true ? 'bg-[#bca142] text-white' : 'bg-black text-white'
                       }`}>
                         {user.status === 1 || user.status === true ? 'Active' : 'Inactive'}
                       </span>
@@ -530,10 +530,10 @@ const DetailedDataModal = ({ modalData, onClose }) => {
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        quote.status === 'running' ? 'bg-green-100 text-green-800' :
-                        quote.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        quote.status === 'closed' ? 'bg-gray-100 text-gray-800' :
-                        'bg-blue-100 text-blue-800'
+                        quote.status === 'running' ? 'bg-[#bca142] text-white' :
+                        quote.status === 'pending' ? 'bg-[#bca142] text-white' :
+                        quote.status === 'closed' ? 'bg-black text-white' :
+                        'bg-white text-black border border-gray-300'
                       }`}>
                         {quote.status}
                       </span>
@@ -571,12 +571,12 @@ const DetailedDataModal = ({ modalData, onClose }) => {
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{sub.id}</td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{sub.user_name}</td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{sub.plan_name}</td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-green-600">${sub.amount_paid}</td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-[#bca142]">${sub.amount_paid}</td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        sub.status === 'active' ? 'bg-green-100 text-green-800' :
-                        sub.status === 'expired' ? 'bg-red-100 text-red-800' :
-                        'bg-yellow-100 text-yellow-800'
+                        sub.status === 'active' ? 'bg-[#bca142] text-white' :
+                        sub.status === 'expired' ? 'bg-black text-white' :
+                        'bg-white text-black border border-gray-300'
                       }`}>
                         {sub.status}
                       </span>
@@ -600,7 +600,7 @@ const DetailedDataModal = ({ modalData, onClose }) => {
           <div className="space-y-4">
             {type === 'avgTransaction' && data.length > 0 && (
               <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-semibold text-gray-800 mb-2">Transaction Analysis</h4>
+                <h4 className="font-semibold text-black mb-2">Transaction Analysis</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div>
                     <span className="text-gray-500">Total Transactions:</span>
@@ -608,13 +608,13 @@ const DetailedDataModal = ({ modalData, onClose }) => {
                   </div>
                   <div>
                     <span className="text-gray-500">Total Amount:</span>
-                    <div className="font-semibold text-green-600">
+                    <div className="font-semibold text-[#bca142]">
                       ${data.reduce((sum, txn) => sum + parseFloat(txn.amount), 0).toFixed(2)}
                     </div>
                   </div>
                   <div>
                     <span className="text-gray-500">Average Amount:</span>
-                    <div className="font-semibold text-blue-600">
+                    <div className="font-semibold text-[#bca142]">
                       ${(data.reduce((sum, txn) => sum + parseFloat(txn.amount), 0) / data.length).toFixed(2)}
                     </div>
                   </div>
@@ -646,14 +646,14 @@ const DetailedDataModal = ({ modalData, onClose }) => {
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{txn.id}</td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{txn.user_name}</td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{txn.company_name || 'N/A'}</td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-green-600">${txn.amount}</td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-[#bca142]">${txn.amount}</td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{txn.payment_method || 'N/A'}</td>
                       <td className="px-4 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          txn.status === 'completed' ? 'bg-green-100 text-green-800' :
-                          txn.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                          txn.status === 'failed' ? 'bg-red-100 text-red-800' :
-                          'bg-gray-100 text-gray-800'
+                          txn.status === 'completed' ? 'bg-[#bca142] text-white' :
+                          txn.status === 'pending' ? 'bg-[#bca142] text-white' :
+                          txn.status === 'failed' ? 'bg-black text-white' :
+                          'bg-white text-black border border-gray-300'
                         }`}>
                           {txn.status}
                         </span>
@@ -696,20 +696,20 @@ const DetailedDataModal = ({ modalData, onClose }) => {
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{dispute.reason_title}</td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        dispute.priority === 'urgent' ? 'bg-red-100 text-red-800' :
-                        dispute.priority === 'high' ? 'bg-orange-100 text-orange-800' :
-                        dispute.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-green-100 text-green-800'
+                        dispute.priority === 'urgent' ? 'bg-black text-white' :
+                        dispute.priority === 'high' ? 'bg-black text-white' :
+                        dispute.priority === 'medium' ? 'bg-[#bca142] text-white' :
+                        'bg-white text-black border border-gray-300'
                       }`}>
                         {dispute.priority}
                       </span>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        dispute.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        dispute.status === 'investigating' ? 'bg-blue-100 text-blue-800' :
-                        dispute.status === 'resolved' ? 'bg-green-100 text-green-800' :
-                        'bg-gray-100 text-gray-800'
+                        dispute.status === 'pending' ? 'bg-[#bca142] text-white' :
+                        dispute.status === 'investigating' ? 'bg-[#bca142] text-white' :
+                        dispute.status === 'resolved' ? 'bg-[#bca142] text-white' :
+                        'bg-white text-black border border-gray-300'
                       }`}>
                         {dispute.status}
                       </span>
@@ -737,7 +737,7 @@ const DetailedDataModal = ({ modalData, onClose }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-7xl w-full max-h-[90vh] overflow-hidden">
         {/* Modal Header */}
-        <div className="bg-gradient-to-r from-yellow-500 to-orange-500 px-6 py-4 flex items-center justify-between">
+        <div className="bg-[#bca142] px-6 py-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-white">{title}</h2>
           <button
             onClick={onClose}
@@ -761,7 +761,7 @@ const DetailedDataModal = ({ modalData, onClose }) => {
           </div>
           <button
             onClick={onClose}
-            className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+            className="bg-black hover:bg-gray-800 text-white px-4 py-2 rounded-lg transition-colors"
           >
             Close
           </button>
@@ -1104,11 +1104,11 @@ const Dashboard = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="relative">
-            <div className="animate-spin rounded-full h-20 w-20 border-4 border-yellow-200 border-t-yellow-500 mx-auto mb-4"></div>
-            <div className="absolute inset-0 rounded-full h-20 w-20 border-4 border-orange-200 border-t-orange-500 animate-spin mx-auto" style={{ animationDirection: 'reverse', animationDuration: '3s' }}></div>
+            <div className="animate-spin rounded-full h-20 w-20 border-4 border-[#bca142] border-opacity-20 border-t-[#bca142] mx-auto mb-4"></div>
+            <div className="absolute inset-0 rounded-full h-20 w-20 border-4 border-[#bca142] border-opacity-20 border-t-[#bca142] animate-spin mx-auto" style={{ animationDirection: 'reverse', animationDuration: '3s' }}></div>
           </div>
-          <p className="text-2xl font-bold text-gray-800 mb-2">Loading Dashboard...</p>
-          <p className="text-gray-600">Preparing your analytics</p>
+          <p className="text-2xl font-bold text-black mb-2">Loading Dashboard...</p>
+          <p className="text-black">Preparing your analytics</p>
         </div>
       </div>
     );
@@ -1122,7 +1122,7 @@ const Dashboard = () => {
         <div className="text-center mb-12">
           <div className="flex items-center justify-between mb-4">
             <div></div>
-            <h1 className="text-5xl relative left-10 font-bold text-gray-800">
+            <h1 className="text-5xl relative left-10 font-bold text-black">
               Admin Dashboard
             </h1>
             <button
@@ -1130,14 +1130,14 @@ const Dashboard = () => {
                 fetchDashboardStats();
                 fetchRealTimeData();
               }}
-              className="flex items-center space-x-2 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors"
+              className="flex items-center space-x-2 bg-[#bca142] hover:bg-[#b8932f] text-white px-4 py-2 rounded-lg transition-colors"
               title="Refresh Data"
             >
-              <Activity className="h-4 w-4" />
+              <Activity className="h-4 w-4 text-white" />
               <span>Refresh</span>
             </button>
           </div>
-          <p className="text-gray-600 text-xl">Real-time analytics and business insights</p>
+          <p className="text-black text-xl">Real-time analytics and business insights</p>
           <div className="flex items-center justify-center mt-4 space-x-4 text-sm text-gray-500">
             <div className="flex items-center space-x-1">
               <Clock className="h-4 w-4" />
@@ -1189,12 +1189,12 @@ const Dashboard = () => {
         <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-xl font-bold text-gray-800">Platform Revenue & Transaction Volume</h3>
-              <p className="text-gray-600">Your earnings vs transaction volume handled</p>
+              <h3 className="text-xl font-bold text-black">Platform Revenue & Transaction Volume</h3>
+              <p className="text-black">Your earnings vs transaction volume handled</p>
             </div>
             <div className="text-right">
-              <p className="text-3xl font-bold text-green-600">${Math.round(realTimeData.totalRevenue).toLocaleString()}</p>
-              <p className="text-sm text-gray-500">Platform Revenue</p>
+              <p className="text-3xl font-bold text-[#bca142]">${Math.round(realTimeData.totalRevenue).toLocaleString()}</p>
+              <p className="text-sm text-black">Platform Revenue</p>
               {/* Temporary debug info */}
               {/* <p className="text-xs text-red-500 mt-1">
                 Debug: Subs={realTimeData.totalSubscriptions}, Active={realTimeData.activeSubscriptions}, Revenue=${realTimeData.subscriptionRevenue}
@@ -1204,48 +1204,48 @@ const Dashboard = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Platform Revenue (Subscriptions) */}
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200">
+            <div className="bg-[#bca142] rounded-lg p-4 border border-[#bca142]">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                  <h4 className="font-semibold text-gray-800">Platform Revenue</h4>
+                  <div className="w-3 h-3 rounded-full bg-white"></div>
+                  <h4 className="font-semibold text-white">Platform Revenue</h4>
                 </div>
-                <UserPlus className="h-5 w-5 text-green-600" />
+                <UserPlus className="h-5 w-5 text-white" />
               </div>
               <div className="space-y-2">
-                <p className="text-2xl font-bold text-green-700">${Math.round(realTimeData.subscriptionRevenue).toLocaleString()}</p>
-                <p className="text-sm text-gray-600">From {realTimeData.totalSubscriptions} subscription plans</p>
-                <div className="w-full bg-green-200 rounded-full h-2">
-                  <div className="bg-green-500 h-2 rounded-full w-full"></div>
+                <p className="text-2xl font-bold text-white">${Math.round(realTimeData.subscriptionRevenue).toLocaleString()}</p>
+                <p className="text-sm text-white">From {realTimeData.totalSubscriptions} subscription plans</p>
+                <div className="w-full bg-white bg-opacity-30 rounded-full h-2">
+                  <div className="bg-white h-2 rounded-full w-full"></div>
                 </div>
-                <p className="text-xs text-gray-500">💰 This is your actual earnings</p>
+                <p className="text-xs text-white">💰 This is your actual earnings</p>
               </div>
             </div>
 
             {/* Transaction Volume (Goes to Companies) */}
-            <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg p-4 border border-blue-200">
+            <div className="bg-[#bca142] rounded-lg p-4 border border-[#bca142]">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                  <h4 className="font-semibold text-gray-800">Transaction Volume</h4>
+                  <div className="w-3 h-3 rounded-full bg-white"></div>
+                  <h4 className="font-semibold text-white">Transaction Volume</h4>
                 </div>
-                <ShoppingCart className="h-5 w-5 text-blue-600" />
+                <ShoppingCart className="h-5 w-5 text-white" />
               </div>
               <div className="space-y-2">
-                <p className="text-2xl font-bold text-blue-700">${Math.round(realTimeData.transactionVolume).toLocaleString()}</p>
-                <p className="text-sm text-gray-600">From {realTimeData.totalTransactions} transactions</p>
-                <div className="w-full bg-blue-200 rounded-full h-2">
-                  <div className="bg-blue-500 h-2 rounded-full w-full"></div>
+                <p className="text-2xl font-bold text-white">${Math.round(realTimeData.transactionVolume).toLocaleString()}</p>
+                <p className="text-sm text-white">From {realTimeData.totalTransactions} transactions</p>
+                <div className="w-full bg-white bg-opacity-30 rounded-full h-2">
+                  <div className="bg-white h-2 rounded-full w-full"></div>
                 </div>
-                <p className="text-xs text-gray-500">📊 Volume handled (goes to companies)</p>
+                <p className="text-xs text-white">📊 Volume handled (goes to companies)</p>
               </div>
             </div>
           </div>
           
-          <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+          <div className="mt-4 p-3 bg-[#bca142] rounded-lg border border-[#bca142]">
             <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
-              <p className="text-sm text-gray-700">
+              <div className="w-2 h-2 rounded-full bg-white"></div>
+              <p className="text-sm text-white">
                 <strong>Platform Revenue:</strong> Money you earn from subscription fees. 
                 <strong className="ml-2">Transaction Volume:</strong> Money users pay to companies (facilitated by your platform).
               </p>
@@ -1271,7 +1271,7 @@ const Dashboard = () => {
             color="green"
             onClick={() => handleCardClick('activeSubscriptions')}
           />
-          <MetricCard
+          {/* <MetricCard
             title="Avg Transaction"
             value={Math.round(realTimeData.avgTransactionValue)}
             previousValue={Math.round(realTimeData.avgTransactionValue * 0.9)}
@@ -1279,7 +1279,7 @@ const Dashboard = () => {
             color="blue"
             prefix="$"
             onClick={() => handleCardClick('avgTransaction')}
-          />
+          /> */}
           <MetricCard
             title="Pending Disputes"
             value={realTimeData.pendingDisputes}

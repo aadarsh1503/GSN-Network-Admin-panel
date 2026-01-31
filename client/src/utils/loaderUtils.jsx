@@ -11,7 +11,7 @@ export const InlineLoader = ({ text = 'Loading...', size = 'sm', color = 'white'
 
   const colorClasses = {
     white: 'border-gray-200 border-t-white',
-    primary: 'border-gray-200 border-t-[#CDA435]',
+    primary: 'border-gray-200 border-t-[#bca142]',
     blue: 'border-gray-200 border-t-blue-600',
     gray: 'border-gray-300 border-t-gray-600'
   };
@@ -40,7 +40,7 @@ export const PageLoader = ({ text = 'Loading...', size = 'lg' }) => {
       <div className="flex flex-col items-center gap-3">
         <div className="relative">
           <div className={`${sizeClasses[size]} border-gray-200 rounded-full animate-spin`}>
-            <div className={`${sizeClasses[size]} border-transparent border-t-[#CDA435] rounded-full animate-spin`}></div>
+            <div className={`${sizeClasses[size]} border-transparent border-t-[#bca142] rounded-full animate-spin`}></div>
           </div>
         </div>
         <p className="text-gray-600 font-medium">{text}</p>
@@ -56,7 +56,7 @@ export const TableLoader = ({ text = 'Loading data...', rows = 5 }) => {
       <div className="flex flex-col items-center gap-3">
         <div className="relative">
           <div className="h-8 w-8 border-3 border-gray-200 rounded-full animate-spin">
-            <div className="h-8 w-8 border-3 border-transparent border-t-[#CDA435] rounded-full animate-spin"></div>
+            <div className="h-8 w-8 border-3 border-transparent border-t-[#bca142] rounded-full animate-spin"></div>
           </div>
         </div>
         <p className="text-gray-600 font-medium">{text}</p>
@@ -82,7 +82,7 @@ export const CardLoader = ({ text = 'Loading...', showSkeleton = false }) => {
       <div className="flex flex-col items-center gap-3">
         <div className="relative">
           <div className="h-8 w-8 border-3 border-gray-200 rounded-full animate-spin">
-            <div className="h-8 w-8 border-3 border-transparent border-t-[#CDA435] rounded-full animate-spin"></div>
+            <div className="h-8 w-8 border-3 border-transparent border-t-[#bca142] rounded-full animate-spin"></div>
           </div>
         </div>
         <p className="text-gray-600 font-medium text-sm">{text}</p>

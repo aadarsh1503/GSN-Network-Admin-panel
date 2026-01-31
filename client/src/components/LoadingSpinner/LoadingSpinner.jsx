@@ -30,11 +30,11 @@ const LoadingSpinner = ({
         {/* Professional Spinner */}
         <div className="relative">
           <div className={`${sizeClasses[size]} border-4 border-gray-200 rounded-full animate-spin`}>
-            <div className={`${sizeClasses[size]} border-4 border-transparent border-t-[#CDA435] rounded-full animate-spin`}></div>
+            <div className={`${sizeClasses[size]} border-4 border-transparent border-t-[#bca142] rounded-full animate-spin`}></div>
           </div>
           {/* Inner dot for extra professional look */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-2 h-2 bg-[#CDA435] rounded-full animate-pulse"></div>
+            <div className="w-2 h-2 bg-[#bca142] rounded-full animate-pulse"></div>
           </div>
         </div>
         
@@ -55,7 +55,7 @@ export const InlineSpinner = ({ text = 'Loading...', className = '' }) => {
     <div className={`flex items-center gap-2 ${className}`}>
       <div className="relative">
         <div className="h-4 w-4 border-2 border-gray-200 rounded-full animate-spin">
-          <div className="h-4 w-4 border-2 border-transparent border-t-[#CDA435] rounded-full animate-spin"></div>
+          <div className="h-4 w-4 border-2 border-transparent border-t-[#bca142] rounded-full animate-spin"></div>
         </div>
       </div>
       <span className="text-xs text-gray-600 font-medium">{text}</span>

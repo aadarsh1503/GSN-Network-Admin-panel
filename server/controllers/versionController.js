@@ -114,9 +114,51 @@ const setCurrentVersion = async (req, res) => {
     }
 };
 
+// @desc    Delete system version (Admin only)
+// @route   DELETE /api/version/delete/:id
+// @access  Private/Admin
+const deleteVersion = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // Check if version exists
+        const [version] = await db.execute(
+            'SELECT id, version_number, is_current FROM system_versions WHERE id = ?',
+            [id]
+        );
+
+        if (version.length === 0) {
+            return res.status(404).json({ message: 'Version not found' });
+        }
+
+        // Prevent deleting current version
+        if (version[0].is_current) {
+            return res.status(400).json({ message: 'Cannot delete the current active version' });
+        }
+
+        // Check if this is the only version
+        const [allVersions] = await db.execute('SELECT COUNT(*) as count FROM system_versions');
+        if (allVersions[0].count <= 1) {
+            return res.status(400).json({ message: 'Cannot delete the last remaining version' });
+        }
+
+        // Delete the version
+        await db.execute('DELETE FROM system_versions WHERE id = ?', [id]);
+
+        res.status(200).json({ 
+            message: 'Version deleted successfully',
+            version_number: version[0].version_number
+        });
+    } catch (error) {
+        console.error('Error deleting version:', error);
+        res.status(500).json({ message: 'Server error deleting version' });
+    }
+};
+
 export {
     getCurrentVersion,
     getAllVersions,
     createVersion,
-    setCurrentVersion
+    setCurrentVersion,
+    deleteVersion
 };

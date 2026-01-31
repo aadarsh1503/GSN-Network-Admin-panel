@@ -97,21 +97,11 @@ const BusinessTickets = () => {
   };
 
   const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'high': return 'text-red-600 bg-red-100 border-red-200';
-      case 'medium': return 'text-yellow-600 bg-yellow-100 border-yellow-200';
-      case 'low': return 'text-green-600 bg-green-100 border-green-200';
-      default: return 'text-slate-600 bg-slate-100 border-slate-200';
-    }
+    return 'bg-[#bca142] text-white border-[#bca142]';
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'pending': return 'text-yellow-600 bg-yellow-100 border-yellow-200';
-      case 'answered': return 'text-blue-600 bg-blue-100 border-blue-200';
-      case 'closed': return 'text-green-600 bg-green-100 border-green-200';
-      default: return 'text-slate-600 bg-slate-100 border-slate-200';
-    }
+    return 'bg-[#bca142] text-white border-[#bca142]';
   };
 
   const getPriorityIcon = (priority) => {
@@ -147,7 +137,7 @@ const BusinessTickets = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-yellow-200 border-t-[#CDA435] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-yellow-200 border-t-[#bca142] mx-auto mb-4"></div>
           <p className="text-xl font-semibold text-slate-700">Loading tickets...</p>
         </div>
       </div>
@@ -161,7 +151,7 @@ const BusinessTickets = () => {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center">
-              <FaTicketAlt className="mr-3 text-[#CDA435]" />
+              <FaTicketAlt className="mr-3 text-[#bca142]" />
               Support Tickets
             </h1>
             <p className="text-gray-600">
@@ -170,7 +160,7 @@ const BusinessTickets = () => {
           </div>
           <button
             onClick={() => setShowTicketForm(true)}
-            className="flex items-center space-x-2 bg-gradient-to-r from-[#CDA435] to-[#B8941F] hover:from-[#B8941F] hover:to-[#CDA435] text-white px-6 py-3 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
+            className="flex items-center space-x-2 bg-[#bca142] hover:bg-black text-white px-6 py-3 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
           >
             <FaPlus className="h-4 w-4" />
             <span>New Ticket</span>
@@ -179,43 +169,43 @@ const BusinessTickets = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#bca142]">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Tickets</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
               </div>
-              <FaTicketAlt className="h-8 w-8 text-blue-500" />
+              <FaTicketAlt className="h-8 w-8 text-[#bca142]" />
             </div>
           </div>
           
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
+          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#bca142]">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Pending</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.pending}</p>
               </div>
-              <Clock className="h-8 w-8 text-yellow-500" />
+              <Clock className="h-8 w-8 text-[#bca142]" />
             </div>
           </div>
           
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#bca142]">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Answered</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.answered}</p>
               </div>
-              <MessageSquare className="h-8 w-8 text-blue-500" />
+              <MessageSquare className="h-8 w-8 text-[#bca142]" />
             </div>
           </div>
           
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
+          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#bca142]">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Closed</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.closed}</p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-500" />
+              <CheckCircle className="h-8 w-8 text-[#bca142]" />
             </div>
           </div>
         </div>
@@ -231,7 +221,7 @@ const BusinessTickets = () => {
                 placeholder="Search tickets..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent"
               />
             </div>
             
@@ -241,7 +231,7 @@ const BusinessTickets = () => {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent"
               >
                 <option value="all">All Status</option>
                 <option value="pending">Pending</option>
@@ -255,7 +245,7 @@ const BusinessTickets = () => {
               <select
                 value={priorityFilter}
                 onChange={(e) => setPriorityFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent"
               >
                 <option value="all">All Priority</option>
                 <option value="high">High</option>
@@ -278,7 +268,7 @@ const BusinessTickets = () => {
             {tickets.length === 0 && (
               <button
                 onClick={() => setShowTicketForm(true)}
-                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-[#CDA435] to-[#B8941F] hover:from-[#B8941F] hover:to-[#CDA435] text-white font-medium rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
+                className="inline-flex items-center px-6 py-3 bg-[#bca142] hover:bg-black text-white font-medium rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
               >
                 <FaPlus className="mr-2 h-4 w-4" />
                 Submit Your First Ticket
@@ -330,7 +320,7 @@ const BusinessTickets = () => {
                         setSelectedTicket(ticket);
                         setShowTicketDetails(true);
                       }}
-                      className="flex items-center space-x-1 px-3 py-2 text-sm bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors duration-200"
+                      className="flex items-center space-x-1 px-3 py-2 text-sm bg-black hover:bg-gray-800 text-white rounded-lg transition-colors duration-200"
                     >
                       <Eye className="h-4 w-4" />
                       <span>View</span>
@@ -376,7 +366,7 @@ const BusinessTickets = () => {
                   type="text"
                   value={ticketForm.subject}
                   onChange={(e) => setTicketForm(prev => ({ ...prev, subject: e.target.value }))}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                   placeholder="Brief description of your issue"
                   required
                 />
@@ -390,7 +380,7 @@ const BusinessTickets = () => {
                   <select
                     value={ticketForm.category}
                     onChange={(e) => setTicketForm(prev => ({ ...prev, category: e.target.value }))}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                   >
                     <option value="general">General</option>
                     <option value="quotes">Quote Issues</option>
@@ -408,7 +398,7 @@ const BusinessTickets = () => {
                   <select
                     value={ticketForm.priority}
                     onChange={(e) => setTicketForm(prev => ({ ...prev, priority: e.target.value }))}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                   >
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
@@ -430,7 +420,7 @@ const BusinessTickets = () => {
                       recipient_id: e.target.value === 'admin' ? null : prev.recipient_id
                     }));
                   }}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                 >
                   <option value="admin">Admin Support</option>
                   <option value="company">Company Member</option>
@@ -445,7 +435,7 @@ const BusinessTickets = () => {
                   <select
                     value={ticketForm.recipient_id || ''}
                     onChange={(e) => setTicketForm(prev => ({ ...prev, recipient_id: e.target.value ? parseInt(e.target.value) : null }))}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                     required={ticketForm.recipient_type === 'company'}
                   >
                     <option value="">Select a company...</option>
@@ -471,7 +461,7 @@ const BusinessTickets = () => {
                   value={ticketForm.message}
                   onChange={(e) => setTicketForm(prev => ({ ...prev, message: e.target.value }))}
                   rows={6}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                   placeholder="Describe your issue in detail..."
                   required
                 />
@@ -488,7 +478,7 @@ const BusinessTickets = () => {
                 <button
                   type="submit"
                   disabled={submittingTicket}
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-[#CDA435] to-[#B8941F] hover:from-[#B8941F] hover:to-[#CDA435] text-white rounded-lg transition-all duration-300 disabled:opacity-50 flex items-center justify-center"
+                  className="flex-1 px-4 py-3 bg-[#bca142] hover:bg-black text-white rounded-lg transition-all duration-300 disabled:opacity-50 flex items-center justify-center"
                 >
                   {submittingTicket ? (
                     <>

@@ -299,7 +299,7 @@ const ReportsPage = () => {
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
               activeTab === tab.id
-                ? 'bg-[#CDA435] text-white'
+                ? 'bg-[#bca142] text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
@@ -329,7 +329,7 @@ const ReportsPage = () => {
         </div>
         <button
           onClick={handleDateFilter}
-          className="bg-[#CDA435] text-white px-4 py-2 rounded-md hover:bg-opacity-90"
+          className="bg-[#bca142] text-white px-4 py-2 rounded-md hover:bg-opacity-90"
         >
           Apply Filter
         </button>

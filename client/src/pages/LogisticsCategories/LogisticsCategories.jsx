@@ -202,25 +202,25 @@ const LogisticsCategories = () => {
     <div className="bg-white p-6 rounded-lg shadow-sm">
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-semibold text-gray-800">Logistics Categories</h2>
+        <h2 className="text-2xl font-semibold text-black">Logistics Categories</h2>
         <button 
           onClick={openAddModal}
-          className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md flex items-center transition duration-300"
+          className="bg-[#bca142] hover:bg-[#b8932f] text-white font-bold py-2 px-4 rounded-md flex items-center transition duration-300"
         >
-          <FiPlus className="mr-2" /> Add
+          <FiPlus className="mr-2 text-white" /> Add
         </button>
       </div>
 
-      {error && <div className="text-red-500 mb-4">{error}</div>}
+      {error && <div className="text-black mb-4">{error}</div>}
 
       {/* Controls */}
       <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center space-x-2 text-gray-600">
+        <div className="flex items-center space-x-2 text-black">
           <span>Show</span>
           <select 
             value={itemsPerPage}
             onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
-            className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#bca142]"
           >
             <option value="10">10</option>
             <option value="25">25</option>
@@ -229,14 +229,14 @@ const LogisticsCategories = () => {
           <span>entries</span>
         </div>
         <div className="flex items-center space-x-2">
-          <label htmlFor="search" className="text-gray-600">Search:</label>
+          <label htmlFor="search" className="text-black">Search:</label>
           <input 
             id="search"
             type="text" 
             placeholder="Search..."
             value={searchTerm}
             onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-            className="border border-gray-300 rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            className="border border-gray-300 rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-[#bca142]"
           />
         </div>
       </div>
@@ -244,7 +244,7 @@ const LogisticsCategories = () => {
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white">
-          <thead className="bg-[#e0c58a] text-gray-700">
+          <thead className="bg-[#bca142] text-white">
             <tr>
               <th className="py-3 px-4 text-left font-semibold cursor-pointer" onClick={() => handleSort('id')}>
                 <div className="flex items-center">
@@ -261,7 +261,7 @@ const LogisticsCategories = () => {
               <th className="py-3 px-4 text-left font-semibold">Action</th>
             </tr>
           </thead>
-          <tbody className="text-gray-700">
+          <tbody className="text-black">
             {loading ? (
                 <tr><td colSpan="3" className="text-center py-4">Loading data...</td></tr>
             ) : paginatedCategories.length === 0 ? (
@@ -275,15 +275,15 @@ const LogisticsCategories = () => {
                     <div className="flex items-center space-x-2">
                         <button 
                           onClick={() => openEditModal(category)}
-                          className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-md transition duration-300"
+                          className="bg-[#bca142] hover:bg-[#b8932f] text-white p-2 rounded-md transition duration-300"
                         >
-                          <FiEdit />
+                          <FiEdit className="text-white" />
                         </button>
                         <button 
                           onClick={() => handleDelete(category.id)} 
-                          className="bg-pink-500 hover:bg-pink-600 text-white p-2 rounded-md transition duration-300"
+                          className="bg-black hover:bg-gray-800 text-white p-2 rounded-md transition duration-300"
                         >
-                          <FiTrash2 />
+                          <FiTrash2 className="text-white" />
                         </button>
                     </div>
                     </td>
@@ -296,7 +296,7 @@ const LogisticsCategories = () => {
 
       {/* Footer */}
       <div className="flex justify-between items-center mt-4">
-        <div className="text-gray-600">
+        <div className="text-black">
           Showing {sortedCategories.length > 0 ? startEntry : 0} to {endEntry} of {sortedCategories.length} entries
         </div>
         <div className="flex items-center">
@@ -311,7 +311,7 @@ const LogisticsCategories = () => {
             <button 
               key={number + 1}
               onClick={() => setCurrentPage(number + 1)}
-              className={`px-3 py-1 border-t border-b ${currentPage === number + 1 ? 'bg-[#e0c58a] text-gray-800 font-bold border-[#e0c58a]' : 'border-gray-300 hover:bg-gray-100'}`}
+              className={`px-3 py-1 border-t border-b ${currentPage === number + 1 ? 'bg-[#bca142] text-white font-bold border-[#bca142]' : 'border-gray-300 hover:bg-gray-100'}`}
             >
               {number + 1}
             </button>
@@ -330,7 +330,7 @@ const LogisticsCategories = () => {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
-            <h3 className="text-xl font-semibold mb-4">
+            <h3 className="text-xl font-semibold mb-4 text-black">
               {editingCategory ? 'Edit Category' : 'Add New Category'}
             </h3>
             <input
@@ -338,18 +338,18 @@ const LogisticsCategories = () => {
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
               placeholder="Enter category name"
-              className="w-full border border-gray-300 rounded-md p-2 mb-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              className="w-full border border-gray-300 rounded-md p-2 mb-4 focus:outline-none focus:ring-2 focus:ring-[#bca142]"
             />
             <div className="flex justify-end space-x-4">
               <button 
                 onClick={closeModal}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+                className="px-4 py-2 bg-gray-200 text-black rounded-md hover:bg-gray-300"
               >
                 Cancel
               </button>
               <button 
                 onClick={handleSave}
-                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+                className="px-4 py-2 bg-[#bca142] text-white rounded-md hover:bg-[#b8932f]"
               >
                 {editingCategory ? 'Update' : 'Save'}
               </button>

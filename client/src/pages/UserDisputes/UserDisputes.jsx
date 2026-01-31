@@ -348,43 +348,43 @@ const UserDisputes = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-white text-[#bca142] border-[#bca142]';
       case 'running':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-[#bca142] text-white border-[#bca142]';
       case 'resolved':
-        return 'bg-green-100 text-green-800';
+        return 'bg-[#bca142] text-white border-[#bca142]';
       case 'closed':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-black text-white border-black';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
       case 'urgent':
-        return 'bg-red-100 text-red-800';
+        return 'bg-black text-white border-black';
       case 'high':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-black text-white border-black';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-[#bca142] text-white border-[#bca142]';
       case 'low':
-        return 'bg-green-100 text-green-800';
+        return 'bg-[#bca142] text-white border-[#bca142]';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
       case 'pending':
-        return <FiClock className="text-yellow-600" />;
+        return <FiClock className="text-[#bca142]" />;
       case 'running':
-        return <FiAlertTriangle className="text-blue-600" />;
+        return <FiAlertTriangle className="text-[#bca142]" />;
       case 'resolved':
-        return <FiCheckCircle className="text-green-600" />;
+        return <FiCheckCircle className="text-[#bca142]" />;
       case 'closed':
-        return <FiCheckCircle className="text-gray-600" />;
+        return <FiCheckCircle className="text-black" />;
       default:
         return <FiClock className="text-gray-600" />;
     }
@@ -393,7 +393,7 @@ const UserDisputes = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#bca142]"></div>
       </div>
     );
   }
@@ -409,7 +409,7 @@ const UserDisputes = () => {
           </div>
           <button 
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center bg-yellow-500 text-white font-bold py-2 px-4 rounded-md hover:bg-yellow-600 transition-colors"
+            className="flex items-center bg-[#bca142] text-white font-bold py-2 px-4 rounded-md hover:bg-black transition-colors"
           >
             <FiPlus className="mr-2" />
             File New Dispute
@@ -425,7 +425,7 @@ const UserDisputes = () => {
               <p className="text-gray-500 mb-4">You haven't filed any disputes yet.</p>
               <button 
                 onClick={() => setShowCreateModal(true)}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition-colors"
+                className="bg-[#bca142] text-white px-4 py-2 rounded-md hover:bg-black transition-colors"
               >
                 File Your First Dispute
               </button>
@@ -433,15 +433,15 @@ const UserDisputes = () => {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-yellow-50">
+                <thead className="bg-[#bca142] text-white">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dispute</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Dispute</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Company</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Reason</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Priority</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Created</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -481,7 +481,7 @@ const UserDisputes = () => {
                             setSelectedDispute(dispute);
                             setShowDetailsModal(true);
                           }}
-                          className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition-colors mr-2"
+                          className="bg-black text-white p-2 rounded-md hover:bg-gray-800 transition-colors mr-2"
                           title="View Details"
                         >
                           <FiEye size={16} />
@@ -492,7 +492,7 @@ const UserDisputes = () => {
                               setSelectedDispute(dispute);
                               setShowCloseModal(true);
                             }}
-                            className="bg-green-500 text-white p-2 rounded-md hover:bg-green-600 transition-colors"
+                            className="bg-[#bca142] text-white p-2 rounded-md hover:bg-black transition-colors"
                             title="Close Dispute"
                           >
                             <FiCheckCircle size={16} />
@@ -527,7 +527,7 @@ const UserDisputes = () => {
               </div>
             )}
             
-            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 px-6 py-4 flex items-center justify-between">
+            <div className="bg-[#bca142] px-6 py-4 flex items-center justify-between">
               <h3 className="text-xl font-bold text-white">File New Dispute</h3>
               <button 
                 onClick={() => {
@@ -571,7 +571,7 @@ const UserDisputes = () => {
                         className={`w-full p-3 pr-10 border rounded-lg transition-all duration-200 ${
                           (submitting || uploadingFiles)
                             ? 'bg-gray-100 cursor-not-allowed opacity-60' 
-                            : 'focus:ring-2 focus:ring-yellow-500 focus:border-transparent hover:border-yellow-300'
+                            : 'focus:ring-2 focus:ring-[#bca142] focus:border-transparent hover:border-[#bca142]'
                         }`}
                         placeholder="Search for a company you've worked with..."
                         required
@@ -610,12 +610,12 @@ const UserDisputes = () => {
                               <div
                                 key={company.id}
                                 onClick={() => handleCompanySelect(company)}
-                                className="px-3 py-3 hover:bg-yellow-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors duration-150"
+                                className="px-3 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors duration-150"
                               >
                                 <div className="flex items-center justify-between">
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center space-x-2">
-                                      <Building className="h-4 w-4 text-yellow-600 flex-shrink-0" />
+                                      <Building className="h-4 w-4 text-[#bca142] flex-shrink-0" />
                                       <div className="min-w-0 flex-1">
                                         <p className="text-sm font-medium text-gray-900 truncate">
                                           {company.name}
@@ -629,7 +629,7 @@ const UserDisputes = () => {
                                     </div>
                                   </div>
                                   <div className="flex-shrink-0 ml-2">
-                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#bca142] text-white">
                                       ID: {company.id}
                                     </span>
                                   </div>
@@ -672,10 +672,10 @@ const UserDisputes = () => {
                   
                   {/* Selected Company Info */}
                   {formData.company_id && (
-                    <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="mt-2 p-3 bg-gray-50 border border-[#bca142] rounded-lg">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
-                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          <CheckCircle2 className="h-4 w-4 text-[#bca142]" />
                           <span className="text-sm text-gray-700">
                             Selected: <span className="font-medium">{getSelectedCompanyName()}</span>
                           </span>
@@ -704,7 +704,7 @@ const UserDisputes = () => {
                     className={`w-full p-2 border rounded transition-all duration-200 ${
                       (submitting || uploadingFiles) 
                         ? 'bg-gray-100 cursor-not-allowed opacity-60' 
-                        : 'focus:ring-2 focus:ring-yellow-500 focus:border-transparent hover:border-yellow-300'
+                        : 'focus:ring-2 focus:ring-[#bca142] focus:border-transparent hover:border-[#bca142]'
                     }`}
                     required
                   >
@@ -727,7 +727,7 @@ const UserDisputes = () => {
                     className={`w-full p-2 border rounded transition-all duration-200 ${
                       (submitting || uploadingFiles) 
                         ? 'bg-gray-100 cursor-not-allowed opacity-60' 
-                        : 'focus:ring-2 focus:ring-yellow-500 focus:border-transparent hover:border-yellow-300'
+                        : 'focus:ring-2 focus:ring-[#bca142] focus:border-transparent hover:border-[#bca142]'
                     }`}
                     placeholder="Brief description of the issue"
                     required
@@ -745,7 +745,7 @@ const UserDisputes = () => {
                     className={`w-full p-2 border rounded transition-all duration-200 ${
                       (submitting || uploadingFiles) 
                         ? 'bg-gray-100 cursor-not-allowed opacity-60' 
-                        : 'focus:ring-2 focus:ring-yellow-500 focus:border-transparent hover:border-yellow-300'
+                        : 'focus:ring-2 focus:ring-[#bca142] focus:border-transparent hover:border-[#bca142]'
                     }`}
                   >
                     <option value="low">Low</option>
@@ -766,7 +766,7 @@ const UserDisputes = () => {
                     className={`w-full p-2 border rounded transition-all duration-200 ${
                       (submitting || uploadingFiles) 
                         ? 'bg-gray-100 cursor-not-allowed opacity-60' 
-                        : 'focus:ring-2 focus:ring-yellow-500 focus:border-transparent hover:border-yellow-300'
+                        : 'focus:ring-2 focus:ring-[#bca142] focus:border-transparent hover:border-[#bca142]'
                     }`}
                     rows="4"
                     placeholder="Provide detailed information about the dispute..."
@@ -858,8 +858,8 @@ const UserDisputes = () => {
                   disabled={submitting || uploadingFiles}
                   className={`px-6 py-3 text-white rounded-lg font-medium transition-all duration-200 flex items-center justify-center min-w-[180px] ${
                     (submitting || uploadingFiles)
-                      ? 'bg-gradient-to-r from-yellow-400 to-orange-400 cursor-not-allowed' 
-                      : 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 transform hover:scale-105 shadow-lg hover:shadow-xl'
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : 'bg-[#bca142] hover:bg-black transform hover:scale-105 shadow-lg hover:shadow-xl'
                   }`}
                 >
                   {(submitting || uploadingFiles) ? (
@@ -886,7 +886,7 @@ const UserDisputes = () => {
       {showDetailsModal && selectedDispute && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 px-6 py-4 flex items-center justify-between">
+            <div className="bg-[#bca142] px-6 py-4 flex items-center justify-between">
               <h2 className="text-2xl font-bold text-white">Dispute Details #{selectedDispute.id}</h2>
               <button
                 onClick={() => setShowDetailsModal(false)}
@@ -944,8 +944,8 @@ const UserDisputes = () => {
                 {selectedDispute.admin_response && (
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Admin Response</label>
-                    <div className="bg-blue-50 p-4 rounded-lg">
-                      <p className="text-gray-700 whitespace-pre-wrap">{selectedDispute.admin_response}</p>
+                    <div className="bg-[#bca142] p-4 rounded-lg">
+                      <p className="text-white whitespace-pre-wrap">{selectedDispute.admin_response}</p>
                     </div>
                   </div>
                 )}
@@ -954,7 +954,7 @@ const UserDisputes = () => {
                 {selectedDispute.images && selectedDispute.images.length > 0 && (
                   <div className="md:col-span-2">
                     <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                      <ImageIcon className="mr-2 h-5 w-5 text-yellow-600" />
+                      <ImageIcon className="mr-2 h-5 w-5 text-[#bca142]" />
                       Attachments ({selectedDispute.images.length})
                     </h4>
                     
@@ -967,112 +967,112 @@ const UserDisputes = () => {
                         });
                         
                         return (
-                          <div key={index} className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-xl p-4 border border-yellow-200">
-                            <div className="flex items-start space-x-4">
-                              {/* Image Preview */}
-                              <div className="flex-shrink-0">
-                                <div className="relative w-32 h-32 bg-white rounded-lg border-2 border-yellow-300 overflow-hidden shadow-md">
-                                  <img
-                                    src={image.image_url}
-                                    alt={`Evidence ${index + 1}`}
-                                    className="w-full h-full object-contain bg-white"
-                                    onClick={() => {
-                                      console.log('🔗 Opening image in new tab:', image.image_url);
-                                      window.open(image.image_url, '_blank');
-                                    }}
-                                    onError={(e) => {
-                                      console.error('❌ Image failed to load:', image.image_url);
-                                      e.target.style.backgroundColor = '#fef3c7';
-                                      e.target.style.display = 'flex';
-                                      e.target.style.alignItems = 'center';
-                                      e.target.style.justifyContent = 'center';
-                                      e.target.innerHTML = '<div style="text-align: center; color: #d97706; font-size: 12px;"><div>📷</div><div>Failed to load</div></div>';
-                                    }}
-                                    onLoad={(e) => {
-                                      console.log('✅ Image loaded successfully:', image.image_url);
-                                      console.log('📐 Image dimensions:', e.target.naturalWidth + 'x' + e.target.naturalHeight);
-                                      
-                                      // Ensure proper display for small images
-                                      if (e.target.naturalWidth <= 10 && e.target.naturalHeight <= 10) {
-                                        console.warn('⚠️ Very small image detected, adjusting display');
-                                        e.target.style.objectFit = 'none';
-                                        e.target.style.imageRendering = 'pixelated';
-                                        e.target.style.transform = 'scale(10)';
-                                      }
-                                    }}
-                                    style={{ cursor: 'pointer' }}
-                                  />
-                                  
-                                  {/* Hover overlay */}
-                                  <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center opacity-0 hover:opacity-100">
-                                    <div className="bg-white bg-opacity-90 rounded-full p-2">
-                                      <Eye className="h-4 w-4 text-gray-700" />
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                              
-                              {/* Image Details */}
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between mb-2">
-                                  <h5 className="text-sm font-semibold text-gray-800 capitalize">
-                                    {image.image_type} Image
-                                  </h5>
-                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
-                                    {image.image_type}
-                                  </span>
-                                </div>
+                    <div className="bg-white rounded-xl p-4 border border-[#bca142]">
+                      <div className="flex items-start space-x-4">
+                        {/* Image Preview */}
+                        <div className="flex-shrink-0">
+                          <div className="relative w-32 h-32 bg-white rounded-lg border-2 border-[#bca142] overflow-hidden shadow-md">
+                            <img
+                              src={image.image_url}
+                              alt={`Evidence ${index + 1}`}
+                              className="w-full h-full object-contain bg-white"
+                              onClick={() => {
+                                console.log('🔗 Opening image in new tab:', image.image_url);
+                                window.open(image.image_url, '_blank');
+                              }}
+                              onError={(e) => {
+                                console.error('❌ Image failed to load:', image.image_url);
+                                e.target.style.backgroundColor = '#fef3c7';
+                                e.target.style.display = 'flex';
+                                e.target.style.alignItems = 'center';
+                                e.target.style.justifyContent = 'center';
+                                e.target.innerHTML = '<div style="text-align: center; color: #d97706; font-size: 12px;"><div>📷</div><div>Failed to load</div></div>';
+                              }}
+                              onLoad={(e) => {
+                                console.log('✅ Image loaded successfully:', image.image_url);
+                                console.log('📐 Image dimensions:', e.target.naturalWidth + 'x' + e.target.naturalHeight);
                                 
-                                <div className="space-y-2 text-sm text-gray-600">
-                                  <div className="flex items-center">
-                                    <span className="font-medium mr-2">File ID:</span>
-                                    <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">#{image.id}</span>
-                                  </div>
-                                  
-                                  <div className="flex items-center">
-                                    <span className="font-medium mr-2">Status:</span>
-                                    <span className="text-green-600 font-medium">✓ Uploaded Successfully</span>
-                                  </div>
-                                </div>
-                                
-                                {/* Action Buttons */}
-                                <div className="flex space-x-2 mt-3">
-                                  <button
-                                    onClick={() => window.open(image.image_url, '_blank')}
-                                    className="inline-flex items-center px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-medium rounded-lg transition-colors duration-200"
-                                  >
-                                    <Eye className="h-3 w-3 mr-1" />
-                                    View Full Size
-                                  </button>
-                                  
-                                  <button
-                                    onClick={() => {
-                                      navigator.clipboard.writeText(image.image_url);
-                                      toast.success('Image URL copied to clipboard');
-                                    }}
-                                    className="inline-flex items-center px-3 py-1.5 bg-gray-500 hover:bg-gray-600 text-white text-xs font-medium rounded-lg transition-colors duration-200"
-                                  >
-                                    <FileText className="h-3 w-3 mr-1" />
-                                    Copy URL
-                                  </button>
-                                </div>
+                                // Ensure proper display for small images
+                                if (e.target.naturalWidth <= 10 && e.target.naturalHeight <= 10) {
+                                  console.warn('⚠️ Very small image detected, adjusting display');
+                                  e.target.style.objectFit = 'none';
+                                  e.target.style.imageRendering = 'pixelated';
+                                  e.target.style.transform = 'scale(10)';
+                                }
+                              }}
+                              style={{ cursor: 'pointer' }}
+                            />
+                            
+                            {/* Hover overlay */}
+                            <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center opacity-0 hover:opacity-100">
+                              <div className="bg-white bg-opacity-90 rounded-full p-2">
+                                <Eye className="h-4 w-4 text-gray-700" />
                               </div>
                             </div>
                           </div>
+                        </div>
+                        
+                        {/* Image Details */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-2">
+                            <h5 className="text-sm font-semibold text-gray-800 capitalize">
+                              {image.image_type} Image
+                            </h5>
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#bca142] text-white border border-[#bca142]">
+                              {image.image_type}
+                            </span>
+                          </div>
+                          
+                          <div className="space-y-2 text-sm text-gray-600">
+                            <div className="flex items-center">
+                              <span className="font-medium mr-2">File ID:</span>
+                              <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">#{image.id}</span>
+                            </div>
+                            
+                            <div className="flex items-center">
+                              <span className="font-medium mr-2">Status:</span>
+                              <span className="text-[#bca142] font-medium">✓ Uploaded Successfully</span>
+                            </div>
+                          </div>
+                          
+                          {/* Action Buttons */}
+                          <div className="flex space-x-2 mt-3">
+                            <button
+                              onClick={() => window.open(image.image_url, '_blank')}
+                              className="inline-flex items-center px-3 py-1.5 bg-[#bca142] hover:bg-black text-white text-xs font-medium rounded-lg transition-colors duration-200"
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              View Full Size
+                            </button>
+                            
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(image.image_url);
+                                toast.success('Image URL copied to clipboard');
+                              }}
+                              className="inline-flex items-center px-3 py-1.5 bg-black hover:bg-gray-800 text-white text-xs font-medium rounded-lg transition-colors duration-200"
+                            >
+                              <FileText className="h-3 w-3 mr-1" />
+                              Copy URL
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                         );
                       })}
                     </div>
                     
                     {/* Gallery Footer */}
-                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="mt-4 p-3 bg-[#bca142] border border-[#bca142] rounded-lg">
                       <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center text-yellow-700">
+                        <div className="flex items-center text-white">
                           <ImageIcon className="h-4 w-4 mr-2" />
                           <span className="font-medium">
                             {selectedDispute.images.length} attachment{selectedDispute.images.length !== 1 ? 's' : ''} uploaded
                           </span>
                         </div>
-                        <div className="text-yellow-600 text-xs">
+                        <div className="text-white text-xs">
                           Click any image to view in full resolution
                         </div>
                       </div>
@@ -1102,7 +1102,7 @@ const UserDisputes = () => {
             {closingDispute && (
               <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-10 rounded-lg">
                 <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent mx-auto mb-4"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#bca142] border-t-transparent mx-auto mb-4"></div>
                   <p className="text-lg font-medium text-gray-700 animate-pulse">
                     Closing dispute...
                   </p>
@@ -1113,7 +1113,7 @@ const UserDisputes = () => {
               </div>
             )}
             
-            <div className="bg-gradient-to-r from-green-500 to-blue-500 px-6 py-4 flex items-center justify-between">
+            <div className="bg-[#bca142] px-6 py-4 flex items-center justify-between">
               <h3 className="text-xl font-bold text-white">Close Dispute #{selectedDispute.id}</h3>
               <button 
                 onClick={() => {
@@ -1134,15 +1134,15 @@ const UserDisputes = () => {
             
             <form onSubmit={handleCloseDispute} className="p-6">
               <div className="space-y-4">
-                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                  <h4 className="font-medium text-green-900 mb-2">Dispute Resolution Confirmation</h4>
-                  <p className="text-sm text-green-800 mb-2">
+                <div className="bg-[#bca142] p-4 rounded-lg border border-[#bca142]">
+                  <h4 className="font-medium text-white mb-2">Dispute Resolution Confirmation</h4>
+                  <p className="text-sm text-white mb-2">
                     <strong>Title:</strong> {selectedDispute.title}
                   </p>
-                  <p className="text-sm text-green-800 mb-2">
+                  <p className="text-sm text-white mb-2">
                     <strong>Company:</strong> {selectedDispute.company_name}
                   </p>
-                  <p className="text-sm text-green-800">
+                  <p className="text-sm text-white">
                     This dispute has been marked as <strong>resolved</strong> by the company. 
                     By closing this dispute, you confirm that the issue has been satisfactorily addressed.
                   </p>
@@ -1159,7 +1159,7 @@ const UserDisputes = () => {
                     className={`w-full p-3 border rounded-lg transition-all duration-200 ${
                       closingDispute 
                         ? 'bg-gray-100 cursor-not-allowed opacity-60' 
-                        : 'focus:ring-2 focus:ring-green-500 focus:border-transparent hover:border-green-300'
+                        : 'focus:ring-2 focus:ring-[#bca142] focus:border-transparent hover:border-[#bca142]'
                     }`}
                     rows="4"
                     placeholder="Share your experience with how this dispute was resolved (optional)..."
@@ -1191,8 +1191,8 @@ const UserDisputes = () => {
                   disabled={closingDispute}
                   className={`px-6 py-3 text-white rounded-lg font-medium transition-all duration-200 flex items-center justify-center min-w-[160px] ${
                     closingDispute 
-                      ? 'bg-gradient-to-r from-yellow-400 to-orange-400 cursor-not-allowed' 
-                      : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 transform hover:scale-105 shadow-lg hover:shadow-xl'
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : 'bg-[#bca142] hover:bg-black transform hover:scale-105 shadow-lg hover:shadow-xl'
                   }`}
                 >
                   {closingDispute ? (

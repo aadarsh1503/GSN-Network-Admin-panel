@@ -231,7 +231,7 @@ const MessagesPage = () => {
         {/* Header */}
         <header className="flex items-center justify-between p-4 border-b border-gray-200">
           <div className="flex items-center gap-2">
-            <FiMessageSquare className="text-[#CDA435]" size={24} />
+            <FiMessageSquare className="text-[#bca142]" size={24} />
             <h1 className="text-md font-bold text-gray-800">MESSAGES</h1>
             {unreadCount > 0 && (
               <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{unreadCount}</span>
@@ -240,7 +240,7 @@ const MessagesPage = () => {
           <div className="flex items-center gap-2">
             <button 
               onClick={fetchConversations} 
-              className="text-[#CDA435] hover:text-yellow-600 p-2 rounded-md hover:bg-gray-100"
+              className="text-[#bca142] hover:text-yellow-600 p-2 rounded-md hover:bg-gray-100"
               title="Refresh conversations"
             >
               <FiRefreshCw size={18} />
@@ -262,7 +262,7 @@ const MessagesPage = () => {
               placeholder="Search messages..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-gray-100 rounded-lg py-2 pl-10 pr-4 border border-transparent focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+              className="w-full bg-gray-100 rounded-lg py-2 pl-10 pr-4 border border-transparent focus:outline-none focus:ring-2 focus:ring-[#bca142]"
             />
           </div>
         </div>
@@ -271,7 +271,7 @@ const MessagesPage = () => {
         <div className="flex-1 overflow-y-auto">
           {loading ? (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#CDA435] mx-auto mb-2"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#bca142] mx-auto mb-2"></div>
               <p className="text-gray-500">Loading conversations...</p>
             </div>
           ) : filteredConversations.length === 0 ? (
@@ -390,31 +390,31 @@ const MessagesPage = () => {
                   <div className="text-center">
                     <div className="relative mb-8">
                       {/* Outer rotating ring */}
-                      <div className="w-20 h-20 border-4 border-[#CDA435]/20 rounded-full animate-spin mx-auto relative">
-                        <div className="absolute top-0 left-0 w-full h-full border-4 border-transparent border-t-[#CDA435] rounded-full animate-spin"></div>
+                      <div className="w-20 h-20 border-4 border-[#bca142]/20 rounded-full animate-spin mx-auto relative">
+                        <div className="absolute top-0 left-0 w-full h-full border-4 border-transparent border-t-[#bca142] rounded-full animate-spin"></div>
                         <div className="absolute top-2 left-2 w-16 h-16 border-4 border-transparent border-t-[#D9B95B] rounded-full animate-spin" style={{animationDirection: 'reverse', animationDuration: '1.5s'}}></div>
                       </div>
                       {/* Inner pulsing core */}
                       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                        <div className="w-8 h-8 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-full animate-pulse shadow-lg"></div>
+                        <div className="w-8 h-8 bg-gradient-to-r from-[#bca142] to-[#D9B95B] rounded-full animate-pulse shadow-lg"></div>
                         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full animate-ping"></div>
                       </div>
                       {/* Floating particles */}
-                      <div className="absolute -top-2 -left-2 w-2 h-2 bg-[#CDA435] rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
+                      <div className="absolute -top-2 -left-2 w-2 h-2 bg-[#bca142] rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
                       <div className="absolute -top-2 -right-2 w-2 h-2 bg-[#D9B95B] rounded-full animate-bounce" style={{animationDelay: '0.5s'}}></div>
-                      <div className="absolute -bottom-2 -left-2 w-2 h-2 bg-[#CDA435] rounded-full animate-bounce" style={{animationDelay: '1s'}}></div>
+                      <div className="absolute -bottom-2 -left-2 w-2 h-2 bg-[#bca142] rounded-full animate-bounce" style={{animationDelay: '1s'}}></div>
                       <div className="absolute -bottom-2 -right-2 w-2 h-2 bg-[#D9B95B] rounded-full animate-bounce" style={{animationDelay: '1.5s'}}></div>
                     </div>
                     <div className="space-y-3">
-                      <h3 className="text-xl font-bold bg-gradient-to-r from-[#CDA435] to-[#D9B95B] bg-clip-text text-transparent">
+                      <h3 className="text-xl font-bold bg-gradient-to-r from-[#bca142] to-[#D9B95B] bg-clip-text text-transparent">
                         Loading Conversation
                       </h3>
                       <p className="text-gray-600 font-medium">Fetching messages...</p>
                       {/* Loading dots */}
                       <div className="flex justify-center space-x-2">
-                        <div className="w-2 h-2 bg-[#CDA435] rounded-full animate-pulse" style={{animationDelay: '0s'}}></div>
+                        <div className="w-2 h-2 bg-[#bca142] rounded-full animate-pulse" style={{animationDelay: '0s'}}></div>
                         <div className="w-2 h-2 bg-[#D9B95B] rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                        <div className="w-2 h-2 bg-[#CDA435] rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                        <div className="w-2 h-2 bg-[#bca142] rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
                       </div>
                     </div>
                   </div>
@@ -469,7 +469,7 @@ const MessagesPage = () => {
                 
                 return (
                   <div key={msg.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[70%] ${isOwn ? 'bg-[#CDA435] text-white' : 'bg-white'} rounded-lg p-3 shadow-sm`}>
+                    <div className={`max-w-[70%] ${isOwn ? 'bg-[#bca142] text-white' : 'bg-white'} rounded-lg p-3 shadow-sm`}>
                       {!isOwn && (
                         <div className="flex items-center gap-2 mb-2">
                           <UserAvatar 
@@ -535,12 +535,12 @@ const MessagesPage = () => {
                   placeholder="Type a message..."
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+                  className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142]"
                 />
                 <button
                   type="submit"
                   disabled={sendingMessage || !newMessage.trim()}
-                  className="bg-[#CDA435] text-white px-6 py-3 rounded-lg hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-[#bca142] text-white px-6 py-3 rounded-lg hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <FiSend />
                 </button>

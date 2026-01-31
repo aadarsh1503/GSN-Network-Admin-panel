@@ -68,11 +68,11 @@ const PlansPage = () => {
             <div 
               key={plan.id} 
               className={`bg-white border rounded-lg p-6 flex flex-col text-center shadow-sm hover:shadow-lg transition-shadow duration-300 ${
-                isCurrentPlan(plan) ? 'border-[#CDA435] border-2' : 'border-gray-200'
+                isCurrentPlan(plan) ? 'border-[#bca142] border-2' : 'border-gray-200'
               }`}
             >
               {isCurrentPlan(plan) && (
-                <div className="bg-[#CDA435] text-white text-xs font-bold py-1 px-3 rounded-full self-center -mt-9 mb-4">
+                <div className="bg-[#bca142] text-white text-xs font-bold py-1 px-3 rounded-full self-center -mt-9 mb-4">
                   CURRENT PLAN
                 </div>
               )}
@@ -154,7 +154,7 @@ const PlansPage = () => {
                     ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                     : plan.price === 0 || plan.price === '0.00'
                     ? 'bg-gray-400 text-white cursor-not-allowed'
-                    : 'bg-[#CDA435] text-white hover:bg-opacity-90'
+                    : 'bg-[#bca142] text-white hover:bg-opacity-90'
                 }`}
               >
                 {isCurrentPlan(plan) ? 'Current Plan' : plan.price === 0 || plan.price === '0.00' ? 'Free Plan' : 'Upgrade Now'}
@@ -164,7 +164,7 @@ const PlansPage = () => {
         </div>
 
         <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>Need a custom plan? <a href="/company/create-Ticket" className="text-[#CDA435] hover:underline">Contact us</a></p>
+          <p>Need a custom plan? <a href="/company/create-Ticket" className="text-[#bca142] hover:underline">Contact us</a></p>
         </div>
       </div>
     </div>

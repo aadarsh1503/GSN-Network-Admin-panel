@@ -70,7 +70,7 @@ const AddCompanyMember = () => {
   };
 
   const labelClasses = "block text-sm font-medium text-gray-700 mb-1";
-  const inputClasses = "w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-[#CDA435] focus:border-[#CDA435] transition duration-150 ease-in-out";
+  const inputClasses = "w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-[#bca142] focus:border-[#bca142] transition duration-150 ease-in-out";
 
   return (
     <div className="bg-white p-6 md:p-8 rounded-lg shadow-md max-w-4xl mx-auto">
@@ -148,7 +148,7 @@ const AddCompanyMember = () => {
           <button 
             type="submit" 
             disabled={loading}
-            className={`px-10 py-3 font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#CDA435] ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#CDA435] hover:bg-[#B8941F] text-white'}`}
+            className={`px-10 py-3 font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#bca142] ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#bca142] hover:bg-black text-white'}`}
           >
             {loading ? 'Submitting...' : 'Submit Member'}
           </button>

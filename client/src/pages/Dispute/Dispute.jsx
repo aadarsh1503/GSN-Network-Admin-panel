@@ -206,7 +206,7 @@ const Dispute = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#CDA435]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#bca142]"></div>
       </div>
     );
   }
@@ -219,7 +219,7 @@ const Dispute = () => {
             <h1 className="text-2xl font-bold text-gray-800">Disputes Management</h1>
             <p className="text-gray-600">Handle disputes between users and companies</p>
           </div>
-          <div className="bg-yellow-50 text-[#CDA435] px-4 py-2 rounded-lg">
+          <div className="bg-yellow-50 text-[#bca142] px-4 py-2 rounded-lg">
             <span className="font-semibold">{filteredAndSortedDisputes.length}</span> Disputes
           </div>
         </div>

@@ -47,11 +47,11 @@ import { useProfileCompletion } from '../../hooks/useProfileCompletion';
 
 // Website color palette
 const COLORS = {
-  primary: '#CDA435',
-  secondary: '#B8941F', 
-  accent: '#06b6d4',
-  success: '#10b981',
-  warning: '#f59e0b'
+  primary: '#bca142',
+  secondary: '#bca142', 
+  accent: '#bca142',
+  success: '#bca142',
+  warning: '#bca142'
 };
 
 // Enhanced Metric Card Component
@@ -109,46 +109,46 @@ const FuturisticMetricCard = ({
   
   const colorClasses = {
     yellow: {
-      bg: 'bg-gradient-to-br from-yellow-50 via-yellow-100 to-yellow-50',
-      border: 'border-yellow-200/50',
-      icon: 'bg-gradient-to-br from-[#CDA435] to-[#B8941F] text-white',
-      trend: 'text-[#CDA435]',
-      glow: 'shadow-yellow-500/20'
+      bg: 'bg-white',
+      border: 'border-gray-200',
+      icon: 'bg-[#bca142] text-white',
+      trend: 'text-[#bca142]',
+      glow: 'shadow-gray-200'
     },
     purple: {
-      bg: 'bg-gradient-to-br from-purple-50 via-purple-100 to-indigo-50',
-      border: 'border-purple-200/50',
-      icon: 'bg-gradient-to-br from-purple-500 to-indigo-500 text-white',
-      trend: 'text-purple-600',
-      glow: 'shadow-purple-500/20'
+      bg: 'bg-white',
+      border: 'border-gray-200',
+      icon: 'bg-[#bca142] text-white',
+      trend: 'text-[#bca142]',
+      glow: 'shadow-gray-200'
     },
     green: {
-      bg: 'bg-gradient-to-br from-green-50 via-emerald-100 to-teal-50',
-      border: 'border-green-200/50',
-      icon: 'bg-gradient-to-br from-green-500 to-emerald-500 text-white',
-      trend: 'text-green-600',
-      glow: 'shadow-green-500/20'
+      bg: 'bg-white',
+      border: 'border-gray-200',
+      icon: 'bg-[#bca142] text-white',
+      trend: 'text-[#bca142]',
+      glow: 'shadow-gray-200'
     },
     orange: {
-      bg: 'bg-gradient-to-br from-orange-50 via-amber-100 to-yellow-50',
-      border: 'border-orange-200/50',
-      icon: 'bg-gradient-to-br from-orange-500 to-amber-500 text-white',
-      trend: 'text-orange-600',
-      glow: 'shadow-orange-500/20'
+      bg: 'bg-white',
+      border: 'border-gray-200',
+      icon: 'bg-[#bca142] text-white',
+      trend: 'text-[#bca142]',
+      glow: 'shadow-gray-200'
     },
     red: {
-      bg: 'bg-gradient-to-br from-red-50 via-rose-100 to-pink-50',
-      border: 'border-red-200/50',
-      icon: 'bg-gradient-to-br from-red-500 to-rose-500 text-white',
-      trend: 'text-red-600',
-      glow: 'shadow-red-500/20'
+      bg: 'bg-white',
+      border: 'border-gray-200',
+      icon: 'bg-black text-white',
+      trend: 'text-black',
+      glow: 'shadow-gray-200'
     },
     cyan: {
-      bg: 'bg-gradient-to-br from-cyan-50 via-sky-100 to-blue-50',
-      border: 'border-cyan-200/50',
-      icon: 'bg-gradient-to-br from-cyan-500 to-sky-500 text-white',
-      trend: 'text-cyan-600',
-      glow: 'shadow-cyan-500/20'
+      bg: 'bg-white',
+      border: 'border-gray-200',
+      icon: 'bg-[#bca142] text-white',
+      trend: 'text-[#bca142]',
+      glow: 'shadow-gray-200'
     }
   };
 
@@ -156,13 +156,13 @@ const FuturisticMetricCard = ({
 
   return (
     <div 
-      className={`relative overflow-hidden rounded-2xl ${colors.bg} ${colors.border} border backdrop-blur-lg p-6 shadow-xl ${colors.glow} hover:shadow-2xl transition-all duration-500 hover:scale-105 group ${onClick ? 'cursor-pointer' : ''}`}
+      className={`relative overflow-hidden rounded-2xl ${colors.bg} ${colors.border} border p-6 shadow-xl ${colors.glow} hover:shadow-2xl transition-all duration-500 hover:scale-105 group ${onClick ? 'cursor-pointer' : ''}`}
       onClick={onClick}
     >
       {/* Animated Background Elements */}
-      <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-white/10 group-hover:bg-white/20 transition-all duration-500 animate-pulse"></div>
-      <div className="absolute bottom-0 left-0 -mb-4 -ml-4 h-16 w-16 rounded-full bg-white/5 group-hover:bg-white/10 transition-all duration-500"></div>
-      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent group-hover:from-white/10 transition-all duration-500"></div>
+      <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-gray-100 group-hover:bg-gray-200 transition-all duration-500 animate-pulse"></div>
+      <div className="absolute bottom-0 left-0 -mb-4 -ml-4 h-16 w-16 rounded-full bg-gray-50 group-hover:bg-gray-100 transition-all duration-500"></div>
+      <div className="absolute inset-0 bg-gray-50 group-hover:bg-gray-100 transition-all duration-500"></div>
       
       <div className="relative z-10">
         {/* Header */}
@@ -172,7 +172,7 @@ const FuturisticMetricCard = ({
           </div>
           
           {trendData && !trendData.isNeutral && (
-            <div className={`flex items-center space-x-1 text-sm ${colors.trend} bg-white/50 backdrop-blur-sm px-3 py-1 rounded-full`}>
+            <div className={`flex items-center space-x-1 text-sm ${colors.trend} bg-gray-50 px-3 py-1 rounded-full`}>
               {trendData.isPositive ? (
                 <ArrowUpRight className="h-4 w-4" />
               ) : (
@@ -185,22 +185,22 @@ const FuturisticMetricCard = ({
         
         {/* Content */}
         <div className="space-y-2">
-          <p className="text-sm font-medium text-slate-600 uppercase tracking-wider">
+          <p className="text-sm font-medium text-gray-600 uppercase tracking-wider">
             {title}
           </p>
-          <p className="text-4xl font-bold text-slate-800 group-hover:text-slate-900 transition-colors duration-300">
+          <p className="text-4xl font-bold text-black group-hover:text-gray-800 transition-colors duration-300">
             {prefix}
             <span className="tabular-nums">{displayValue.toLocaleString()}</span>
             {suffix}
           </p>
           {subtitle && (
-            <p className="text-sm text-slate-500 font-medium">
+            <p className="text-sm text-gray-500 font-medium">
               {subtitle}
             </p>
           )}
           {trendData && (
-            <div className="text-xs text-slate-500 flex items-center">
-              <div className={`w-2 h-2 rounded-full mr-2 ${trendData.isPositive ? 'bg-green-400' : 'bg-red-400'} animate-pulse`}></div>
+            <div className="text-xs text-gray-500 flex items-center">
+              <div className={`w-2 h-2 rounded-full mr-2 ${trendData.isPositive ? 'bg-[#bca142]' : 'bg-black'} animate-pulse`}></div>
               <span>{trendData.isPositive ? 'Increased' : 'Decreased'} from last period</span>
             </div>
           )}
@@ -208,7 +208,7 @@ const FuturisticMetricCard = ({
       </div>
       
       {/* Hover effect overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/5 group-hover:from-white/5 group-hover:to-white/10 transition-all duration-500"></div>
+      <div className="absolute inset-0 bg-gray-100 group-hover:bg-gray-200 transition-all duration-500 opacity-0 group-hover:opacity-20"></div>
     </div>
   );
 };
@@ -216,15 +216,15 @@ const FuturisticMetricCard = ({
 // Enhanced Chart Component
 const FuturisticChart = ({ title, data, type = 'bar', color = COLORS.primary }) => {
   return (
-    <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-500">
+    <div className="bg-white rounded-2xl p-6 shadow-xl border border-gray-200 hover:shadow-2xl transition-all duration-500">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-xl font-bold text-slate-800">{title}</h3>
-          <p className="text-slate-600">Business performance metrics</p>
+          <h3 className="text-xl font-bold text-black">{title}</h3>
+          <p className="text-gray-600">Business performance metrics</p>
         </div>
         <div className="flex items-center space-x-2">
-          <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-          <span className="text-sm text-slate-500">Live Data</span>
+          <div className="w-3 h-3 bg-[#bca142] rounded-full animate-pulse"></div>
+          <span className="text-sm text-gray-500">Live Data</span>
         </div>
       </div>
       
@@ -423,11 +423,11 @@ const BusinessDashboard = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'pending': return 'text-[#CDA435] bg-yellow-50';
-      case 'running': return 'text-blue-600 bg-blue-100';
-      case 'closed': return 'text-green-600 bg-green-100';
-      case 'rejected': return 'text-red-600 bg-red-100';
-      default: return 'text-slate-600 bg-slate-100';
+      case 'pending': return 'text-[#bca142] bg-gray-50';
+      case 'running': return 'text-[#bca142] bg-gray-50';
+      case 'closed': return 'text-[#bca142] bg-gray-50';
+      case 'rejected': return 'text-black bg-gray-50';
+      default: return 'text-gray-600 bg-gray-100';
     }
   };
 
@@ -441,14 +441,14 @@ const BusinessDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="relative">
-            <div className="animate-spin rounded-full h-20 w-20 border-4 border-yellow-200 border-t-[#CDA435] mx-auto mb-4"></div>
-            <div className="absolute inset-0 rounded-full h-20 w-20 border-4 border-yellow-100 border-t-[#B8941F] animate-spin mx-auto" style={{ animationDirection: 'reverse', animationDuration: '3s' }}></div>
+            <div className="animate-spin rounded-full h-20 w-20 border-4 border-gray-200 border-t-[#bca142] mx-auto mb-4"></div>
+            <div className="absolute inset-0 rounded-full h-20 w-20 border-4 border-gray-100 border-t-black animate-spin mx-auto" style={{ animationDirection: 'reverse', animationDuration: '3s' }}></div>
           </div>
-          <p className="text-2xl font-bold text-slate-800 mb-2">Loading Business Hub...</p>
-          <p className="text-slate-600">Preparing your analytics dashboard</p>
+          <p className="text-2xl font-bold text-black mb-2">Loading Business Hub...</p>
+          <p className="text-gray-600">Preparing your analytics dashboard</p>
         </div>
       </div>
     );
@@ -462,60 +462,56 @@ const BusinessDashboard = () => {
         <div className="flex items-center justify-between mb-6">
           <div></div>
           <div className="text-center">
-            <h1 className="text-6xl font-bold bg-gradient-to-r from-[#CDA435] via-[#B8941F] to-[#CDA435] bg-clip-text text-transparent mb-2">
+            <h1 className="text-6xl font-bold text-[#bca142] mb-2">
               Business Panel
             </h1>
             <div className="flex items-center justify-center space-x-2">
-              <div className="w-2 h-2 bg-[#CDA435] rounded-full animate-pulse"></div>
-              <div className="w-2 h-2 bg-[#B8941F] rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-              <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+              <div className="w-2 h-2 bg-[#bca142] rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-black rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+              <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
             </div>
           </div>
           <button
             onClick={fetchDashboardData}
-            className="flex items-center space-x-2 bg-gradient-to-r from-[#CDA435] to-[#B8941F] hover:from-[#B8941F] hover:to-[#CDA435] text-white px-6 py-3 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+            className="flex items-center space-x-2 bg-[#bca142] hover:bg-black text-white px-6 py-3 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
             title="Refresh Data"
           >
             <Activity className="h-5 w-5" />
             <span>Refresh</span>
           </button>
         </div>
-        <p className="text-slate-600 text-xl mb-4">Advanced business analytics and quote management</p>
-        <div className="flex items-center justify-center space-x-6 text-sm text-slate-500">
-          <div className="flex items-center space-x-2 bg-white/50 backdrop-blur-sm px-4 py-2 rounded-full">
+        <p className="text-gray-600 text-xl mb-4">Advanced business analytics and quote management</p>
+        <div className="flex items-center justify-center space-x-6 text-sm text-gray-500">
+          <div className="flex items-center space-x-2 bg-gray-50 px-4 py-2 rounded-full">
             <Clock className="h-4 w-4" />
             <span>Last updated: {new Date().toLocaleTimeString()}</span>
           </div>
-          <div className="flex items-center space-x-2 bg-green-50 px-4 py-2 rounded-full">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-            <span className="text-green-600">Real-time Data</span>
+          <div className="flex items-center space-x-2 bg-gray-50 px-4 py-2 rounded-full">
+            <div className="w-2 h-2 bg-[#bca142] rounded-full animate-pulse"></div>
+            <span className="text-[#bca142]">Real-time Data</span>
           </div>
-          {/* <div className="flex items-center space-x-2 bg-[#CDA435]/10 px-4 py-2 rounded-full">
-            <FaRocket className="h-4 w-4 text-[#CDA435]" />
-            <span className="text-[#CDA435]">AI Powered</span>
-          </div> */}
         </div>
       </div>
 
       {/* Pending Quote Alert */}
       {showPendingQuote && (
-        <div className="bg-gradient-to-r from-yellow-50 via-yellow-100 to-yellow-50 border border-yellow-200/50 rounded-2xl p-6 shadow-xl backdrop-blur-lg">
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl">
           <div className="flex items-start">
-            <div className="p-3 bg-gradient-to-br from-[#CDA435] to-[#B8941F] rounded-2xl mr-4 shadow-lg">
+            <div className="p-3 bg-[#bca142] rounded-2xl mr-4 shadow-lg">
               <FaExclamationTriangle className="text-white" size={24} />
             </div>
             <div className="flex-1">
-              <h3 className="text-xl font-bold text-[#CDA435] mb-2">
+              <h3 className="text-xl font-bold text-[#bca142] mb-2">
                 Pending Business Quote Request!
               </h3>
-              <p className="text-[#B8941F] mb-4">
+              <p className="text-gray-700 mb-4">
                 You have a quote request that needs to be submitted. Complete your business quote now!
               </p>
               <div className="flex space-x-3">
                 <button
                   onClick={handleSubmitPendingQuote}
                   disabled={submittingPendingQuote}
-                  className="bg-gradient-to-r from-[#CDA435] to-[#B8941F] text-white px-6 py-3 rounded-xl hover:from-[#B8941F] hover:to-[#CDA435] disabled:opacity-50 disabled:cursor-not-allowed flex items-center font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  className="bg-[#bca142] text-white px-6 py-3 rounded-xl hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed flex items-center font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                 >
                   {submittingPendingQuote ? (
                     <>
@@ -531,7 +527,7 @@ const BusinessDashboard = () => {
                 </button>
                 <button
                   onClick={handleDismissPendingQuote}
-                  className="bg-gradient-to-r from-slate-500 to-slate-600 text-white px-6 py-3 rounded-xl hover:from-slate-600 hover:to-slate-700 font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="bg-black text-white px-6 py-3 rounded-xl hover:bg-[#bca142] font-medium shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   Dismiss
                 </button>
@@ -615,57 +611,57 @@ const BusinessDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Link
           to="/quote"
-          className="group bg-gradient-to-br from-yellow-50 to-yellow-100 hover:from-yellow-100 hover:to-yellow-200 rounded-2xl p-6 border border-yellow-200/50 transition-all duration-300 hover:shadow-xl transform hover:scale-105"
+          className="group bg-white hover:bg-gray-50 rounded-2xl p-6 border border-gray-200 transition-all duration-300 hover:shadow-xl transform hover:scale-105"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-gradient-to-br from-[#CDA435] to-[#B8941F] rounded-2xl text-white shadow-lg group-hover:shadow-xl transition-all duration-300">
+            <div className="p-3 bg-[#bca142] rounded-2xl text-white shadow-lg group-hover:shadow-xl transition-all duration-300">
               <FaQuoteLeft className="h-6 w-6" />
             </div>
-            <ArrowUpRight className="h-5 w-5 text-[#CDA435] group-hover:text-[#B8941F] transition-colors" />
+            <ArrowUpRight className="h-5 w-5 text-[#bca142] group-hover:text-black transition-colors" />
           </div>
-          <h3 className="text-lg font-bold text-slate-800 mb-2">Request Quote</h3>
-          <p className="text-slate-600 text-sm">Get quotes for your business shipments</p>
+          <h3 className="text-lg font-bold text-black mb-2">Request Quote</h3>
+          <p className="text-gray-600 text-sm">Get quotes for your business shipments</p>
         </Link>
 
         <Link
           to="/business/messages"
-          className="group bg-gradient-to-br from-orange-50 to-amber-50 hover:from-orange-100 hover:to-amber-100 rounded-2xl p-6 border border-orange-200/50 transition-all duration-300 hover:shadow-xl transform hover:scale-105"
+          className="group bg-white hover:bg-gray-50 rounded-2xl p-6 border border-gray-200 transition-all duration-300 hover:shadow-xl transform hover:scale-105"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl text-white shadow-lg group-hover:shadow-xl transition-all duration-300">
+            <div className="p-3 bg-[#bca142] rounded-2xl text-white shadow-lg group-hover:shadow-xl transition-all duration-300">
               <MessageSquare className="h-6 w-6" />
             </div>
-            <ArrowUpRight className="h-5 w-5 text-orange-500 group-hover:text-orange-600 transition-colors" />
+            <ArrowUpRight className="h-5 w-5 text-[#bca142] group-hover:text-black transition-colors" />
           </div>
-          <h3 className="text-lg font-bold text-slate-800 mb-2">Messages</h3>
-          <p className="text-slate-600 text-sm">Communicate with logistics partners</p>
+          <h3 className="text-lg font-bold text-black mb-2">Messages</h3>
+          <p className="text-gray-600 text-sm">Communicate with logistics partners</p>
         </Link>
 
         <Link
           to="/business/notifications"
-          className="group bg-gradient-to-br from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 rounded-2xl p-6 border border-blue-200/50 transition-all duration-300 hover:shadow-xl transform hover:scale-105"
+          className="group bg-white hover:bg-gray-50 rounded-2xl p-6 border border-gray-200 transition-all duration-300 hover:shadow-xl transform hover:scale-105"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl text-white shadow-lg group-hover:shadow-xl transition-all duration-300">
+            <div className="p-3 bg-[#bca142] rounded-2xl text-white shadow-lg group-hover:shadow-xl transition-all duration-300">
               <Bell className="h-6 w-6" />
             </div>
-            <ArrowUpRight className="h-5 w-5 text-blue-500 group-hover:text-blue-600 transition-colors" />
+            <ArrowUpRight className="h-5 w-5 text-[#bca142] group-hover:text-black transition-colors" />
           </div>
-          <h3 className="text-lg font-bold text-slate-800 mb-2">Notifications</h3>
-          <p className="text-slate-600 text-sm">View system updates and alerts</p>
+          <h3 className="text-lg font-bold text-black mb-2">Notifications</h3>
+          <p className="text-gray-600 text-sm">View system updates and alerts</p>
         </Link>
       </div>
 
       {/* Recent Quotes Table */}
-      <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-500">
+      <div className="bg-white rounded-2xl p-6 shadow-xl border border-gray-200 hover:shadow-2xl transition-all duration-500">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-xl font-bold text-slate-800">Recent Business Quotes</h3>
-            <p className="text-slate-600">Your latest quote requests and their status</p>
+            <h3 className="text-xl font-bold text-black">Recent Business Quotes</h3>
+            <p className="text-gray-600">Your latest quote requests and their status</p>
           </div>
           <Link
             to="/business/quotes"
-            className="flex items-center text-[#CDA435] hover:text-[#B8941F] font-medium bg-yellow-50 hover:bg-yellow-100 px-4 py-2 rounded-xl transition-all duration-300"
+            className="flex items-center text-[#bca142] hover:text-black font-medium bg-gray-50 hover:bg-gray-100 px-4 py-2 rounded-xl transition-all duration-300"
           >
             View All <ArrowUpRight className="ml-1 h-4 w-4" />
           </Link>
@@ -673,13 +669,13 @@ const BusinessDashboard = () => {
 
         {recentQuotes.length === 0 ? (
           <div className="text-center py-12">
-            <div className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-full p-8 w-32 h-32 mx-auto mb-6 flex items-center justify-center">
-              <FileText className="text-slate-400 h-16 w-16" />
+            <div className="bg-gray-100 rounded-full p-8 w-32 h-32 mx-auto mb-6 flex items-center justify-center">
+              <FileText className="text-gray-400 h-16 w-16" />
             </div>
-            <p className="text-slate-500 text-lg mb-4">No business quotes yet</p>
+            <p className="text-gray-500 text-lg mb-4">No business quotes yet</p>
             <Link
               to="/quote"
-              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-[#CDA435] to-[#B8941F] hover:from-[#B8941F] hover:to-[#CDA435] text-white font-medium rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="inline-flex items-center px-6 py-3 bg-[#bca142] hover:bg-black text-white font-medium rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               <FileText className="mr-2 h-4 w-4" />
               Request Your First Quote
@@ -688,26 +684,26 @@ const BusinessDashboard = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gradient-to-r from-slate-50 to-slate-100">
+              <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Route</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Product</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Responses</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Created</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Route</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responses</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-slate-200">
+              <tbody className="bg-white divide-y divide-gray-200">
                 {recentQuotes.map((quote) => (
-                  <tr key={quote.id} className="hover:bg-slate-50 transition-colors">
+                  <tr key={quote.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium text-slate-900 flex items-center">
-                        <FaGlobe className="mr-2 text-blue-500" />
+                      <div className="font-medium text-black flex items-center">
+                        <FaGlobe className="mr-2 text-[#bca142]" />
                         {quote.departure_country} → {quote.arrival_country}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-slate-900 max-w-xs truncate">
+                      <div className="text-sm text-black max-w-xs truncate">
                         {quote.product_description}
                       </div>
                     </td>
@@ -718,11 +714,11 @@ const BusinessDashboard = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <span className="text-sm text-slate-900 mr-2">{quote.response_count || 0}</span>
-                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <span className="text-sm text-black mr-2">{quote.response_count || 0}</span>
+                        <div className="w-2 h-2 bg-[#bca142] rounded-full animate-pulse"></div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatDate(quote.created_at)}
                     </td>
                   </tr>

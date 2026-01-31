@@ -12,7 +12,7 @@ const ToggleSwitch = ({ checked, onChange }) => {
   return (
     <label className="relative inline-flex items-center cursor-pointer">
       <input type="checkbox" checked={checked} onChange={onChange} className="sr-only peer" />
-      <div className={`w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 ${checked ? 'peer-checked:bg-green-600' : ''}`}></div>
+      <div className={`w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-yellow-300 dark:peer-focus:ring-yellow-800 dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 ${checked ? 'peer-checked:bg-[#bca142]' : ''}`}></div>
     </label>
   );
 };
@@ -455,7 +455,7 @@ const handleEditUser = async (user) => {
                 {children}
                 <span>
                     {isSorted ? 
-                        (sortConfig.direction === 'ascending' ? <FaArrowUp className="text-gray-600" /> : <FaArrowDown className="text-gray-600" />) 
+                        (sortConfig.direction === 'ascending' ? <FaArrowUp className="text-white" /> : <FaArrowDown className="text-white" />) 
                         : null
                     }
                 </span>
@@ -493,7 +493,7 @@ const handleEditUser = async (user) => {
                 <button 
                   type="button" 
                   onClick={() => { setFilters({ status: '', blacklist: '' }); setSearchTerm(''); }}
-                  className="w-full flex items-center justify-center bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md"
+                  className="w-full flex items-center justify-center bg-[#bca142] hover:bg-[#B8941F] text-white font-bold py-2 px-4 rounded-md"
                 >
                     Reset Filters
                 </button>
@@ -544,7 +544,7 @@ const handleEditUser = async (user) => {
           {/* --- Users Table --- */}
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left text-gray-500">
-              <thead className="text-xs text-gray-700 uppercase" style={{ backgroundColor: '#eaddc0' }}>
+              <thead className="text-xs text-white uppercase" style={{ backgroundColor: '#bca142' }}>
                 <tr>
                   <SortableHeader name="id">Sr.No</SortableHeader>
                   <SortableHeader name="name">Name</SortableHeader>
@@ -579,7 +579,7 @@ const handleEditUser = async (user) => {
                         <div className="flex space-x-2">
                         <button 
   onClick={() => handleEditUser(user)}
-  className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400"
+  className="p-2 bg-[#bca142] text-white rounded hover:bg-[#B8941F] disabled:bg-gray-400"
   title="Edit User"
   disabled={loading} // Prevent double clicks
 >
@@ -587,7 +587,7 @@ const handleEditUser = async (user) => {
 </button>
                           <button 
                             onClick={() => handleViewUser(user)}
-                            className="p-2 bg-pink-500 text-white rounded hover:bg-pink-600"
+                            className="p-2 bg-black text-white rounded hover:bg-gray-800"
                             title="View Details"
                           >
                             <FaEye />
@@ -619,7 +619,7 @@ const handleEditUser = async (user) => {
                 Previous
               </button>
               
-              <span className="px-3 py-1 border-t border-b text-white" style={{backgroundColor: '#eaddc0'}}>
+              <span className="px-3 py-1 border-t border-b text-white" style={{backgroundColor: '#bca142'}}>
                 {currentPage}
               </span>
 
@@ -640,7 +640,7 @@ const handleEditUser = async (user) => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-7xl max-h-[95vh] overflow-hidden shadow-2xl">
             {/* Modal Header */}
-            <div className="bg-gradient-to-r from-yellow-600 to-yellow-700 p-6 text-white">
+            <div className="bg-[#bca142] p-6 text-white">
               <div className="flex justify-between items-center">
                 <div className="flex items-center space-x-4">
                   {viewingUser.logo && (
@@ -691,7 +691,7 @@ const handleEditUser = async (user) => {
                           )}
                           <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                             {viewingUser.website && (
-                              <a href={viewingUser.website} target="_blank" rel="noopener noreferrer" className="flex items-center hover:text-yellow-600 transition-colors">
+                              <a href={viewingUser.website} target="_blank" rel="noopener noreferrer" className="flex items-center hover:text-[#bca142] transition-colors">
                                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9" />
                                 </svg>
@@ -715,7 +715,7 @@ const handleEditUser = async (user) => {
                     {/* Status Badges */}
                     <div className="flex flex-col items-start lg:items-end space-y-3">
                       <div className={`px-4 py-2 rounded-full text-sm font-bold ${
-                        viewingUser.status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        viewingUser.status ? 'bg-[#bca142] text-white' : 'bg-red-100 text-red-800'
                       }`}>
                         {viewingUser.status ? 'Active Account' : 'Inactive Account'}
                       </div>
@@ -742,7 +742,7 @@ const handleEditUser = async (user) => {
                     <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
                       <div className="p-6 border-b border-gray-200">
                         <h4 className="text-lg font-semibold text-gray-800 flex items-center">
-                          <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-5 h-5 mr-2 text-[#bca142]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                           Basic Information
@@ -775,7 +775,7 @@ const handleEditUser = async (user) => {
                       <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
                         <div className="p-6 border-b border-gray-200">
                           <h4 className="text-lg font-semibold text-gray-800 flex items-center">
-                            <svg className="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5 mr-2 text-[#bca142]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
                             Contact Information
@@ -817,7 +817,7 @@ const handleEditUser = async (user) => {
                       <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
                         <div className="p-6 border-b border-gray-200">
                           <h4 className="text-lg font-semibold text-gray-800 flex items-center">
-                            <svg className="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5 mr-2 text-[#bca142]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                             </svg>
                             Services
@@ -835,7 +835,7 @@ const handleEditUser = async (user) => {
                                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                         {parsedServices.map((service, index) => (
                                           <div key={index} className="flex items-center p-2 bg-white rounded border">
-                                            <svg className="w-4 h-4 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg className="w-4 h-4 mr-2 text-[#bca142]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                             </svg>
                                             <span className="text-sm text-gray-800">{service}</span>
@@ -854,7 +854,7 @@ const handleEditUser = async (user) => {
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                 {viewingUser.services.map((service, index) => (
                                   <div key={index} className="flex items-center p-2 bg-white rounded border">
-                                    <svg className="w-4 h-4 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4 mr-2 text-[#bca142]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                     </svg>
                                     <span className="text-sm text-gray-800">{service}</span>
@@ -874,7 +874,7 @@ const handleEditUser = async (user) => {
                       <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
                         <div className="p-6 border-b border-gray-200">
                           <h4 className="text-lg font-semibold text-gray-800 flex items-center">
-                            <svg className="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5 mr-2 text-[#bca142]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                             </svg>
                             About Company
@@ -894,7 +894,7 @@ const handleEditUser = async (user) => {
                       <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
                         <div className="p-6 border-b border-gray-200">
                           <h4 className="text-lg font-semibold text-gray-800 flex items-center">
-                            <svg className="w-5 h-5 mr-2 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5 mr-2 text-[#bca142]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
@@ -902,10 +902,10 @@ const handleEditUser = async (user) => {
                           </h4>
                         </div>
                         <div className="p-6">
-                          <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <div className="mb-4 p-3 bg-yellow-50 rounded-lg border border-[#bca142]">
                             <div className="text-sm">
-                              <span className="font-medium text-blue-800">Coordinates:</span>
-                              <span className="ml-2 font-mono text-blue-700">
+                              <span className="font-medium text-[#bca142]">Coordinates:</span>
+                              <span className="ml-2 font-mono text-[#bca142]">
                                 {parseFloat(viewingUser.latitude).toFixed(6)}, {parseFloat(viewingUser.longitude).toFixed(6)}
                               </span>
                             </div>
@@ -971,7 +971,7 @@ const handleEditUser = async (user) => {
                       <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
                         <div className="p-6 border-b border-gray-200">
                           <h4 className="text-lg font-semibold text-gray-800 flex items-center">
-                            <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5 mr-2 text-[#bca142]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9" />
                             </svg>
                             Online Presence
@@ -983,7 +983,7 @@ const handleEditUser = async (user) => {
                               <svg className="w-5 h-5 mr-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9" />
                               </svg>
-                              <a href={viewingUser.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm">
+                              <a href={viewingUser.website} target="_blank" rel="noopener noreferrer" className="text-[#bca142] hover:underline text-sm">
                                 {viewingUser.website}
                               </a>
                             </div>
@@ -993,7 +993,7 @@ const handleEditUser = async (user) => {
                               <svg className="w-5 h-5 mr-3 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                               </svg>
-                              <a href={viewingUser.facebook} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm">
+                              <a href={viewingUser.facebook} target="_blank" rel="noopener noreferrer" className="text-[#bca142] hover:underline text-sm">
                                 Facebook
                               </a>
                             </div>
@@ -1003,7 +1003,7 @@ const handleEditUser = async (user) => {
                               <svg className="w-5 h-5 mr-3 text-blue-700" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
                               </svg>
-                              <a href={viewingUser.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm">
+                              <a href={viewingUser.linkedin} target="_blank" rel="noopener noreferrer" className="text-[#bca142] hover:underline text-sm">
                                 LinkedIn
                               </a>
                             </div>
@@ -1024,7 +1024,7 @@ const handleEditUser = async (user) => {
                     <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
                       <div className="p-6 border-b border-gray-200">
                         <h4 className="text-lg font-semibold text-gray-800 flex items-center">
-                          <svg className="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-5 h-5 mr-2 text-[#bca142]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                           </svg>
@@ -1076,7 +1076,7 @@ const handleEditUser = async (user) => {
                   setViewingUser(null);
                   handleEditUser(viewingUser);
                 }}
-                className="px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors flex items-center"
+                className="px-6 py-2 bg-[#bca142] text-white rounded-lg hover:bg-[#B8941F] transition-colors flex items-center"
               >
                 <FaPen className="mr-2" />
                 Edit Profile
@@ -1091,7 +1091,7 @@ const handleEditUser = async (user) => {
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-7xl max-h-[95vh] overflow-hidden shadow-2xl">
             {/* Modal Header */}
-            <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 p-6 text-white">
+            <div className="bg-[#bca142] p-6 text-white">
               <div className="flex justify-between items-center">
                 <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
@@ -1122,7 +1122,7 @@ const handleEditUser = async (user) => {
                     {/* Basic Information Section */}
                     <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-6 border border-gray-200 shadow-sm">
                       <div className="flex items-center mb-6">
-                        <div className="w-10 h-10 bg-yellow-500 rounded-xl flex items-center justify-center mr-4">
+                        <div className="w-10 h-10 bg-[#bca142] rounded-xl flex items-center justify-center mr-4">
                           <FaBuilding className="text-white text-lg" />
                         </div>
                         <h4 className="text-xl font-bold text-gray-800">Basic Information</h4>
@@ -1139,7 +1139,7 @@ const handleEditUser = async (user) => {
                               type="text"
                               value={editForm.name}
                               onChange={(e) => setEditForm({...editForm, name: e.target.value})}
-                              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300"
+                              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                               placeholder="Enter company name"
                               required
                             />
@@ -1156,7 +1156,7 @@ const handleEditUser = async (user) => {
                               type="email"
                               value={editForm.email}
                               onChange={(e) => setEditForm({...editForm, email: e.target.value})}
-                              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300"
+                              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                               placeholder="Enter email address"
                               required
                             />
@@ -1173,7 +1173,7 @@ const handleEditUser = async (user) => {
                               type="text"
                               value={editForm.mobile}
                               onChange={(e) => setEditForm({...editForm, mobile: e.target.value})}
-                              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300"
+                              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                               placeholder="Enter mobile number"
                             />
                           </div>
@@ -1188,7 +1188,7 @@ const handleEditUser = async (user) => {
                             <select
                               value={editForm.category}
                               onChange={(e) => setEditForm({...editForm, category: e.target.value})}
-                              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300 appearance-none"
+                              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 appearance-none"
                             >
                               <option value="">Select Business Category</option>
                               {businessCategories.map((category) => (
@@ -1210,7 +1210,7 @@ const handleEditUser = async (user) => {
                     {/* Location Information Section */}
                     <div className="bg-gradient-to-br from-blue-50 to-white rounded-2xl p-6 border border-blue-200 shadow-sm">
                       <div className="flex items-center mb-6">
-                        <div className="w-10 h-10 bg-yellow-500 rounded-xl flex items-center justify-center mr-4">
+                        <div className="w-10 h-10 bg-[#bca142] rounded-xl flex items-center justify-center mr-4">
                           <FaMapMarkerAlt className="text-white text-lg" />
                         </div>
                         <h4 className="text-xl font-bold text-gray-800">Location Information</h4>
@@ -1226,7 +1226,7 @@ const handleEditUser = async (user) => {
                             <select
                               value={editForm.country}
                               onChange={(e) => handleCountryChange(e.target.value)}
-                              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300 appearance-none"
+                              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 appearance-none"
                             >
                               <option value="">Select Country</option>
                               {countries.map((country) => (
@@ -1252,7 +1252,7 @@ const handleEditUser = async (user) => {
                             <select
                               value={editForm.state}
                               onChange={(e) => setEditForm({...editForm, state: e.target.value})}
-                              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300 appearance-none"
+                              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 appearance-none"
                               disabled={!editForm.country || loadingStates}
                             >
                               <option value="">
@@ -1280,7 +1280,7 @@ const handleEditUser = async (user) => {
                             type="text"
                             value={editForm.city}
                             onChange={(e) => setEditForm({...editForm, city: e.target.value})}
-                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300"
+                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                             placeholder="Enter city name"
                           />
                         </div>
@@ -1292,7 +1292,7 @@ const handleEditUser = async (user) => {
                           <textarea
                             value={editForm.company_address}
                             onChange={(e) => setEditForm({...editForm, company_address: e.target.value})}
-                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300"
+                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                             rows="3"
                             placeholder="Enter complete company address"
                           />
@@ -1344,10 +1344,10 @@ const handleEditUser = async (user) => {
                                       setLocationMethod('coordinates');
                                       setEditForm(prev => ({ ...prev, map_location: '' }));
                                     }}
-                                    className="w-5 h-5 text-yellow-600 focus:ring-yellow-500 border-gray-300 transition-all cursor-pointer"
+                                    className="w-5 h-5 text-[#bca142] focus:ring-[#bca142] border-gray-300 transition-all cursor-pointer"
                                   />
                                 </div>
-                                <label htmlFor="coordinates-method" className={`ml-3 font-bold tracking-wide uppercase text-xs transition-colors ${locationMethod === 'coordinates' ? 'text-yellow-800' : 'text-gray-500'}`}>
+                                <label htmlFor="coordinates-method" className={`ml-3 font-bold tracking-wide uppercase text-xs transition-colors ${locationMethod === 'coordinates' ? 'text-[#bca142]' : 'text-gray-500'}`}>
                                   GPS Satellite Protocol
                                 </label>
                               </div>
@@ -1364,7 +1364,7 @@ const handleEditUser = async (user) => {
                                       value={editForm.latitude || ''}
                                       onChange={(e) => setEditForm({...editForm, latitude: e.target.value})}
                                       placeholder="e.g., 25.2048"
-                                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200"
+                                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142] transition-all duration-200"
                                     />
                                   </div>
                                   <div>
@@ -1375,7 +1375,7 @@ const handleEditUser = async (user) => {
                                       value={editForm.longitude || ''}
                                       onChange={(e) => setEditForm({...editForm, longitude: e.target.value})}
                                       placeholder="e.g., 55.2708"
-                                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200"
+                                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142] transition-all duration-200"
                                     />
                                   </div>
                                 </div>
@@ -1432,9 +1432,9 @@ const handleEditUser = async (user) => {
                                     setLocationMethod('maps');
                                     setEditForm(prev => ({ ...prev, latitude: '', longitude: '' }));
                                   }}
-                                  className="w-5 h-5 text-yellow-600 focus:ring-yellow-500 border-gray-300 transition-all cursor-pointer"
+                                  className="w-5 h-5 text-[#bca142] focus:ring-[#bca142] border-gray-300 transition-all cursor-pointer"
                                 />
-                                <label htmlFor="maps-method" className={`ml-3 font-bold tracking-wide uppercase text-xs transition-colors ${locationMethod === 'maps' ? 'text-yellow-800' : 'text-gray-500'}`}>
+                                <label htmlFor="maps-method" className={`ml-3 font-bold tracking-wide uppercase text-xs transition-colors ${locationMethod === 'maps' ? 'text-[#bca142]' : 'text-gray-500'}`}>
                                   Cloud Map Integration
                                 </label>
                               </div>
@@ -1477,7 +1477,7 @@ const handleEditUser = async (user) => {
                     {/* Contact Information Section */}
                     <div className="bg-gradient-to-br from-green-50 to-white rounded-2xl p-6 border border-green-200 shadow-sm">
                       <div className="flex items-center mb-6">
-                        <div className="w-10 h-10 bg-yellow-500 rounded-xl flex items-center justify-center mr-4">
+                        <div className="w-10 h-10 bg-[#bca142] rounded-xl flex items-center justify-center mr-4">
                           <FaUser className="text-white text-lg" />
                         </div>
                         <h4 className="text-xl font-bold text-gray-800">Contact Information</h4>
@@ -1494,7 +1494,7 @@ const handleEditUser = async (user) => {
                               type="text"
                               value={editForm.owner_name}
                               onChange={(e) => setEditForm({...editForm, owner_name: e.target.value})}
-                              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300"
+                              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                               placeholder="Enter owner name"
                             />
                           </div>
@@ -1510,7 +1510,7 @@ const handleEditUser = async (user) => {
                               type="text"
                               value={editForm.owner_phone}
                               onChange={(e) => setEditForm({...editForm, owner_phone: e.target.value})}
-                              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300"
+                              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                               placeholder="Enter owner phone"
                             />
                           </div>
@@ -1526,7 +1526,7 @@ const handleEditUser = async (user) => {
                               type="text"
                               value={editForm.incharge_name}
                               onChange={(e) => setEditForm({...editForm, incharge_name: e.target.value})}
-                              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300"
+                              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                               placeholder="Enter incharge name"
                             />
                           </div>
@@ -1542,7 +1542,7 @@ const handleEditUser = async (user) => {
                               type="text"
                               value={editForm.incharge_phone}
                               onChange={(e) => setEditForm({...editForm, incharge_phone: e.target.value})}
-                              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300"
+                              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                               placeholder="Enter incharge phone"
                             />
                           </div>
@@ -1557,7 +1557,7 @@ const handleEditUser = async (user) => {
                     {/* Online Presence Section */}
                     <div className="bg-gradient-to-br from-purple-50 to-white rounded-2xl p-6 border border-purple-200 shadow-sm">
                       <div className="flex items-center mb-6">
-                        <div className="w-10 h-10 bg-yellow-500 rounded-xl flex items-center justify-center mr-4">
+                        <div className="w-10 h-10 bg-[#bca142] rounded-xl flex items-center justify-center mr-4">
                           <FaLink className="text-white text-lg" />
                         </div>
                         <h4 className="text-xl font-bold text-gray-800">Online Presence</h4>
@@ -1574,7 +1574,7 @@ const handleEditUser = async (user) => {
                               type="url"
                               value={editForm.website}
                               onChange={(e) => setEditForm({...editForm, website: e.target.value})}
-                              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300"
+                              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                               placeholder="https://example.com"
                             />
                           </div>
@@ -1588,7 +1588,7 @@ const handleEditUser = async (user) => {
                             type="text"
                             value={editForm.skype}
                             onChange={(e) => setEditForm({...editForm, skype: e.target.value})}
-                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300"
+                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                             placeholder="Skype username"
                           />
                         </div>
@@ -1601,7 +1601,7 @@ const handleEditUser = async (user) => {
                             type="url"
                             value={editForm.facebook}
                             onChange={(e) => setEditForm({...editForm, facebook: e.target.value})}
-                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300"
+                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                             placeholder="https://facebook.com/company"
                           />
                         </div>
@@ -1614,7 +1614,7 @@ const handleEditUser = async (user) => {
                             type="url"
                             value={editForm.linkedin}
                             onChange={(e) => setEditForm({...editForm, linkedin: e.target.value})}
-                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300"
+                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                             placeholder="https://linkedin.com/company/company"
                           />
                         </div>
@@ -1627,7 +1627,7 @@ const handleEditUser = async (user) => {
                             type="url"
                             value={editForm.twitter}
                             onChange={(e) => setEditForm({...editForm, twitter: e.target.value})}
-                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300"
+                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                             placeholder="https://twitter.com/company"
                           />
                         </div>
@@ -1640,7 +1640,7 @@ const handleEditUser = async (user) => {
                             type="url"
                             value={editForm.instagram}
                             onChange={(e) => setEditForm({...editForm, instagram: e.target.value})}
-                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300"
+                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                             placeholder="https://instagram.com/company"
                           />
                         </div>
@@ -1650,7 +1650,7 @@ const handleEditUser = async (user) => {
                     {/* Additional Information Section */}
                     <div className="bg-gradient-to-br from-orange-50 to-white rounded-2xl p-6 border border-orange-200 shadow-sm">
                       <div className="flex items-center mb-6">
-                        <div className="w-10 h-10 bg-yellow-500 rounded-xl flex items-center justify-center mr-4">
+                        <div className="w-10 h-10 bg-[#bca142] rounded-xl flex items-center justify-center mr-4">
                           <FaBuilding className="text-white text-lg" />
                         </div>
                         <h4 className="text-xl font-bold text-gray-800">Additional Information</h4>
@@ -1664,7 +1664,7 @@ const handleEditUser = async (user) => {
                           <textarea
                             value={editForm.about_company}
                             onChange={(e) => setEditForm({...editForm, about_company: e.target.value})}
-                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300"
+                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                             rows="5"
                             placeholder="Brief description about the company"
                           />
@@ -1687,7 +1687,7 @@ const handleEditUser = async (user) => {
               </button>
               <button 
                 onClick={handleSaveEdit}
-                className="px-6 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-xl hover:from-yellow-600 hover:to-yellow-700 transition-all duration-300 flex items-center space-x-2 shadow-lg"
+                className="px-6 py-3 bg-[#bca142] text-white rounded-xl hover:bg-[#B8941F] transition-all duration-300 flex items-center space-x-2 shadow-lg"
               >
                 <FaPen className="text-sm" />
                 <span>Save Changes</span>

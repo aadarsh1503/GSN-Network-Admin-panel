@@ -76,7 +76,7 @@ const Footer = () => {
 
                     <button 
                         type="submit" 
-                        className="flex-shrink-0 bg-[#CDA435] text-white p-3 rounded-full hover:bg-yellow-600 transition-all duration-300 shadow-md" 
+                        className="flex-shrink-0 bg-[#bca142] text-white p-3 rounded-full hover:bg-yellow-600 transition-all duration-300 shadow-md" 
                         disabled={loading}
                     >
                         {loading ? ( 
@@ -87,28 +87,28 @@ const Footer = () => {
                     </button>
                 </form>
             </div>
-            {message && <p className="mt-4 text-sm text-[#CDA435]">{message}</p>}
+            {message && <p className="mt-4 text-sm text-[#bca142]">{message}</p>}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           
           {/* Column 1: Logo & Info */}
           <div className="ml-8">
-            <img src={GSN} alt="Logistics Logo" className="w-28 bg-white" />
+            <img src="https://res.cloudinary.com/ds1dt3qub/image/upload/v1769604932/gulf_star_network_4_znl5cm.png" alt="Logistics Logo" className="w-28 bg-white" />
             <p className="mt-2 text-gray-400">
               Provide a freight quote from our select premium members 
             </p>
             <div className="mt-4 space-y-2">
               <div className="flex items-start">
-                <FaMapMarkerAlt className="text-[#CDA435] mt-1 mr-3 flex-shrink-0" />
+                <FaMapMarkerAlt className="text-[#bca142] mt-1 mr-3 flex-shrink-0" />
                 <span>#22, Building 661, Road no 1208, Block 712 Salmabad, 973, Bahrain</span>
               </div>
               <div className="flex items-center">
-                <FaPhoneAlt className="text-[#CDA435] mr-3 flex-shrink-0" />
+                <FaPhoneAlt className="text-[#bca142] mr-3 flex-shrink-0" />
                 <span>+973 17491222</span>
               </div>
               <div className="flex items-center">
-                <FaEnvelope className="text-[#CDA435] mr-3 flex-shrink-0" />
+                <FaEnvelope className="text-[#bca142] mr-3 flex-shrink-0" />
                 <span>info@gulfstarnetwork.com</span>
               </div>
             </div>
@@ -117,41 +117,41 @@ const Footer = () => {
           {/* Column 2: Information */}
           <div>
             <h3 className="text-xl text-white font-semibold">Information</h3>
-            <div className="w-16 h-1 bg-[#CDA435] mt-2 mb-6"></div>
+            <div className="w-16 h-1 bg-[#bca142] mt-2 mb-6"></div>
             <ul className="space-y-3">
-              <li><a href="/register" className="hover:text-[#CDA435] transition-colors">Become Member</a></li>
-              <li><a href="#" className="hover:text-[#CDA435] transition-colors">FAQ</a></li>
-              <li><a href="#" className="hover:text-[#CDA435] transition-colors">About us</a></li>
-              <li><a href="#" className="hover:text-[#CDA435] transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-[#CDA435] transition-colors">Terms&conditions</a></li>
-              <li><a href="#" className="hover:text-[#CDA435] transition-colors">Disclaimer</a></li>
+              <li><a href="/register" className="hover:text-[#bca142] transition-colors">Become Member</a></li>
+              <li><a href="#" className="hover:text-[#bca142] transition-colors">FAQ</a></li>
+              <li><a href="#" className="hover:text-[#bca142] transition-colors">About us</a></li>
+              <li><a href="#" className="hover:text-[#bca142] transition-colors">Privacy Policy</a></li>
+              <li><a href="#" className="hover:text-[#bca142] transition-colors">Terms&conditions</a></li>
+              <li><a href="#" className="hover:text-[#bca142] transition-colors">Disclaimer</a></li>
             </ul>
           </div>
 
           {/* Column 3: Main */}
           <div>
             <h3 className="text-xl text-white font-semibold">Main</h3>
-            <div className="w-16 h-1 bg-[#CDA435] mt-2 mb-6"></div>
+            <div className="w-16 h-1 bg-[#bca142] mt-2 mb-6"></div>
             <ul className="space-y-3">
-              <li><a href="/company-directory" className="hover:text-[#CDA435] transition-colors">Member Directory</a></li>
-              <li><a href="#" className="hover:text-[#CDA435] transition-colors">Quotes</a></li>
-              <li><a href="#" className="hover:text-[#CDA435] transition-colors">Blacklist Directory</a></li>
-              <li><a href="#" className="hover:text-[#CDA435] transition-colors">Register Today</a></li>
-              <li><a href="/login" className="hover:text-[#CDA435] transition-colors">Login</a></li>
-              <li><a href="#" className="hover:text-[#CDA435] transition-colors">Due Delight</a></li>
+              <li><a href="/company-directory" className="hover:text-[#bca142] transition-colors">Member Directory</a></li>
+              <li><a href="#" className="hover:text-[#bca142] transition-colors">Quotes</a></li>
+              <li><a href="#" className="hover:text-[#bca142] transition-colors">Blacklist Directory</a></li>
+              <li><a href="#" className="hover:text-[#bca142] transition-colors">Register Today</a></li>
+              <li><a href="/login" className="hover:text-[#bca142] transition-colors">Login</a></li>
+              <li><a href="#" className="hover:text-[#bca142] transition-colors">Due Delight</a></li>
             </ul>
           </div>
 
           {/* Column 4: Follow Us On */}
           <div>
             <h3 className="text-xl text-white font-semibold">Follow Us On</h3>
-            <div className="w-16 h-1 bg-[#CDA435] mt-2 mb-6"></div>
+            <div className="w-16 h-1 bg-[#bca142] mt-2 mb-6"></div>
             <div className="flex space-x-3">
-              <a href="#" className="w-9 h-9 flex items-center justify-center bg-gray-700 hover:bg-[#CDA435] text-white rounded transition-colors"><FaFacebookF /></a>
-              <a href="#" className="w-9 h-9 flex items-center justify-center bg-gray-700 hover:bg-[#CDA435] text-white rounded transition-colors"><FaTwitter /></a>
-              <a href="#" className="w-9 h-9 flex items-center justify-center bg-gray-700 hover:bg-[#CDA435] text-white rounded transition-colors"><FaLinkedinIn /></a>
-              <a href="#" className="w-9 h-9 flex items-center justify-center bg-gray-700 hover:bg-[#CDA435] text-white rounded transition-colors"><FaYoutube /></a>
-              <a href="#" className="w-9 h-9 flex items-center justify-center bg-gray-700 hover:bg-[#CDA435] text-white rounded transition-colors"><FaInstagram /></a>
+              <a href="#" className="w-9 h-9 flex items-center justify-center bg-gray-700 hover:bg-[#bca142] text-white rounded transition-colors"><FaFacebookF /></a>
+              <a href="#" className="w-9 h-9 flex items-center justify-center bg-gray-700 hover:bg-[#bca142] text-white rounded transition-colors"><FaTwitter /></a>
+              <a href="#" className="w-9 h-9 flex items-center justify-center bg-gray-700 hover:bg-[#bca142] text-white rounded transition-colors"><FaLinkedinIn /></a>
+              <a href="#" className="w-9 h-9 flex items-center justify-center bg-gray-700 hover:bg-[#bca142] text-white rounded transition-colors"><FaYoutube /></a>
+              <a href="#" className="w-9 h-9 flex items-center justify-center bg-gray-700 hover:bg-[#bca142] text-white rounded transition-colors"><FaInstagram /></a>
             </div>
           </div>
         </div>
@@ -167,7 +167,7 @@ const Footer = () => {
       </div>
 
       {/* Scroll to top button */}
-      <a href="#" className="absolute bottom-8 right-8 w-12 h-12 bg-[#CDA435] rounded-full flex items-center justify-center text-white text-xl shadow-lg hover:bg-yellow-500 transition-colors">
+      <a href="#" className="absolute bottom-8 right-8 w-12 h-12 bg-[#bca142] rounded-full flex items-center justify-center text-white text-xl shadow-lg hover:bg-yellow-500 transition-colors">
         <FaChevronUp />
       </a>
     </footer>

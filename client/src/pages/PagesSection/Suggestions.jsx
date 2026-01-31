@@ -232,7 +232,7 @@ const Suggestions = () => {
               </button>
               <button 
                 onClick={handleSubmitResponse}
-                className="px-4 py-2 bg-[#CDA435] text-white rounded-md hover:bg-opacity-90"
+                className="px-4 py-2 bg-[#bca142] text-white rounded-md hover:bg-opacity-90"
               >
                 Update Suggestion
               </button>

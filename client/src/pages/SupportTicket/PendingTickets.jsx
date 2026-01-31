@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { 
-  FiEye, FiEdit, FiChevronUp, FiChevronDown, FiMessageSquare, 
-  FiSearch, FiFilter, FiRefreshCw, FiUsers, FiBriefcase, 
-  FiHome, FiShield, FiZap, FiTrendingUp, FiX, FiClock,
-  FiCheckCircle, FiAlertTriangle, FiStar, FiMail, FiTrash2, FiUser
+  FiEye, FiChevronUp, FiChevronDown, 
+  FiSearch, FiRefreshCw, FiBriefcase, 
+  FiHome, FiShield, FiX, FiClock,
+  FiAlertTriangle, FiMail, FiUser
 } from 'react-icons/fi';
 import api from '../../utils/api';
 
@@ -24,16 +24,7 @@ const PendingTickets = () => {
 
   // Modal state
   const [selectedTicket, setSelectedTicket] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [adminResponse, setAdminResponse] = useState('');
-  const [newStatus, setNewStatus] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-
-  // Delete confirmation
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [ticketToDelete, setTicketToDelete] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchTickets();
@@ -54,73 +45,14 @@ const PendingTickets = () => {
     }
   };
 
-  const handleTicketResponse = async () => {
-    if (!selectedTicket || !newStatus) return;
-
-    try {
-      setSubmitting(true);
-      await api.put(`/api/tickets/${selectedTicket.id}/status`, { 
-        status: newStatus,
-        adminResponse: adminResponse || undefined
-      });
-
-      // Update local state
-      setTickets(tickets.map(ticket => 
-        ticket.id === selectedTicket.id 
-          ? { ...ticket, status: newStatus, admin_response: adminResponse }
-          : ticket
-      ));
-
-      setIsModalOpen(false);
-      setSelectedTicket(null);
-      setAdminResponse('');
-      setNewStatus('');
-    } catch (err) {
-      alert('Error updating ticket: ' + err.message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleDeleteTicket = async () => {
-    if (!ticketToDelete) return;
-    
-    try {
-      setIsDeleting(true);
-      await api.delete(`/api/tickets/admin/${ticketToDelete.id}`);
-      
-      // Remove from local state
-      setTickets(prev => prev.filter(ticket => ticket.id !== ticketToDelete.id));
-      
-      alert('Ticket deleted successfully');
-      setShowDeleteModal(false);
-      setTicketToDelete(null);
-    } catch (error) {
-      console.error('Error deleting ticket:', error);
-      alert('Failed to delete ticket');
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const openResponseModal = (ticket) => {
-    setSelectedTicket(ticket);
-    setNewStatus(ticket.status);
-    setAdminResponse(ticket.admin_response || '');
-    setIsModalOpen(true);
-  };
-
   const openDetailsModal = (ticket) => {
     setSelectedTicket(ticket);
     setIsDetailsModalOpen(true);
   };
 
   const closeModal = () => {
-    setIsModalOpen(false);
     setIsDetailsModalOpen(false);
     setSelectedTicket(null);
-    setAdminResponse('');
-    setNewStatus('');
   };
 
   const resetFilters = () => {
@@ -248,13 +180,13 @@ const PendingTickets = () => {
   };
 
   const SortableHeader = ({ children, sortKey }) => (
-    <th className="py-3 px-3 text-left font-semibold cursor-pointer hover:bg-yellow-100 transition-colors duration-200" onClick={() => handleSort(sortKey)}>
+    <th className="py-3 px-3 text-left font-semibold cursor-pointer hover:bg-[#bca142]/10 transition-colors duration-200" onClick={() => handleSort(sortKey)}>
       <div className="flex items-center">
         {children}
         {sortConfig.key === sortKey ? (
           sortConfig.direction === 'ascending' ? 
-            <FiChevronUp className="ml-1 text-yellow-600" /> : 
-            <FiChevronDown className="ml-1 text-yellow-600" />
+            <FiChevronUp className="ml-1 text-white" /> : 
+            <FiChevronDown className="ml-1 text-white" />
         ) : null}
       </div>
     </th>
@@ -266,11 +198,11 @@ const PendingTickets = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50">
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-[#bca142]/10 via-[#bca142]/5 to-[#bca142]/20">
         <div className="text-center">
           <div className="relative">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-yellow-200 border-t-yellow-600 mx-auto"></div>
-            <FiClock className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-yellow-600 animate-pulse" size={24} />
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#bca142]/30 border-t-[#bca142] mx-auto"></div>
+            <FiClock className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-[#bca142] animate-pulse" size={24} />
           </div>
           <p className="mt-4 text-lg font-medium text-gray-700 animate-pulse">Loading Pending Tickets...</p>
         </div>
@@ -280,14 +212,14 @@ const PendingTickets = () => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50">
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-[#bca142]/10 via-[#bca142]/5 to-[#bca142]/20">
         <div className="text-center">
           <FiAlertTriangle className="mx-auto text-red-500 mb-4" size={48} />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Tickets</h3>
           <p className="text-red-500 mb-4">{error}</p>
           <button 
             onClick={fetchTickets}
-            className="bg-gradient-to-r from-yellow-500 to-amber-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-yellow-600 hover:to-amber-700 transition-all duration-300"
+            className="bg-gradient-to-r from-[#bca142] to-[#bca142] text-white px-6 py-3 rounded-xl font-semibold hover:from-black hover:to-[#bca142] transition-all duration-300"
           >
             Try Again
           </button>
@@ -297,13 +229,13 @@ const PendingTickets = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 p-3">
+    <div className="min-h-screen bg-gradient-to-br from-[#bca142]/10 via-[#bca142]/5 to-[#bca142]/20 p-3">
       <div className="max-w-6xl mx-auto">
         {/* Compact Header */}
         <div className="bg-white/80 backdrop-blur-lg rounded-xl shadow-xl border border-white/20 p-4 mb-4">
           <div className="flex flex-col lg:flex-row justify-between items-center">
             <div className="flex items-center space-x-3 mb-2 lg:mb-0">
-              <div className="p-2 bg-gradient-to-r from-yellow-500 to-amber-600 rounded-lg">
+              <div className="p-2 bg-[#bca142] rounded-lg">
                 <FiClock className="text-white" size={20} />
               </div>
               <div>
@@ -315,7 +247,7 @@ const PendingTickets = () => {
             </div>
             <button 
               onClick={fetchTickets}
-              className="flex items-center space-x-2 bg-gradient-to-r from-yellow-500 to-amber-600 text-white font-semibold py-2 px-4 rounded-lg hover:from-yellow-600 hover:to-amber-700 transition-all duration-300 shadow-lg text-sm"
+              className="flex items-center space-x-2 bg-[#bca142] text-white font-semibold py-2 px-4 rounded-lg hover:from-black hover:to-[#bca142] transition-all duration-300 shadow-lg text-sm"
             >
               <FiRefreshCw size={16} />
               <span>Refresh</span>
@@ -330,7 +262,7 @@ const PendingTickets = () => {
               <p className="text-xs font-medium text-gray-600">Pending Tickets</p>
               <p className="text-xl font-bold text-gray-900">{tickets.length}</p>
             </div>
-            <div className="p-2 bg-gradient-to-r from-yellow-500 to-amber-500 rounded-lg">
+            <div className="p-2 bg-[#bca142] rounded-lg">
               <FiClock className="text-white" size={16} />
             </div>
           </div>
@@ -347,7 +279,7 @@ const PendingTickets = () => {
                 placeholder="Search pending tickets..."
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className="w-full pl-9 pr-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300 text-sm"
+                className="w-full pl-9 pr-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 text-sm"
               />
             </div>
 
@@ -356,7 +288,7 @@ const PendingTickets = () => {
               <select
                 value={userTypeFilter}
                 onChange={(e) => { setUserTypeFilter(e.target.value); setCurrentPage(1); }}
-                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300 text-sm"
+                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] transition-all duration-300 text-sm"
               >
                 <option value="all">All Users</option>
                 <option value="user">Users</option>
@@ -368,7 +300,7 @@ const PendingTickets = () => {
               <select
                 value={priorityFilter}
                 onChange={(e) => { setPriorityFilter(e.target.value); setCurrentPage(1); }}
-                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300 text-sm"
+                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] transition-all duration-300 text-sm"
               >
                 <option value="all">All Priorities</option>
                 <option value="low">Low</option>
@@ -380,7 +312,7 @@ const PendingTickets = () => {
               <select
                 value={itemsPerPage}
                 onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
-                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300 text-sm"
+                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] transition-all duration-300 text-sm"
               >
                 <option value="10">10</option>
                 <option value="25">25</option>
@@ -402,8 +334,8 @@ const PendingTickets = () => {
         <div className="bg-white/80 backdrop-blur-lg rounded-xl shadow-xl border border-white/20 overflow-hidden">
           {sortedTickets.length === 0 ? (
             <div className="text-center py-12">
-              <div className="p-3 bg-gradient-to-r from-yellow-100 to-amber-200 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                <FiClock className="text-yellow-600" size={32} />
+              <div className="p-3 bg-[#bca142]/20 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <FiClock className="text-[#bca142]" size={32} />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">No Pending Tickets</h3>
               <p className="text-gray-500 max-w-md mx-auto text-sm">
@@ -417,7 +349,7 @@ const PendingTickets = () => {
             <>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[600px]">
-                  <thead className="bg-gradient-to-r from-yellow-50 to-amber-50">
+                  <thead className="bg-[#bca142]">
                     <tr>
                       <SortableHeader sortKey="ticket_number">Ticket</SortableHeader>
                       <SortableHeader sortKey="user_name">User</SortableHeader>
@@ -429,14 +361,14 @@ const PendingTickets = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {paginatedTickets.map((ticket, index) => (
-                      <tr key={ticket.id} className={`hover:bg-gradient-to-r hover:from-yellow-50/50 hover:to-amber-50/50 transition-all duration-300 ${
+                    {paginatedTickets.map((ticket) => (
+                      <tr key={ticket.id} className={`hover:bg-[#bca142]/10 transition-all duration-300 ${
                         ticket.user_role === 'admin' ? 'bg-red-50/30' : ''
                       }`}>
                         <td className="px-3 py-3">
                           <div className="flex items-center space-x-2">
-                            <div className="p-1 bg-gradient-to-r from-yellow-100 to-amber-100 rounded-lg flex-shrink-0">
-                              <FiMail className="text-yellow-600" size={12} />
+                            <div className="p-1 bg-[#bca142]/20 rounded-lg flex-shrink-0">
+                              <FiMail className="text-[#bca142]" size={12} />
                             </div>
                             <div className="min-w-0">
                               <div className="text-xs font-bold text-gray-900 truncate">{ticket.ticket_number}</div>
@@ -463,8 +395,8 @@ const PendingTickets = () => {
                         </td>
                         <td className="px-3 py-3">
                           <div className="flex items-center space-x-2">
-                            <div className="p-1 bg-gradient-to-r from-yellow-100 to-amber-100 rounded-lg flex-shrink-0">
-                              {ticket.recipient_type === 'company' ? <FiHome className="text-green-600" size={12} /> : <FiShield className="text-red-600" size={12} />}
+                            <div className="p-1 bg-[#bca142]/20 rounded-lg flex-shrink-0">
+                              {ticket.recipient_type === 'company' ? <FiHome className="text-[#bca142]" size={12} /> : <FiShield className="text-[#bca142]" size={12} />}
                             </div>
                             <div className="min-w-0 flex-1">
                               <div className="text-xs font-semibold text-gray-900 truncate" title={ticket.recipient_type === 'company' && ticket.company_name ? ticket.company_name : ticket.recipient_name}>
@@ -509,27 +441,10 @@ const PendingTickets = () => {
                           <div className="flex items-center space-x-1">
                             <button
                               onClick={() => openDetailsModal(ticket)}
-                              className="p-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex-shrink-0"
+                              className="p-1.5 bg-black text-white rounded-lg hover:bg-[#bca142] transition-all duration-300 transform hover:scale-105 shadow-lg flex-shrink-0"
                               title="View Details"
                             >
                               <FiEye size={12} />
-                            </button>
-                            <button
-                              onClick={() => openResponseModal(ticket)}
-                              className="p-1.5 bg-gradient-to-r from-yellow-500 to-amber-600 text-white rounded-lg hover:from-yellow-600 hover:to-amber-700 transition-all duration-300 transform hover:scale-105 shadow-lg flex-shrink-0"
-                              title="Respond"
-                            >
-                              <FiMessageSquare size={12} />
-                            </button>
-                            <button
-                              onClick={() => {
-                                setTicketToDelete(ticket);
-                                setShowDeleteModal(true);
-                              }}
-                              className="p-1.5 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:from-red-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex-shrink-0"
-                              title="Delete"
-                            >
-                              <FiTrash2 size={12} />
                             </button>
                           </div>
                         </td>
@@ -540,12 +455,12 @@ const PendingTickets = () => {
               </div>
               
               {/* Enhanced Pagination */}
-              <div className="bg-gradient-to-r from-yellow-50 to-amber-50 px-6 py-4 border-t border-gray-200">
+              <div className="bg-[#bca142] px-6 py-4 border-t border-gray-200">
                 <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
-                  <div className="text-sm text-gray-700">
-                    Showing <span className="font-bold text-yellow-600">{sortedTickets.length > 0 ? startEntry : 0}</span> to{' '}
-                    <span className="font-bold text-yellow-600">{endEntry}</span> of{' '}
-                    <span className="font-bold text-yellow-600">{sortedTickets.length}</span> results
+                  <div className="text-sm text-white">
+                    Showing <span className="font-bold text-white">{sortedTickets.length > 0 ? startEntry : 0}</span> to{' '}
+                    <span className="font-bold text-white">{endEntry}</span> of{' '}
+                    <span className="font-bold text-white">{sortedTickets.length}</span> results
                   </div>
                   
                   <div className="flex items-center space-x-2">
@@ -577,7 +492,7 @@ const PendingTickets = () => {
                             onClick={() => setCurrentPage(pageNum)}
                             className={`px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${
                               currentPage === pageNum
-                                ? 'bg-gradient-to-r from-yellow-500 to-amber-600 text-white shadow-lg transform scale-105'
+                                ? 'bg-black text-white shadow-lg transform scale-105'
                                 : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
                             }`}
                           >
@@ -601,6 +516,139 @@ const PendingTickets = () => {
           )}
         </div>
       </div>
+
+      {/* Enhanced Ticket Details Modal */}
+      {isDetailsModalOpen && selectedTicket && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white/95 backdrop-blur-lg rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20">
+            <div className="bg-gradient-to-r from-[#bca142] to-[#bca142] px-8 py-6 flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-white/20 rounded-xl">
+                  <FiClock className="text-white" size={24} />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Pending Ticket {selectedTicket.ticket_number}</h2>
+                  <p className="text-gray-100">Awaiting response & action</p>
+                </div>
+              </div>
+              <button
+                onClick={closeModal}
+                className="p-2 bg-white/20 rounded-lg text-white hover:bg-white/30 transition-all duration-300"
+              >
+                <FiX size={24} />
+              </button>
+            </div>
+
+            <div className="p-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Left Column */}
+                <div className="space-y-6">
+                  <div className="bg-gradient-to-r from-[#bca142]/10 to-[#bca142]/20 p-6 rounded-xl border border-[#bca142]/30">
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Ticket Information</label>
+                    <div className="space-y-2">
+                      <p className="text-lg font-semibold text-gray-900">{selectedTicket.ticket_number}</p>
+                      <p className="text-sm text-gray-600">Created: {new Date(selectedTicket.created_at).toLocaleString()}</p>
+                      <div className="inline-flex items-center px-3 py-1 text-xs font-bold rounded-full bg-[#bca142]/20 text-[#bca142]">
+                        <FiClock className="mr-1" size={12} />
+                        Pending
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-6 rounded-xl border border-blue-200">
+                    <label className="block text-sm font-bold text-gray-700 mb-3">User Profile</label>
+                    <div className="flex items-center space-x-4">
+                      <div className="p-3 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-xl">
+                        {getUserTypeIcon(selectedTicket.user_role)}
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-900 text-lg">{selectedTicket.user_name}</p>
+                        <p className="text-sm text-gray-600 mb-2">{selectedTicket.user_email}</p>
+                        {getUserTypeBadge(selectedTicket.user_role)}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-r from-orange-50 to-red-50 p-6 rounded-xl border border-orange-200">
+                    <label className="block text-sm font-bold text-gray-700 mb-3">Ticket Recipient</label>
+                    <div className="flex items-center space-x-4">
+                      <div className="p-3 bg-[#bca142]/20 rounded-xl">
+                        {selectedTicket.recipient_type === 'company' ? <FiHome className="text-[#bca142]" size={20} /> : <FiShield className="text-[#bca142]" size={20} />}
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-900 text-lg">{selectedTicket.recipient_name}</p>
+                        {getRecipientBadge(selectedTicket.recipient_type)}
+                        {selectedTicket.recipient_type === 'company' && (
+                          <p className="text-sm text-green-600 font-medium mt-1">This ticket was sent to a company for support</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-200">
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Subject</label>
+                    <p className="text-lg font-semibold text-gray-900">{selectedTicket.subject}</p>
+                  </div>
+                </div>
+
+                {/* Right Column */}
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-gradient-to-r from-[#bca142]/10 to-[#bca142]/20 p-4 rounded-xl border border-[#bca142]/30">
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Priority</label>
+                      <span className={`inline-flex items-center px-3 py-1 text-xs font-bold rounded-full ${
+                        selectedTicket.priority === 'low' ? 'bg-green-100 text-green-800' :
+                        selectedTicket.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                        selectedTicket.priority === 'high' ? 'bg-orange-100 text-orange-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {selectedTicket.priority?.charAt(0).toUpperCase() + selectedTicket.priority?.slice(1)}
+                      </span>
+                    </div>
+                    
+                    <div className="bg-gradient-to-r from-[#bca142]/10 to-[#bca142]/20 p-4 rounded-xl border border-[#bca142]/30">
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Category</label>
+                      <p className="text-sm font-semibold text-gray-900 capitalize bg-white px-3 py-1 rounded-lg">{selectedTicket.category}</p>
+                    </div>
+                  </div>
+
+                  {/* Special Admin Alert */}
+                  {selectedTicket.user_role === 'admin' && (
+                    <div className="bg-gradient-to-r from-red-100 to-pink-100 p-6 rounded-xl border-2 border-red-300">
+                      <div className="flex items-center space-x-3">
+                        <FiShield className="text-red-600" size={24} />
+                        <div>
+                          <p className="font-bold text-red-800">⚠️ ADMIN TICKET</p>
+                          <p className="text-sm text-red-700">This ticket was created by an admin user - handle with priority</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Full Width Description */}
+                <div className="lg:col-span-2">
+                  <div className="bg-gradient-to-r from-slate-50 to-gray-50 p-6 rounded-xl border border-slate-200">
+                    <label className="block text-sm font-bold text-gray-700 mb-3">Ticket Description</label>
+                    <div className="bg-white p-4 rounded-lg border border-gray-200 max-h-40 overflow-y-auto">
+                      <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{selectedTicket.description}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-[#bca142]/10 to-[#bca142]/20 px-8 py-6 flex justify-end border-t border-gray-200">
+              <button
+                onClick={closeModal}
+                className="bg-gradient-to-r from-[#bca142] to-[#bca142] hover:from-black hover:to-[#bca142] text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
+                Close Details
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

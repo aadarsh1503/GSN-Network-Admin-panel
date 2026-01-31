@@ -156,10 +156,10 @@ const RejectedCompanyQuotesList = () => {
 
   const getStatusBadge = (status) => {
     const colors = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      approved: 'bg-blue-100 text-blue-800',
+      pending: 'bg-yellow-100 text-[#bca142]',
+      approved: 'bg-[#bca142] text-white',
       rejected: 'bg-red-100 text-red-800',
-      running: 'bg-green-100 text-green-800',
+      running: 'bg-[#bca142] text-white',
       closed: 'bg-gray-100 text-gray-800'
     };
     
@@ -214,7 +214,7 @@ const RejectedCompanyQuotesList = () => {
                 id="date"
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
-                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#bca142] focus:border-[#bca142]"
               />
             </div>
             <div className="w-full">
@@ -228,7 +228,7 @@ const RejectedCompanyQuotesList = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search..."
-                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#bca142] focus:border-[#bca142]"
               />
             </div>
             <div className="w-full">
@@ -237,7 +237,7 @@ const RejectedCompanyQuotesList = () => {
                   setDateFilter('');
                   setSearchTerm('');
                 }}
-                className="w-full flex items-center justify-center px-3 py-1.5 text-sm bg-[#d4b46a] text-white font-medium rounded-md shadow-sm hover:bg-[#c8a860] transition-colors"
+                className="w-full flex items-center justify-center px-3 py-1.5 text-sm bg-[#bca142] text-white font-medium rounded-md shadow-sm hover:bg-[#B8941F] transition-colors"
               >
                 <FiFilter className="mr-1" />
                 Clear
@@ -272,12 +272,12 @@ const RejectedCompanyQuotesList = () => {
           {/* Compact Table */}
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left text-gray-600">
-              <thead className="bg-[#e6c98c] text-gray-700 uppercase text-xs">
+              <thead className="bg-[#bca142] text-white uppercase text-xs">
                 <tr>
                   <th scope="col" className="px-2 py-2 font-semibold">
                     <div className="flex items-center cursor-pointer" onClick={() => handleSort('id')}>
                       #
-                      <FaSort className="ml-1 h-2 w-2 text-gray-500" />
+                      <FaSort className="ml-1 h-2 w-2 text-white" />
                     </div>
                   </th>
                   <th scope="col" className="px-2 py-2 font-semibold min-w-[120px]">
@@ -289,7 +289,7 @@ const RejectedCompanyQuotesList = () => {
                   <th scope="col" className="px-2 py-2 font-semibold">
                     <div className="flex items-center cursor-pointer" onClick={() => handleSort('shipping_mode')}>
                       Mode
-                      <FaSort className="ml-1 h-2 w-2 text-gray-500" />
+                      <FaSort className="ml-1 h-2 w-2 text-white" />
                     </div>
                   </th>
                   <th scope="col" className="px-2 py-2 font-semibold min-w-[150px]">
@@ -304,13 +304,13 @@ const RejectedCompanyQuotesList = () => {
                   <th scope="col" className="px-2 py-2 font-semibold">
                     <div className="flex items-center cursor-pointer" onClick={() => handleSort('status')}>
                       Status
-                      <FaSort className="ml-1 h-2 w-2 text-gray-500" />
+                      <FaSort className="ml-1 h-2 w-2 text-white" />
                     </div>
                   </th>
                   <th scope="col" className="px-2 py-2 font-semibold">
                     <div className="flex items-center cursor-pointer" onClick={() => handleSort('created_at')}>
                       Date
-                      <FaSort className="ml-1 h-2 w-2 text-gray-500" />
+                      <FaSort className="ml-1 h-2 w-2 text-white" />
                     </div>
                   </th>
                   <th scope="col" className="px-2 py-2 font-semibold">
@@ -334,7 +334,7 @@ const RejectedCompanyQuotesList = () => {
                           <div className="font-medium text-xs truncate">{quote.user_name || 'Guest'}</div>
                           <div className="text-xs text-gray-500 truncate">{quote.user_email}</div>
                           {quote.user_role && (
-                            <div className="text-xs text-blue-600 capitalize">{quote.user_role}</div>
+                            <div className="text-xs text-[#bca142] capitalize">{quote.user_role}</div>
                           )}
                         </div>
                       </td>
@@ -360,7 +360,7 @@ const RejectedCompanyQuotesList = () => {
                       <td className="px-2 py-2">
                         {quote.company_name && quote.company_name !== 'null' ? (
                           <div className="min-w-[140px]">
-                            <div className="font-medium text-xs text-blue-600 truncate">{quote.company_name}</div>
+                            <div className="font-medium text-xs text-[#bca142] truncate">{quote.company_name}</div>
                             <div className="text-xs text-gray-500 truncate">{quote.company_email || 'No email'}</div>
                             <div className="text-xs text-red-600">❌ Rejected</div>
                           </div>
@@ -387,7 +387,7 @@ const RejectedCompanyQuotesList = () => {
                         <div className="flex items-center">
                           <button 
                             onClick={() => handleViewDetails(quote)}
-                            className="p-1.5 bg-gradient-to-r from-red-500 to-red-600 text-white rounded hover:from-red-600 hover:to-red-700 transition-all duration-200 shadow-sm hover:shadow-md"
+                            className="p-1.5 bg-black text-white rounded hover:bg-gray-800 transition-all duration-200 shadow-sm hover:shadow-md"
                             title="View Details"
                             disabled={isLoadingDetails}
                           >
@@ -434,7 +434,7 @@ const RejectedCompanyQuotesList = () => {
                       onClick={() => setCurrentPage(pageNum)}
                       className={`px-2 py-1 text-xs border-t border-b ${
                         currentPage === pageNum 
-                          ? 'text-white bg-[#d4b46a]' 
+                          ? 'text-white bg-[#bca142]' 
                           : 'hover:bg-gray-100'
                       }`}
                     >

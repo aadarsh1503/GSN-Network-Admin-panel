@@ -115,7 +115,7 @@ const TransactionHistory = () => {
     return (
       <div className="bg-white p-6 md:p-8 rounded-lg shadow-md w-full">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#CDA435]"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#bca142]"></div>
         </div>
       </div>
     );
@@ -125,7 +125,7 @@ const TransactionHistory = () => {
     <div className="bg-white p-6 md:p-8 rounded-lg shadow-md w-full">
       <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <FaCreditCard className="text-[#CDA435]" />
+          <FaCreditCard className="text-[#bca142]" />
           Transaction History
         </div>
         <div className="text-sm text-gray-600">
@@ -143,7 +143,7 @@ const TransactionHistory = () => {
             }}
             className={`flex-1 px-4 py-2 rounded-md font-semibold transition-all duration-200 ${
               activeTab === 'all'
-                ? 'bg-[#CDA435] text-white shadow-md'
+                ? 'bg-[#bca142] text-white shadow-md'
                 : 'text-gray-600 hover:text-gray-800'
             }`}
           >
@@ -185,7 +185,7 @@ const TransactionHistory = () => {
           <select 
             value={entriesPerPage} 
             onChange={(e) => { setEntriesPerPage(Number(e.target.value)); setCurrentPage(1); }}
-            className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+            className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#bca142]"
           >
             <option value="10">10</option>
             <option value="25">25</option>
@@ -200,7 +200,7 @@ const TransactionHistory = () => {
             <select 
               value={statusFilter}
               onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-              className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+              className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#bca142]"
             >
               <option value="all">All Status</option>
               <option value="completed">Completed</option>
@@ -218,7 +218,7 @@ const TransactionHistory = () => {
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
               placeholder="Transaction ID, description..."
-              className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+              className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#bca142]"
             />
           </div>
         </div>

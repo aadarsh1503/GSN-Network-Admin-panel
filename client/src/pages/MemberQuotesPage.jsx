@@ -159,13 +159,13 @@ const MemberQuotesPage = () => {
     }
   };
 
-  const getShippingIcon = (mode) => {
+  const getShippingIcon = (mode, color = 'text-white') => {
     switch (mode.toLowerCase()) {
-      case 'sea': return <FaShip className="text-blue-500" />;
-      case 'air': return <FaPlane className="text-sky-500" />;
-      case 'road': return <FaTruck className="text-green-500" />;
-      case 'rail': return <FaTrain className="text-purple-500" />;
-      default: return <FaShip className="text-gray-500" />;
+      case 'sea': return <FaShip className={color} />;
+      case 'air': return <FaPlane className={color} />;
+      case 'road': return <FaTruck className={color} />;
+      case 'rail': return <FaTrain className={color} />;
+      default: return <FaShip className={color} />;
     }
   };
 
@@ -208,7 +208,7 @@ const MemberQuotesPage = () => {
     return (
       <div className="flex items-center gap-2">
         <span className="text-gray-400">●●●●●●●●●●</span>
-        <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded">
+        <span className="text-xs bg-[#bca142] text-white px-2 py-1 rounded">
           Upgrade to view
         </span>
       </div>
@@ -241,12 +241,12 @@ const MemberQuotesPage = () => {
       {error && error.includes('subscription') && (
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            <div className="bg-black/10 border border-black/30 text-black px-4 py-3 rounded mb-4">
               {error}
             </div>
             <a 
               href="/company/subscriptions" 
-              className="bg-[#CDA435] text-white px-6 py-2 rounded hover:bg-yellow-600 transition-colors"
+              className="bg-[#bca142] text-white px-6 py-2 rounded hover:bg-black transition-colors"
             >
               View Subscription Plans
             </a>
@@ -266,7 +266,7 @@ const MemberQuotesPage = () => {
             <div className="bg-white rounded-lg shadow-md p-3 mb-3">
               <div className="flex justify-between items-center">
                 <div>
-                  <h2 className="text-sm font-semibold text-[#CDA435]">
+                  <h2 className="text-sm font-semibold text-[#bca142]">
                     {subscription.planName} Plan
                   </h2>
                   <p className="text-xs text-gray-600">
@@ -275,34 +275,34 @@ const MemberQuotesPage = () => {
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-gray-500">Remaining</p>
-                  <p className="text-lg font-bold text-green-600">
+                  <p className="text-lg font-bold text-[#bca142]">
                     {subscription.remainingResponses}
                   </p>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="bg-amber-50 border-2 border-amber-200 rounded-lg p-3 mb-3">
+            <div className="bg-[#bca142]/10 border-2 border-[#bca142]/30 rounded-lg p-3 mb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <div className="w-8 h-8 bg-[#CDA435] rounded-full flex items-center justify-center mr-2">
+                  <div className="w-8 h-8 bg-[#bca142] rounded-full flex items-center justify-center mr-2">
                     <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                       <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
                     </svg>
                   </div>
                   <div>
-                    <h2 className="text-sm font-semibold text-amber-900">
+                    <h2 className="text-sm font-semibold text-black">
                       Guest Mode - Browse Only
                     </h2>
-                    <p className="text-amber-700 text-xs">
+                    <p className="text-black text-xs">
                       You can view all quotes but need a subscription to respond
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowSubscriptionModal(true)}
-                  className="bg-[#CDA435] text-white px-3 py-1 rounded-lg hover:bg-yellow-600 transition-all duration-300 transform hover:scale-105 shadow-lg font-medium text-sm"
+                  className="bg-[#bca142] text-white px-3 py-1 rounded-lg hover:bg-black transition-all duration-300 transform hover:scale-105 shadow-lg font-medium text-sm"
                 >
                   Upgrade Now
                 </button>
@@ -316,7 +316,7 @@ const MemberQuotesPage = () => {
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-bold text-gray-800 flex items-center gap-1">
-                <FaFilter className="text-[#CDA435] text-xs" />
+                <FaFilter className="text-[#bca142] text-xs" />
                 Filters & Search
               </h2>
               <span className="text-xs text-gray-500">
@@ -327,7 +327,7 @@ const MemberQuotesPage = () => {
               {hasActiveFilters && (
                 <button
                   onClick={clearFilters}
-                  className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-red-600 transition-colors"
+                  className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-black transition-colors"
                 >
                   <FaTimes className="text-xs" />
                   Clear All
@@ -337,7 +337,7 @@ const MemberQuotesPage = () => {
                 onClick={() => setShowFilters(!showFilters)}
                 className={`flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
                   showFilters 
-                    ? 'bg-[#CDA435] text-white' 
+                    ? 'bg-[#bca142] text-white' 
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -356,7 +356,7 @@ const MemberQuotesPage = () => {
                 placeholder="Search quotes by ID, product, customer, country, or shipping mode..."
                 value={filters.search}
                 onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                className="w-full pl-8 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-200"
+                className="w-full pl-8 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-200"
               />
             </div>
           </div>
@@ -370,7 +370,7 @@ const MemberQuotesPage = () => {
                 <select
                   value={filters.sortBy}
                   onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value }))}
-                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent"
                 >
                   <option value="newest">🆕 Newest First</option>
                   <option value="oldest">📅 Oldest First</option>
@@ -384,7 +384,7 @@ const MemberQuotesPage = () => {
                 <select
                   value={filters.shippingMode}
                   onChange={(e) => setFilters(prev => ({ ...prev, shippingMode: e.target.value }))}
-                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent"
                 >
                   <option value="">🚢 All Shipping Modes</option>
                   {uniqueValues.shippingModes.map(mode => (
@@ -401,7 +401,7 @@ const MemberQuotesPage = () => {
                 <select
                   value={filters.departureCountry}
                   onChange={(e) => setFilters(prev => ({ ...prev, departureCountry: e.target.value }))}
-                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent"
                 >
                   <option value="">🌍 All Departure Countries</option>
                   {uniqueValues.departureCountries.map(country => (
@@ -416,7 +416,7 @@ const MemberQuotesPage = () => {
                 <select
                   value={filters.arrivalCountry}
                   onChange={(e) => setFilters(prev => ({ ...prev, arrivalCountry: e.target.value }))}
-                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent"
                 >
                   <option value="">🌍 All Arrival Countries</option>
                   {uniqueValues.arrivalCountries.map(country => (
@@ -431,7 +431,7 @@ const MemberQuotesPage = () => {
                 <select
                   value={filters.hasResponded}
                   onChange={(e) => setFilters(prev => ({ ...prev, hasResponded: e.target.value }))}
-                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent"
                 >
                   <option value="all">📋 All Quotes</option>
                   <option value="not_responded">🆕 Not Responded</option>
@@ -446,7 +446,7 @@ const MemberQuotesPage = () => {
                   type="date"
                   value={filters.dateFrom}
                   onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
-                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent"
                 />
               </div>
 
@@ -457,7 +457,7 @@ const MemberQuotesPage = () => {
                   type="date"
                   value={filters.dateTo}
                   onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
-                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#CDA435] focus:border-transparent"
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent"
                 />
               </div>
 
@@ -467,19 +467,19 @@ const MemberQuotesPage = () => {
                 <div className="flex flex-wrap gap-1">
                   <button
                     onClick={() => setFilters(prev => ({ ...prev, hasResponded: 'not_responded' }))}
-                    className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full hover:bg-blue-200 transition-colors"
+                    className="px-2 py-1 text-xs bg-[#bca142]/20 text-[#bca142] rounded-full hover:bg-[#bca142]/30 transition-colors"
                   >
                     🆕 New Opportunities
                   </button>
                   <button
                     onClick={() => setFilters(prev => ({ ...prev, shippingMode: 'sea' }))}
-                    className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full hover:bg-blue-200 transition-colors"
+                    className="px-2 py-1 text-xs bg-[#bca142]/20 text-[#bca142] rounded-full hover:bg-[#bca142]/30 transition-colors"
                   >
                     🚢 Sea Freight
                   </button>
                   <button
                     onClick={() => setFilters(prev => ({ ...prev, shippingMode: 'air' }))}
-                    className="px-2 py-1 text-xs bg-sky-100 text-sky-800 rounded-full hover:bg-sky-200 transition-colors"
+                    className="px-2 py-1 text-xs bg-black/20 text-black rounded-full hover:bg-black/30 transition-colors"
                   >
                     ✈️ Air Freight
                   </button>
@@ -493,7 +493,7 @@ const MemberQuotesPage = () => {
                         dateTo: nextWeek.toISOString().split('T')[0]
                       }));
                     }}
-                    className="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded-full hover:bg-purple-200 transition-colors"
+                    className="px-2 py-1 text-xs bg-black/20 text-black rounded-full hover:bg-black/30 transition-colors"
                   >
                     📅 This Week
                   </button>
@@ -517,7 +517,7 @@ const MemberQuotesPage = () => {
                 <p className="text-gray-400 mt-2">Try adjusting your search criteria</p>
                 <button
                   onClick={clearFilters}
-                  className="mt-4 px-4 py-2 bg-[#CDA435] text-white rounded-lg hover:bg-yellow-600 transition-colors text-sm"
+                  className="mt-4 px-4 py-2 bg-[#bca142] text-white rounded-lg hover:bg-black transition-colors text-sm"
                 >
                   Clear All Filters
                 </button>
@@ -529,7 +529,7 @@ const MemberQuotesPage = () => {
             {filteredAndSortedQuotes.map((quote) => (
               <div key={quote.id} className={`bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden ${!canRespond ? 'border-2 border-amber-200' : 'border border-gray-200'}`}>
                 {/* Header Gradient */}
-                <div className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B] p-2">
+                <div className="bg-[#bca142] p-2">
                   <div className="flex items-center justify-between text-white">
                     <div className="flex items-center gap-1">
                       {getShippingIcon(quote.shipping_mode)}
@@ -546,23 +546,23 @@ const MemberQuotesPage = () => {
                 <div className="p-3">
                   {/* User Info */}
                   {(quote.user_name || quote.user_email) && (
-                    <div className="mb-2 p-2 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                    <div className="mb-2 p-2 bg-[#bca142]/10 rounded-lg border border-[#bca142]/30">
                       <div className="text-xs">
-                        <p className="font-semibold text-blue-800 mb-1 flex items-center gap-1">
-                          <FaMapMarkerAlt className="text-blue-600 text-xs" />
+                        <p className="font-semibold text-[#bca142] mb-1 flex items-center gap-1">
+                          <FaMapMarkerAlt className="text-[#bca142] text-xs" />
                           Requested by:
-                          {!canSeeContactInfo() && <svg className="w-3 h-3 text-yellow-500 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          {!canSeeContactInfo() && <svg className="w-3 h-3 text-black ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                           </svg>}
                         </p>
                         {quote.user_name && (
-                          <p className="text-blue-900 font-bold text-sm">{renderContactInfo(quote.user_name, 'Name')}</p>
+                          <p className="text-black font-bold text-sm">{renderContactInfo(quote.user_name, 'Name')}</p>
                         )}
                         {quote.user_email && (
-                          <p className="text-blue-700 text-xs">✉️ {renderContactInfo(quote.user_email, 'Email')}</p>
+                          <p className="text-black text-xs">✉️ {renderContactInfo(quote.user_email, 'Email')}</p>
                         )}
                         {quote.user_phone && (
-                          <p className="text-blue-700 text-xs">📞 {renderContactInfo(quote.user_phone, 'Phone')}</p>
+                          <p className="text-black text-xs">📞 {renderContactInfo(quote.user_phone, 'Phone')}</p>
                         )}
                       </div>
                     </div>
@@ -571,71 +571,71 @@ const MemberQuotesPage = () => {
                   {/* Route */}
                   <div className="mb-2">
                     <div className="flex items-center text-xs text-gray-600 mb-1">
-                      <FaMapMarkerAlt className="mr-1 text-[#CDA435]" />
+                      <FaMapMarkerAlt className="mr-1 text-[#bca142]" />
                       <span className="font-semibold">Shipping Route</span>
                     </div>
-                    <div className="flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 p-2 rounded-lg border border-green-200">
+                    <div className="flex items-center justify-between bg-[#bca142]/10 p-2 rounded-lg border border-[#bca142]/30">
                       <div className="text-center">
-                        <p className="font-bold text-green-900 text-xs">{quote.departure_country}</p>
+                        <p className="font-bold text-black text-xs">{quote.departure_country}</p>
                         {quote.departure_city && (
-                          <p className="text-xs text-green-700">{quote.departure_city}</p>
+                          <p className="text-xs text-gray-700">{quote.departure_city}</p>
                         )}
                         {quote.departure_state && (
-                          <p className="text-xs text-green-600">{quote.departure_state}</p>
+                          <p className="text-xs text-gray-600">{quote.departure_state}</p>
                         )}
                       </div>
                       <div className="flex-1 mx-2">
-                        <div className="border-t-2 border-dashed border-green-400 relative">
+                        <div className="border-t-2 border-dashed border-[#bca142] relative">
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="bg-white px-2 py-1 text-xs font-bold text-green-600 rounded-full border border-green-300">→</span>
+                            <span className="bg-white px-2 py-1 text-xs font-bold text-[#bca142] rounded-full border border-[#bca142]">→</span>
                           </div>
                         </div>
                       </div>
                       <div className="text-center">
-                        <p className="font-bold text-green-900 text-xs">{quote.arrival_country}</p>
+                        <p className="font-bold text-black text-xs">{quote.arrival_country}</p>
                         {quote.arrival_city && (
-                          <p className="text-xs text-green-700">{quote.arrival_city}</p>
+                          <p className="text-xs text-gray-700">{quote.arrival_city}</p>
                         )}
                         {quote.arrival_state && (
-                          <p className="text-xs text-green-600">{quote.arrival_state}</p>
+                          <p className="text-xs text-gray-600">{quote.arrival_state}</p>
                         )}
                       </div>
                     </div>
                   </div>
 
                   {/* Product Info */}
-                  <div className="mb-2 p-2 bg-gradient-to-r from-yellow-50 to-amber-50 rounded-lg border border-yellow-200">
-                    <p className="text-xs font-semibold text-yellow-800 mb-1">Product Details</p>
-                    <p className="font-medium text-yellow-900 mb-1 text-xs" title={quote.product_description}>
+                  {/* <div className="mb-2 p-2 bg-[#bca142]/10 rounded-lg border border-[#bca142]/30">
+                    <p className="text-xs font-semibold text-[#bca142] mb-1">Product Details</p>
+                    <p className="font-medium text-black mb-1 text-xs" title={quote.product_description}>
                       {quote.product_description}
                     </p>
                     <div className="grid grid-cols-2 gap-1 text-xs">
                       <div>
-                        <span className="text-yellow-700">Weight:</span>
-                        <span className="font-medium text-yellow-900 ml-1">{quote.weight || 'N/A'}</span>
+                        <span className="text-black">Weight:</span>
+                        <span className="font-medium text-black ml-1">{quote.weight || 'N/A'}</span>
                       </div>
                       {quote.quantity && (
                         <div>
-                          <span className="text-yellow-700">Qty:</span>
-                          <span className="font-medium text-yellow-900 ml-1">{quote.quantity}</span>
+                          <span className="text-black">Qty:</span>
+                          <span className="font-medium text-black ml-1">{quote.quantity}</span>
                         </div>
                       )}
                     </div>
-                  </div>
+                  </div> */}
 
                   {/* Timeline & Details */}
                   <div className="grid grid-cols-1 gap-2 mb-2 text-xs">
-                    <div className="flex items-center justify-between p-2 bg-purple-50 rounded-lg border border-purple-200">
+                    <div className="flex items-center justify-between p-2 bg-[#bca142]/10 rounded-lg border border-[#bca142]/30">
                       <div className="flex items-center gap-1">
-                        <FaClock className="text-purple-600" />
-                        <span className="text-purple-700 font-medium">Arrival Date:</span>
+                        <FaClock className="text-[#bca142]" />
+                        <span className="text-black font-medium">Arrival Date:</span>
                       </div>
-                      <span className="font-bold text-purple-900">{formatDate(quote.arrival_date)}</span>
+                      <span className="font-bold text-black">{formatDate(quote.arrival_date)}</span>
                     </div>
                     
                     {quote.incoterms && (
                       <div className="flex items-center justify-between">
-                        <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                        <span className="bg-[#bca142] text-white px-2 py-1 rounded-full text-xs font-medium">
                           {quote.incoterms}
                         </span>
                         <span className="text-gray-600 text-xs">
@@ -649,10 +649,10 @@ const MemberQuotesPage = () => {
                   <div className="flex space-x-1">
                     <button
                       onClick={() => handleViewDetails(quote)}
-                      className="flex-1 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 py-2 px-2 rounded-lg hover:from-gray-200 hover:to-gray-300 transition-all duration-300 flex items-center justify-center font-medium shadow-sm text-xs"
+                      className="flex-1 bg-gray-100 text-gray-700 py-2 px-2 rounded-lg hover:bg-gray-200 transition-all duration-300 flex items-center justify-center font-medium shadow-sm text-xs"
                     >
                       <FaEye className="mr-1" />
-                      View Details
+                      View
                     </button>
                     {quote.already_responded ? (
                       <button
@@ -666,7 +666,7 @@ const MemberQuotesPage = () => {
                     ) : !canRespond ? (
                       <button
                         onClick={() => handleRespondToQuote(quote)}
-                        className="flex-1 bg-gradient-to-r from-amber-500 to-yellow-500 text-white py-2 px-2 rounded-lg hover:from-amber-600 hover:to-yellow-600 transition-all duration-300 flex items-center justify-center transform hover:scale-105 shadow-lg font-medium text-xs"
+                        className="flex-1 bg-[#bca142] text-white py-2 px-2 rounded-lg hover:bg-black transition-all duration-300 flex items-center justify-center transform hover:scale-105 shadow-lg font-medium text-xs"
                       >
                         <FaReply className="mr-1" />
                         Upgrade to Respond
@@ -674,7 +674,7 @@ const MemberQuotesPage = () => {
                     ) : (
                       <button
                         onClick={() => handleRespondToQuote(quote)}
-                        className="flex-1 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white py-2 px-2 rounded-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center transform hover:scale-105 font-medium text-xs"
+                        className="flex-1 bg-[#bca142] text-white py-2 px-2 rounded-lg hover:bg-black transition-all duration-300 flex items-center justify-center transform hover:scale-105 font-medium text-xs"
                       >
                         <FaReply className="mr-1" />
                         Respond
@@ -693,7 +693,7 @@ const MemberQuotesPage = () => {
             <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
               <div className="p-4">
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-2xl font-bold bg-gradient-to-r from-[#CDA435] to-[#D9B95B] bg-clip-text text-transparent">
+                  <h2 className="text-2xl font-bold text-[#bca142]">
                     Quote Details #{selectedQuote.id}
                   </h2>
                   <button
@@ -706,8 +706,8 @@ const MemberQuotesPage = () => {
 
                 <div className="space-y-3">
                   {/* Quote Header Info */}
-                  <div className="p-3 bg-gradient-to-r from-gray-50 to-slate-50 rounded-lg border-2 border-gray-200">
-                    <h3 className="text-lg font-bold text-gray-800 mb-2">Quote Information</h3>
+                  <div className="p-3 bg-[#bca142]/10 rounded-lg border-2 border-[#bca142]/30">
+                    <h3 className="text-lg font-bold text-black mb-2">Quote Information</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <div>
                         <label className="block text-xs font-semibold text-gray-700">Quote ID:</label>
@@ -725,7 +725,7 @@ const MemberQuotesPage = () => {
                       </div>
                       <div>
                         <label className="block text-xs font-semibold text-gray-700">Status:</label>
-                        <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                        <span className="inline-block bg-[#bca142] text-white px-2 py-1 rounded-full text-xs font-medium">
                           {selectedQuote.status || 'Active'}
                         </span>
                       </div>
@@ -734,11 +734,11 @@ const MemberQuotesPage = () => {
 
                   {/* Customer Info */}
                   {(selectedQuote.user_name || selectedQuote.user_email) && (
-                    <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-200">
-                      <h3 className="text-lg font-bold text-blue-800 mb-2 flex items-center gap-2">
-                        <FaMapMarkerAlt className="text-blue-600" />
+                    <div className="p-3 bg-[#bca142]/10 rounded-lg border-2 border-[#bca142]/30">
+                      <h3 className="text-lg font-bold text-[#bca142] mb-2 flex items-center gap-2">
+                        <FaMapMarkerAlt className="text-[#bca142]" />
                         Customer Details
-                        {!canSeeContactInfo() && <svg className="w-4 h-4 text-yellow-500 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        {!canSeeContactInfo() && <svg className="w-4 h-4 text-black ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                         </svg>}
                       </h3>
@@ -746,28 +746,28 @@ const MemberQuotesPage = () => {
                         <div className="space-y-2">
                           {selectedQuote.user_name && (
                             <div>
-                              <label className="block text-xs font-semibold text-blue-700">Customer:</label>
-                              <p className="text-blue-900 font-medium text-sm">{renderContactInfo(selectedQuote.user_name, 'Name')} ({selectedQuote.user_role || 'user'})</p>
+                              <label className="block text-xs font-semibold text-black">Customer:</label>
+                              <p className="text-black font-medium text-sm">{renderContactInfo(selectedQuote.user_name, 'Name')} ({selectedQuote.user_role || 'user'})</p>
                             </div>
                           )}
                           {selectedQuote.user_email && (
                             <div>
-                              <label className="block text-xs font-semibold text-blue-700">Contact:</label>
-                              <p className="text-blue-800 text-sm">{renderContactInfo(selectedQuote.user_email, 'Email')}</p>
+                              <label className="block text-xs font-semibold text-black">Contact:</label>
+                              <p className="text-black text-sm">{renderContactInfo(selectedQuote.user_email, 'Email')}</p>
                             </div>
                           )}
                           {selectedQuote.user_phone && (
                             <div>
-                              <label className="block text-xs font-semibold text-blue-700">Phone:</label>
-                              <p className="text-blue-800 text-sm">{renderContactInfo(selectedQuote.user_phone, 'Phone')}</p>
+                              <label className="block text-xs font-semibold text-black">Phone:</label>
+                              <p className="text-black text-sm">{renderContactInfo(selectedQuote.user_phone, 'Phone')}</p>
                             </div>
                           )}
                         </div>
                         <div className="space-y-2">
                           {(selectedQuote.user_country || selectedQuote.user_state || selectedQuote.user_city) && (
                             <div>
-                              <label className="block text-xs font-semibold text-blue-700">Customer Location:</label>
-                              <p className="text-blue-800 text-sm">
+                              <label className="block text-xs font-semibold text-black">Customer Location:</label>
+                              <p className="text-black text-sm">
                                 {[selectedQuote.user_country, selectedQuote.user_state, selectedQuote.user_city].filter(Boolean).join(', ')}
                               </p>
                             </div>
@@ -778,54 +778,54 @@ const MemberQuotesPage = () => {
                   )}
 
                   {/* Shipping Requirements */}
-                  <div className="p-6 bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl border-2 border-purple-200">
-                    <h3 className="text-xl font-bold text-purple-800 mb-4 flex items-center gap-2">
-                      <FaTruck className="text-purple-600" />
+                  <div className="p-6 bg-[#bca142]/10 rounded-xl border-2 border-[#bca142]/30">
+                    <h3 className="text-xl font-bold text-[#bca142] mb-4 flex items-center gap-2">
+                      <FaTruck className="text-[#bca142]" />
                       Shipping Requirements
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-3">
                         <div>
-                          <label className="block text-sm font-semibold text-purple-700">Shipping Mode:</label>
-                          <p className="text-purple-900 font-medium capitalize flex items-center gap-2">
-                            {getShippingIcon(selectedQuote.shipping_mode)}
+                          <label className="block text-sm font-semibold text-black">Shipping Mode:</label>
+                          <p className="text-black font-medium capitalize flex items-center gap-2">
+                            {getShippingIcon(selectedQuote.shipping_mode, 'text-[#bca142]')}
                             {selectedQuote.shipping_mode}
                           </p>
                         </div>
                         <div>
-                          <label className="block text-sm font-semibold text-purple-700">Arrival Date:</label>
-                          <p className="text-purple-800 font-medium">{formatDate(selectedQuote.arrival_date)}</p>
+                          <label className="block text-sm font-semibold text-black">Arrival Date:</label>
+                          <p className="text-black font-medium">{formatDate(selectedQuote.arrival_date)}</p>
                         </div>
                         {selectedQuote.departure_date && (
                           <div>
-                            <label className="block text-sm font-semibold text-purple-700">Departure Date:</label>
-                            <p className="text-purple-800">{formatDate(selectedQuote.departure_date)}</p>
+                            <label className="block text-sm font-semibold text-black">Departure Date:</label>
+                            <p className="text-black">{formatDate(selectedQuote.departure_date)}</p>
                           </div>
                         )}
                         {selectedQuote.incoterms && (
                           <div>
-                            <label className="block text-sm font-semibold text-purple-700">Incoterms:</label>
-                            <p className="text-purple-800 font-medium">{selectedQuote.incoterms}</p>
+                            <label className="block text-sm font-semibold text-black">Incoterms:</label>
+                            <p className="text-black font-medium">{selectedQuote.incoterms}</p>
                           </div>
                         )}
                       </div>
                       <div className="space-y-3">
                         <div>
-                          <label className="block text-sm font-semibold text-purple-700">From:</label>
-                          <div className="text-purple-800">
+                          <label className="block text-sm font-semibold text-black">From:</label>
+                          <div className="text-black">
                             <p className="font-medium">{selectedQuote.departure_country}</p>
                             {selectedQuote.departure_state && <p className="text-sm">{selectedQuote.departure_state}</p>}
                             {selectedQuote.departure_city && <p className="text-sm">{selectedQuote.departure_city}</p>}
-                            {selectedQuote.departure_type && <p className="text-xs text-purple-600">({selectedQuote.departure_type})</p>}
+                            {selectedQuote.departure_type && <p className="text-xs text-gray-600">({selectedQuote.departure_type})</p>}
                           </div>
                         </div>
                         <div>
-                          <label className="block text-sm font-semibold text-purple-700">To:</label>
-                          <div className="text-purple-800">
+                          <label className="block text-sm font-semibold text-black">To:</label>
+                          <div className="text-black">
                             <p className="font-medium">{selectedQuote.arrival_country}</p>
                             {selectedQuote.arrival_state && <p className="text-sm">{selectedQuote.arrival_state}</p>}
                             {selectedQuote.arrival_city && <p className="text-sm">{selectedQuote.arrival_city}</p>}
-                            {selectedQuote.arrival_type && <p className="text-xs text-purple-600">({selectedQuote.arrival_type})</p>}
+                            {selectedQuote.arrival_type && <p className="text-xs text-gray-600">({selectedQuote.arrival_type})</p>}
                           </div>
                         </div>
                       </div>
@@ -833,36 +833,36 @@ const MemberQuotesPage = () => {
                   </div>
 
                   {/* Cargo Details */}
-                  <div className="p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border-2 border-green-200">
-                    <h3 className="text-xl font-bold text-green-800 mb-4 flex items-center gap-2">
-                      <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="p-6 bg-[#bca142]/10 rounded-xl border-2 border-[#bca142]/30">
+                    <h3 className="text-xl font-bold text-[#bca142] mb-4 flex items-center gap-2">
+                      <svg className="w-6 h-6 text-[#bca142]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                       </svg>
                       Cargo Details
                     </h3>
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-semibold text-green-700">Product:</label>
-                        <p className="text-green-900 font-medium">{selectedQuote.product_description}</p>
+                        <label className="block text-sm font-semibold text-black">Product:</label>
+                        <p className="text-black font-medium">{selectedQuote.product_description}</p>
                       </div>
                       
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {selectedQuote.packing && (
                           <div>
-                            <label className="block text-sm font-semibold text-green-700">Packing:</label>
-                            <p className="text-green-800 capitalize">{selectedQuote.packing}</p>
+                            <label className="block text-sm font-semibold text-black">Packing:</label>
+                            <p className="text-black capitalize">{selectedQuote.packing}</p>
                           </div>
                         )}
                         {selectedQuote.type && (
                           <div>
-                            <label className="block text-sm font-semibold text-green-700">Cargo Type:</label>
-                            <p className="text-green-800 capitalize">{selectedQuote.type}</p>
+                            <label className="block text-sm font-semibold text-black">Cargo Type:</label>
+                            <p className="text-black capitalize">{selectedQuote.type}</p>
                           </div>
                         )}
                         {selectedQuote.quantity && (
                           <div>
-                            <label className="block text-sm font-semibold text-green-700">Quantity:</label>
-                            <p className="text-green-800">{selectedQuote.quantity}</p>
+                            <label className="block text-sm font-semibold text-black">Quantity:</label>
+                            <p className="text-black">{selectedQuote.quantity}</p>
                           </div>
                         )}
                       </div>
@@ -870,14 +870,14 @@ const MemberQuotesPage = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {selectedQuote.weight && (
                           <div>
-                            <label className="block text-sm font-semibold text-green-700">Weight:</label>
-                            <p className="text-green-800 font-medium">{selectedQuote.weight}</p>
+                            <label className="block text-sm font-semibold text-black">Weight:</label>
+                            <p className="text-black font-medium">{selectedQuote.weight}</p>
                           </div>
                         )}
                         {(selectedQuote.length && selectedQuote.width && selectedQuote.height) && (
                           <div>
-                            <label className="block text-sm font-semibold text-green-700">Dimensions:</label>
-                            <p className="text-green-800 font-medium">
+                            <label className="block text-sm font-semibold text-black">Dimensions:</label>
+                            <p className="text-black font-medium">
                               {selectedQuote.length} x {selectedQuote.width} x {selectedQuote.height} {selectedQuote.dimension_unit || 'cm'}
                             </p>
                           </div>
@@ -888,18 +888,18 @@ const MemberQuotesPage = () => {
 
                   {/* Important Cargo Information */}
                   {(selectedQuote.is_stackable !== undefined || selectedQuote.is_hazardous !== undefined || selectedQuote.has_insurance !== undefined) && (
-                    <div className="p-6 bg-gradient-to-r from-red-50 to-pink-50 rounded-xl border-2 border-red-200">
-                      <h3 className="text-xl font-bold text-red-800 mb-4 flex items-center gap-2">
+                    <div className="p-6 bg-[#bca142]/10 rounded-xl border-2 border-[#bca142]/30">
+                      <h3 className="text-xl font-bold text-[#bca142] mb-4 flex items-center gap-2">
                         ⚠️ Important Cargo Information
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {selectedQuote.is_stackable !== undefined && (
                           <div className="flex items-center gap-2">
-                            <label className="text-sm font-semibold text-red-700">Stackable:</label>
+                            <label className="text-sm font-semibold text-black">Stackable:</label>
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                               selectedQuote.is_stackable 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-red-100 text-red-800'
+                                ? 'bg-[#bca142] text-white' 
+                                : 'bg-black text-white'
                             }`}>
                               {selectedQuote.is_stackable ? '✅ Yes' : '❌ No'}
                             </span>
@@ -907,11 +907,11 @@ const MemberQuotesPage = () => {
                         )}
                         {selectedQuote.is_hazardous !== undefined && (
                           <div className="flex items-center gap-2">
-                            <label className="text-sm font-semibold text-red-700">Hazardous:</label>
+                            <label className="text-sm font-semibold text-black">Hazardous:</label>
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                               selectedQuote.is_hazardous 
-                                ? 'bg-red-100 text-red-800' 
-                                : 'bg-green-100 text-green-800'
+                                ? 'bg-black text-white' 
+                                : 'bg-[#bca142] text-white'
                             }`}>
                               {selectedQuote.is_hazardous ? '⚠️ Yes - Special handling required' : '✅ No'}
                             </span>
@@ -919,10 +919,10 @@ const MemberQuotesPage = () => {
                         )}
                         {selectedQuote.has_insurance !== undefined && (
                           <div className="flex items-center gap-2">
-                            <label className="text-sm font-semibold text-red-700">Cargo Insurance:</label>
+                            <label className="text-sm font-semibold text-black">Cargo Insurance:</label>
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                               selectedQuote.has_insurance 
-                                ? 'bg-blue-100 text-blue-800' 
+                                ? 'bg-[#bca142] text-white' 
                                 : 'bg-gray-100 text-gray-800'
                             }`}>
                               {selectedQuote.has_insurance ? '🛡️ Required' : '❌ Not required'}
@@ -935,31 +935,31 @@ const MemberQuotesPage = () => {
 
                   {/* Additional Notes */}
                   {selectedQuote.notes && (
-                    <div className="p-6 bg-gradient-to-r from-yellow-50 to-amber-50 rounded-xl border-2 border-yellow-200">
-                      <h3 className="text-xl font-bold text-yellow-800 mb-4 flex items-center gap-2">
+                    <div className="p-6 bg-[#bca142]/10 rounded-xl border-2 border-[#bca142]/30">
+                      <h3 className="text-xl font-bold text-[#bca142] mb-4 flex items-center gap-2">
                         📝 Special Notes
                       </h3>
-                      <p className="text-yellow-900 bg-white p-4 rounded-lg border border-yellow-200 italic">
+                      <p className="text-black bg-white p-4 rounded-lg border border-[#bca142]/30 italic">
                         "{selectedQuote.notes}"
                       </p>
                     </div>
                   )}
 
                   {/* Quote Statistics */}
-                  <div className="p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200">
-                    <h3 className="text-xl font-bold text-purple-800 mb-4">Quote Statistics</h3>
+                  <div className="p-6 bg-[#bca142]/10 rounded-xl border-2 border-[#bca142]/30">
+                    <h3 className="text-xl font-bold text-[#bca142] mb-4">Quote Statistics</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-purple-900">{selectedQuote.response_count || 0}</p>
-                        <p className="text-sm text-purple-700">Total Responses</p>
+                        <p className="text-2xl font-bold text-black">{selectedQuote.response_count || 0}</p>
+                        <p className="text-sm text-gray-700">Total Responses</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-purple-900">#{selectedQuote.id}</p>
-                        <p className="text-sm text-purple-700">Quote ID</p>
+                        <p className="text-2xl font-bold text-black">#{selectedQuote.id}</p>
+                        <p className="text-sm text-gray-700">Quote ID</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-purple-900">{formatDate(selectedQuote.created_at || selectedQuote.arrival_date)}</p>
-                        <p className="text-sm text-purple-700">Created</p>
+                        <p className="text-2xl font-bold text-black">{formatDate(selectedQuote.created_at || selectedQuote.arrival_date)}</p>
+                        <p className="text-sm text-gray-700">Created</p>
                       </div>
                     </div>
                   </div>
@@ -983,14 +983,14 @@ const MemberQuotesPage = () => {
                   ) : !canRespond ? (
                     <button
                       onClick={() => handleRespondToQuote(selectedQuote)}
-                      className="flex-1 bg-gradient-to-r from-amber-500 to-yellow-500 text-white py-2 px-4 rounded-lg hover:from-amber-600 hover:to-yellow-600 transition-all duration-300 transform hover:scale-105 shadow-lg font-medium text-sm"
+                      className="flex-1 bg-[#bca142] text-white py-2 px-4 rounded-lg hover:bg-black transition-all duration-300 transform hover:scale-105 shadow-lg font-medium text-sm"
                     >
                       🚀 Upgrade to Respond
                     </button>
                   ) : (
                     <button
                       onClick={() => handleRespondToQuote(selectedQuote)}
-                      className="flex-1 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white py-2 px-4 rounded-lg hover:shadow-lg transition-all duration-300 transform hover:scale-105 font-medium text-sm"
+                      className="flex-1 bg-[#bca142] text-white py-2 px-4 rounded-lg hover:bg-black transition-all duration-300 transform hover:scale-105 font-medium text-sm"
                     >
                       Respond to Quote
                     </button>
@@ -1005,15 +1005,15 @@ const MemberQuotesPage = () => {
         {showSubscriptionModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
-              {/* Header with gradient */}
-              <div className="bg-gradient-to-r from-amber-600 to-yellow-600 p-6 text-white text-center">
+              {/* Header */}
+              <div className="bg-[#bca142] p-6 text-white text-center">
                 <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                   </svg>
                 </div>
                 <h2 className="text-2xl font-bold mb-2">Unlock Premium Features</h2>
-                <p className="text-amber-100">Upgrade your account to respond to quotes</p>
+                <p className="text-white/80">Upgrade your account to respond to quotes</p>
               </div>
 
               {/* Content */}
@@ -1030,32 +1030,32 @@ const MemberQuotesPage = () => {
                 {/* Features List */}
                 <div className="space-y-3 mb-6">
                   <div className="flex items-center">
-                    <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                      <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <div className="w-5 h-5 bg-[#bca142] rounded-full flex items-center justify-center mr-3">
+                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     </div>
                     <span className="text-gray-700">View unlimited quotes</span>
                   </div>
                   <div className="flex items-center">
-                    <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                      <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <div className="w-5 h-5 bg-[#bca142] rounded-full flex items-center justify-center mr-3">
+                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     </div>
                     <span className="text-gray-700">Submit competitive responses</span>
                   </div>
                   <div className="flex items-center">
-                    <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                      <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <div className="w-5 h-5 bg-[#bca142] rounded-full flex items-center justify-center mr-3">
+                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     </div>
                     <span className="text-gray-700">Direct communication with clients</span>
                   </div>
                   <div className="flex items-center">
-                    <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                      <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <div className="w-5 h-5 bg-[#bca142] rounded-full flex items-center justify-center mr-3">
+                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     </div>
@@ -1067,7 +1067,7 @@ const MemberQuotesPage = () => {
                 <div className="space-y-3">
                   <a
                     href="/company/subscriptions"
-                    className="w-full bg-gradient-to-r from-amber-600 to-yellow-600 text-white py-3 px-6 rounded-lg font-semibold text-center block hover:from-amber-700 hover:to-yellow-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                    className="w-full bg-[#bca142] text-white py-3 px-6 rounded-lg font-semibold text-center block hover:bg-black transition-all duration-300 transform hover:scale-105 shadow-lg"
                   >
                     🚀 Choose Your Plan
                   </a>
@@ -1104,7 +1104,7 @@ const MemberQuotesPage = () => {
           <div className="fixed bottom-6 right-6 z-40">
             <button
               onClick={() => setShowSubscriptionModal(true)}
-              className="bg-gradient-to-r from-amber-600 to-yellow-600 text-white p-4 rounded-full shadow-2xl hover:from-amber-700 hover:to-yellow-700 transition-all duration-300 transform hover:scale-110 group"
+              className="bg-[#bca142] text-white p-4 rounded-full shadow-2xl hover:bg-black transition-all duration-300 transform hover:scale-110 group"
               title="Upgrade to Premium"
             >
               <div className="flex items-center">

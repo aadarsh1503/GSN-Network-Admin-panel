@@ -296,7 +296,7 @@ const BusinessProducts = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-yellow-200 border-t-[#CDA435] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-yellow-200 border-t-[#bca142] mx-auto mb-4"></div>
           <p className="text-xl font-semibold text-slate-700">Loading products...</p>
         </div>
       </div>
@@ -309,7 +309,7 @@ const BusinessProducts = () => {
       <div className="bg-gradient-to-r from-yellow-50 via-yellow-100 to-yellow-50 rounded-2xl p-8 border border-yellow-200/50">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-[#CDA435] to-[#B8941F] bg-clip-text text-transparent mb-2">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-[#bca142] to-[#B8941F] bg-clip-text text-transparent mb-2">
               Product Catalog
             </h1>
             <p className="text-slate-600 text-lg">Manage your business product inventory and specifications</p>
@@ -319,15 +319,15 @@ const BusinessProducts = () => {
                 <span className="text-sm text-green-600">Live Inventory</span>
               </div>
               <div className="flex items-center space-x-2 bg-white/50 backdrop-blur-sm px-3 py-1 rounded-full">
-                <Package className="h-3 w-3 text-[#CDA435]" />
-                <span className="text-sm text-[#CDA435]">{products.length} Products</span>
+                <Package className="h-3 w-3 text-[#bca142]" />
+                <span className="text-sm text-[#bca142]">{products.length} Products</span>
               </div>
             </div>
           </div>
           <div className="flex space-x-3">
             <button
               onClick={openAddModal}
-              className="flex items-center space-x-2 bg-gradient-to-r from-[#CDA435] to-[#B8941F] hover:from-[#B8941F] hover:to-[#CDA435] text-white px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="flex items-center space-x-2 bg-gradient-to-r from-[#bca142] to-[#B8941F] hover:from-[#B8941F] hover:to-[#bca142] text-white px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               <Plus className="h-4 w-4" />
               <span>Add Product</span>
@@ -340,7 +340,7 @@ const BusinessProducts = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:shadow-xl transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
-            <div className="p-3 rounded-2xl bg-gradient-to-br from-[#CDA435] to-[#B8941F] text-white">
+            <div className="p-3 rounded-2xl bg-gradient-to-br from-[#bca142] to-[#B8941F] text-white">
               <Package className="h-6 w-6" />
             </div>
             <span className="text-2xl font-bold text-slate-800">{products.length}</span>
@@ -395,7 +395,7 @@ const BusinessProducts = () => {
               placeholder="Search products..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300"
+              className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
             />
           </div>
 
@@ -407,7 +407,7 @@ const BusinessProducts = () => {
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#CDA435] transition-all duration-300"
+              className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#bca142] transition-all duration-300"
             >
               <option value="all">All Categories</option>
               {categories.map(category => (

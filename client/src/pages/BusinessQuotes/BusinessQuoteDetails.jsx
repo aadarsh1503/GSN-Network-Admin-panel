@@ -183,9 +183,9 @@ const BusinessQuoteDetails = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'pending': return 'text-yellow-600 bg-yellow-100';
-      case 'accepted': return 'text-green-600 bg-green-100';
-      case 'rejected': return 'text-red-600 bg-red-100';
+      case 'pending': return 'text-[#bca142] bg-gray-50';
+      case 'accepted': return 'text-[#bca142] bg-gray-50';
+      case 'rejected': return 'text-black bg-gray-50';
       default: return 'text-gray-600 bg-gray-100';
     }
   };
@@ -203,7 +203,7 @@ const BusinessQuoteDetails = () => {
     if (response.user_response_status === 'accepted') {
       if (response.payment_status === 'verified') {
         return (
-          <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-300">
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#bca142] text-white border border-gray-300">
             ✅ Payment Verified
           </span>
         );
@@ -212,11 +212,11 @@ const BusinessQuoteDetails = () => {
       if (response.payment_status === 'rejected') {
         return (
           <div className="flex flex-col items-start">
-            <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-300">
+            <span className="px-3 py-1 rounded-full text-xs font-medium bg-black text-white border border-gray-300">
               ✗ Payment Rejected
             </span>
             {response.payment_company_notes && (
-              <div className="mt-2 text-xs text-red-600 max-w-xs">
+              <div className="mt-2 text-xs text-black max-w-xs">
                 <span className="font-medium">Reason:</span> {response.payment_company_notes}
               </div>
             )}
@@ -226,7 +226,7 @@ const BusinessQuoteDetails = () => {
 
       if (response.payment_status === 'pending' || Boolean(response.payment_proof_uploaded)) {
         return (
-          <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-300">
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#bca142] text-white border border-gray-300">
             ⏳ Payment Under Review
           </span>
         );
@@ -234,7 +234,7 @@ const BusinessQuoteDetails = () => {
 
       if (response.bank_name || response.account_number) {
         return (
-          <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-300">
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#bca142] text-white border border-gray-300">
             💳 Payment Required
           </span>
         );
@@ -268,7 +268,7 @@ const BusinessQuoteDetails = () => {
         <div className="flex flex-col items-center gap-3">
           <div className="relative">
             <div className="h-12 w-12 border-4 border-gray-200 rounded-full animate-spin">
-              <div className="h-12 w-12 border-4 border-transparent border-t-[#CDA435] rounded-full animate-spin"></div>
+              <div className="h-12 w-12 border-4 border-transparent border-t-[#bca142] rounded-full animate-spin"></div>
             </div>
           </div>
           <p className="text-gray-600 font-medium">Loading quote details...</p>
@@ -281,7 +281,7 @@ const BusinessQuoteDetails = () => {
     return (
       <div className="text-center py-12">
         <h3 className="text-lg font-medium text-gray-900 mb-2">Quote not found</h3>
-        <Link to="/business/quotes" className="text-[#CDA435] hover:text-yellow-600">
+        <Link to="/business/quotes" className="text-[#bca142] hover:text-yellow-600">
           Back to Quotes
         </Link>
       </div>
@@ -289,38 +289,38 @@ const BusinessQuoteDetails = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-amber-50/30 to-yellow-50/50">
+    <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
         {/* Quote Status Banner - Show when approved */}
         {quote && quote.status === 'approved' && (
-          <div className="bg-gradient-to-r from-green-100 via-emerald-100 to-green-100 border-2 border-green-300 rounded-2xl p-6 shadow-lg">
+          <div className="bg-[#bca142] border-2 border-[#bca142] rounded-2xl p-6 shadow-lg">
             <div className="flex items-center space-x-4">
-              <div className="p-3 bg-green-500 rounded-full shadow-md">
-                <CheckCircle className="h-6 w-6 text-white" />
+              <div className="p-3 bg-white rounded-full shadow-md">
+                <CheckCircle className="h-6 w-6 text-[#bca142]" />
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-bold text-green-800 mb-2">🎉 Quote Approved!</h3>
-                <p className="text-green-700 leading-relaxed mb-3">
+                <h3 className="text-xl font-bold text-white mb-2">🎉 Quote Approved!</h3>
+                <p className="text-white leading-relaxed mb-3">
                   Great news! Your payment has been verified and your quote has been approved. 
                   The company will begin working on your shipment as scheduled.
                 </p>
                 {(() => {
                   const acceptedResponse = responses.find(r => r.user_response_status === 'accepted');
                   return acceptedResponse ? (
-                    <div className="bg-white/60 rounded-lg p-3 border border-green-200">
+                    <div className="bg-white/20 rounded-lg p-3 border border-white/20">
                       <div className="flex items-center space-x-3">
-                        <FaBuilding className="h-4 w-4 text-green-600" />
+                        <FaBuilding className="h-4 w-4 text-white" />
                         <div>
-                          <p className="text-green-800 font-semibold">{acceptedResponse.company_name}</p>
-                          <p className="text-green-600 text-sm">{acceptedResponse.company_email}</p>
+                          <p className="text-white font-semibold">{acceptedResponse.company_name}</p>
+                          <p className="text-white text-sm">{acceptedResponse.company_email}</p>
                         </div>
                       </div>
                     </div>
                   ) : null;
                 })()}
               </div>
-              <div className="text-green-600 text-sm font-medium bg-white/60 px-3 py-1 rounded-lg">
+              <div className="text-white text-sm font-medium bg-white/20 px-3 py-1 rounded-lg">
                 Status: Approved ✓
               </div>
             </div>
@@ -328,67 +328,67 @@ const BusinessQuoteDetails = () => {
         )}
 
         {/* Status Sync Indicator */}
-        {isPolling && (
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-6">
+        {/* {isPolling && (
+          <div className="bg-[#bca142] border border-[#bca142] rounded-xl p-3 mb-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="animate-pulse w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span className="text-blue-700 text-sm font-medium">
+                <div className="animate-pulse w-2 h-2 bg-white rounded-full"></div>
+                <span className="text-white text-sm font-medium">
                   Live status updates active - You'll be notified of any changes
                 </span>
               </div>
               <button
                 onClick={forceRefresh}
-                className="text-blue-600 hover:text-blue-800 text-sm font-medium px-3 py-1 rounded-lg hover:bg-blue-100 transition-colors"
+                className="text-white hover:text-black text-sm font-medium px-3 py-1 rounded-lg hover:bg-white/20 transition-colors"
               >
                 Refresh Now
               </button>
             </div>
           </div>
-        )}
+        )} */}
 
         {/* Payment Rejection Banner - Show prominently at top */}
         {(() => {
           const rejectedResponse = getRejectedResponse();
           return rejectedResponse && (
-            <div className="bg-gradient-to-r from-red-100 via-rose-100 to-red-100 border-2 border-red-300 rounded-3xl p-8 shadow-xl mb-6">
+            <div className="bg-black border-2 border-black rounded-3xl p-8 shadow-xl mb-6">
               <div className="flex items-start space-x-6">
                 <div className="flex-shrink-0">
-                  <div className="p-4 bg-red-500 rounded-2xl shadow-lg">
-                    <XCircle className="h-8 w-8 text-white" />
+                  <div className="p-4 bg-white rounded-2xl shadow-lg">
+                    <XCircle className="h-8 w-8 text-black" />
                   </div>
                 </div>
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-3 mb-4">
-                    <h2 className="text-2xl font-bold text-red-800">❌ Payment Rejected</h2>
-                    <div className="px-3 py-1 bg-red-500 text-white text-sm font-medium rounded-full">
+                    <h2 className="text-2xl font-bold text-white">❌ Payment Rejected</h2>
+                    <div className="px-3 py-1 bg-white text-black text-sm font-medium rounded-full">
                       Quote #{quote.id}
                     </div>
                   </div>
                   
-                  <p className="text-red-700 text-lg mb-6 leading-relaxed">
+                  <p className="text-white text-lg mb-6 leading-relaxed">
                     Your payment proof was rejected by <strong>{rejectedResponse.company_name}</strong>. 
                     Please review the reason below and take appropriate action.
                   </p>
 
                   {/* Company Details Section */}
-                  <div className="bg-white/80 rounded-2xl p-6 border border-red-200 mb-6">
+                  <div className="bg-white/20 rounded-2xl p-6 border border-white/20 mb-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
-                        <div className="w-16 h-16 bg-gradient-to-br from-red-400 to-rose-500 rounded-2xl flex items-center justify-center shadow-lg">
+                        <div className="w-16 h-16 bg-[#bca142] rounded-2xl flex items-center justify-center shadow-lg">
                           <FaBuilding className="text-white h-8 w-8" />
                         </div>
                         <div>
-                          <h3 className="text-xl font-bold text-slate-800 mb-1">{rejectedResponse.company_name}</h3>
-                          <div className="flex items-center space-x-6 text-slate-600">
+                          <h3 className="text-xl font-bold text-white mb-1">{rejectedResponse.company_name}</h3>
+                          <div className="flex items-center space-x-6 text-white">
                             <div className="flex items-center space-x-2">
-                              <FaEnvelope className="h-4 w-4 text-red-500" />
+                              <FaEnvelope className="h-4 w-4 text-white" />
                               <span className="font-medium">{rejectedResponse.company_email}</span>
                             </div>
                             {rejectedResponse.company_phone && (
                               <div className="flex items-center space-x-2">
-                                <FaPhone className="h-4 w-4 text-red-500" />
+                                <FaPhone className="h-4 w-4 text-white" />
                                 <span className="font-medium">{rejectedResponse.company_phone}</span>
                               </div>
                             )}
@@ -399,7 +399,7 @@ const BusinessQuoteDetails = () => {
                       {/* Message Button */}
                       <button
                         onClick={() => handleMessageCompany(rejectedResponse.company_id, rejectedResponse.company_name)}
-                        className="flex items-center space-x-3 bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                        className="flex items-center space-x-3 bg-[#bca142] hover:bg-white hover:text-black text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
                       >
                         <FaComments className="h-5 w-5" />
                         <span>Message Company</span>
@@ -409,15 +409,15 @@ const BusinessQuoteDetails = () => {
 
                   {/* Rejection Reason */}
                   {rejectedResponse.payment_company_notes && (
-                    <div className="bg-red-50 rounded-2xl p-6 border-2 border-red-200 shadow-sm mb-6">
+                    <div className="bg-white/20 rounded-2xl p-6 border-2 border-white/20 shadow-sm mb-6">
                       <div className="flex items-start space-x-4">
-                        <div className="p-3 bg-red-500 rounded-xl flex-shrink-0">
-                          <FaBuilding className="h-5 w-5 text-white" />
+                        <div className="p-3 bg-white rounded-xl flex-shrink-0">
+                          <FaBuilding className="h-5 w-5 text-black" />
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-bold text-red-800 text-lg mb-3">📝 Reason for Rejection:</h4>
-                          <div className="bg-white p-4 rounded-xl border border-red-200 shadow-sm">
-                            <p className="text-red-900 font-medium text-lg leading-relaxed">
+                          <h4 className="font-bold text-white text-lg mb-3">📝 Reason for Rejection:</h4>
+                          <div className="bg-white p-4 rounded-xl border border-white/20 shadow-sm">
+                            <p className="text-black font-medium text-lg leading-relaxed">
                               "{rejectedResponse.payment_company_notes}"
                             </p>
                           </div>
@@ -428,7 +428,7 @@ const BusinessQuoteDetails = () => {
 
                   {/* Rejection Date */}
                   {rejectedResponse.rejection_date && (
-                    <div className="flex items-center space-x-3 text-red-600 mb-6">
+                    <div className="flex items-center space-x-3 text-white mb-6">
                       <Calendar className="h-5 w-5" />
                       <p className="font-medium">
                         <strong>Rejected on:</strong> {formatDate(rejectedResponse.rejection_date)}
@@ -437,41 +437,34 @@ const BusinessQuoteDetails = () => {
                   )}
 
                   {/* Next Steps */}
-                  <div className="bg-blue-50 rounded-2xl p-6 border border-blue-200">
-                    <h4 className="font-bold text-blue-800 text-lg mb-4 flex items-center space-x-2">
-                      <div className="p-2 bg-blue-500 rounded-lg">
-                        <FaRocket className="h-4 w-4 text-white" />
+                  <div className="bg-[#bca142] rounded-2xl p-6 border border-[#bca142]">
+                    <h4 className="font-bold text-white text-lg mb-4 flex items-center space-x-2">
+                      <div className="p-2 bg-white rounded-lg">
+                        <FaRocket className="h-4 w-4 text-[#bca142]" />
                       </div>
                       <span>💡 What you can do next:</span>
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-white p-4 rounded-xl border border-blue-200">
+                      <div className="bg-white p-4 rounded-xl border border-white/20">
                         <div className="flex items-center space-x-3 mb-2">
-                          <FaComments className="h-5 w-5 text-blue-500" />
-                          <span className="font-semibold text-blue-800">Contact Company</span>
+                          <FaComments className="h-5 w-5 text-[#bca142]" />
+                          <span className="font-semibold text-black">Contact Company</span>
                         </div>
-                        <p className="text-blue-700 text-sm">Message the company directly for clarification about the rejection</p>
+                        <p className="text-gray-700 text-sm">Message the company directly for clarification about the rejection</p>
                       </div>
-                      {/* <div className="bg-white p-4 rounded-xl border border-blue-200">
+                      <div className="bg-white p-4 rounded-xl border border-white/20">
                         <div className="flex items-center space-x-3 mb-2">
-                          <FaUpload className="h-5 w-5 text-blue-500" />
-                          <span className="font-semibold text-blue-800">Upload New Proof</span>
+                          <FaUniversity className="h-5 w-5 text-[#bca142]" />
+                          <span className="font-semibold text-black">Verify Payment</span>
                         </div>
-                        <p className="text-blue-700 text-sm">Upload a clearer or corrected payment proof document</p>
-                      </div> */}
-                      <div className="bg-white p-4 rounded-xl border border-blue-200">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <FaUniversity className="h-5 w-5 text-blue-500" />
-                          <span className="font-semibold text-blue-800">Verify Payment</span>
-                        </div>
-                        <p className="text-blue-700 text-sm">Ensure your payment matches the provided bank details exactly</p>
+                        <p className="text-gray-700 text-sm">Ensure your payment matches the provided bank details exactly</p>
                       </div>
-                      <div className="bg-white p-4 rounded-xl border border-blue-200">
+                      <div className="bg-white p-4 rounded-xl border border-white/20">
                         <div className="flex items-center space-x-3 mb-2">
-                          <FaShieldAlt className="h-5 w-5 text-blue-500" />
-                          <span className="font-semibold text-blue-800">Get Support</span>
+                          <FaShieldAlt className="h-5 w-5 text-[#bca142]" />
+                          <span className="font-semibold text-black">Get Support</span>
                         </div>
-                        <p className="text-blue-700 text-sm">Contact GSN Network support if you need assistance</p>
+                        <p className="text-gray-700 text-sm">Contact GSN Network support if you need assistance</p>
                       </div>
                     </div>
                   </div>
@@ -481,19 +474,17 @@ const BusinessQuoteDetails = () => {
           );
         })()}
 
-        {/* Futuristic Header */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-8 shadow-2xl">
-          <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/10 via-amber-500/5 to-yellow-500/10"></div>
-          <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-yellow-400/20 to-transparent rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-amber-400/20 to-transparent rounded-full blur-3xl"></div>
+        {/* Header */}
+        <div className="relative overflow-hidden bg-[#bca142] rounded-3xl p-8 shadow-2xl">
+          <div className="absolute inset-0 bg-black opacity-10"></div>
           
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-6">
               <Link
                 to="/business/quotes"
-                className="group flex items-center space-x-3 text-white/80 hover:text-yellow-400 transition-all duration-300"
+                className="group flex items-center space-x-3 text-white hover:text-black transition-all duration-300"
               >
-                <div className="p-2 bg-white/10 backdrop-blur-sm rounded-xl group-hover:bg-yellow-400/20 transition-all duration-300">
+                <div className="p-2 bg-white/20 backdrop-blur-sm rounded-xl group-hover:bg-white/40 transition-all duration-300">
                   <FaArrowLeft className="h-4 w-4" />
                 </div>
                 <span className="font-medium">Back to Quotes</span>
@@ -501,51 +492,51 @@ const BusinessQuoteDetails = () => {
               
               <div className="flex items-center space-x-4">
                 <div className={`px-4 py-2 rounded-2xl backdrop-blur-sm border font-medium ${
-                  quote.status === 'pending' ? 'bg-amber-500/20 text-amber-300 border-amber-400/30' :
-                  quote.status === 'approved' ? 'bg-green-500/20 text-green-300 border-green-400/30' :
-                  quote.status === 'running' ? 'bg-blue-500/20 text-blue-300 border-blue-400/30' :
-                  quote.status === 'closed' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30' :
-                  'bg-red-500/20 text-red-300 border-red-400/30'
+                  quote.status === 'pending' ? 'bg-[#bca142] text-white border-gray-300' :
+                  quote.status === 'approved' ? 'bg-[#bca142] text-white border-gray-300' :
+                  quote.status === 'running' ? 'bg-[#bca142] text-white border-gray-300' :
+                  quote.status === 'closed' ? 'bg-[#bca142] text-white border-gray-300' :
+                  'bg-black text-white border-gray-300'
                 }`}>
                   <div className="flex items-center space-x-2">
                     <div className={`w-2 h-2 rounded-full animate-pulse ${
-                      quote.status === 'pending' ? 'bg-amber-400' :
-                      quote.status === 'approved' ? 'bg-green-400' :
-                      quote.status === 'running' ? 'bg-blue-400' :
-                      quote.status === 'closed' ? 'bg-emerald-400' :
-                      'bg-red-400'
+                      quote.status === 'pending' ? 'bg-white' :
+                      quote.status === 'approved' ? 'bg-white' :
+                      quote.status === 'running' ? 'bg-white' :
+                      quote.status === 'closed' ? 'bg-white' :
+                      'bg-white'
                     }`}></div>
                     <span className="capitalize">{quote.status}</span>
                   </div>
                 </div>
                 
-                <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-2xl border border-white/20">
-                  <Sparkles className="h-4 w-4 text-yellow-400" />
-                  <span className="text-white/90 font-medium">{responses.length} Responses</span>
+                <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-2xl border border-white/20">
+                  <FaRocket className="h-4 w-4 text-white" />
+                  <span className="text-white font-medium">{responses.length} Responses</span>
                 </div>
               </div>
             </div>
             
             <div className="space-y-4">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-yellow-100 to-amber-200 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold text-white">
                 Quote #{quote.id}
               </h1>
               
-              <div className="flex items-center space-x-6 text-white/80">
+              <div className="flex items-center space-x-6 text-white">
                 <div className="flex items-center space-x-2">
-                  <MapPin className="h-5 w-5 text-yellow-400" />
+                  <MapPin className="h-5 w-5 text-white" />
                   <span className="font-medium">{quote.departure_country}</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <ArrowRight className="h-4 w-4 text-amber-400" />
+                  <ArrowRight className="h-4 w-4 text-white" />
                 </div>
                 <div className="flex items-center space-x-2">
-                  <MapPin className="h-5 w-5 text-amber-400" />
+                  <MapPin className="h-5 w-5 text-white" />
                   <span className="font-medium">{quote.arrival_country}</span>
                 </div>
                 <div className="h-4 w-px bg-white/20"></div>
                 <div className="flex items-center space-x-2">
-                  <Truck className="h-5 w-5 text-yellow-400" />
+                  <Truck className="h-5 w-5 text-white" />
                   <span className="font-medium">{quote.shipping_mode}</span>
                 </div>
               </div>
@@ -556,7 +547,7 @@ const BusinessQuoteDetails = () => {
         {/* Quote Details Card */}
         <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-white/20">
           <div className="flex items-center space-x-3 mb-6">
-            <div className="p-3 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-2xl">
+            <div className="p-3 bg-[#bca142] rounded-2xl">
               <Package className="h-6 w-6 text-white" />
             </div>
             <h2 className="text-2xl font-bold text-slate-800">Shipment Details</h2>
@@ -566,7 +557,7 @@ const BusinessQuoteDetails = () => {
             <div className="space-y-6">
               <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl p-6 border border-slate-200/50">
                 <h3 className="font-semibold text-slate-800 mb-4 flex items-center space-x-2">
-                  <Package className="h-5 w-5 text-yellow-500" />
+                  <Package className="h-5 w-5 text-[#bca142]" />
                   <span>Product Information</span>
                 </h3>
                 <div className="space-y-3">
@@ -599,9 +590,9 @@ const BusinessQuoteDetails = () => {
             </div>
             
             <div className="space-y-6">
-              <div className="bg-gradient-to-br from-amber-50 to-yellow-50/50 rounded-2xl p-6 border border-amber-200/50">
+              <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl p-6 border border-slate-200/50">
                 <h3 className="font-semibold text-slate-800 mb-4 flex items-center space-x-2">
-                  <MapPin className="h-5 w-5 text-amber-500" />
+                  <MapPin className="h-5 w-5 text-[#bca142]" />
                   <span>Route Information</span>
                 </h3>
                 <div className="space-y-3">
@@ -631,9 +622,9 @@ const BusinessQuoteDetails = () => {
           </div>
           
           {quote.notes && (
-            <div className="mt-8 bg-gradient-to-br from-blue-50 to-indigo-50/50 rounded-2xl p-6 border border-blue-200/50">
+            <div className="mt-8 bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl p-6 border border-slate-200/50">
               <h3 className="font-semibold text-slate-800 mb-3 flex items-center space-x-2">
-                <Calendar className="h-5 w-5 text-blue-500" />
+                <Calendar className="h-5 w-5 text-[#bca142]" />
                 <span>Additional Notes</span>
               </h3>
               <p className="text-slate-700 leading-relaxed">{quote.notes}</p>
@@ -643,17 +634,17 @@ const BusinessQuoteDetails = () => {
 
         {/* Quote Responses Section */}
         <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/20 overflow-hidden">
-          <div className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 p-8">
+          <div className="bg-[#bca142] p-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <div className="p-3 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-2xl">
-                  <FaRocket className="h-6 w-6 text-white" />
+                <div className="p-3 bg-white rounded-2xl">
+                  <FaRocket className="h-6 w-6 text-[#bca142]" />
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-white">
                     {quote && quote.status === 'approved' ? 'Selected Company' : 'Quote Responses'}
                   </h2>
-                  <p className="text-slate-300">
+                  <p className="text-white">
                     {quote && quote.status === 'approved' 
                       ? 'Company that accepted your payment and will handle your shipment' 
                       : 'Review and manage incoming proposals'
@@ -664,8 +655,8 @@ const BusinessQuoteDetails = () => {
               
               <div className="flex items-center space-x-4">
                 {quote && quote.status === 'approved' ? (
-                  <div className="bg-green-500/20 backdrop-blur-sm px-4 py-2 rounded-2xl border border-green-400/30">
-                    <span className="text-green-300 font-semibold">Approved Company</span>
+                  <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-2xl border border-white/20">
+                    <span className="text-white font-semibold">Approved Company</span>
                   </div>
                 ) : (
                   <>
@@ -673,8 +664,8 @@ const BusinessQuoteDetails = () => {
                       <span className="text-white font-semibold">{responses.length} Total</span>
                     </div>
                     {responses.filter(r => r.user_response_status === 'accepted').length > 0 && (
-                      <div className="bg-green-500/20 backdrop-blur-sm px-4 py-2 rounded-2xl border border-green-400/30">
-                        <span className="text-green-300 font-semibold">
+                      <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-2xl border border-white/20">
+                        <span className="text-white font-semibold">
                           {responses.filter(r => r.user_response_status === 'accepted').length} Accepted
                         </span>
                       </div>
@@ -696,8 +687,8 @@ const BusinessQuoteDetails = () => {
                   Companies are reviewing your quote request. You'll receive notifications as responses come in.
                 </p>
                 <div className="flex items-center justify-center space-x-2 mt-6">
-                  <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-                  <span className="text-yellow-600 font-medium">Live Updates Active</span>
+                  <div className="w-2 h-2 bg-[#bca142] rounded-full animate-pulse"></div>
+                  <span className="text-[#bca142] font-medium">Live Updates Active</span>
                 </div>
               </div>
             ) : (
@@ -741,17 +732,17 @@ const BusinessQuoteDetails = () => {
                     {/* Response Card */}
                     <div className={`relative overflow-hidden rounded-3xl border-2 transition-all duration-500 ${
                       response.user_response_status === 'accepted' 
-                        ? 'border-green-400 bg-gradient-to-br from-green-50 via-emerald-50 to-green-50 shadow-xl shadow-green-100' 
+                        ? 'border-[#bca142] bg-white shadow-xl' 
                         : response.user_response_status === 'rejected'
-                        ? 'border-red-300 bg-gradient-to-br from-red-50 via-rose-50 to-red-50 shadow-lg shadow-red-100'
-                        : 'border-slate-200 bg-gradient-to-br from-white via-slate-50/50 to-white hover:border-yellow-300 hover:shadow-2xl hover:shadow-yellow-100'
+                        ? 'border-black bg-white shadow-lg'
+                        : 'border-gray-200 bg-white hover:border-[#bca142] hover:shadow-2xl'
                     }`}>
                       
                       {/* Status Indicator */}
                       {response.user_response_status && (
                         <div className={`absolute top-0 right-0 w-full h-2 ${
-                          response.user_response_status === 'accepted' ? 'bg-gradient-to-r from-green-400 to-emerald-500' :
-                          'bg-gradient-to-r from-red-400 to-rose-500'
+                          response.user_response_status === 'accepted' ? 'bg-[#bca142]' :
+                          'bg-black'
                         }`}></div>
                       )}
                       
@@ -760,37 +751,37 @@ const BusinessQuoteDetails = () => {
                         <div className="flex items-center justify-between mb-8">
                           <div className="flex items-center space-x-4">
                             <div className="relative">
-                              <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-2xl flex items-center justify-center shadow-lg">
+                              <div className="w-16 h-16 bg-[#bca142] rounded-2xl flex items-center justify-center shadow-lg">
                                 <FaBuilding className="text-white h-8 w-8" />
                               </div>
                               {response.user_response_status === 'accepted' && (
-                                <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                                <div className="absolute -top-2 -right-2 w-6 h-6 bg-[#bca142] rounded-full flex items-center justify-center">
                                   <CheckCircle className="h-4 w-4 text-white" />
                                 </div>
                               )}
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center space-x-3 mb-1">
-                                <h3 className="text-2xl font-bold text-slate-800">{response.company_name}</h3>
+                                <h3 className="text-2xl font-bold text-black">{response.company_name}</h3>
                                 <button
                                   onClick={() => {
                                     setSelectedCompanyId(response.company_id);
                                     setShowCompanyProfileModal(true);
                                   }}
-                                  className="flex items-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105"
+                                  className="flex items-center space-x-2 bg-[#bca142] hover:bg-black text-white font-medium py-2 px-4 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105"
                                 >
                                   <FaEye className="h-4 w-4" />
                                   <span className="text-sm">View Company Details</span>
                                 </button>
                               </div>
-                              <div className="flex items-center space-x-6 text-slate-600">
+                              <div className="flex items-center space-x-6 text-gray-600">
                                 <div className="flex items-center space-x-2">
-                                  <FaEnvelope className="h-4 w-4 text-yellow-500" />
+                                  <FaEnvelope className="h-4 w-4 text-[#bca142]" />
                                   <span className="font-medium">{response.company_email}</span>
                                 </div>
                                 {response.company_phone && (
                                   <div className="flex items-center space-x-2">
-                                    <FaPhone className="h-4 w-4 text-amber-500" />
+                                    <FaPhone className="h-4 w-4 text-[#bca142]" />
                                     <span className="font-medium">{response.company_phone}</span>
                                   </div>
                                 )}
@@ -824,48 +815,48 @@ const BusinessQuoteDetails = () => {
 
                         {/* Key Metrics */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200/50">
+                          <div className="bg-white rounded-2xl p-6 border border-gray-200">
                             <div className="flex items-center space-x-3 mb-3">
-                              <div className="p-2 bg-green-500 rounded-xl">
+                              <div className="p-2 bg-[#bca142] rounded-xl">
                                 <FaDollarSign className="h-5 w-5 text-white" />
                               </div>
-                              <span className="font-semibold text-green-700">Total Price</span>
+                              <span className="font-semibold text-black">Total Price</span>
                             </div>
-                            <p className="text-3xl font-bold text-green-800">${response.price}</p>
+                            <p className="text-3xl font-bold text-black">${response.price}</p>
                             <div className="flex items-center space-x-2 mt-2">
-                              <TrendingUp className="h-4 w-4 text-green-600" />
-                              <span className="text-sm text-green-600 font-medium">Competitive Rate</span>
+                              <TrendingUp className="h-4 w-4 text-[#bca142]" />
+                              <span className="text-sm text-[#bca142] font-medium">Competitive Rate</span>
                             </div>
                           </div>
                           
-                          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200/50">
+                          <div className="bg-white rounded-2xl p-6 border border-gray-200">
                             <div className="flex items-center space-x-3 mb-3">
-                              <div className="p-2 bg-blue-500 rounded-xl">
+                              <div className="p-2 bg-[#bca142] rounded-xl">
                                 <Clock className="h-5 w-5 text-white" />
                               </div>
-                              <span className="font-semibold text-blue-700">Transit Time</span>
+                              <span className="font-semibold text-black">Transit Time</span>
                             </div>
-                            <p className="text-2xl font-bold text-blue-800">{response.transit_time}</p>
+                            <p className="text-2xl font-bold text-black">{response.transit_time}</p>
                             <div className="flex items-center space-x-2 mt-2">
-                              <Zap className="h-4 w-4 text-blue-600" />
-                              <span className="text-sm text-blue-600 font-medium">Express Service</span>
+                              <Zap className="h-4 w-4 text-[#bca142]" />
+                              <span className="text-sm text-[#bca142] font-medium">Express Service</span>
                             </div>
                           </div>
                           
                           {response.valid_until && (
-                            <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-6 border border-amber-200/50">
+                            <div className="bg-white rounded-2xl p-6 border border-gray-200">
                               <div className="flex items-center space-x-3 mb-3">
-                                <div className="p-2 bg-amber-500 rounded-xl">
+                                <div className="p-2 bg-[#bca142] rounded-xl">
                                   <Calendar className="h-5 w-5 text-white" />
                                 </div>
-                                <span className="font-semibold text-amber-700">Valid Until</span>
+                                <span className="font-semibold text-black">Valid Until</span>
                               </div>
-                              <p className="text-xl font-bold text-amber-800">
+                              <p className="text-xl font-bold text-black">
                                 {formatDate(response.valid_until)}
                               </p>
                               <div className="flex items-center space-x-2 mt-2">
-                                <Shield className="h-4 w-4 text-amber-600" />
-                                <span className="text-sm text-amber-600 font-medium">Price Guaranteed</span>
+                                <Shield className="h-4 w-4 text-[#bca142]" />
+                                <span className="text-sm text-[#bca142] font-medium">Price Guaranteed</span>
                               </div>
                             </div>
                           )}
@@ -875,102 +866,102 @@ const BusinessQuoteDetails = () => {
                         {(response.inclusions || response.value_added_services || response.terms || response.notes) && (
                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                             {response.inclusions && (
-                              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200/50">
-                                <h4 className="font-bold text-slate-800 mb-3 flex items-center space-x-2">
-                                  <CheckCircle className="h-5 w-5 text-green-500" />
+                              <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                                <h4 className="font-bold text-black mb-3 flex items-center space-x-2">
+                                  <CheckCircle className="h-5 w-5 text-[#bca142]" />
                                   <span>Inclusions</span>
                                 </h4>
-                                <p className="text-slate-700 leading-relaxed">{response.inclusions}</p>
+                                <p className="text-gray-700 leading-relaxed">{response.inclusions}</p>
                               </div>
                             )}
                             
                             {response.value_added_services && (
-                              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200/50">
-                                <h4 className="font-bold text-slate-800 mb-3 flex items-center space-x-2">
-                                  <Star className="h-5 w-5 text-yellow-500" />
+                              <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                                <h4 className="font-bold text-black mb-3 flex items-center space-x-2">
+                                  <Star className="h-5 w-5 text-[#bca142]" />
                                   <span>Value Added Services</span>
                                 </h4>
-                                <p className="text-slate-700 leading-relaxed">{response.value_added_services}</p>
+                                <p className="text-gray-700 leading-relaxed">{response.value_added_services}</p>
                               </div>
                             )}
                             
                             {response.terms && (
-                              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200/50">
-                                <h4 className="font-bold text-slate-800 mb-3 flex items-center space-x-2">
-                                  <Shield className="h-5 w-5 text-blue-500" />
+                              <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                                <h4 className="font-bold text-black mb-3 flex items-center space-x-2">
+                                  <Shield className="h-5 w-5 text-[#bca142]" />
                                   <span>Terms & Conditions</span>
                                 </h4>
-                                <p className="text-slate-700 leading-relaxed">{response.terms}</p>
+                                <p className="text-gray-700 leading-relaxed">{response.terms}</p>
                               </div>
                             )}
                             
                             {response.notes && (
-                              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200/50">
-                                <h4 className="font-bold text-slate-800 mb-3 flex items-center space-x-2">
-                                  <Award className="h-5 w-5 text-purple-500" />
+                              <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                                <h4 className="font-bold text-black mb-3 flex items-center space-x-2">
+                                  <Award className="h-5 w-5 text-[#bca142]" />
                                   <span>Additional Notes</span>
                                 </h4>
-                                <p className="text-slate-700 leading-relaxed">{response.notes}</p>
+                                <p className="text-gray-700 leading-relaxed">{response.notes}</p>
                               </div>
                             )}
                           </div>
                         )}
 
-                        {/* Bank Details Section - NEW */}
+                        {/* Bank Details Section */}
                         {(response.bank_name || response.account_number) && (
-                          <div className="mb-8 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200/50 shadow-sm">
-                            <h4 className="font-bold text-slate-800 mb-4 flex items-center space-x-2">
-                              <FaUniversity className="h-5 w-5 text-blue-500" />
+                          <div className="mb-8 bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+                            <h4 className="font-bold text-black mb-4 flex items-center space-x-2">
+                              <FaUniversity className="h-5 w-5 text-[#bca142]" />
                               <span>Payment Bank Details</span>
                             </h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               {response.bank_name && (
-                                <div className="bg-white/80 rounded-xl p-4 border border-blue-100">
-                                  <span className="text-slate-600 font-medium text-sm">Bank Name:</span>
-                                  <p className="text-slate-800 font-bold">{response.bank_name}</p>
+                                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                                  <span className="text-gray-600 font-medium text-sm">Bank Name:</span>
+                                  <p className="text-black font-bold">{response.bank_name}</p>
                                 </div>
                               )}
                               {response.account_holder_name && (
-                                <div className="bg-white/80 rounded-xl p-4 border border-blue-100">
-                                  <span className="text-slate-600 font-medium text-sm">Bank Holder Name:</span>
-                                  <p className="text-slate-800 font-bold">{response.account_holder_name}</p>
+                                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                                  <span className="text-gray-600 font-medium text-sm">Bank Holder Name:</span>
+                                  <p className="text-black font-bold">{response.account_holder_name}</p>
                                 </div>
                               )}
                               {response.account_number && (
-                                <div className="bg-white/80 rounded-xl p-4 border border-blue-100">
-                                  <span className="text-slate-600 font-medium text-sm">Account Number:</span>
-                                  <p className="text-slate-800 font-bold">{response.account_number}</p>
+                                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                                  <span className="text-gray-600 font-medium text-sm">Account Number:</span>
+                                  <p className="text-black font-bold">{response.account_number}</p>
                                 </div>
                               )}
                               {response.branch_name && (
-                                <div className="bg-white/80 rounded-xl p-4 border border-blue-100">
-                                  <span className="text-slate-600 font-medium text-sm">Branch Name:</span>
-                                  <p className="text-slate-800 font-bold">{response.branch_name}</p>
+                                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                                  <span className="text-gray-600 font-medium text-sm">Branch Name:</span>
+                                  <p className="text-black font-bold">{response.branch_name}</p>
                                 </div>
                               )}
                               {response.iban_number && (
-                                <div className="bg-white/80 rounded-xl p-4 border border-blue-100">
-                                  <span className="text-slate-600 font-medium text-sm">IBAN Number:</span>
-                                  <p className="text-slate-800 font-bold">{response.iban_number}</p>
+                                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                                  <span className="text-gray-600 font-medium text-sm">IBAN Number:</span>
+                                  <p className="text-black font-bold">{response.iban_number}</p>
                                 </div>
                               )}
                               {response.swift_code && (
-                                <div className="bg-white/80 rounded-xl p-4 border border-blue-100">
-                                  <span className="text-slate-600 font-medium text-sm">SWIFT Code:</span>
-                                  <p className="text-slate-800 font-bold">{response.swift_code}</p>
+                                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                                  <span className="text-gray-600 font-medium text-sm">SWIFT Code:</span>
+                                  <p className="text-black font-bold">{response.swift_code}</p>
                                 </div>
                               )}
                               {response.branch_address && (
-                                <div className="bg-white/80 rounded-xl p-4 border border-blue-100">
-                                  <span className="text-slate-600 font-medium text-sm">Branch Address:</span>
-                                  <p className="text-slate-800 font-bold text-sm">{response.branch_address}</p>
+                                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                                  <span className="text-gray-600 font-medium text-sm">Branch Address:</span>
+                                  <p className="text-black font-bold text-sm">{response.branch_address}</p>
                                 </div>
                               )}
                             </div>
                             {response.bank_instructions && (
-                              <div className="mt-4 bg-amber-50 rounded-xl p-4 border border-amber-200">
-                                <span className="text-amber-700 font-medium text-sm">Payment Instructions:</span>
-                                <p className="text-amber-800 text-sm mt-1">{response.bank_instructions}</p>
+                              <div className="mt-4 bg-gray-50 rounded-xl p-4 border border-gray-200">
+                                <span className="text-black font-medium text-sm">Payment Instructions:</span>
+                                <p className="text-gray-700 text-sm mt-1">{response.bank_instructions}</p>
                               </div>
                             )}
                           </div>
@@ -979,63 +970,63 @@ const BusinessQuoteDetails = () => {
                         {/* Payment Status Section - Enhanced with Company Logic */}
                         {(response.user_response_status === 'accepted' || response.payment_status === 'rejected') && (
                           <div className="mb-8">
-                            {/* Payment Verification Status - Similar to Company MyQuotes */}
+                            {/* Payment Verification Status */}
                             {response.payment_status === 'verified' && (
-                              <div className="bg-gradient-to-r from-green-100 to-emerald-100 border-2 border-green-300 rounded-2xl p-6 shadow-sm">
+                              <div className="bg-white border-2 border-[#bca142] rounded-2xl p-6 shadow-sm">
                                 <div className="flex items-center space-x-4">
-                                  <div className="p-3 bg-green-500 rounded-xl shadow-sm">
+                                  <div className="p-3 bg-[#bca142] rounded-xl shadow-sm">
                                     <CheckCircle className="h-5 w-5 text-white" />
                                   </div>
                                   <div className="flex-1">
-                                    <h4 className="font-bold text-green-800">✅ Payment Verified</h4>
-                                    <p className="text-green-700">Your payment has been verified by the company. Work will begin as scheduled.</p>
+                                    <h4 className="font-bold text-black">✅ Payment Verified</h4>
+                                    <p className="text-gray-700">Your payment has been verified by the company. Work will begin as scheduled.</p>
                                     {response.verification_date && (
-                                      <p className="text-green-600 text-sm mt-1">
+                                      <p className="text-gray-600 text-sm mt-1">
                                         <strong>Verified on:</strong> {formatDate(response.verification_date)}
                                       </p>
                                     )}
                                   </div>
-                                  <div className="bg-green-500/20 backdrop-blur-sm px-4 py-2 rounded-2xl border border-green-400/30">
-                                    <span className="text-green-800 font-semibold">Payment Approved</span>
+                                  <div className="bg-[#bca142] px-4 py-2 rounded-2xl border border-gray-300">
+                                    <span className="text-white font-semibold">Payment Approved</span>
                                   </div>
                                 </div>
                               </div>
                             )}
                             
                             {response.payment_status === 'pending' && (
-                              <div className="bg-gradient-to-r from-orange-100 to-amber-100 border-2 border-orange-300 rounded-2xl p-6 shadow-sm">
+                              <div className="bg-white border-2 border-[#bca142] rounded-2xl p-6 shadow-sm">
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center space-x-4">
-                                    <div className="p-3 bg-orange-500 rounded-xl shadow-sm">
+                                    <div className="p-3 bg-[#bca142] rounded-xl shadow-sm">
                                       <FaCreditCard className="h-5 w-5 text-white" />
                                     </div>
                                     <div>
-                                      <h4 className="font-bold text-orange-800">⏳ Payment Verification Pending</h4>
-                                      <p className="text-orange-700">Your payment proof is being verified by the company. You'll be notified once it's reviewed.</p>
+                                      <h4 className="font-bold text-black">⏳ Payment Verification Pending</h4>
+                                      <p className="text-gray-700">Your payment proof is being verified by the company. You'll be notified once it's reviewed.</p>
                                       {response.payment_proof_date && (
-                                        <p className="text-orange-600 text-sm mt-1">
+                                        <p className="text-gray-600 text-sm mt-1">
                                           <strong>Uploaded on:</strong> {formatDate(response.payment_proof_date)}
                                         </p>
                                       )}
                                     </div>
                                   </div>
-                                  <div className="bg-orange-500/20 backdrop-blur-sm px-4 py-2 rounded-2xl border border-orange-400/30">
-                                    <span className="text-orange-800 font-semibold">Under Review</span>
+                                  <div className="bg-[#bca142] px-4 py-2 rounded-2xl border border-gray-300">
+                                    <span className="text-white font-semibold">Under Review</span>
                                   </div>
                                 </div>
                               </div>
                             )}
                             
                             {!response.payment_status && (response.bank_name || response.account_number) && (
-                              <div className="bg-gradient-to-r from-blue-100 to-indigo-100 border-2 border-blue-300 rounded-2xl p-6 shadow-sm">
+                              <div className="bg-white border-2 border-[#bca142] rounded-2xl p-6 shadow-sm">
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center space-x-4">
-                                    <div className="p-3 bg-blue-500 rounded-xl shadow-sm">
+                                    <div className="p-3 bg-[#bca142] rounded-xl shadow-sm">
                                       <FaUpload className="h-5 w-5 text-white" />
                                     </div>
                                     <div>
-                                      <h4 className="font-bold text-blue-800">💳 Payment Required</h4>
-                                      <p className="text-blue-700">Please make payment to the bank details above and upload proof to proceed.</p>
+                                      <h4 className="font-bold text-black">💳 Payment Required</h4>
+                                      <p className="text-gray-700">Please make payment to the bank details above and upload proof to proceed.</p>
                                     </div>
                                   </div>
                                   <button
@@ -1059,7 +1050,7 @@ const BusinessQuoteDetails = () => {
                                       });
                                       setShowPaymentModal(true);
                                     }}
-                                    className="flex items-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                                    className="flex items-center space-x-2 bg-[#bca142] hover:bg-black text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
                                   >
                                     <Upload className="h-5 w-5" />
                                     <span>Upload Payment Proof</span>
@@ -1075,15 +1066,15 @@ const BusinessQuoteDetails = () => {
                           <div className="space-y-6">
                             {/* Payment Upload Required First */}
                             {!Boolean(response.payment_proof_uploaded) && (response.bank_name || response.account_number) && (
-                              <div className="bg-gradient-to-r from-blue-100 to-indigo-100 border-2 border-blue-300 rounded-2xl p-6 shadow-sm">
+                              <div className="bg-white border-2 border-[#bca142] rounded-2xl p-6 shadow-sm">
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center space-x-4">
-                                    <div className="p-3 bg-blue-500 rounded-xl shadow-sm">
+                                    <div className="p-3 bg-[#bca142] rounded-xl shadow-sm">
                                       <FaUpload className="h-5 w-5 text-white" />
                                     </div>
                                     <div>
-                                      <h4 className="font-bold text-blue-800">Payment Required First</h4>
-                                      <p className="text-blue-700">Please make payment and upload proof before accepting this quote.</p>
+                                      <h4 className="font-bold text-black">Payment Required First</h4>
+                                      <p className="text-gray-700">Please make payment and upload proof before accepting this quote.</p>
                                     </div>
                                   </div>
                                   <button
@@ -1107,7 +1098,7 @@ const BusinessQuoteDetails = () => {
                                       });
                                       setShowPaymentModal(true);
                                     }}
-                                    className="flex items-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                                    className="flex items-center space-x-2 bg-[#bca142] hover:bg-black text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
                                   >
                                     <Upload className="h-5 w-5" />
                                     <span>Upload Payment Proof</span>
@@ -1118,14 +1109,14 @@ const BusinessQuoteDetails = () => {
 
                             {/* Payment Uploaded - Now Can Accept */}
                             {Boolean(response.payment_proof_uploaded) && response.payment_status === 'pending' && (
-                              <div className="bg-gradient-to-r from-green-100 to-emerald-100 border-2 border-green-300 rounded-2xl p-6 shadow-sm">
+                              <div className="bg-white border-2 border-[#bca142] rounded-2xl p-6 shadow-sm">
                                 <div className="flex items-center space-x-4">
-                                  <div className="p-3 bg-green-500 rounded-xl shadow-sm">
+                                  <div className="p-3 bg-[#bca142] rounded-xl shadow-sm">
                                     <FaCreditCard className="h-5 w-5 text-white" />
                                   </div>
                                   <div>
-                                    <h4 className="font-bold text-green-800">Payment Proof Uploaded ✓</h4>
-                                    <p className="text-green-700">You can now accept this quote. The company will verify your payment.</p>
+                                    <h4 className="font-bold text-black">Payment Proof Uploaded ✓</h4>
+                                    <p className="text-gray-700">You can now accept this quote. The company will verify your payment.</p>
                                   </div>
                                 </div>
                               </div>
@@ -1137,9 +1128,8 @@ const BusinessQuoteDetails = () => {
                                 <button
                                   onClick={() => handleAcceptResponse(response.id, response.company_id)}
                                   disabled={actionLoading === response.id}
-                                  className="flex-1 group relative overflow-hidden bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-4 px-8 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                  className="flex-1 group relative overflow-hidden bg-[#bca142] hover:bg-black text-white font-bold py-4 px-8 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                                 >
-                                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                                   <div className="relative flex items-center justify-center space-x-3">
                                     {actionLoading === response.id ? (
                                       <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
@@ -1155,9 +1145,8 @@ const BusinessQuoteDetails = () => {
                             <button
                               onClick={() => handleRejectResponse(response.id, response.company_id)}
                               disabled={actionLoading === response.id}
-                              className="flex-1 group relative overflow-hidden bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white font-bold py-4 px-8 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                              className="flex-1 group relative overflow-hidden bg-black hover:bg-[#bca142] text-white font-bold py-4 px-8 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                             >
-                              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                               <div className="relative flex items-center justify-center space-x-3">
                                 {actionLoading === response.id ? (
                                   <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
@@ -1175,14 +1164,14 @@ const BusinessQuoteDetails = () => {
                         )}
 
                         {hasAcceptedResponse && !response.user_response_status && (
-                          <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-200 rounded-2xl p-6">
+                          <div className="bg-white border-2 border-gray-200 rounded-2xl p-6">
                             <div className="flex items-center space-x-3">
-                              <div className="p-2 bg-amber-500 rounded-xl">
+                              <div className="p-2 bg-[#bca142] rounded-xl">
                                 <FaShieldAlt className="h-5 w-5 text-white" />
                               </div>
                               <div>
-                                <h4 className="font-bold text-amber-800">Quote Already Accepted</h4>
-                                <p className="text-amber-700">You have already accepted another quote for this request.</p>
+                                <h4 className="font-bold text-black">Quote Already Accepted</h4>
+                                <p className="text-gray-700">You have already accepted another quote for this request.</p>
                               </div>
                             </div>
                           </div>

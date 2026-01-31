@@ -180,13 +180,13 @@ const ClosedTickets = () => {
   };
 
   const SortableHeader = ({ children, sortKey }) => (
-    <th className="py-3 px-3 text-left font-semibold cursor-pointer hover:bg-gray-100 transition-colors duration-200" onClick={() => handleSort(sortKey)}>
+    <th className="py-3 px-3 text-left font-semibold cursor-pointer hover:bg-[#bca142]/10 transition-colors duration-200" onClick={() => handleSort(sortKey)}>
       <div className="flex items-center">
         {children}
         {sortConfig.key === sortKey ? (
           sortConfig.direction === 'ascending' ? 
-            <FiChevronUp className="ml-1 text-gray-600" /> : 
-            <FiChevronDown className="ml-1 text-gray-600" />
+            <FiChevronUp className="ml-1 text-white" /> : 
+            <FiChevronDown className="ml-1 text-white" />
         ) : null}
       </div>
     </th>
@@ -198,11 +198,11 @@ const ClosedTickets = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100">
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-[#bca142]/10 via-[#bca142]/5 to-[#bca142]/20">
         <div className="text-center">
           <div className="relative">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-gray-600 mx-auto"></div>
-            <FiCheckCircle className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-600 animate-pulse" size={24} />
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#bca142]/30 border-t-[#bca142] mx-auto"></div>
+            <FiCheckCircle className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-[#bca142] animate-pulse" size={24} />
           </div>
           <p className="mt-4 text-lg font-medium text-gray-700 animate-pulse">Loading Closed Tickets...</p>
         </div>
@@ -212,14 +212,14 @@ const ClosedTickets = () => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100">
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-[#bca142]/10 via-[#bca142]/5 to-[#bca142]/20">
         <div className="text-center">
           <FiAlertTriangle className="mx-auto text-red-500 mb-4" size={48} />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Tickets</h3>
           <p className="text-red-500 mb-4">{error}</p>
           <button 
             onClick={fetchTickets}
-            className="bg-gradient-to-r from-gray-500 to-slate-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-gray-600 hover:to-slate-700 transition-all duration-300"
+            className="bg-gradient-to-r from-[#bca142] to-[#bca142] text-white px-6 py-3 rounded-xl font-semibold hover:from-black hover:to-[#bca142] transition-all duration-300"
           >
             Try Again
           </button>
@@ -229,13 +229,13 @@ const ClosedTickets = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100 p-3">
+    <div className="min-h-screen bg-gradient-to-br from-[#bca142]/10 via-[#bca142]/5 to-[#bca142]/20 p-3">
       <div className="max-w-6xl mx-auto">
         {/* Compact Header */}
         <div className="bg-white/80 backdrop-blur-lg rounded-xl shadow-xl border border-white/20 p-4 mb-4">
           <div className="flex flex-col lg:flex-row justify-between items-center">
             <div className="flex items-center space-x-3 mb-2 lg:mb-0">
-              <div className="p-2 bg-gradient-to-r from-gray-500 to-slate-600 rounded-lg">
+              <div className="p-2 bg-gradient-to-r from-[#bca142] to-[#bca142] rounded-lg">
                 <FiCheckCircle className="text-white" size={20} />
               </div>
               <div>
@@ -247,7 +247,7 @@ const ClosedTickets = () => {
             </div>
             <button 
               onClick={fetchTickets}
-              className="flex items-center space-x-2 bg-gradient-to-r from-gray-500 to-slate-600 text-white font-semibold py-2 px-4 rounded-lg hover:from-gray-600 hover:to-slate-700 transition-all duration-300 shadow-lg text-sm"
+              className="flex items-center space-x-2 bg-gradient-to-r from-[#bca142] to-[#bca142] text-white font-semibold py-2 px-4 rounded-lg hover:from-black hover:to-[#bca142] transition-all duration-300 shadow-lg text-sm"
             >
               <FiRefreshCw size={16} />
               <span>Refresh</span>
@@ -258,10 +258,10 @@ const ClosedTickets = () => {
         {/* Compact Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
           {[
-            { label: 'Total', value: tickets.length, icon: FiCheckCircle, color: 'from-gray-500 to-slate-500' },
-            { label: 'Users', value: tickets.filter(t => t.user_role === 'user').length, icon: FiUser, color: 'from-blue-500 to-cyan-500' },
-            { label: 'Business', value: tickets.filter(t => t.user_role === 'business').length, icon: FiBriefcase, color: 'from-purple-500 to-pink-500' },
-            { label: 'Company', value: tickets.filter(t => t.user_role === 'company').length, icon: FiHome, color: 'from-green-500 to-emerald-500' }
+            { label: 'Total', value: tickets.length, icon: FiCheckCircle, color: 'from-[#bca142] to-[#bca142]' },
+            { label: 'Users', value: tickets.filter(t => t.user_role === 'user').length, icon: FiUser, color: 'from-[#bca142] to-[#bca142]' },
+            { label: 'Business', value: tickets.filter(t => t.user_role === 'business').length, icon: FiBriefcase, color: 'from-[#bca142] to-[#bca142]' },
+            { label: 'Company', value: tickets.filter(t => t.user_role === 'company').length, icon: FiHome, color: 'from-[#bca142] to-[#bca142]' }
           ].map((stat, index) => (
             <div key={index} className="bg-white/80 backdrop-blur-lg rounded-lg shadow-lg border border-white/20 p-3 hover:shadow-xl transition-all duration-300">
               <div className="flex items-center justify-between">
@@ -288,7 +288,7 @@ const ClosedTickets = () => {
                 placeholder="Search closed tickets..."
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className="w-full pl-9 pr-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-all duration-300 text-sm"
+                className="w-full pl-9 pr-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 text-sm"
               />
             </div>
 
@@ -297,7 +297,7 @@ const ClosedTickets = () => {
               <select
                 value={userTypeFilter}
                 onChange={(e) => { setUserTypeFilter(e.target.value); setCurrentPage(1); }}
-                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all duration-300 text-sm"
+                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] transition-all duration-300 text-sm"
               >
                 <option value="all">All Users</option>
                 <option value="user">Users</option>
@@ -309,7 +309,7 @@ const ClosedTickets = () => {
               <select
                 value={recipientFilter}
                 onChange={(e) => { setRecipientFilter(e.target.value); setCurrentPage(1); }}
-                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all duration-300 text-sm"
+                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] transition-all duration-300 text-sm"
               >
                 <option value="all">All Recipients</option>
                 <option value="admin">Admin</option>
@@ -319,7 +319,7 @@ const ClosedTickets = () => {
               <select
                 value={priorityFilter}
                 onChange={(e) => { setPriorityFilter(e.target.value); setCurrentPage(1); }}
-                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all duration-300 text-sm"
+                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] transition-all duration-300 text-sm"
               >
                 <option value="all">All Priorities</option>
                 <option value="low">Low</option>
@@ -331,7 +331,7 @@ const ClosedTickets = () => {
               <select
                 value={itemsPerPage}
                 onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
-                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all duration-300 text-sm"
+                className="px-3 py-2 bg-white/50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] transition-all duration-300 text-sm"
               >
                 <option value="10">10</option>
                 <option value="25">25</option>
@@ -370,7 +370,7 @@ const ClosedTickets = () => {
             <>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[600px]">
-                  <thead className="bg-gradient-to-r from-gray-50 to-slate-50">
+                  <thead className="bg-[#bca142]">
                     <tr>
                       <SortableHeader sortKey="ticket_number">Ticket</SortableHeader>
                       <SortableHeader sortKey="user_name">User</SortableHeader>
@@ -383,13 +383,13 @@ const ClosedTickets = () => {
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {paginatedTickets.map((ticket, index) => (
-                      <tr key={ticket.id} className={`hover:bg-gradient-to-r hover:from-gray-50/50 hover:to-slate-50/50 transition-all duration-300 ${
+                      <tr key={ticket.id} className={`hover:bg-[#bca142]/10 transition-all duration-300 ${
                         ticket.user_role === 'admin' ? 'bg-red-50/30' : ''
                       }`}>
                         <td className="px-3 py-3">
                           <div className="flex items-center space-x-2">
-                            <div className="p-1 bg-gradient-to-r from-gray-100 to-slate-100 rounded-lg flex-shrink-0">
-                              <FiCheckCircle className="text-gray-600" size={12} />
+                            <div className="p-1 bg-[#bca142]/20 rounded-lg flex-shrink-0">
+                              <FiCheckCircle className="text-[#bca142]" size={12} />
                             </div>
                             <div className="min-w-0">
                               <div className="text-xs font-bold text-gray-900 truncate">{ticket.ticket_number}</div>
@@ -417,8 +417,8 @@ const ClosedTickets = () => {
                                 'bg-red-100 text-red-800'
                               }`}>
                                 {ticket.user_role === 'user' ? 'User' :
-                                 ticket.user_role === 'business' ? 'Biz' :
-                                 ticket.user_role === 'company' ? 'Co' : 'Admin'}
+                                 ticket.user_role === 'business' ? 'Business' :
+                                 ticket.user_role === 'company' ? 'Company' : 'Admin'}
                               </span>
                             </div>
                           </div>
@@ -475,7 +475,7 @@ const ClosedTickets = () => {
                           <div className="flex items-center space-x-1">
                             <button
                               onClick={() => openDetailsModal(ticket)}
-                              className="p-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 transform hover:scale-105 shadow-lg flex-shrink-0"
+                              className="p-1.5 bg-black text-white rounded-lg hover:bg-[#bca142] transition-all duration-300 transform hover:scale-105 shadow-lg flex-shrink-0"
                               title="View Details"
                             >
                               <FiEye size={12} />
@@ -489,12 +489,12 @@ const ClosedTickets = () => {
               </div>
               
               {/* Enhanced Pagination */}
-              <div className="bg-gradient-to-r from-gray-50 to-slate-50 px-6 py-4 border-t border-gray-200">
+              <div className="bg-[#bca142] px-6 py-4 border-t border-gray-200">
                 <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
-                  <div className="text-sm text-gray-700">
-                    Showing <span className="font-bold text-gray-600">{sortedTickets.length > 0 ? startEntry : 0}</span> to{' '}
-                    <span className="font-bold text-gray-600">{endEntry}</span> of{' '}
-                    <span className="font-bold text-gray-600">{sortedTickets.length}</span> results
+                  <div className="text-sm text-white">
+                    Showing <span className="font-bold text-white">{sortedTickets.length > 0 ? startEntry : 0}</span> to{' '}
+                    <span className="font-bold text-white">{endEntry}</span> of{' '}
+                    <span className="font-bold text-white">{sortedTickets.length}</span> results
                   </div>
                   
                   <div className="flex items-center space-x-2">
@@ -526,7 +526,7 @@ const ClosedTickets = () => {
                             onClick={() => setCurrentPage(pageNum)}
                             className={`px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${
                               currentPage === pageNum
-                                ? 'bg-gradient-to-r from-gray-500 to-slate-600 text-white shadow-lg transform scale-105'
+                                ? 'bg-black text-white shadow-lg transform scale-105'
                                 : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
                             }`}
                           >
@@ -555,7 +555,7 @@ const ClosedTickets = () => {
       {isDetailsModalOpen && selectedTicket && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white/95 backdrop-blur-lg rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20">
-            <div className="bg-gradient-to-r from-gray-500 via-slate-600 to-gray-500 px-8 py-6 flex items-center justify-between">
+            <div className="bg-[#bca142] px-8 py-6 flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <div className="p-3 bg-white/20 rounded-xl">
                   <FiCheckCircle className="text-white" size={24} />
@@ -691,7 +691,7 @@ const ClosedTickets = () => {
             <div className="bg-gradient-to-r from-gray-50 to-slate-50 px-8 py-6 flex justify-end border-t border-gray-200">
               <button
                 onClick={closeModal}
-                className="bg-gradient-to-r from-gray-500 to-slate-600 hover:from-gray-600 hover:to-slate-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
+                className="bg-gradient-to-r from-[#bca142] to-[#bca142] hover:from-black hover:to-[#bca142] text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
               >
                 Close Details
               </button>

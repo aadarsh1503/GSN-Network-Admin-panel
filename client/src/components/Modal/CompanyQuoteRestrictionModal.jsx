@@ -110,7 +110,7 @@ const CompanyQuoteRestrictionModal = ({ isOpen, onClose, quoteData = null }) => 
                 <div className="mt-6 flex flex-col sm:flex-row gap-3">
                   <button
                     type="button"
-                    className="flex-1 inline-flex justify-center items-center rounded-md bg-[#CDA435] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#B8932E] focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:ring-offset-2 transition-colors"
+                    className="flex-1 inline-flex justify-center items-center rounded-md bg-[#bca142] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#B8932E] focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:ring-offset-2 transition-colors"
                     onClick={handleCreateUserAccount}
                   >
                     <UserPlus className="h-4 w-4 mr-2" />

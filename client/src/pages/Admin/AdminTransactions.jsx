@@ -173,10 +173,10 @@ const AdminTransactions = () => {
 
   const getStatusBadge = (status) => {
     const colors = {
-      completed: 'bg-green-100 text-green-800',
-      verified: 'bg-green-100 text-green-800',
-      paid: 'bg-green-100 text-green-800',
-      pending: 'bg-yellow-100 text-yellow-800',
+      completed: 'bg-[#bca142] text-white',
+      verified: 'bg-[#bca142] text-white',
+      paid: 'bg-[#bca142] text-white',
+      pending: 'bg-yellow-100 text-[#bca142]',
       failed: 'bg-red-100 text-red-800',
       refunded: 'bg-gray-100 text-gray-800'
     };
@@ -255,7 +255,7 @@ const AdminTransactions = () => {
           <div className="bg-white p-4 rounded-lg shadow-sm flex items-center justify-center min-h-[300px]">
             <div className="text-center">
               <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-              <p className="text-gray-600 text-sm">Loading transactions...</p>
+              <p className="text-white text-sm">Loading transactions...</p>
             </div>
           </div>
         </div>
@@ -274,36 +274,36 @@ const AdminTransactions = () => {
                 <p className="text-xs text-gray-500">Total</p>
                 <p className="text-lg font-bold text-gray-800">{stats.total}</p>
               </div>
-              <FiFileText className="text-blue-600" />
+              <FiFileText className="text-[#bca142]" />
             </div>
           </div>
           <div className="bg-white p-3 rounded-lg shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-500">Revenue</p>
-                <p className="text-lg font-bold text-green-600">${calculateTotalRevenue()}</p>
+                <p className="text-lg font-bold text-[#bca142]">${calculateTotalRevenue()}</p>
               </div>
-              <FiTrendingUp className="text-green-600" />
+              <FiTrendingUp className="text-[#bca142]" />
             </div>
           </div>
           <div className="bg-white p-3 rounded-lg shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-500">Quotes</p>
-                <p className="text-lg font-bold text-blue-600">{stats.quotes}</p>
+                <p className="text-lg font-bold text-[#bca142]">{stats.quotes}</p>
               </div>
-              <span className="text-blue-600">📦</span>
+              <span className="text-[#bca142]">📦</span>
             </div>
           </div>
           <div className="bg-white p-3 rounded-lg shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-500">Completed</p>
-                <p className="text-lg font-bold text-green-600">
+                <p className="text-lg font-bold text-[#bca142]">
                   {filteredTransactions.filter(t => ['completed', 'verified', 'paid'].includes(t.status)).length}
                 </p>
               </div>
-              <span className="text-green-600">✅</span>
+              <span className="text-[#bca142]">✅</span>
             </div>
           </div>
         </div>
@@ -322,7 +322,7 @@ const AdminTransactions = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search..."
-                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#bca142] focus:border-[#bca142]"
               />
             </div>
             <div className="w-full">
@@ -333,7 +333,7 @@ const AdminTransactions = () => {
                 id="status-filter"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 bg-white"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#bca142] focus:border-[#bca142] bg-white"
               >
                 <option value="">All</option>
                 <option value="completed">Completed</option>
@@ -350,7 +350,7 @@ const AdminTransactions = () => {
                   setSearchTerm('');
                   setStatusFilter('');
                 }}
-                className="w-full flex items-center justify-center px-3 py-1.5 text-sm bg-[#d4b46a] text-white font-medium rounded-md shadow-sm hover:bg-[#c8a860] transition-colors"
+                className="w-full flex items-center justify-center px-3 py-1.5 text-sm bg-[#bca142] text-white font-medium rounded-md shadow-sm hover:bg-[#B8941F] transition-colors"
               >
                 <FiFilter className="mr-1" />
                 Clear
@@ -386,7 +386,7 @@ const AdminTransactions = () => {
         <div className="bg-white p-3 rounded-lg shadow-sm">
           <div className="flex justify-between items-center mb-3">
             <h2 className="text-lg font-semibold text-gray-800">Transactions ({filteredTransactions.length})</h2>
-            <div className="text-xs text-blue-600 font-medium">
+            <div className="text-xs text-[#bca142] font-medium">
               💰 Payment Management
             </div>
           </div>
@@ -394,12 +394,12 @@ const AdminTransactions = () => {
           {/* Compact Table */}
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left text-gray-600">
-              <thead className="bg-[#e6c98c] text-gray-700 uppercase text-xs">
+              <thead className="bg-[#bca142] text-white uppercase text-xs">
                 <tr>
                   <th scope="col" className="px-2 py-2 font-semibold">
                     <div className="flex items-center cursor-pointer" onClick={() => handleSort('id')}>
                       #
-                      <FaSort className="ml-1 h-2 w-2 text-gray-500" />
+                      <FaSort className="ml-1 h-2 w-2 text-white" />
                     </div>
                   </th>
                   <th scope="col" className="px-2 py-2 font-semibold min-w-[120px]">
@@ -417,7 +417,7 @@ const AdminTransactions = () => {
                   <th scope="col" className="px-2 py-2 font-semibold">
                     <div className="flex items-center cursor-pointer" onClick={() => handleSort('amount')}>
                       Amount
-                      <FaSort className="ml-1 h-2 w-2 text-gray-500" />
+                      <FaSort className="ml-1 h-2 w-2 text-white" />
                     </div>
                   </th>
                   <th scope="col" className="px-2 py-2 font-semibold min-w-[120px]">
@@ -426,13 +426,13 @@ const AdminTransactions = () => {
                   <th scope="col" className="px-2 py-2 font-semibold">
                     <div className="flex items-center cursor-pointer" onClick={() => handleSort('status')}>
                       Status
-                      <FaSort className="ml-1 h-2 w-2 text-gray-500" />
+                      <FaSort className="ml-1 h-2 w-2 text-white" />
                     </div>
                   </th>
                   <th scope="col" className="px-2 py-2 font-semibold">
                     <div className="flex items-center cursor-pointer" onClick={() => handleSort('created_at')}>
                       Date
-                      <FaSort className="ml-1 h-2 w-2 text-gray-500" />
+                      <FaSort className="ml-1 h-2 w-2 text-white" />
                     </div>
                   </th>
                   <th scope="col" className="px-2 py-2 font-semibold">
@@ -467,7 +467,7 @@ const AdminTransactions = () => {
                         <div className="min-w-[140px]">
                           {transaction.company_name ? (
                             <>
-                              <div className="font-medium text-xs text-blue-600 truncate">{transaction.company_name}</div>
+                              <div className="font-medium text-xs text-[#bca142] truncate">{transaction.company_name}</div>
                               <div className="text-xs text-gray-500 truncate">{transaction.company_email || 'No email'}</div>
                             </>
                           ) : (
@@ -480,11 +480,11 @@ const AdminTransactions = () => {
                           {transaction.product_description || transaction.plan_name || transaction.plan_description || 'N/A'}
                         </div>
                         {transaction.quote_id && (
-                          <div className="text-xs text-blue-600">Quote #{transaction.quote_id}</div>
+                          <div className="text-xs text-[#bca142]">Quote #{transaction.quote_id}</div>
                         )}
                       </td>
                       <td className="px-2 py-2">
-                        <div className="font-bold text-xs text-green-600">
+                        <div className="font-bold text-xs text-[#bca142]">
                           ${transaction.amount || transaction.amount_paid || '0.00'}
                         </div>
                       </td>
@@ -549,7 +549,7 @@ const AdminTransactions = () => {
                       onClick={() => setCurrentPage(pageNum)}
                       className={`px-2 py-1 text-xs border-t border-b ${
                         currentPage === pageNum 
-                          ? 'text-white bg-[#d4b46a]' 
+                          ? 'text-white bg-[#bca142]' 
                           : 'hover:bg-gray-100'
                       }`}
                     >
@@ -584,7 +584,7 @@ const AdminTransactions = () => {
                 </div>
                 
                 <div className="mb-4">
-                  <p className="text-gray-600 mb-3 text-sm">
+                  <p className="text-gray-500 mb-3 text-sm">
                     Are you sure you want to delete this transaction? This action cannot be undone.
                   </p>
                   {deleteConfirm.transactionDetails && (
@@ -599,7 +599,7 @@ const AdminTransactions = () => {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-500">Amount:</span>
-                        <span className="font-bold text-green-600">${deleteConfirm.transactionDetails.amount || deleteConfirm.transactionDetails.amount_paid}</span>
+                        <span className="font-bold text-[#bca142]">${deleteConfirm.transactionDetails.amount || deleteConfirm.transactionDetails.amount_paid}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-500">Status:</span>
@@ -612,7 +612,7 @@ const AdminTransactions = () => {
                 <div className="flex justify-end space-x-2">
                   <button
                     onClick={hideDeleteConfirm}
-                    className="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors text-sm font-medium"
+                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors text-sm font-medium"
                   >
                     Cancel
                   </button>

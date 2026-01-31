@@ -41,7 +41,7 @@ const CompanyHelp = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-amber-600"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#bca142]"></div>
       </div>
     );
   }
@@ -81,43 +81,43 @@ const CompanyHelp = () => {
       {/* Contact Information Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {/* Email Support */}
-        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-amber-500">
+        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#bca142]">
           <div className="flex items-center mb-4">
-            <FiMail className="text-amber-600 text-2xl mr-3" />
+            <FiMail className="text-[#bca142] text-2xl mr-3" />
             <h3 className="text-lg font-semibold text-gray-800">Email Support</h3>
           </div>
           <p className="text-gray-600 mb-2">Send us an email for detailed assistance</p>
           <a 
             href={`mailto:${helpData.contact_email}`}
-            className="text-amber-600 hover:text-amber-700 font-medium"
+            className="text-[#bca142] hover:text-black font-medium"
           >
             {helpData.contact_email}
           </a>
         </div>
 
         {/* Phone Support */}
-        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-black">
           <div className="flex items-center mb-4">
-            <FiPhone className="text-blue-600 text-2xl mr-3" />
+            <FiPhone className="text-black text-2xl mr-3" />
             <h3 className="text-lg font-semibold text-gray-800">Phone Support</h3>
           </div>
           <p className="text-gray-600 mb-2">Call us for immediate assistance</p>
           <a 
             href={`tel:${helpData.contact_phone}`}
-            className="text-blue-600 hover:text-blue-700 font-medium"
+            className="text-black hover:text-[#bca142] font-medium"
           >
             {helpData.contact_phone}
           </a>
         </div>
 
         {/* Support Hours */}
-        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
+        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#bca142]">
           <div className="flex items-center mb-4">
-            <FiClock className="text-green-600 text-2xl mr-3" />
+            <FiClock className="text-[#bca142] text-2xl mr-3" />
             <h3 className="text-lg font-semibold text-gray-800">Support Hours</h3>
           </div>
           <p className="text-gray-600 mb-2">We're available during these hours</p>
-          <p className="text-green-600 font-medium">
+          <p className="text-[#bca142] font-medium">
             {helpData.support_hours || 'Monday - Friday: 9:00 AM - 6:00 PM'}
           </p>
         </div>
@@ -127,7 +127,7 @@ const CompanyHelp = () => {
       {helpData.address && (
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
           <div className="flex items-center mb-4">
-            <FiMapPin className="text-red-600 text-2xl mr-3" />
+            <FiMapPin className="text-black text-2xl mr-3" />
             <h3 className="text-lg font-semibold text-gray-800">Our Location</h3>
           </div>
           <p className="text-gray-600">{helpData.address}</p>
@@ -137,7 +137,7 @@ const CompanyHelp = () => {
       {/* Company-specific FAQ Section */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
         <div className="flex items-center mb-6">
-          <FiHelpCircle className="text-purple-600 text-2xl mr-3" />
+          <FiHelpCircle className="text-[#bca142] text-2xl mr-3" />
           <h3 className="text-xl font-semibold text-gray-800">Company FAQ</h3>
         </div>
         
@@ -195,13 +195,13 @@ const CompanyHelp = () => {
       {/* Company Services Guide */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
         <div className="flex items-center mb-6">
-          <FiBriefcase className="text-indigo-600 text-2xl mr-3" />
+          <FiBriefcase className="text-black text-2xl mr-3" />
           <h3 className="text-xl font-semibold text-gray-800">Company Services Guide</h3>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="flex items-start">
-            <FiUsers className="text-blue-500 text-xl mr-3 mt-1" />
+            <FiUsers className="text-[#bca142] text-xl mr-3 mt-1" />
             <div>
               <h4 className="font-medium text-gray-800 mb-2">Member Directory</h4>
               <p className="text-gray-600 text-sm">
@@ -211,7 +211,7 @@ const CompanyHelp = () => {
           </div>
           
           <div className="flex items-start">
-            <FiFileText className="text-green-500 text-xl mr-3 mt-1" />
+            <FiFileText className="text-black text-xl mr-3 mt-1" />
             <div>
               <h4 className="font-medium text-gray-800 mb-2">Quote Management</h4>
               <p className="text-gray-600 text-sm">
@@ -226,7 +226,7 @@ const CompanyHelp = () => {
       {helpData.contact_details && (
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex items-center mb-4">
-            <FiMessageSquare className="text-indigo-600 text-2xl mr-3" />
+            <FiMessageSquare className="text-[#bca142] text-2xl mr-3" />
             <h3 className="text-lg font-semibold text-gray-800">Additional Contact Information</h3>
           </div>
           <div 

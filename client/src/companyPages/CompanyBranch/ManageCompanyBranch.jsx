@@ -224,7 +224,7 @@ const ManageCompanyBranch = () => {
   );
 
   // CSS for inputs
-  const inputClasses = "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#CDA435] text-sm";
+  const inputClasses = "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#bca142] text-sm";
   const labelClasses = "block text-xs font-medium text-gray-700 mb-1";
 
   return (
@@ -235,7 +235,7 @@ const ManageCompanyBranch = () => {
       <div className="flex flex-col md:flex-row items-center justify-between mb-4 gap-4">
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <span>Show</span>
-          <select value={entriesPerPage} onChange={(e) => { setEntriesPerPage(Number(e.target.value)); setCurrentPage(1); }} className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#CDA435]">
+          <select value={entriesPerPage} onChange={(e) => { setEntriesPerPage(Number(e.target.value)); setCurrentPage(1); }} className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#bca142]">
             <option value="5">5</option>
             <option value="10">10</option>
             <option value="25">25</option>
@@ -244,7 +244,7 @@ const ManageCompanyBranch = () => {
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <label htmlFor="search">Search:</label>
-          <input id="search" type="text" value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} placeholder="Name, City, Country..." className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#CDA435]" />
+          <input id="search" type="text" value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} placeholder="Name, City, Country..." className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#bca142]" />
         </div>
       </div>
 
@@ -252,7 +252,7 @@ const ManageCompanyBranch = () => {
       <div className="overflow-x-auto min-h-[300px]">
         {loading ? <div className="text-center py-10 text-gray-500">Loading branches...</div> : (
         <table className="min-w-full bg-white">
-          <thead className="bg-[#D9CBAA] text-gray-800 text-sm">
+          <thead className="bg-[#bca142] text-white text-sm">
             <tr>
               <th className="p-3 text-left font-semibold w-16"><SortableHeader>Sr.No</SortableHeader></th>
               <th className="p-3 text-left font-semibold"><SortableHeader>Branch Name</SortableHeader></th>
@@ -274,8 +274,8 @@ const ManageCompanyBranch = () => {
                 <td className="p-3 text-sm text-gray-700 max-w-xs break-words">{branch.address || '-'}</td>
                 <td className="p-3">
                   <div className="flex items-center gap-2">
-                    <button onClick={() => handleEditClick(branch)} className="bg-lime-500 text-white p-2 rounded-md hover:bg-lime-600 transition-colors"><FaPen size={12} /></button>
-                    <button onClick={() => handleDelete(branch.id)} className="bg-pink-600 text-white p-2 rounded-md hover:bg-pink-700 transition-colors"><FaTrash size={12} /></button>
+                    <button onClick={() => handleEditClick(branch)} className="bg-[#bca142] text-white p-2 rounded-md hover:bg-black transition-colors"><FaPen size={12} /></button>
+                    <button onClick={() => handleDelete(branch.id)} className="bg-black text-white p-2 rounded-md hover:bg-[#bca142] transition-colors"><FaTrash size={12} /></button>
                   </div>
                 </td>
               </tr>
@@ -292,7 +292,7 @@ const ManageCompanyBranch = () => {
             <div className="text-sm text-gray-600">Showing {filteredBranches.length === 0 ? 0 : indexOfFirstEntry + 1} to {Math.min(indexOfLastEntry, filteredBranches.length)} of {filteredBranches.length} entries</div>
             <div className="flex items-center select-none">
             <button onClick={() => setCurrentPage(p => Math.max(p - 1, 1))} disabled={currentPage === 1} className="px-3 py-1 border border-gray-300 rounded-l-md hover:bg-gray-100 disabled:opacity-50">Previous</button>
-            <div className="px-3 py-1 border-t border-b border-gray-300 bg-[#D9CBAA]">{currentPage}</div>
+            <div className="px-3 py-1 border-t border-b border-gray-300 bg-[#bca142] text-white">{currentPage}</div>
             <button onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages} className="px-3 py-1 border border-gray-300 rounded-r-md hover:bg-gray-100 disabled:opacity-50">Next</button>
             </div>
         </div>
@@ -315,7 +315,7 @@ const ManageCompanyBranch = () => {
             <form onSubmit={handleUpdateSubmit} className="p-6">
               
               {/* Location Details */}
-              <h4 className="text-md font-semibold text-[#CDA435] mb-4 border-b pb-2">Location & Contact</h4>
+              <h4 className="text-md font-semibold text-[#bca142] mb-4 border-b pb-2">Location & Contact</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div><label className={labelClasses}>Branch Name</label><input type="text" name="branchName" value={editFormData.branchName} onChange={handleEditChange} className={inputClasses} required /></div>
                 
@@ -396,7 +396,7 @@ const ManageCompanyBranch = () => {
               </div>
 
               {/* Social Media */}
-              <h4 className="text-md font-semibold text-[#CDA435] mb-4 border-b pb-2">Social Media & Web</h4>
+              <h4 className="text-md font-semibold text-[#bca142] mb-4 border-b pb-2">Social Media & Web</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                  <div><label className={labelClasses}>Website</label><input type="url" name="website" value={editFormData.website} onChange={handleEditChange} className={inputClasses} /></div>
                  <div><label className={labelClasses}>Map Location</label><input type="url" name="mapLocation" value={editFormData.mapLocation} onChange={handleEditChange} className={inputClasses} /></div>
@@ -411,7 +411,7 @@ const ManageCompanyBranch = () => {
               {/* Modal Actions */}
               <div className="mt-8 flex justify-end gap-3">
                 <button type="button" onClick={() => setIsEditModalOpen(false)} className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
-                <button type="submit" className="px-6 py-2 bg-[#CDA435] text-white font-semibold rounded-lg hover:bg-[#B8941F]">Update Branch</button>
+                <button type="submit" className="px-6 py-2 bg-[#bca142] text-white font-semibold rounded-lg hover:bg-black transition-colors">Update Branch</button>
               </div>
 
             </form>

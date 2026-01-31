@@ -74,22 +74,22 @@ const BusinessQuotes = () => {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'pending': return <FaClock className="text-amber-500" />;
-      case 'running': return <FaSpinner className="text-yellow-500 animate-spin" />;
-      case 'closed': return <FaCheckCircle className="text-green-500" />;
-      case 'rejected': return <FaTimesCircle className="text-red-500" />;
-      case 'approved': return <FaCheckCircle className="text-green-500" />;
+      case 'pending': return <FaClock className="text-[#bca142]" />;
+      case 'running': return <FaSpinner className="text-[#bca142] animate-spin" />;
+      case 'closed': return <FaCheckCircle className="text-[#bca142]" />;
+      case 'rejected': return <FaTimesCircle className="text-black" />;
+      case 'approved': return <FaCheckCircle className="text-[#bca142]" />;
       default: return <FaClock className="text-gray-500" />;
     }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'pending': return 'bg-amber-100 text-amber-800 border-amber-200';
-      case 'approved': return 'bg-green-100 text-green-800 border-green-200';
-      case 'running': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'closed': return 'bg-green-100 text-green-800 border-green-200';
-      case 'rejected': return 'bg-red-100 text-red-800 border-red-200';
+      case 'pending': return 'bg-gray-50 text-[#bca142] border-gray-200';
+      case 'approved': return 'bg-gray-50 text-[#bca142] border-gray-200';
+      case 'running': return 'bg-gray-50 text-[#bca142] border-gray-200';
+      case 'closed': return 'bg-gray-50 text-[#bca142] border-gray-200';
+      case 'rejected': return 'bg-gray-50 text-black border-gray-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
@@ -134,8 +134,8 @@ const BusinessQuotes = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-yellow-200 border-t-yellow-500 mx-auto mb-4"></div>
-          <p className="text-xl font-semibold text-slate-700">Loading your quotes...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-[#bca142] mx-auto mb-4"></div>
+          <p className="text-xl font-semibold text-black">Loading your quotes...</p>
         </div>
       </div>
     );
@@ -144,35 +144,35 @@ const BusinessQuotes = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-yellow-50 via-amber-50 to-orange-50 rounded-xl p-6 border border-yellow-200/50">
+      <div className="bg-white rounded-xl p-6 border border-gray-200">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-yellow-600 to-amber-600 bg-clip-text text-transparent mb-2">
+            <h1 className="text-3xl font-bold text-[#bca142] mb-2">
               My Quotes
             </h1>
-            <p className="text-slate-600">Manage and track your quote requests and responses</p>
+            <p className="text-gray-600">Manage and track your quote requests and responses</p>
             <div className="flex items-center space-x-4 mt-3">
-              <div className="flex items-center space-x-2 bg-white/50 backdrop-blur-sm px-3 py-1 rounded-full">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-sm text-green-600">Live Updates</span>
+              <div className="flex items-center space-x-2 bg-gray-50 px-3 py-1 rounded-full">
+                <div className="w-2 h-2 bg-[#bca142] rounded-full animate-pulse"></div>
+                <span className="text-sm text-[#bca142]">Live Updates</span>
               </div>
-              <div className="flex items-center space-x-2 bg-white/50 backdrop-blur-sm px-3 py-1 rounded-full">
-                <FaChartLine className="h-3 w-3 text-yellow-500" />
-                <span className="text-sm text-yellow-600">{quotes.length} Total Quotes</span>
+              <div className="flex items-center space-x-2 bg-gray-50 px-3 py-1 rounded-full">
+                <FaChartLine className="h-3 w-3 text-[#bca142]" />
+                <span className="text-sm text-[#bca142]">{quotes.length} Total Quotes</span>
               </div>
             </div>
           </div>
           <div className="flex space-x-3">
             <button
               onClick={fetchQuotes}
-              className="flex items-center space-x-2 bg-white/80 hover:bg-white text-slate-700 px-4 py-2 rounded-xl border border-slate-200 transition-all duration-300 hover:shadow-lg"
+              className="flex items-center space-x-2 bg-gray-50 hover:bg-gray-100 text-black px-4 py-2 rounded-xl border border-gray-200 transition-all duration-300 hover:shadow-lg"
             >
               <RefreshCw className="h-4 w-4" />
               <span>Refresh</span>
             </button>
             <Link
               to="/quote"
-              className="flex items-center space-x-2 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="flex items-center space-x-2 bg-[#bca142] hover:bg-black text-white px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               <FaPlus className="h-4 w-4" />
               <span>New Quote</span>
@@ -190,49 +190,49 @@ const BusinessQuotes = () => {
           return (
             <div
               key={status}
-              className={`bg-white/80 backdrop-blur-lg rounded-xl p-5 border transition-all duration-300 hover:shadow-xl cursor-pointer transform hover:scale-105 ${
-                statusFilter === status ? 'ring-2 ring-yellow-500 border-yellow-200' : 'border-white/20'
+              className={`bg-white rounded-xl p-5 border transition-all duration-300 hover:shadow-xl cursor-pointer transform hover:scale-105 ${
+                statusFilter === status ? 'ring-2 ring-[#bca142] border-[#bca142]' : 'border-gray-200'
               }`}
               onClick={() => setStatusFilter(statusFilter === status ? 'all' : status)}
             >
               <div className="flex items-center justify-between mb-3">
-                <div className={`p-3 rounded-xl ${getStatusColor(status).replace('text-', 'bg-').replace('bg-', 'bg-').replace('-800', '-100').replace('-100', '-500')} text-white`}>
+                <div className={`p-3 rounded-xl ${status === 'rejected' ? 'bg-black' : 'bg-[#bca142]'} text-white`}>
                   {getStatusIcon(status)}
                 </div>
-                <span className="text-2xl font-bold text-slate-800">{count}</span>
+                <span className="text-2xl font-bold text-black">{count}</span>
               </div>
-              <h3 className="text-lg font-semibold text-slate-800 capitalize mb-1">{status}</h3>
-              <p className="text-sm text-slate-600">{percentage}% of total</p>
+              <h3 className="text-lg font-semibold text-black capitalize mb-1">{status}</h3>
+              <p className="text-sm text-gray-600">{percentage}% of total</p>
             </div>
           );
         })}
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white/80 backdrop-blur-lg rounded-xl p-5 shadow-lg border border-white/20">
+      <div className="bg-white rounded-xl p-5 shadow-lg border border-gray-200">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0">
           {/* Search */}
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <input
               type="text"
               placeholder="Search quotes, countries, products..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300"
+              className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
             />
           </div>
 
           {/* Filters */}
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
-              <Filter className="h-4 w-4 text-slate-500" />
-              <span className="text-sm text-slate-600">Filter:</span>
+              <Filter className="h-4 w-4 text-gray-500" />
+              <span className="text-sm text-gray-600">Filter:</span>
             </div>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300"
+              className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#bca142] transition-all duration-300"
             >
               <option value="all">All Status</option>
               <option value="pending">Pending</option>
@@ -245,7 +245,7 @@ const BusinessQuotes = () => {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300"
+              className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#bca142] transition-all duration-300"
             >
               <option value="created_at">Sort by Date</option>
               <option value="status">Sort by Status</option>
@@ -254,7 +254,7 @@ const BusinessQuotes = () => {
 
             <button
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              className="p-2 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-all duration-300"
+              className="p-2 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-100 transition-all duration-300"
               title={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
             >
               {sortOrder === 'asc' ? '↑' : '↓'}
@@ -265,16 +265,16 @@ const BusinessQuotes = () => {
 
 
       {/* Quotes Table */}
-      <div className="bg-white/80 backdrop-blur-lg rounded-xl shadow-lg border border-white/20 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
         {sortedQuotes.length === 0 ? (
           <div className="text-center py-12">
-            <div className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-full p-8 w-32 h-32 mx-auto mb-6 flex items-center justify-center">
-              <FaQuoteLeft className="text-slate-400 h-16 w-16" />
+            <div className="bg-gray-100 rounded-full p-8 w-32 h-32 mx-auto mb-6 flex items-center justify-center">
+              <FaQuoteLeft className="text-gray-400 h-16 w-16" />
             </div>
-            <h3 className="text-2xl font-bold text-slate-800 mb-4">
+            <h3 className="text-2xl font-bold text-black mb-4">
               {searchTerm || statusFilter !== 'all' ? 'No quotes match your criteria' : 'No quotes yet'}
             </h3>
-            <p className="text-slate-600 mb-6">
+            <p className="text-gray-600 mb-6">
               {searchTerm || statusFilter !== 'all' 
                 ? 'Try adjusting your search or filter criteria'
                 : 'Start by creating your first quote request'
@@ -283,7 +283,7 @@ const BusinessQuotes = () => {
             {(!searchTerm && statusFilter === 'all') && (
               <Link
                 to="/quote"
-                className="inline-flex items-center space-x-2 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="inline-flex items-center space-x-2 bg-[#bca142] hover:bg-black text-white px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 <FaPlus className="h-4 w-4" />
                 <span>Create First Quote</span>
@@ -293,30 +293,30 @@ const BusinessQuotes = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gradient-to-r from-yellow-50 to-amber-50">
+              <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Quote</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Route</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Product</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Shipping Mode</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Delivery Date</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Status</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Responses</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Created</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Actions</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Quote</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Route</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Product</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Shipping Mode</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Delivery Date</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Status</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Responses</th>
+                  {/* <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Created</th> */}
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-gray-200">
                 {sortedQuotes.map((quote) => (
-                  <tr key={quote.id} className="hover:bg-gradient-to-r hover:from-yellow-50/50 hover:to-amber-50/50 transition-all duration-300">
+                  <tr key={quote.id} className="hover:bg-gray-50 transition-all duration-300">
                     {/* Quote Info */}
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-3">
                         <span className="text-2xl">{getShippingModeIcon(quote.shipping_mode)}</span>
                         <div>
-                          <div className="text-sm font-bold text-slate-800">Quote #{quote.id}</div>
+                          <div className="text-sm font-bold text-black">Quote #{quote.id}</div>
                           {quote.weight && (
-                            <div className="text-xs text-slate-500">Weight: {quote.weight}</div>
+                            <div className="text-xs text-gray-500">Weight: {quote.weight}</div>
                           )}
                         </div>
                       </div>
@@ -326,13 +326,13 @@ const BusinessQuotes = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">
                         <div className="flex items-center space-x-1">
-                          <MapPin className="h-3 w-3 text-yellow-500" />
-                          <span className="text-sm font-medium text-slate-800">{quote.departure_country}</span>
+                          <MapPin className="h-3 w-3 text-[#bca142]" />
+                          <span className="text-sm font-medium text-black">{quote.departure_country}</span>
                         </div>
-                        <div className="text-slate-400">→</div>
+                        <div className="text-gray-400">→</div>
                         <div className="flex items-center space-x-1">
-                          <MapPin className="h-3 w-3 text-amber-500" />
-                          <span className="text-sm font-medium text-slate-800">{quote.arrival_country}</span>
+                          <MapPin className="h-3 w-3 text-[#bca142]" />
+                          <span className="text-sm font-medium text-black">{quote.arrival_country}</span>
                         </div>
                       </div>
                     </td>
@@ -340,7 +340,7 @@ const BusinessQuotes = () => {
                     {/* Product */}
                     <td className="px-6 py-4">
                       <div className="max-w-xs">
-                        <div className="text-sm font-medium text-slate-800 truncate" title={quote.product_description}>
+                        <div className="text-sm font-medium text-black truncate" title={quote.product_description}>
                           {quote.product_description}
                         </div>
                       </div>
@@ -349,16 +349,16 @@ const BusinessQuotes = () => {
                     {/* Shipping Mode */}
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">
-                        <Truck className="h-4 w-4 text-slate-500" />
-                        <span className="text-sm text-slate-700">{quote.shipping_mode}</span>
+                        <Truck className="h-4 w-4 text-gray-500" />
+                        <span className="text-sm text-black">{quote.shipping_mode}</span>
                       </div>
                     </td>
 
                     {/* Delivery Date */}
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">
-                        <Calendar className="h-4 w-4 text-slate-500" />
-                        <span className="text-sm text-slate-700">
+                        <Calendar className="h-4 w-4 text-gray-500" />
+                        <span className="text-sm text-black">
                           {quote.arrival_date ? new Date(quote.arrival_date).toLocaleDateString('en-US', {
                             year: 'numeric',
                             month: 'short',
@@ -379,17 +379,17 @@ const BusinessQuotes = () => {
                     {/* Responses */}
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">
-                        <FaChartLine className="h-4 w-4 text-slate-500" />
+                        <FaChartLine className="h-4 w-4 text-gray-500" />
                         <div>
                           <div className="flex items-center space-x-2">
-                            <span className="text-lg font-bold text-slate-800">{quote.response_count || 0}</span>
-                            <span className="text-sm text-slate-600">companies</span>
+                            <span className="text-lg font-bold text-black">{quote.response_count || 0}</span>
+                            <span className="text-sm text-gray-600">companies</span>
                             {quote.response_count > 0 && (
-                              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                              <div className="w-2 h-2 bg-[#bca142] rounded-full animate-pulse"></div>
                             )}
                           </div>
                           {quote.lowest_price && (
-                            <div className="text-sm text-green-600 font-medium">
+                            <div className="text-sm text-[#bca142] font-medium">
                               From ${quote.lowest_price}
                             </div>
                           )}
@@ -398,17 +398,17 @@ const BusinessQuotes = () => {
                     </td>
 
                     {/* Created */}
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-slate-700">
+                    {/* <td className="px-6 py-4">
+                      <div className="text-sm text-black">
                         {formatDate(quote.created_at)}
                       </div>
-                    </td>
+                    </td> */}
 
                     {/* Actions */}
                     <td className="px-6 py-4">
                       <Link
                         to={`/business/quotes/${quote.id}`}
-                        className="inline-flex items-center space-x-1 text-yellow-600 hover:text-yellow-700 font-medium hover:underline"
+                        className="inline-flex items-center space-x-1 text-[#bca142] hover:text-black font-medium hover:underline"
                       >
                         <FaEye className="h-4 w-4" />
                         <span>View</span>
@@ -426,8 +426,8 @@ const BusinessQuotes = () => {
       {/* Pagination */}
       {sortedQuotes.length > 0 && (
         <div className="flex justify-center">
-          <div className="bg-white/80 backdrop-blur-lg rounded-xl px-6 py-3 border border-white/20">
-            <span className="text-sm text-slate-600">
+          <div className="bg-white rounded-xl px-6 py-3 border border-gray-200">
+            <span className="text-sm text-gray-600">
               Showing {sortedQuotes.length} of {quotes.length} quotes
             </span>
           </div>

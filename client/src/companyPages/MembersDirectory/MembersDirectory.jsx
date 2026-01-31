@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaTimes, FaMapMarkerAlt, FaGlobe, FaEye, FaStar, FaHeart, FaPhone, FaArrowLeft, FaTh, FaList, FaUsers, FaRocket, FaAtom, FaSearch, FaFilter } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaEye, FaStar, FaHeart, FaPhone, FaArrowLeft, FaTh, FaList, FaRocket } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
@@ -104,23 +104,9 @@ const MembersDirectory = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 relative overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-[#D9B95B]/5 to-[#CDA435]/5 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-[#CDA435]/5 to-[#D9B95B]/5 rounded-full blur-3xl animate-bounce"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-[#D9B95B]/3 to-[#CDA435]/3 rounded-full blur-3xl animate-pulse"></div>
-      </div>
-
-      {/* Futuristic Header */}
-      <div className="relative bg-gradient-to-r from-[#D9B95B] via-[#E6C76B] to-[#CDA435] text-white overflow-hidden">
-        {/* Animated background pattern */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse"></div>
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/50 to-transparent"></div>
-          <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
-        </div>
-        
+    <div className="min-h-screen bg-white relative overflow-hidden">
+      {/* Header */}
+      <div className="relative bg-[#bca142] text-white overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-10">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-6">
@@ -133,17 +119,16 @@ const MembersDirectory = () => {
               <div className="flex items-center space-x-4">
                 <div className="relative">
                   <div className="p-4 bg-white/20 backdrop-blur-sm rounded-2xl border border-white/30 shadow-2xl">
-                    <FaRocket className="text-2xl animate-pulse" />
+                    <FaRocket className="text-2xl" />
                   </div>
-                  <div className="absolute -inset-2 bg-gradient-to-r from-white/20 to-transparent rounded-2xl blur-lg animate-pulse"></div>
                 </div>
                 <div>
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
+                  <h1 className="text-4xl font-bold text-white">
                     Members Directory
                   </h1>
                   <p className="text-white/90 text-lg font-medium mt-1">Explore our stellar network members</p>
                   <div className="flex items-center mt-2 space-x-2">
-                    <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse"></div>
+                    <div className="w-2 h-2 bg-white/60 rounded-full"></div>
                     <span className="text-white/70 text-sm">Premium Directory</span>
                   </div>
                 </div>
@@ -153,12 +138,9 @@ const MembersDirectory = () => {
         </div>
       </div>
 
-      {/* Futuristic Filters */}
+      {/* Filters */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 relative z-10">
-        <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl p-4 mb-4 border border-white/20 relative overflow-hidden">
-          {/* Animated background */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#D9B95B]/5 via-transparent to-[#CDA435]/5 animate-pulse"></div>
-          
+        <div className="bg-white rounded-3xl shadow-2xl p-4 mb-4 border border-gray-200 relative overflow-hidden">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 relative z-10">
             {/* Filters Row */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3 flex-1">
@@ -166,28 +148,26 @@ const MembersDirectory = () => {
                 <select 
                   value={selectedCategory}
                   onChange={(e) => { setSelectedCategory(e.target.value); setPagination(p => ({...p, currentPage: 1})); }}
-                  className="w-full p-3 bg-white/80 backdrop-blur-sm border border-white/30 rounded-xl focus:border-[#D9B95B] focus:ring-2 focus:ring-[#D9B95B]/20 transition-all duration-300 text-sm font-medium shadow-lg group-hover:shadow-xl"
+                  className="w-full p-3 bg-white border border-gray-300 rounded-xl focus:border-[#bca142] focus:ring-2 focus:ring-[#bca142]/20 transition-all duration-300 text-sm font-medium shadow-lg group-hover:shadow-xl"
                 >
                   <option value="">🏢 All Categories</option>
                   {filters.categories?.map((cat, idx) => (
                     <option key={idx} value={cat}>{formatCategoryName(cat)}</option>
                   ))}
                 </select>
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#D9B95B]/10 to-[#CDA435]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
               </div>
               
               <div className="relative group">
                 <select 
                   value={selectedCountry}
                   onChange={(e) => { setSelectedCountry(e.target.value); setPagination(p => ({...p, currentPage: 1})); }}
-                  className="w-full p-3 bg-white/80 backdrop-blur-sm border border-white/30 rounded-xl focus:border-[#D9B95B] focus:ring-2 focus:ring-[#D9B95B]/20 transition-all duration-300 text-sm font-medium shadow-lg group-hover:shadow-xl"
+                  className="w-full p-3 bg-white border border-gray-300 rounded-xl focus:border-[#bca142] focus:ring-2 focus:ring-[#bca142]/20 transition-all duration-300 text-sm font-medium shadow-lg group-hover:shadow-xl"
                 >
                   <option value="">🌍 All Countries</option>
                   {filters.countries?.map((country, idx) => (
                     <option key={idx} value={country}>{country}</option>
                   ))}
                 </select>
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#D9B95B]/10 to-[#CDA435]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
               </div>
               
               <div className="relative group">
@@ -196,34 +176,32 @@ const MembersDirectory = () => {
                   placeholder="🔍 Search..."
                   value={searchTerm}
                   onChange={(e) => { setSearchTerm(e.target.value); setPagination(p => ({...p, currentPage: 1})); }}
-                  className="w-full p-3 bg-white/80 backdrop-blur-sm border border-white/30 rounded-xl focus:border-[#D9B95B] focus:ring-2 focus:ring-[#D9B95B]/20 transition-all duration-300 text-sm font-medium shadow-lg group-hover:shadow-xl"
+                  className="w-full p-3 bg-white border border-gray-300 rounded-xl focus:border-[#bca142] focus:ring-2 focus:ring-[#bca142]/20 transition-all duration-300 text-sm font-medium shadow-lg group-hover:shadow-xl"
                 />
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#D9B95B]/10 to-[#CDA435]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
               </div>
               
               <div className="relative group">
                 <select 
                   value={itemsPerPage}
                   onChange={(e) => { setItemsPerPage(Number(e.target.value)); setPagination(p => ({...p, currentPage: 1})); }}
-                  className="w-full p-3 bg-white/80 backdrop-blur-sm border border-white/30 rounded-xl focus:border-[#D9B95B] focus:ring-2 focus:ring-[#D9B95B]/20 transition-all duration-300 text-sm font-medium shadow-lg group-hover:shadow-xl"
+                  className="w-full p-3 bg-white border border-gray-300 rounded-xl focus:border-[#bca142] focus:ring-2 focus:ring-[#bca142]/20 transition-all duration-300 text-sm font-medium shadow-lg group-hover:shadow-xl"
                 >
                   <option value={10}>📄 10 per page</option>
                   <option value={20}>📄 20 per page</option>
                   <option value={30}>📄 30 per page</option>
                   <option value={40}>📄 40 per page</option>
                 </select>
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#D9B95B]/10 to-[#CDA435]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
               </div>
             </div>
             
             {/* View Toggle - Inline */}
-            <div className="flex items-center space-x-2 bg-white/50 backdrop-blur-sm rounded-xl p-1 border border-white/30 shadow-lg flex-shrink-0">
+            <div className="flex items-center space-x-2 bg-gray-100 rounded-xl p-1 border border-gray-300 shadow-lg flex-shrink-0">
               <button
                 onClick={() => setViewMode('grid')}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-bold transition-all duration-300 ${
                   viewMode === 'grid'
-                    ? 'bg-gradient-to-r from-[#D9B95B] to-[#CDA435] text-white shadow-lg transform scale-105'
-                    : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'
+                    ? 'bg-[#bca142] text-white shadow-lg transform scale-105'
+                    : 'text-black hover:text-gray-800 hover:bg-white'
                 }`}
               >
                 <FaTh className="text-sm" />
@@ -233,8 +211,8 @@ const MembersDirectory = () => {
                 onClick={() => setViewMode('list')}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-bold transition-all duration-300 ${
                   viewMode === 'list'
-                    ? 'bg-gradient-to-r from-[#D9B95B] to-[#CDA435] text-white shadow-lg transform scale-105'
-                    : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'
+                    ? 'bg-[#bca142] text-white shadow-lg transform scale-105'
+                    : 'text-black hover:text-gray-800 hover:bg-white'
                 }`}
               >
                 <FaList className="text-sm" />
@@ -244,38 +222,34 @@ const MembersDirectory = () => {
           </div>
         </div>
 
-        {/* Futuristic Companies List */}
-        <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl p-4 border border-white/20 relative overflow-hidden">
-          {/* Animated background */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#D9B95B]/3 via-transparent to-[#CDA435]/3 animate-pulse"></div>
-          
+        {/* Companies List */}
+        <div className="bg-white rounded-3xl shadow-2xl p-4 border border-gray-200 relative overflow-hidden">
           {loading ? (
             <div className="text-center py-16 relative z-10">
               <div className="relative inline-block">
-                <div className="w-16 h-16 border-4 border-[#D9B95B]/30 border-t-[#D9B95B] rounded-full animate-spin"></div>
-                <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-[#CDA435] rounded-full animate-spin animate-reverse"></div>
+                <div className="w-16 h-16 border-4 border-gray-300 border-t-[#bca142] rounded-full animate-spin"></div>
               </div>
-              <p className="mt-4 text-lg font-bold text-gray-700 animate-pulse">Loading stellar companies...</p>
+              <p className="mt-4 text-lg font-bold text-black">Loading stellar companies...</p>
               <div className="flex justify-center mt-2 space-x-1">
-                <div className="w-2 h-2 bg-[#D9B95B] rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-[#CDA435] rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                <div className="w-2 h-2 bg-[#D9B95B] rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                <div className="w-2 h-2 bg-[#bca142] rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-[#bca142] rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                <div className="w-2 h-2 bg-[#bca142] rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
               </div>
             </div>
           ) : companies.length === 0 ? (
             <div className="text-center py-16 relative z-10">
-              <div className="text-6xl mb-4 animate-bounce">🚀</div>
-              <p className="text-xl text-gray-600 font-bold">No companies found</p>
+              <div className="text-6xl mb-4">🚀</div>
+              <p className="text-xl text-black font-bold">No companies found</p>
               <p className="text-gray-500 text-sm mt-2">Try adjusting your search parameters</p>
             </div>
           ) : (
             <>
               <div className="mb-4 flex justify-between items-center relative z-10">
-                <div className="text-lg font-bold text-gray-800 bg-white/50 backdrop-blur-sm px-4 py-2 rounded-2xl border border-white/30">
-                  <span className="text-[#D9B95B]">{companies.length}</span> of <span className="text-[#CDA435]">{pagination.totalCompanies}</span> stellar companies
+                <div className="text-lg font-bold text-black bg-gray-100 px-4 py-2 rounded-2xl border border-gray-300">
+                  <span className="text-[#bca142]">{companies.length}</span> of <span className="text-[#bca142]">{pagination.totalCompanies}</span> stellar companies
                 </div>
-                <div className="flex items-center space-x-3 text-sm text-gray-600 bg-white/50 backdrop-blur-sm px-4 py-2 rounded-2xl border border-white/30">
-                  <div className="w-3 h-3 bg-gradient-to-r from-[#D9B95B] to-[#CDA435] rounded-full animate-pulse"></div>
+                <div className="flex items-center space-x-3 text-sm text-black bg-gray-100 px-4 py-2 rounded-2xl border border-gray-300">
+                  <div className="w-3 h-3 bg-[#bca142] rounded-full"></div>
                   <span className="font-medium">Premium Network</span>
                 </div>
               </div>
@@ -288,68 +262,57 @@ const MembersDirectory = () => {
                   viewMode === 'grid' ? (
                     // Futuristic Grid View
                     <div key={company.id} className="group relative">
-                      {/* Animated background glow */}
-                      <div className="absolute -inset-1 bg-gradient-to-r from-[#D9B95B] to-[#CDA435] rounded-3xl blur-lg opacity-0 group-hover:opacity-30 transition-all duration-500"></div>
-                      
-                      <div className="relative bg-white/80 backdrop-blur-xl border border-white/30 rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105">
+                      <div className="relative bg-white border border-gray-200 rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105">
                         
                         {/* Wishlist Heart - Floating */}
                         {wishlistItems.includes(company.id) && (
                           <div className="absolute top-4 right-4 z-20">
-                            <div className="bg-red-500/90 backdrop-blur-sm rounded-full p-2 shadow-lg animate-pulse">
+                            <div className="bg-[#bca142] rounded-full p-2 shadow-lg">
                               <FaHeart className="text-white text-sm" />
                             </div>
                           </div>
                         )}
                         
-                        {/* Company Header - Futuristic */}
-                        <div className="relative p-3 bg-gradient-to-br from-gray-50/80 to-gray-100/80 backdrop-blur-sm text-center overflow-hidden">
-                          {/* Animated background pattern */}
-                          <div className="absolute inset-0 opacity-20">
-                            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#D9B95B]/10 to-[#CDA435]/10 animate-pulse"></div>
-                          </div>
-                          
+                        {/* Company Header */}
+                        <div className="relative p-3 bg-gray-50 text-center overflow-hidden">
                           <div className="relative z-10">
                             {company.logo ? (
                               <div className="relative inline-block">
                                 <img 
                                   src={company.logo} 
                                   alt={company.name} 
-                                  className="w-12 h-12 rounded-full object-cover mx-auto border-2 border-white/50 shadow-xl group-hover:scale-110 transition-transform duration-500" 
+                                  className="w-12 h-12 rounded-full object-cover mx-auto border-2 border-white shadow-xl group-hover:scale-110 transition-transform duration-500" 
                                 />
-                                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/20 to-transparent"></div>
-                                <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#D9B95B]/20 to-[#CDA435]/20 blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                               </div>
                             ) : (
                               <div className="relative inline-block">
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#D9B95B] to-[#CDA435] flex items-center justify-center mx-auto border-2 border-white/50 shadow-xl group-hover:scale-110 transition-transform duration-500">
+                                <div className="w-12 h-12 rounded-full bg-[#bca142] flex items-center justify-center mx-auto border-2 border-white shadow-xl group-hover:scale-110 transition-transform duration-500">
                                   <span className="text-lg text-white font-bold">{company.name?.charAt(0)}</span>
                                 </div>
-                                <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#D9B95B]/20 to-[#CDA435]/20 blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                               </div>
                             )}
                           </div>
                         </div>
                         
-                        {/* Company Info - Enhanced */}
+                        {/* Company Info */}
                         <div className="p-3 pt-2 relative">
-                          <h3 className="font-bold text-sm text-gray-800 group-hover:text-[#D9B95B] transition-colors line-clamp-2 mb-2 min-h-[2rem] text-center">
+                          <h3 className="font-bold text-sm text-black group-hover:text-[#bca142] transition-colors line-clamp-2 mb-2 min-h-[2rem] text-center">
                             {company.name}
                           </h3>
                           
                           <div className="mb-2 text-center">
-                            <span className="bg-gradient-to-r from-[#D9B95B]/20 to-[#CDA435]/20 backdrop-blur-sm text-[#8B7355] px-2 py-1 rounded-full text-xs font-bold inline-block border border-[#D9B95B]/20 max-w-full truncate">
+                            <span className="bg-[#bca142] text-white px-2 py-1 rounded-full text-xs font-bold inline-block border border-gray-200 max-w-full truncate">
                               {formatCategoryName(company.category)}
                             </span>
                           </div>
                           
-                          <div className="flex items-center justify-center text-gray-600 text-xs mb-2 bg-white/60 backdrop-blur-sm p-2 rounded-xl border border-white/30">
-                            <FaMapMarkerAlt className="mr-1 text-[#D9B95B] flex-shrink-0 text-xs" />
+                          <div className="flex items-center justify-center text-gray-600 text-xs mb-2 bg-gray-100 p-2 rounded-xl border border-gray-200">
+                            <FaMapMarkerAlt className="mr-1 text-[#bca142] flex-shrink-0 text-xs" />
                             <span className="font-bold truncate text-center">{company.city ? `${company.city}, ` : ''}{company.country}</span>
                           </div>
                           
                           {company.average_rating > 0 && (
-                            <div className="flex items-center justify-center text-xs mb-2 bg-gradient-to-r from-yellow-50/80 to-orange-50/80 backdrop-blur-sm p-2 rounded-xl border border-yellow-200/30">
+                            <div className="flex items-center justify-center text-xs mb-2 bg-gray-100 p-2 rounded-xl border border-gray-200">
                               <div className="flex items-center text-yellow-600">
                                 <div className="flex mr-1">
                                   {[...Array(5)].map((_, i) => (
@@ -365,17 +328,17 @@ const MembersDirectory = () => {
                           <div className="flex space-x-1">
                             <button 
                               onClick={() => handleViewProfile(company)}
-                              className="flex-1 bg-gradient-to-r from-[#D9B95B] to-[#CDA435] text-white py-2 rounded-xl hover:from-[#CDA435] hover:to-[#D9B95B] transition-all duration-500 flex items-center justify-center font-bold text-xs shadow-lg hover:shadow-xl transform hover:scale-105 border border-white/20 backdrop-blur-sm"
+                              className="flex-1 bg-[#bca142] text-white py-2 rounded-xl hover:bg-black transition-all duration-500 flex items-center justify-center font-bold text-xs shadow-lg hover:shadow-xl transform hover:scale-105 border border-gray-200"
                             >
                               <FaEye className="mr-1 text-xs" />
                               Explore
                             </button>
                             <button 
                               onClick={() => handleAddToWishlist(company.id)}
-                              className={`p-2 rounded-xl transition-all duration-500 flex items-center justify-center text-xs shadow-lg hover:shadow-xl transform hover:scale-105 border backdrop-blur-sm ${
+                              className={`p-2 rounded-xl transition-all duration-500 flex items-center justify-center text-xs shadow-lg hover:shadow-xl transform hover:scale-105 border ${
                                 wishlistItems.includes(company.id)
-                                  ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white border-red-300/30'
-                                  : 'bg-white/60 text-gray-600 hover:bg-gradient-to-r hover:from-red-100 hover:to-pink-100 hover:text-red-600 border-white/30'
+                                  ? 'bg-[#bca142] text-white border-gray-200'
+                                  : 'bg-white text-gray-600 hover:bg-gray-100 hover:text-[#bca142] border-gray-200'
                               }`}
                             >
                               <FaHeart className="text-xs" />
@@ -385,64 +348,58 @@ const MembersDirectory = () => {
                       </div>
                     </div>
                   ) : (
-                    // Futuristic List View
+                    // List View
                     <div key={company.id} className="group relative">
-                      {/* Animated background glow */}
-                      <div className="absolute -inset-1 bg-gradient-to-r from-[#D9B95B] to-[#CDA435] rounded-3xl blur-lg opacity-0 group-hover:opacity-20 transition-all duration-500"></div>
-                      
-                      <div className="relative bg-white/80 backdrop-blur-xl border border-white/30 rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1">
+                      <div className="relative bg-white border border-gray-200 rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1">
                         
                         {/* Wishlist Heart - Floating */}
                         {wishlistItems.includes(company.id) && (
                           <div className="absolute top-6 right-6 z-20">
-                            <div className="bg-red-500/90 backdrop-blur-sm rounded-full p-2 shadow-lg animate-pulse">
+                            <div className="bg-[#bca142] rounded-full p-2 shadow-lg">
                               <FaHeart className="text-white" />
                             </div>
                           </div>
                         )}
                         
                         <div className="flex items-center p-4 space-x-6">
-                          {/* Company Logo - Enhanced */}
+                          {/* Company Logo */}
                           <div className="flex-shrink-0 relative">
                             {company.logo ? (
                               <div className="relative">
                                 <img 
                                   src={company.logo} 
                                   alt={company.name} 
-                                  className="w-20 h-20 rounded-full object-cover border-4 border-white/50 shadow-2xl group-hover:scale-110 transition-transform duration-500" 
+                                  className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-2xl group-hover:scale-110 transition-transform duration-500" 
                                 />
-                                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/20 to-transparent"></div>
-                                <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-[#D9B95B]/20 to-[#CDA435]/20 blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                               </div>
                             ) : (
                               <div className="relative">
-                                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#D9B95B] to-[#CDA435] flex items-center justify-center border-4 border-white/50 shadow-2xl group-hover:scale-110 transition-transform duration-500">
+                                <div className="w-20 h-20 rounded-full bg-[#bca142] flex items-center justify-center border-4 border-white shadow-2xl group-hover:scale-110 transition-transform duration-500">
                                   <span className="text-2xl text-white font-bold">{company.name?.charAt(0)}</span>
                                 </div>
-                                <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-[#D9B95B]/20 to-[#CDA435]/20 blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                               </div>
                             )}
                           </div>
                           
-                          {/* Company Info - Enhanced */}
+                          {/* Company Info */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
-                                <h3 className="font-bold text-xl text-gray-800 group-hover:text-[#D9B95B] transition-colors truncate">
+                                <h3 className="font-bold text-xl text-black group-hover:text-[#bca142] transition-colors truncate">
                                   {company.name}
                                 </h3>
                                 <div className="flex items-center space-x-4 mt-2">
-                                  <span className="bg-gradient-to-r from-[#D9B95B]/20 to-[#CDA435]/20 backdrop-blur-sm text-[#8B7355] px-4 py-2 rounded-full text-sm font-bold border border-[#D9B95B]/20">
+                                  <span className="bg-[#bca142] text-white px-4 py-2 rounded-full text-sm font-bold">
                                     {formatCategoryName(company.category)}
                                   </span>
-                                  <div className="flex items-center text-gray-600 text-sm bg-white/60 backdrop-blur-sm px-3 py-2 rounded-full border border-white/30">
-                                    <FaMapMarkerAlt className="mr-2 text-[#D9B95B] flex-shrink-0" />
+                                  <div className="flex items-center text-gray-600 text-sm bg-gray-100 px-3 py-2 rounded-full border border-gray-200">
+                                    <FaMapMarkerAlt className="mr-2 text-[#bca142] flex-shrink-0" />
                                     <span className="font-bold">{company.city ? `${company.city}, ` : ''}{company.country}</span>
                                   </div>
                                 </div>
                                 {company.average_rating > 0 && (
                                   <div className="flex items-center mt-3">
-                                    <div className="flex items-center text-yellow-600 mr-4 bg-gradient-to-r from-yellow-50/80 to-orange-50/80 backdrop-blur-sm px-3 py-2 rounded-full border border-yellow-200/30">
+                                    <div className="flex items-center text-yellow-600 mr-4 bg-gray-100 px-3 py-2 rounded-full border border-gray-200">
                                       <div className="flex mr-2">
                                         {[...Array(5)].map((_, i) => (
                                           <FaStar key={i} className={`text-sm ${i < Math.floor(company.average_rating) ? 'text-yellow-400' : 'text-gray-300'} hover:scale-110 transition-transform duration-200`} />
@@ -450,26 +407,26 @@ const MembersDirectory = () => {
                                       </div>
                                       <span className="font-bold text-sm ml-1">{company.average_rating}</span>
                                     </div>
-                                    <span className="text-gray-500 text-sm">({company.total_reviews} stellar reviews)</span>
+                                    <span className="text-gray-500 text-sm">({company.total_reviews} reviews)</span>
                                   </div>
                                 )}
                               </div>
                               
-                              {/* Action Buttons - Enhanced */}
+                              {/* Action Buttons */}
                               <div className="flex-shrink-0 ml-6 flex space-x-3">
                                 <button 
                                   onClick={() => handleAddToWishlist(company.id)}
-                                  className={`p-3 rounded-2xl transition-all duration-500 flex items-center justify-center shadow-xl hover:shadow-2xl transform hover:scale-110 border backdrop-blur-sm ${
+                                  className={`p-3 rounded-2xl transition-all duration-500 flex items-center justify-center shadow-xl hover:shadow-2xl transform hover:scale-110 border ${
                                     wishlistItems.includes(company.id)
-                                      ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white border-red-300/30'
-                                      : 'bg-white/60 text-gray-600 hover:bg-gradient-to-r hover:from-red-100 hover:to-pink-100 hover:text-red-600 border-white/30'
+                                      ? 'bg-[#bca142] text-white border-gray-200'
+                                      : 'bg-white text-gray-600 hover:bg-gray-100 hover:text-[#bca142] border-gray-200'
                                   }`}
                                 >
                                   <FaHeart />
                                 </button>
                                 <button 
                                   onClick={() => handleViewProfile(company)}
-                                  className="bg-gradient-to-r from-[#D9B95B] to-[#CDA435] text-white px-8 py-3 rounded-2xl hover:from-[#CDA435] hover:to-[#D9B95B] transition-all duration-500 flex items-center font-bold text-sm shadow-xl hover:shadow-2xl transform hover:scale-105 border border-white/20 backdrop-blur-sm"
+                                  className="bg-[#bca142] text-white px-8 py-3 rounded-2xl hover:bg-black transition-all duration-500 flex items-center font-bold text-sm shadow-xl hover:shadow-2xl transform hover:scale-105 border border-gray-200"
                                 >
                                   <FaEye className="mr-2" />
                                   Explore Profile
@@ -484,25 +441,25 @@ const MembersDirectory = () => {
                 ))}
               </div>
 
-              {/* Futuristic Pagination */}
+              {/* Pagination */}
               {pagination.totalPages > 1 && (
-                <div className="flex justify-center items-center space-x-4 mt-6 pt-4 border-t border-white/20 relative z-10">
+                <div className="flex justify-center items-center space-x-4 mt-6 pt-4 border-t border-gray-200 relative z-10">
                   <button 
                     onClick={() => setPagination(p => ({...p, currentPage: p.currentPage - 1}))}
                     disabled={!pagination.hasPrev}
-                    className="px-6 py-3 bg-white/60 backdrop-blur-sm border border-white/30 rounded-2xl hover:bg-gradient-to-r hover:from-[#D9B95B] hover:to-[#CDA435] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 text-sm font-bold shadow-lg hover:shadow-xl transform hover:scale-105"
+                    className="px-6 py-3 bg-white border border-gray-300 rounded-2xl hover:bg-[#bca142] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 text-sm font-bold shadow-lg hover:shadow-xl transform hover:scale-105"
                   >
                     ← Previous
                   </button>
-                  <div className="flex items-center space-x-2 bg-white/60 backdrop-blur-sm px-4 py-3 rounded-2xl border border-white/30 shadow-lg">
-                    <span className="text-gray-600 text-sm font-medium">Page</span>
-                    <span className="bg-gradient-to-r from-[#D9B95B] to-[#CDA435] text-white px-3 py-1 rounded-xl font-bold text-sm shadow-lg">{pagination.currentPage}</span>
-                    <span className="text-gray-600 text-sm font-medium">of {pagination.totalPages}</span>
+                  <div className="flex items-center space-x-2 bg-gray-100 px-4 py-3 rounded-2xl border border-gray-300 shadow-lg">
+                    <span className="text-black text-sm font-medium">Page</span>
+                    <span className="bg-[#bca142] text-white px-3 py-1 rounded-xl font-bold text-sm shadow-lg">{pagination.currentPage}</span>
+                    <span className="text-black text-sm font-medium">of {pagination.totalPages}</span>
                   </div>
                   <button 
                     onClick={() => setPagination(p => ({...p, currentPage: p.currentPage + 1}))}
                     disabled={!pagination.hasNext}
-                    className="px-6 py-3 bg-white/60 backdrop-blur-sm border border-white/30 rounded-2xl hover:bg-gradient-to-r hover:from-[#D9B95B] hover:to-[#CDA435] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 text-sm font-bold shadow-lg hover:shadow-xl transform hover:scale-105"
+                    className="px-6 py-3 bg-white border border-gray-300 rounded-2xl hover:bg-[#bca142] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 text-sm font-bold shadow-lg hover:shadow-xl transform hover:scale-105"
                   >
                     Next →
                   </button>
@@ -512,30 +469,27 @@ const MembersDirectory = () => {
           )}
         </div>
 
-        {/* Futuristic Sidebar Actions */}
+        {/* Sidebar Actions */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
           <div className="group relative">
-            <div className="absolute -inset-1 bg-gradient-to-r from-[#D9B95B] to-[#CDA435] rounded-3xl blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-500"></div>
             <a 
               href="/company/quote" 
-              className="relative block bg-gradient-to-r from-[#D9B95B] to-[#CDA435] text-white font-bold py-4 px-6 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 text-center transform hover:scale-105 border border-white/20 backdrop-blur-sm"
+              className="relative block bg-[#bca142] text-white font-bold py-4 px-6 rounded-3xl shadow-2xl hover:shadow-3xl hover:bg-black transition-all duration-500 text-center transform hover:scale-105 border border-gray-200"
             >
               <div className="flex items-center justify-center space-x-3">
-                <FaRocket className="text-xl animate-pulse" />
+                <FaRocket className="text-xl" />
                 <span className="text-lg">Launch Quote Request</span>
               </div>
             </a>
           </div>
           
-          <div className="bg-white/70 backdrop-blur-xl border border-white/30 rounded-3xl p-4 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-105 relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-r from-[#D9B95B]/5 to-[#CDA435]/5 group-hover:from-[#D9B95B]/10 group-hover:to-[#CDA435]/10 transition-all duration-500"></div>
+          <div className="bg-white border border-gray-200 rounded-3xl p-4 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-105 relative overflow-hidden group">
             <div className="flex items-center justify-center space-x-3 relative z-10">
-              <div className="p-2 bg-gradient-to-r from-[#D9B95B] to-[#CDA435] rounded-xl">
+              <div className="p-2 bg-[#bca142] rounded-xl">
                 <FaPhone className="text-white" />
               </div>
               <div>
-                <span className="font-bold text-gray-800 text-lg">+973 17491222</span>
-                {/* <p className="text-sm text-gray-600 mt-1">Stellar Support Line</p> */}
+                <span className="font-bold text-black text-lg">+973 17491222</span>
               </div>
             </div>
           </div>

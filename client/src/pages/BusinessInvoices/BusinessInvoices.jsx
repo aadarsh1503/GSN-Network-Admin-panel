@@ -150,15 +150,8 @@ const BusinessInvoices = () => {
   };
 
   const getStatusBadge = (status) => {
-    const colors = {
-      paid: 'bg-green-100 text-green-800',
-      pending: 'bg-yellow-100 text-yellow-800',
-      completed: 'bg-blue-100 text-blue-800',
-      cancelled: 'bg-gray-100 text-gray-800'
-    };
-    
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors[status] || 'bg-gray-100 text-gray-800'}`}>
+      <span className="px-2 py-1 rounded-full text-xs font-medium bg-[#bca142] text-white">
         {status?.charAt(0).toUpperCase() + status?.slice(1)}
       </span>
     );
@@ -210,7 +203,7 @@ const BusinessInvoices = () => {
     return (
       <div className="bg-white p-6 md:p-8 rounded-lg shadow-md w-full">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#CDA435]"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#bca142]"></div>
         </div>
       </div>
     );
@@ -224,10 +217,10 @@ const BusinessInvoices = () => {
     <div className="bg-white p-6 md:p-8 rounded-lg shadow-md w-full">
       <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <FaFileInvoiceDollar className="text-[#CDA435]" />
+          <FaFileInvoiceDollar className="text-[#bca142]" />
           Transaction Invoices
         </div>
-        <div className="text-sm text-gray-600 bg-yellow-50 px-3 py-1 rounded-lg">
+        <div className="text-sm text-gray-600 bg-[#bca142] text-white px-3 py-1 rounded-lg">
           {invoices.length} Total Invoices
         </div>
       </h2>
@@ -247,7 +240,7 @@ const BusinessInvoices = () => {
               <select 
                 value={entriesPerPage} 
                 onChange={(e) => { setEntriesPerPage(Number(e.target.value)); setCurrentPage(1); }}
-                className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+                className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#bca142]"
               >
                 <option value="10">10</option>
                 <option value="25">25</option>
@@ -263,7 +256,7 @@ const BusinessInvoices = () => {
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                 placeholder="Invoice number, user name, quote ID..."
-                className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+                className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#bca142]"
               />
             </div>
           </div>
@@ -271,7 +264,7 @@ const BusinessInvoices = () => {
           {/* Table */}
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white">
-              <thead className="bg-[#D9CBAA] text-gray-800 text-sm">
+              <thead className="bg-[#bca142] text-white text-sm">
                 <tr>
                   <th className="p-3 text-left font-semibold">Invoice #</th>
                   <th className="p-3 text-left font-semibold">Quote ID</th>
@@ -287,12 +280,12 @@ const BusinessInvoices = () => {
                   <tr key={invoice.id} className="border-b border-gray-200 hover:bg-gray-50">
                     <td className="p-3 text-sm text-gray-700 font-mono">{invoice.invoice_number}</td>
                     <td className="p-3 text-sm text-gray-700">
-                      <span className="font-semibold text-[#CDA435]">#{invoice.quote_id}</span>
+                      <span className="font-semibold text-[#bca142]">#{invoice.quote_id}</span>
                     </td>
                     <td className="p-3 text-sm text-gray-700">
                       <div className="flex items-center">
-                        <div className="w-8 h-8 bg-green-50 rounded-full flex items-center justify-center mr-3">
-                          <FaBuilding className="text-green-500 text-sm" />
+                        <div className="w-8 h-8 bg-[#bca142] rounded-full flex items-center justify-center mr-3">
+                          <FaBuilding className="text-white text-sm" />
                         </div>
                         <div>
                           <div className="font-medium">{invoice.company_name}</div>
@@ -301,7 +294,7 @@ const BusinessInvoices = () => {
                       </div>
                     </td>
                     <td className="p-3 text-sm text-gray-700">
-                      <span className="font-semibold text-green-600">{formatCurrency(invoice.total_amount)}</span>
+                      <span className="font-semibold text-[#bca142]">{formatCurrency(invoice.total_amount)}</span>
                     </td>
                     <td className="p-3 text-sm text-gray-700">
                       {getStatusBadge(invoice.status)}
@@ -316,14 +309,14 @@ const BusinessInvoices = () => {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleViewInvoice(invoice.id)}
-                          className="bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-colors"
+                          className="bg-black text-white p-2 rounded-full hover:bg-gray-800 transition-colors"
                           title="View Invoice"
                         >
                           <FaEye size={12} />
                         </button>
                         <button
                           onClick={() => handleViewInvoice(invoice.id)}
-                          className="bg-green-500 text-white p-2 rounded-full hover:bg-green-600 transition-colors"
+                          className="bg-[#bca142] text-white p-2 rounded-full hover:bg-black transition-colors"
                           title="Download PDF"
                         >
                           <FaDownload size={12} />
@@ -350,7 +343,7 @@ const BusinessInvoices = () => {
                 >
                   Previous
                 </button>
-                <span className="px-3 py-1 border-t border-b border-gray-300 text-gray-800 bg-[#D9CBAA]">
+                <span className="px-3 py-1 border-t border-b border-gray-300 text-gray-800 bg-[#bca142] text-white">
                   {currentPage}
                 </span>
                 <button 
@@ -376,7 +369,7 @@ const BusinessInvoices = () => {
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleDownloadPDF}
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 flex items-center gap-2 transition-colors"
+                  className="bg-[#bca142] text-white px-4 py-2 rounded-lg hover:bg-black flex items-center gap-2 transition-colors"
                 >
                   <FaDownload size={14} /> Download PDF
                 </button>
@@ -401,7 +394,7 @@ const BusinessInvoices = () => {
                       className="w-20 h-20 object-contain"
                     />
                     <div>
-                      <h1 className="text-2xl font-bold mb-1" style={{ color: '#CDA435', fontSize: '24px', fontWeight: 'bold' }}>TRANSACTION INVOICE</h1>
+                      <h1 className="text-2xl font-bold mb-1" style={{ color: '#bca142', fontSize: '24px', fontWeight: 'bold' }}>TRANSACTION INVOICE</h1>
                       <p className="font-semibold" style={{ color: '#4B5563', fontSize: '14px', fontWeight: '600' }}>GSN Network Services</p>
                       <p className="text-xs" style={{ color: '#6B7280', fontSize: '12px' }}>Freight Forwarding & Logistics</p>
                     </div>
@@ -459,11 +452,11 @@ const BusinessInvoices = () => {
                 {/* Service Details */}
                 <div className="mb-6">
                   <table className="w-full" style={{ border: '1px solid #D1D5DB', borderCollapse: 'collapse' }}>
-                    <thead style={{ backgroundColor: '#D9CBAA' }}>
+                    <thead style={{ backgroundColor: '#bca142' }}>
                       <tr>
-                        <th className="p-2 text-left" style={{ border: '1px solid #D1D5DB', padding: '8px', textAlign: 'left', fontWeight: '600', fontSize: '12px' }}>Service Description</th>
-                        <th className="p-2 text-center" style={{ border: '1px solid #D1D5DB', padding: '8px', textAlign: 'center', fontWeight: '600', fontSize: '12px' }}>Route</th>
-                        <th className="p-2 text-right" style={{ border: '1px solid #D1D5DB', padding: '8px', textAlign: 'right', fontWeight: '600', fontSize: '12px' }}>Amount</th>
+                        <th className="p-2 text-left" style={{ border: '1px solid #D1D5DB', padding: '8px', textAlign: 'left', fontWeight: '600', fontSize: '12px', color: 'white' }}>Service Description</th>
+                        <th className="p-2 text-center" style={{ border: '1px solid #D1D5DB', padding: '8px', textAlign: 'center', fontWeight: '600', fontSize: '12px', color: 'white' }}>Route</th>
+                        <th className="p-2 text-right" style={{ border: '1px solid #D1D5DB', padding: '8px', textAlign: 'right', fontWeight: '600', fontSize: '12px', color: 'white' }}>Amount</th>
                       </tr>
                     </thead>
                     <tbody>

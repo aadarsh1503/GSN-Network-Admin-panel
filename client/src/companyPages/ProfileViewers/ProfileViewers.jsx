@@ -48,7 +48,7 @@ const ProfileViewers = () => {
             <select 
               value={entries} 
               onChange={(e) => setEntries(e.target.value)}
-              className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+              className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#bca142]"
             >
               <option value="10">10</option>
               <option value="25">25</option>
@@ -63,7 +63,7 @@ const ProfileViewers = () => {
               type="text" 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+              className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#bca142]"
             />
           </div>
         </div>

@@ -148,7 +148,7 @@ const BankDetailsManager = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#CDA435] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#bca142] mx-auto mb-4"></div>
           <p className="text-xl text-gray-600">Loading bank details...</p>
         </div>
       </div>
@@ -162,7 +162,7 @@ const BankDetailsManager = () => {
         <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-[#CDA435] to-[#D9B95B] bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-[#bca142] to-[#D9B95B] bg-clip-text text-transparent">
                 Bank Details Management
               </h1>
               <p className="text-gray-600 mt-2 text-lg">
@@ -171,11 +171,11 @@ const BankDetailsManager = () => {
             </div>
             <button
               onClick={() => setShowForm(true)}
-              className="group relative px-8 py-4 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center gap-3"
+              className="group relative px-8 py-4 bg-gradient-to-r from-[#bca142] to-[#D9B95B] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center gap-3"
             >
               <FiPlus className="text-xl group-hover:rotate-90 transition-transform duration-300" />
               Add Bank Details
-              <div className="absolute inset-0 bg-gradient-to-r from-[#D9B95B] to-[#CDA435] rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-[#D9B95B] to-[#bca142] rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"></div>
             </button>
           </div>
         </div>
@@ -183,14 +183,14 @@ const BankDetailsManager = () => {
         {/* Bank Details Grid */}
         {!Array.isArray(bankDetails) || bankDetails.length === 0 ? (
           <div className="text-center py-16">
-            <div className="p-6 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+            <div className="p-6 bg-gradient-to-r from-[#bca142] to-[#D9B95B] rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
               <FiCreditCard className="text-4xl text-white" />
             </div>
             <h3 className="text-2xl font-bold text-gray-800 mb-2">No Bank Details Found</h3>
             <p className="text-gray-600 mb-6">Add your first bank details to start receiving payments</p>
             <button
               onClick={() => setShowForm(true)}
-              className="px-8 py-4 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
+              className="px-8 py-4 bg-gradient-to-r from-[#bca142] to-[#D9B95B] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
             >
               Add Bank Details
             </button>
@@ -202,13 +202,13 @@ const BankDetailsManager = () => {
                 key={bank.id}
                 className={`relative bg-white rounded-2xl shadow-xl border-2 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
                   bank.is_active 
-                    ? 'border-[#CDA435] bg-gradient-to-br from-[#CDA435]/5 to-[#D9B95B]/5' 
-                    : 'border-gray-200 hover:border-[#CDA435]/50'
+                    ? 'border-[#bca142] bg-gradient-to-br from-[#bca142]/5 to-[#D9B95B]/5' 
+                    : 'border-gray-200 hover:border-[#bca142]/50'
                 }`}
               >
                 {/* Active Badge */}
                 {bank.is_active && (
-                  <div className="absolute -top-3 -right-3 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg flex items-center gap-2">
+                  <div className="absolute -top-3 -right-3 bg-gradient-to-r from-[#bca142] to-[#D9B95B] text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg flex items-center gap-2">
                     <FiStar className="text-sm" />
                     ACTIVE
                   </div>
@@ -218,7 +218,7 @@ const BankDetailsManager = () => {
                   {/* Bank Header */}
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-4">
-                      <div className="p-3 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-xl text-white">
+                      <div className="p-3 bg-gradient-to-r from-[#bca142] to-[#D9B95B] rounded-xl text-white">
                         <FiCreditCard className="text-2xl" />
                       </div>
                       <div>
@@ -232,7 +232,7 @@ const BankDetailsManager = () => {
                   <div className="space-y-4 mb-6">
                     {bank.branch_address && (
                       <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                        <FiMapPin className="text-[#CDA435] text-lg" />
+                        <FiMapPin className="text-[#bca142] text-lg" />
                         <div>
                           <p className="text-sm text-gray-500">Branch Address</p>
                           <p className="font-medium text-gray-800">{bank.branch_address}</p>
@@ -242,7 +242,7 @@ const BankDetailsManager = () => {
 
                     {bank.ifsc_code && (
                       <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                        <FiHash className="text-[#CDA435] text-lg" />
+                        <FiHash className="text-[#bca142] text-lg" />
                         <div>
                           <p className="text-sm text-gray-500">IFSC Code</p>
                           <p className="font-mono font-bold text-gray-800 text-lg">{bank.ifsc_code}</p>
@@ -251,7 +251,7 @@ const BankDetailsManager = () => {
                     )}
 
                     <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                      <FiUser className="text-[#CDA435] text-lg" />
+                      <FiUser className="text-[#bca142] text-lg" />
                       <div>
                         <p className="text-sm text-gray-500">Account Holder</p>
                         <p className="font-medium text-gray-800">{bank.account_name}</p>
@@ -259,7 +259,7 @@ const BankDetailsManager = () => {
                     </div>
 
                     <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                      <FiCreditCard className="text-[#CDA435] text-lg" />
+                      <FiCreditCard className="text-[#bca142] text-lg" />
                       <div className="flex-1">
                         <p className="text-sm text-gray-500">Account Number</p>
                         <div className="flex items-center gap-3">
@@ -285,7 +285,7 @@ const BankDetailsManager = () => {
 
                     {bank.routing_number && (
                       <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                        <FiHash className="text-[#CDA435] text-lg" />
+                        <FiHash className="text-[#bca142] text-lg" />
                         <div>
                           <p className="text-sm text-gray-500">Routing Number</p>
                           <p className="font-mono font-bold text-gray-800">{bank.routing_number}</p>
@@ -295,7 +295,7 @@ const BankDetailsManager = () => {
 
                     {bank.swift_code && (
                       <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                        <FiHash className="text-[#CDA435] text-lg" />
+                        <FiHash className="text-[#bca142] text-lg" />
                         <div>
                           <p className="text-sm text-gray-500">SWIFT Code</p>
                           <p className="font-mono font-bold text-gray-800">{bank.swift_code}</p>
@@ -352,7 +352,7 @@ const BankDetailsManager = () => {
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-8">
               <div className="flex justify-between items-center mb-8">
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-[#CDA435] to-[#D9B95B] bg-clip-text text-transparent">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-[#bca142] to-[#D9B95B] bg-clip-text text-transparent">
                   {editingId ? 'Edit Bank Details' : 'Add Bank Details'}
                 </h2>
                 <button
@@ -375,7 +375,7 @@ const BankDetailsManager = () => {
                       required
                       value={formData.bank_name}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-200"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-200"
                       placeholder="e.g., Indian Bank"
                     />
                   </div>
@@ -390,7 +390,7 @@ const BankDetailsManager = () => {
                       required
                       value={formData.branch_name}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-200"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-200"
                       placeholder="e.g., Main Branch"
                     />
                   </div>
@@ -405,7 +405,7 @@ const BankDetailsManager = () => {
                     value={formData.branch_address}
                     onChange={handleInputChange}
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-200"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-200"
                     placeholder="Complete branch address"
                   />
                 </div>
@@ -420,7 +420,7 @@ const BankDetailsManager = () => {
                       name="ifsc_code"
                       value={formData.ifsc_code}
                       onChange={(e) => setFormData({...formData, ifsc_code: e.target.value.toUpperCase()})}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-200 font-mono"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-200 font-mono"
                       placeholder="e.g., IDIB000X048"
                     />
                   </div>
@@ -435,7 +435,7 @@ const BankDetailsManager = () => {
                       required
                       value={formData.account_number}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-200 font-mono"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-200 font-mono"
                       placeholder="Account number"
                     />
                   </div>
@@ -451,7 +451,7 @@ const BankDetailsManager = () => {
                     required
                     value={formData.account_name}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-200"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-200"
                     placeholder="e.g., Your Company Name"
                   />
                 </div>
@@ -466,7 +466,7 @@ const BankDetailsManager = () => {
                       name="routing_number"
                       value={formData.routing_number}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-200 font-mono"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-200 font-mono"
                       placeholder="Routing number (if applicable)"
                     />
                   </div>
@@ -480,7 +480,7 @@ const BankDetailsManager = () => {
                       name="swift_code"
                       value={formData.swift_code}
                       onChange={(e) => setFormData({...formData, swift_code: e.target.value.toUpperCase()})}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-200 font-mono"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-200 font-mono"
                       placeholder="SWIFT code (if applicable)"
                     />
                   </div>
@@ -495,7 +495,7 @@ const BankDetailsManager = () => {
                     value={formData.instructions}
                     onChange={handleInputChange}
                     rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-200"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-200"
                     placeholder="Special instructions for customers making payments..."
                   />
                 </div>
@@ -507,7 +507,7 @@ const BankDetailsManager = () => {
                     name="is_active"
                     checked={formData.is_active}
                     onChange={handleInputChange}
-                    className="w-5 h-5 text-[#CDA435] border-gray-300 rounded focus:ring-[#CDA435]"
+                    className="w-5 h-5 text-[#bca142] border-gray-300 rounded focus:ring-[#bca142]"
                   />
                   <label htmlFor="is_active" className="text-sm font-semibold text-gray-700">
                     Set as active bank details
@@ -525,7 +525,7 @@ const BankDetailsManager = () => {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white font-semibold rounded-xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-[#bca142] to-[#D9B95B] text-white font-semibold rounded-xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {submitting ? (
                       <>

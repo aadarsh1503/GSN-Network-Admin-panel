@@ -138,20 +138,20 @@ const Navbar = () => {
     switch (role) {
       case 'admin':
         return {
-          bgColor: 'bg-[#CDA435]',
-          textColor: 'text-[#CDA435]',
+          bgColor: 'bg-[#bca142]',
+          textColor: 'text-[#bca142]',
           label: 'Admin'
         };
       case 'company':
         return {
-          bgColor: 'bg-[#CDA435]',
-          textColor: 'text-[#CDA435]',
+          bgColor: 'bg-[#bca142]',
+          textColor: 'text-[#bca142]',
           label: 'Company'
         };
       case 'user':
         return {
-          bgColor: 'bg-[#CDA435]',
-          textColor: 'text-[#CDA435]',
+          bgColor: 'bg-[#bca142]',
+          textColor: 'text-[#bca142]',
           label: 'User'
         };
       default:
@@ -196,14 +196,14 @@ const Navbar = () => {
     <header className={navClasses}>
       <div className="container max-w-7xl mx-auto flex items-center justify-between px-4">
         {/* Logo */}
-        <a href="#" className="flex-shrink-0">
-          <img src={GSN} alt="Logistics Logo" className="h-24" />
+        <a href="/" className="flex-shrink-0">
+          <img src="https://res.cloudinary.com/ds1dt3qub/image/upload/v1769604932/gulf_star_network_4_znl5cm.png" alt="Logistics Logo" className="h-24" />
         </a>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
           {getNavLinks().map((link) => (
-            <a key={link.name} href={link.href} className="flex items-center space-x-2 font-medium hover:text-[#CDA435] transition-colors">
+            <a key={link.name} href={link.href} className="flex items-center space-x-2 font-medium hover:text-[#bca142] transition-colors">
               {link.icon}
               <span>{link.name}</span>
             </a>
@@ -214,7 +214,7 @@ const Navbar = () => {
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-                className="flex items-center space-x-2 font-medium hover:text-[#CDA435] transition-colors focus:outline-none"
+                className="flex items-center space-x-2 font-medium hover:text-[#bca142] transition-colors focus:outline-none"
               >
                 <div className="flex items-center space-x-2">
                   <div className={`w-8 h-8 rounded-full ${getRoleStyle(user.role).bgColor} flex items-center justify-center text-white text-sm font-bold`}>
@@ -264,7 +264,7 @@ const Navbar = () => {
         </nav>
 
         {/* Request Quote Button (Desktop) */}
-        <a href="/quote" className="hidden md:flex items-center bg-[#CDA435] text-white font-bold py-3 px-5 rounded-md hover:bg-yellow-600 transition-colors">
+        <a href="/quote" className="hidden md:flex items-center bg-[#bca142] text-white font-bold py-3 px-5 rounded-md hover:bg-yellow-600 transition-colors">
           <FaPlus className="mr-2" />
           <div className="flex whitespace-nowrap text-left text-sm leading-tight">
             Request Quote
@@ -301,7 +301,7 @@ const Navbar = () => {
 
             {/* Navigation Links */}
             {getNavLinks().map((link) => (
-              <a key={link.name} href={link.href} className="flex items-center space-x-2 font-medium hover:text-[#CDA435] transition-colors">
+              <a key={link.name} href={link.href} className="flex items-center space-x-2 font-medium hover:text-[#bca142] transition-colors">
                 {link.icon}
                 <span>{link.name}</span>
               </a>
@@ -313,14 +313,14 @@ const Navbar = () => {
                 <hr className="my-2" />
                 <a
                   href={getDashboardUrl(user.role)}
-                  className="flex items-center space-x-2 font-medium hover:text-[#CDA435] transition-colors"
+                  className="flex items-center space-x-2 font-medium hover:text-[#bca142] transition-colors"
                 >
                   <FaTachometerAlt size={14} />
                   <span>Dashboard</span>
                 </a>
                 <a
                   href="#"
-                  className="flex items-center space-x-2 font-medium hover:text-[#CDA435] transition-colors"
+                  className="flex items-center space-x-2 font-medium hover:text-[#bca142] transition-colors"
                 >
                   <FaUserCircle size={14} />
                   <span>Profile</span>
@@ -336,7 +336,7 @@ const Navbar = () => {
             )}
 
             {/* Request Quote Button */}
-            <a href="/quote" className="flex items-center justify-center bg-[#CDA435] text-white font-bold py-3 px-5 rounded-md hover:bg-yellow-600 transition-colors">
+            <a href="/quote" className="flex items-center justify-center bg-[#bca142] text-white font-bold py-3 px-5 rounded-md hover:bg-yellow-600 transition-colors">
               <FaPlus className="mr-2" />
               <div className="flex flex-col whitespace-nowrap text-left text-sm leading-tight">
                 Request Quote

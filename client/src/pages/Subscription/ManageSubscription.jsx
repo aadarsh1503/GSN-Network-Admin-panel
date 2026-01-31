@@ -195,7 +195,7 @@ const ManageSubscription = () => {
           <h1 className="text-3xl font-bold text-gray-800">Subscription Plans</h1>
           <button
             onClick={() => navigate('/admin/create-Subscription')}
-            className="flex items-center gap-2 bg-[#CDA435] text-white px-4 py-2 rounded-lg hover:bg-opacity-90"
+            className="flex items-center gap-2 bg-[#bca142] text-white px-4 py-2 rounded-lg hover:bg-opacity-90"
           >
             <FiPlus /> Create New Plan
           </button>
@@ -309,7 +309,7 @@ const ManageSubscription = () => {
               </button>
               <button 
                 onClick={handleSaveEdit}
-                className="px-4 py-2 bg-[#CDA435] text-white rounded-md hover:bg-opacity-90"
+                className="px-4 py-2 bg-[#bca142] text-white rounded-md hover:bg-opacity-90"
               >
                 Save Changes
               </button>

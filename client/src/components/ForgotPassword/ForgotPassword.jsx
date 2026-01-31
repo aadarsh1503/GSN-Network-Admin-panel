@@ -63,7 +63,7 @@ const ForgotPassword = () => {
               </div>
               
               <h2 className="text-2xl font-bold text-gray-800 mb-4">Check Your Email</h2>
-              <div className="w-16 h-1 bg-[#CDA435] mb-6 mx-auto"></div>
+              <div className="w-16 h-1 bg-[#bca142] mb-6 mx-auto"></div>
               
               <p className="text-gray-600 mb-6 leading-relaxed">
                 We've sent password reset instructions to <strong>{email}</strong>
@@ -92,7 +92,7 @@ const ForgotPassword = () => {
                 
                 <Link
                   to="/login"
-                  className="w-full flex justify-center items-center py-3 px-4 bg-[#CDA435] hover:bg-opacity-90 text-white rounded-md transition-colors font-medium"
+                  className="w-full flex justify-center items-center py-3 px-4 bg-[#bca142] hover:bg-opacity-90 text-white rounded-md transition-colors font-medium"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to Login
@@ -129,7 +129,7 @@ const ForgotPassword = () => {
             </div>
             
             <h2 className="text-2xl font-bold text-gray-800 mb-2">Reset Your Password</h2>
-            <div className="w-16 h-1 bg-[#CDA435] mb-4 mx-auto"></div>
+            <div className="w-16 h-1 bg-[#bca142] mb-4 mx-auto"></div>
             
             <p className="text-gray-600 leading-relaxed">
               Enter your email address and we'll send you a link to reset your password.
@@ -150,7 +150,7 @@ const ForgotPassword = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email address"
                   required
-                  className="w-full pl-12 pr-4 py-3 bg-stone-100 rounded-md focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:bg-white transition-colors"
+                  className="w-full pl-12 pr-4 py-3 bg-stone-100 rounded-md focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:bg-white transition-colors"
                   disabled={isLoading}
                 />
               </div>
@@ -160,7 +160,7 @@ const ForgotPassword = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex justify-center items-center py-3 px-4 rounded-md shadow-sm text-base font-medium text-white bg-[#CDA435] hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#CDA435] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex justify-center items-center py-3 px-4 rounded-md shadow-sm text-base font-medium text-white bg-[#bca142] hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#bca142] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <>

@@ -68,13 +68,13 @@ const BankDetailsModal = ({ isOpen, onClose, planName, planPrice }) => {
       <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-y-auto relative">
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden rounded-3xl">
-          <div className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br from-[#CDA435]/20 to-[#D9B95B]/20 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-gradient-to-br from-[#D9B95B]/20 to-[#CDA435]/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br from-[#bca142]/20 to-[#D9B95B]/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-gradient-to-br from-[#D9B95B]/20 to-[#bca142]/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
         </div>
 
         <div className="relative z-10">
           {/* Header */}
-          <div className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B] p-8 rounded-t-3xl text-white relative overflow-hidden">
+          <div className="bg-gradient-to-r from-[#bca142] to-[#D9B95B] p-8 rounded-t-3xl text-white relative overflow-hidden">
             <div className="absolute inset-0 bg-black/10"></div>
             <div className="relative z-10">
               <div className="flex justify-between items-start mb-6">
@@ -117,7 +117,7 @@ const BankDetailsModal = ({ isOpen, onClose, planName, planPrice }) => {
           <div className="p-8">
             {loading ? (
               <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#CDA435] border-t-transparent"></div>
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#bca142] border-t-transparent"></div>
                 <p className="text-gray-600 mt-4">Loading bank details...</p>
               </div>
             ) : bankDetails ? (
@@ -140,7 +140,7 @@ const BankDetailsModal = ({ isOpen, onClose, planName, planPrice }) => {
                 {/* Bank Details Card */}
                 <div className="bg-gradient-to-br from-gray-50 to-white border-2 border-gray-200 rounded-3xl p-8 shadow-xl">
                   <div className="flex items-center gap-4 mb-8">
-                    <div className="p-4 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-2xl text-white">
+                    <div className="p-4 bg-gradient-to-r from-[#bca142] to-[#D9B95B] rounded-2xl text-white">
                       <FiCreditCard className="text-3xl" />
                     </div>
                     <div>
@@ -155,7 +155,7 @@ const BankDetailsModal = ({ isOpen, onClose, planName, planPrice }) => {
                       <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-3">
-                            <FiUser className="text-[#CDA435] text-xl" />
+                            <FiUser className="text-[#bca142] text-xl" />
                             <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Account Holder</span>
                           </div>
                           <button
@@ -178,7 +178,7 @@ const BankDetailsModal = ({ isOpen, onClose, planName, planPrice }) => {
                       <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-3">
-                            <FiCreditCard className="text-[#CDA435] text-xl" />
+                            <FiCreditCard className="text-[#bca142] text-xl" />
                             <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Account Number</span>
                           </div>
                           <button
@@ -201,7 +201,7 @@ const BankDetailsModal = ({ isOpen, onClose, planName, planPrice }) => {
                       <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-3">
-                            <FiHash className="text-[#CDA435] text-xl" />
+                            <FiHash className="text-[#bca142] text-xl" />
                             <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">IFSC Code</span>
                           </div>
                           <button
@@ -224,7 +224,7 @@ const BankDetailsModal = ({ isOpen, onClose, planName, planPrice }) => {
                       <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-3">
-                            <FiMapPin className="text-[#CDA435] text-xl" />
+                            <FiMapPin className="text-[#bca142] text-xl" />
                             <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Branch Address</span>
                           </div>
                           <button
@@ -262,24 +262,24 @@ const BankDetailsModal = ({ isOpen, onClose, planName, planPrice }) => {
                 {/* Payment Steps */}
                 <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-8 border border-gray-200">
                   <h4 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-                    <FiStar className="text-[#CDA435]" />
+                    <FiStar className="text-[#bca142]" />
                     How to Complete Payment
                   </h4>
                   <div className="space-y-4">
                     <div className="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm">
-                      <div className="w-8 h-8 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white rounded-full flex items-center justify-center font-bold">1</div>
+                      <div className="w-8 h-8 bg-gradient-to-r from-[#bca142] to-[#D9B95B] text-white rounded-full flex items-center justify-center font-bold">1</div>
                       <p className="text-gray-700">Transfer <strong>${planPrice}</strong> to the above bank account</p>
                     </div>
                     <div className="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm">
-                      <div className="w-8 h-8 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white rounded-full flex items-center justify-center font-bold">2</div>
+                      <div className="w-8 h-8 bg-gradient-to-r from-[#bca142] to-[#D9B95B] text-white rounded-full flex items-center justify-center font-bold">2</div>
                       <p className="text-gray-700">Keep your transaction reference number safe</p>
                     </div>
                     <div className="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm">
-                      <div className="w-8 h-8 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white rounded-full flex items-center justify-center font-bold">3</div>
+                      <div className="w-8 h-8 bg-gradient-to-r from-[#bca142] to-[#D9B95B] text-white rounded-full flex items-center justify-center font-bold">3</div>
                       <p className="text-gray-700">Click "I've Made the Payment" below to confirm</p>
                     </div>
                     <div className="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm">
-                      <div className="w-8 h-8 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white rounded-full flex items-center justify-center font-bold">4</div>
+                      <div className="w-8 h-8 bg-gradient-to-r from-[#bca142] to-[#D9B95B] text-white rounded-full flex items-center justify-center font-bold">4</div>
                       <p className="text-gray-700">Your subscription will be activated within 24 hours</p>
                     </div>
                   </div>
@@ -295,7 +295,7 @@ const BankDetailsModal = ({ isOpen, onClose, planName, planPrice }) => {
                   </button>
                   <button
                     onClick={handlePaymentConfirmation}
-                    className="flex-1 px-8 py-4 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-3"
+                    className="flex-1 px-8 py-4 bg-gradient-to-r from-[#bca142] to-[#D9B95B] text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-3"
                   >
                     <FiLock className="text-xl" />
                     I've Made the Payment

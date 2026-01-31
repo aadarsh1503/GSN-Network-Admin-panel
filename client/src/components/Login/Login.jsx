@@ -105,7 +105,7 @@ const LoginPage = () => {
         return (
             <div className="bg-stone-100 min-h-screen flex items-center justify-center">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#CDA435] mx-auto mb-4"></div>
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#bca142] mx-auto mb-4"></div>
                     <p className="text-xl text-gray-600">Checking authentication...</p>
                 </div>
             </div>
@@ -223,7 +223,7 @@ const LoginPage = () => {
             <main className="container mx-auto mt-32 px-4 py-16">
                 <div className="bg-white p-8 md:p-12 rounded-lg shadow-md max-w-lg mx-auto -mt-40 relative z-20">
                     <h2 className="text-2xl font-bold text-gray-800 mb-2">Welcome Back!</h2>
-                    <div className="w-16 h-1 bg-[#CDA435] mb-8"></div>
+                    <div className="w-16 h-1 bg-[#bca142] mb-8"></div>
                     
                     {/* Display registration success message if it exists */}
                     {registrationMessage && (
@@ -245,7 +245,7 @@ const LoginPage = () => {
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="Enter Your Email"
                                 required
-                                className="w-full px-4 py-3 bg-stone-100 rounded-md focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+                                className="w-full px-4 py-3 bg-stone-100 rounded-md focus:outline-none focus:ring-2 focus:ring-[#bca142]"
                             />
                         </div>
                         
@@ -259,7 +259,7 @@ const LoginPage = () => {
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="Enter Your Password"
                                     required
-                                    className="w-full px-4 py-3 pr-12 bg-stone-100 rounded-md focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+                                    className="w-full px-4 py-3 pr-12 bg-stone-100 rounded-md focus:outline-none focus:ring-2 focus:ring-[#bca142]"
                                 />
                                 <button
                                     type="button"
@@ -274,7 +274,7 @@ const LoginPage = () => {
 
                         <div className="flex items-center justify-between mb-6">
                             <div className="text-sm">
-                                <Link to="/forgot-password" className="font-medium text-gray-600 hover:text-[#CDA435]">
+                                <Link to="/forgot-password" className="font-medium text-gray-600 hover:text-[#bca142]">
                                     Forgot Password?
                                 </Link>
                             </div>
@@ -283,7 +283,7 @@ const LoginPage = () => {
                         <div>
                             <button
                                 type="submit"
-                                className="w-full flex justify-center cursor-pointer py-3 px-4 rounded-md shadow-sm text-base font-medium text-white bg-[#CDA435] hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#CDA435] transition-colors"
+                                className="w-full flex justify-center cursor-pointer py-3 px-4 rounded-md shadow-sm text-base font-medium text-white bg-[#bca142] hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#bca142] transition-colors"
                             >
                                 Submit
                             </button>
@@ -293,7 +293,7 @@ const LoginPage = () => {
                     <div className="mt-8 text-center text-sm text-gray-600 space-y-2">
                         <p>
                             Don't have account?{' '}
-                            <Link to="/register" className="font-semibold text-gray-800 underline hover:text-[#CDA435]">
+                            <Link to="/register" className="font-semibold text-gray-800 underline hover:text-[#bca142]">
                                 Signup as Company/Business
                             </Link>
                         </p>
@@ -302,7 +302,7 @@ const LoginPage = () => {
                             <Link 
                                 to="/user-register" 
                                 state={{ from }}
-                                className="font-semibold text-[#CDA435] underline hover:text-[#CDA435]"
+                                className="font-semibold text-[#bca142] underline hover:text-[#bca142]"
                             >
                                 Create User Account
                             </Link>

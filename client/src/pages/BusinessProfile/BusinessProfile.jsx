@@ -471,7 +471,7 @@ const BusinessProfile = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-yellow-200 border-t-[#CDA435] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-yellow-200 border-t-[#bca142] mx-auto mb-4"></div>
           <p className="text-xl font-semibold text-slate-700">Loading your profile...</p>
         </div>
       </div>
@@ -481,10 +481,10 @@ const BusinessProfile = () => {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="bg-gradient-to-r from-yellow-50 via-yellow-100 to-yellow-50 rounded-2xl p-8 border border-yellow-200/50">
+      <div className="bg-white rounded-2xl p-8 border">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-[#CDA435] to-[#B8941F] bg-clip-text text-transparent mb-2">
+            <h1 className="text-4xl font-bold text-[#bca142] mb-2">
               Business Profile
             </h1>
             <p className="text-slate-600 text-lg">Manage your business information for requesting logistics quotes</p>
@@ -500,7 +500,7 @@ const BusinessProfile = () => {
             {!isEditing ? (
               <button
                 onClick={() => setIsEditing(true)}
-                className="flex items-center space-x-2 bg-gradient-to-r from-[#CDA435] to-[#B8941F] hover:from-[#B8941F] hover:to-[#CDA435] text-white px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="flex items-center space-x-2 bg-[#bca142] hover:bg-black text-white px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 <Edit3 className="h-4 w-4" />
                 <span>Edit Profile</span>
@@ -517,7 +517,7 @@ const BusinessProfile = () => {
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="flex items-center space-x-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50"
+                  className="flex items-center space-x-2 bg-[#bca142] hover:bg-black text-white px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50"
                 >
                   {saving ? (
                     <>
@@ -541,9 +541,9 @@ const BusinessProfile = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Logo Section */}
         <div className="lg:col-span-3">
-          <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-white/20">
+          <div className="bg-white rounded-2xl p-6 shadow-lg border">
             <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center">
-              <Building className="h-6 w-6 mr-3 text-[#CDA435]" />
+              <Building className="h-6 w-6 mr-3 text-[#bca142]" />
               Company Logo
             </h2>
             
@@ -576,7 +576,7 @@ const BusinessProfile = () => {
                 <div className="flex space-x-3">
                   {isEditing && (
                     <>
-                      <label className="flex items-center space-x-2 bg-gradient-to-r from-[#CDA435] to-[#B8941F] hover:from-[#B8941F] hover:to-[#CDA435] text-white px-4 py-2 rounded-xl transition-all duration-300 cursor-pointer">
+                      <label className="flex items-center space-x-2 bg-[#bca142] hover:bg-black text-white px-4 py-2 rounded-xl transition-all duration-300 cursor-pointer">
                         <Upload className="h-4 w-4" />
                         <span>Upload Logo</span>
                         <input
@@ -591,7 +591,7 @@ const BusinessProfile = () => {
                       {profile.logo && (
                         <button
                           onClick={() => setProfile(prev => ({ ...prev, logo: '' }))}
-                          className="flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl transition-all duration-300"
+                          className="flex items-center space-x-2 bg-black hover:bg-gray-800 text-white px-4 py-2 rounded-xl transition-all duration-300"
                         >
                           <Trash2 className="h-4 w-4" />
                           <span>Remove</span>
@@ -607,9 +607,9 @@ const BusinessProfile = () => {
 
         {/* Basic Information */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-white/20">
+          <div className="bg-white rounded-2xl p-6 shadow-lg border">
             <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center">
-              <Building className="h-6 w-6 mr-3 text-[#CDA435]" />
+              <Building className="h-6 w-6 mr-3 text-[#bca142]" />
               Business Information
             </h2>
             
@@ -626,7 +626,7 @@ const BusinessProfile = () => {
                     value={profile.name}
                     onChange={handleInputChange}
                     disabled={!isEditing}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
                     placeholder="Enter business name"
                   />
                 </div>
@@ -644,7 +644,7 @@ const BusinessProfile = () => {
                     value={profile.email}
                     onChange={handleInputChange}
                     disabled={!isEditing}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
                     placeholder="Enter email address"
                   />
                 </div>
@@ -662,7 +662,7 @@ const BusinessProfile = () => {
                     value={profile.phone}
                     onChange={handleInputChange}
                     disabled={!isEditing}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
                     placeholder="Enter phone number"
                   />
                 </div>
@@ -674,7 +674,7 @@ const BusinessProfile = () => {
                 </label>
                 {categoriesLoading ? (
                   <div className="flex items-center justify-center p-4 bg-slate-50 rounded-xl">
-                    <div className="animate-spin rounded-full h-6 w-6 border-2 border-[#CDA435] border-t-transparent"></div>
+                    <div className="animate-spin rounded-full h-6 w-6 border-2 border-[#bca142] border-t-transparent"></div>
                     <span className="ml-2 text-slate-600">Loading categories...</span>
                   </div>
                 ) : (
@@ -684,7 +684,7 @@ const BusinessProfile = () => {
                         key={category}
                         className={`flex items-center space-x-2 p-3 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
                           profile.category.includes(category)
-                            ? 'border-[#CDA435] bg-yellow-50 text-[#CDA435]'
+                            ? 'border-[#bca142] bg-yellow-50 text-[#bca142]'
                             : 'border-slate-200 bg-white hover:border-slate-300'
                         } ${!isEditing ? 'cursor-not-allowed opacity-60' : ''}`}
                       >
@@ -697,7 +697,7 @@ const BusinessProfile = () => {
                         />
                         <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
                           profile.category.includes(category)
-                            ? 'border-[#CDA435] bg-[#CDA435]'
+                            ? 'border-[#bca142] bg-[#bca142]'
                             : 'border-slate-300'
                         }`}>
                           {profile.category.includes(category) && (
@@ -710,8 +710,8 @@ const BusinessProfile = () => {
                   </div>
                 )}
                 {profile.category.length > 0 && (
-                  <div className="mt-3 p-3 bg-green-50 rounded-xl border border-green-200">
-                    <p className="text-sm text-green-700">
+                  <div className="mt-3 p-3 bg-[#bca142] rounded-xl border border-[#bca142]">
+                    <p className="text-sm text-white">
                       <CheckCircle className="inline h-4 w-4 mr-1" />
                       {profile.category.length} categor{profile.category.length !== 1 ? 'ies' : 'y'} selected: {profile.category.join(', ')}
                     </p>
@@ -730,7 +730,7 @@ const BusinessProfile = () => {
                     value={profile.country}
                     onChange={handleCountryChange}
                     disabled={!isEditing || locationLoading.countries}
-                    className="w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600 appearance-none"
+                    className="w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600 appearance-none"
                   >
                     <option value="">
                       {locationLoading.countries ? 'Loading countries...' : 'Select Country'}
@@ -744,7 +744,7 @@ const BusinessProfile = () => {
                   <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4 pointer-events-none" />
                   {locationLoading.countries && (
                     <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#CDA435] border-t-transparent"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#bca142] border-t-transparent"></div>
                     </div>
                   )}
                 </div>
@@ -761,7 +761,7 @@ const BusinessProfile = () => {
                     value={profile.state}
                     onChange={handleStateChange}
                     disabled={!isEditing || !profile.country || locationLoading.states}
-                    className="w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600 appearance-none"
+                    className="w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600 appearance-none"
                   >
                     <option value="">
                       {!profile.country 
@@ -782,7 +782,7 @@ const BusinessProfile = () => {
                   <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4 pointer-events-none" />
                   {locationLoading.states && (
                     <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#CDA435] border-t-transparent"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#bca142] border-t-transparent"></div>
                     </div>
                   )}
                 </div>
@@ -799,7 +799,7 @@ const BusinessProfile = () => {
                     value={profile.city}
                     onChange={handleCityChange}
                     disabled={!isEditing || !profile.state || locationLoading.cities}
-                    className="w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600 appearance-none"
+                    className="w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600 appearance-none"
                   >
                     <option value="">
                       {!profile.state 
@@ -820,7 +820,7 @@ const BusinessProfile = () => {
                   <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4 pointer-events-none" />
                   {locationLoading.cities && (
                     <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#CDA435] border-t-transparent"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#bca142] border-t-transparent"></div>
                     </div>
                   )}
                 </div>
@@ -837,16 +837,16 @@ const BusinessProfile = () => {
                 onChange={handleInputChange}
                 disabled={!isEditing}
                 rows={4}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
                 placeholder="Describe your business and what products/services you need logistics for..."
               />
             </div>
           </div>
 
           {/* Contact Information */}
-          <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-white/20">
+          <div className="bg-white rounded-2xl p-6 shadow-lg border">
             <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center">
-              <User className="h-6 w-6 mr-3 text-[#CDA435]" />
+              <User className="h-6 w-6 mr-3 text-[#bca142]" />
               Contact Information
             </h2>
             
@@ -863,7 +863,7 @@ const BusinessProfile = () => {
                     value={profile.owner_name}
                     onChange={handleInputChange}
                     disabled={!isEditing}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
                     placeholder="Enter owner name"
                   />
                 </div>
@@ -881,7 +881,7 @@ const BusinessProfile = () => {
                     value={profile.owner_phone}
                     onChange={handleInputChange}
                     disabled={!isEditing}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
                     placeholder="Enter owner phone"
                   />
                 </div>
@@ -899,7 +899,7 @@ const BusinessProfile = () => {
                     value={profile.incharge_name}
                     onChange={handleInputChange}
                     disabled={!isEditing}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
                     placeholder="Enter incharge name"
                   />
                 </div>
@@ -917,7 +917,7 @@ const BusinessProfile = () => {
                     value={profile.incharge_phone}
                     onChange={handleInputChange}
                     disabled={!isEditing}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
                     placeholder="Enter incharge phone"
                   />
                 </div>
@@ -926,9 +926,9 @@ const BusinessProfile = () => {
           </div>
 
           {/* Additional Information */}
-          <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-white/20">
+          <div className="bg-white rounded-2xl p-6 shadow-lg border">
             <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center">
-              <Globe className="h-6 w-6 mr-3 text-[#CDA435]" />
+              <Globe className="h-6 w-6 mr-3 text-[#bca142]" />
               Additional Information
             </h2>
             
@@ -945,7 +945,7 @@ const BusinessProfile = () => {
                     value={profile.website}
                     onChange={handleInputChange}
                     disabled={!isEditing}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
                     placeholder="https://www.example.com"
                   />
                 </div>
@@ -963,7 +963,7 @@ const BusinessProfile = () => {
                     value={profile.skype}
                     onChange={handleInputChange}
                     disabled={!isEditing}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
                     placeholder="Enter Skype ID"
                   />
                 </div>
@@ -981,7 +981,7 @@ const BusinessProfile = () => {
                     value={profile.company_address}
                     onChange={handleInputChange}
                     disabled={!isEditing}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
                     placeholder="Enter company address"
                   />
                 </div>
@@ -998,16 +998,16 @@ const BusinessProfile = () => {
                 onChange={(e) => setProfile(prev => ({ ...prev, services: e.target.value }))}
                 disabled={!isEditing}
                 rows={3}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
                 placeholder="Describe the services your business offers..."
               />
             </div> */}
           </div>
 
           {/* Social Media & Online Presence */}
-          <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-white/20">
+          <div className="bg-white rounded-2xl p-6 shadow-lg border">
             <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center">
-              <Globe className="h-6 w-6 mr-3 text-[#CDA435]" />
+              <Globe className="h-6 w-6 mr-3 text-[#bca142]" />
               Social Media & Online Presence
             </h2>
             
@@ -1024,7 +1024,7 @@ const BusinessProfile = () => {
                     value={profile.facebook}
                     onChange={handleInputChange}
                     disabled={!isEditing}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
                     placeholder="https://facebook.com/yourpage"
                   />
                 </div>
@@ -1042,7 +1042,7 @@ const BusinessProfile = () => {
                     value={profile.twitter}
                     onChange={handleInputChange}
                     disabled={!isEditing}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
                     placeholder="https://twitter.com/yourhandle"
                   />
                 </div>
@@ -1060,7 +1060,7 @@ const BusinessProfile = () => {
                     value={profile.instagram}
                     onChange={handleInputChange}
                     disabled={!isEditing}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
                     placeholder="https://instagram.com/yourprofile"
                   />
                 </div>
@@ -1078,7 +1078,7 @@ const BusinessProfile = () => {
                     value={profile.linkedin}
                     onChange={handleInputChange}
                     disabled={!isEditing}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300 disabled:bg-slate-100 disabled:text-slate-600"
                     placeholder="https://linkedin.com/company/yourcompany"
                   />
                 </div>
@@ -1089,7 +1089,7 @@ const BusinessProfile = () => {
 
         {/* Profile Summary */}
         <div className="space-y-6">
-          <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-white/20">
+          <div className="bg-white rounded-2xl p-6 shadow-lg border">
             <h2 className="text-xl font-bold text-slate-800 mb-6">Profile Summary</h2>
             
             <div className="space-y-4">
@@ -1098,18 +1098,18 @@ const BusinessProfile = () => {
                 <div className="flex items-center space-x-2">
                   <div className="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-gradient-to-r from-[#CDA435] to-[#B8941F] rounded-full transition-all duration-500" 
+                      className="h-full bg-[#bca142] rounded-full transition-all duration-500" 
                       style={{ width: `${calculateProfileCompletion()}%` }}
                     ></div>
                   </div>
-                  <span className="text-sm font-semibold text-[#CDA435]">{calculateProfileCompletion()}%</span>
+                  <span className="text-sm font-semibold text-[#bca142]">{calculateProfileCompletion()}%</span>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-slate-600">Account Status</span>
-                  <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium flex items-center">
+                  <span className="px-2 py-1 bg-[#bca142] text-white rounded-full text-xs font-medium flex items-center">
                     <CheckCircle className="h-3 w-3 mr-1" />
                     Active
                   </span>
@@ -1133,26 +1133,26 @@ const BusinessProfile = () => {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl p-6 border border-yellow-200/50">
-            <h3 className="text-lg font-bold text-[#CDA435] mb-3 flex items-center">
+          <div className="bg-white rounded-2xl p-6 border">
+            <h3 className="text-lg font-bold text-[#bca142] mb-3 flex items-center">
               <AlertCircle className="h-5 w-5 mr-2" />
               Profile Tips
             </h3>
             <ul className="space-y-2 text-sm text-slate-700">
               <li className="flex items-start">
-                <div className="w-2 h-2 bg-[#CDA435] rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                <div className="w-2 h-2 bg-[#bca142] rounded-full mt-2 mr-3 flex-shrink-0"></div>
                 Complete your profile to get better quote responses
               </li>
               <li className="flex items-start">
-                <div className="w-2 h-2 bg-[#CDA435] rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                <div className="w-2 h-2 bg-[#bca142] rounded-full mt-2 mr-3 flex-shrink-0"></div>
                 Add detailed business description for accurate quotes
               </li>
               <li className="flex items-start">
-                <div className="w-2 h-2 bg-[#CDA435] rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                <div className="w-2 h-2 bg-[#bca142] rounded-full mt-2 mr-3 flex-shrink-0"></div>
                 Keep contact information updated for communication
               </li>
               <li className="flex items-start">
-                <div className="w-2 h-2 bg-[#CDA435] rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                <div className="w-2 h-2 bg-[#bca142] rounded-full mt-2 mr-3 flex-shrink-0"></div>
                 Upload a company logo to build trust with logistics providers
               </li>
             </ul>
@@ -1184,7 +1184,7 @@ const BusinessProfile = () => {
                     type={showPasswords.current ? 'text' : 'password'}
                     value={passwordData.currentPassword}
                     onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
-                    className="w-full px-4 py-3 pr-12 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300"
+                    className="w-full px-4 py-3 pr-12 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                     placeholder="Enter current password"
                   />
                   <button
@@ -1206,7 +1206,7 @@ const BusinessProfile = () => {
                     type={showPasswords.new ? 'text' : 'password'}
                     value={passwordData.newPassword}
                     onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
-                    className="w-full px-4 py-3 pr-12 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300"
+                    className="w-full px-4 py-3 pr-12 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                     placeholder="Enter new password"
                   />
                   <button
@@ -1228,7 +1228,7 @@ const BusinessProfile = () => {
                     type={showPasswords.confirm ? 'text' : 'password'}
                     value={passwordData.confirmPassword}
                     onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                    className="w-full px-4 py-3 pr-12 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-transparent transition-all duration-300"
+                    className="w-full px-4 py-3 pr-12 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                     placeholder="Confirm new password"
                   />
                   <button
@@ -1251,7 +1251,7 @@ const BusinessProfile = () => {
               </button>
               <button
                 onClick={handlePasswordChange}
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-[#CDA435] to-[#B8941F] hover:from-[#B8941F] hover:to-[#CDA435] text-white rounded-xl transition-all duration-300"
+                className="flex-1 px-4 py-3 bg-[#bca142] hover:bg-black text-white rounded-xl transition-all duration-300"
               >
                 Change Password
               </button>

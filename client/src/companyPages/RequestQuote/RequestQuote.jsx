@@ -22,7 +22,7 @@ const InputField = ({ label, name, placeholder, required = false, value, onChang
       placeholder={placeholder}
       min={min}
       max={max}
-      className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:border-[#CDA435] focus:ring-2 focus:ring-[#CDA435]/20 focus:bg-white transition-all duration-200 hover:border-gray-300"
+      className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:border-[#bca142] focus:ring-2 focus:ring-[#bca142]/20 focus:bg-white transition-all duration-200 hover:border-gray-300"
     />
   </div>
 );
@@ -38,13 +38,13 @@ const SelectField = ({ label, name, required = false, value, onChange, children,
       value={value}
       onChange={onChange}
       disabled={disabled || loading}
-      className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:border-[#CDA435] focus:ring-2 focus:ring-[#CDA435]/20 focus:bg-white transition-all duration-200 hover:border-gray-300 disabled:bg-gray-100 disabled:cursor-not-allowed appearance-none"
+      className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:border-[#bca142] focus:ring-2 focus:ring-[#bca142]/20 focus:bg-white transition-all duration-200 hover:border-gray-300 disabled:bg-gray-100 disabled:cursor-not-allowed appearance-none"
     >
       {children}
     </select>
     {loading && (
       <div className="absolute right-10 top-11">
-        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#CDA435]"></div>
+        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#bca142]"></div>
       </div>
     )}
     {!loading && (
@@ -65,7 +65,7 @@ const CheckboxField = ({ label, name, checked, onChange }) => (
           type="checkbox" 
           checked={checked}
           onChange={onChange}
-          className="h-4 w-4 text-[#CDA435] border-gray-300 rounded focus:ring-[#CDA435] focus:ring-2"
+          className="h-4 w-4 text-[#bca142] border-gray-300 rounded focus:ring-[#bca142] focus:ring-2"
         />
         <label htmlFor={name} className="ml-3 block text-sm font-medium text-gray-700">{label}</label>
     </div>
@@ -76,7 +76,7 @@ const SectionHeader = ({ title, subtitle }) => (
     <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-2">{title}</h2>
         {subtitle && <p className="text-gray-600 text-sm">{subtitle}</p>}
-        <div className="h-1 bg-gradient-to-r from-[#CDA435] to-transparent w-20 mt-3 rounded-full"></div>
+        <div className="h-1 bg-gradient-to-r from-[#bca142] to-transparent w-20 mt-3 rounded-full"></div>
     </div>
 );
 
@@ -431,7 +431,7 @@ const RequestQuote = () => {
                         value={formData.arrivalDate}
                         onChange={handleInputChange}
                         min={new Date().toISOString().split('T')[0]} // Prevent selecting past dates
-                        className="w-full p-3 bg-gray-100 border-transparent rounded-md focus:border-[#CDA435] focus:ring-[#CDA435] focus:bg-white transition-colors" 
+                        className="w-full p-3 bg-gray-100 border-transparent rounded-md focus:border-[#bca142] focus:ring-[#bca142] focus:bg-white transition-colors" 
                       />
                       {/* <FiCalendar className="absolute right-3 top-3 text-gray-400 pointer-events-none"/> */}
                     </div>
@@ -710,21 +710,21 @@ const RequestQuote = () => {
                       onChange={handleInputChange}
                       rows="4" 
                       placeholder="Any special handling requirements, delivery instructions, or additional information..." 
-                      className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:border-[#CDA435] focus:ring-2 focus:ring-[#CDA435]/20 focus:bg-white transition-all duration-200 hover:border-gray-300 resize-none"
+                      className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:border-[#bca142] focus:ring-2 focus:ring-[#bca142]/20 focus:bg-white transition-all duration-200 hover:border-gray-300 resize-none"
                     ></textarea>
                 </div>
               </section>
               
               {/* Submit Button */}
-              <div className="bg-gradient-to-r from-[#CDA435] to-[#B8941F] p-6 rounded-xl shadow-lg">
+              <div className="bg-gradient-to-r from-[#bca142] to-[#B8941F] p-6 rounded-xl shadow-lg">
                 <button 
                   type="submit" 
                   disabled={loading}
-                  className="w-full bg-white text-[#CDA435] font-bold py-4 px-8 rounded-lg shadow-md hover:bg-gray-50 transition-all duration-200 text-lg disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]"
+                  className="w-full bg-white text-[#bca142] font-bold py-4 px-8 rounded-lg shadow-md hover:bg-gray-50 transition-all duration-200 text-lg disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]"
                 >
                   {loading ? (
                     <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#CDA435] mr-3"></div>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#bca142] mr-3"></div>
                       Submitting Quote Request...
                     </div>
                   ) : (
@@ -744,8 +744,8 @@ const RequestQuote = () => {
           {/* Right Column (Sidebar) */}
           <div className="lg:col-span-1 space-y-6">
             {/* Quick Quote Button */}
-            <div className="bg-gradient-to-br from-[#CDA435] to-[#B8941F] p-6 rounded-xl shadow-lg text-center">
-              <button className="w-full bg-white text-[#CDA435] font-bold py-3 px-6 rounded-lg shadow-md hover:bg-gray-50 transition-all duration-200 transform hover:scale-105">
+            <div className="bg-gradient-to-br from-[#bca142] to-[#B8941F] p-6 rounded-xl shadow-lg text-center">
+              <button className="w-full bg-white text-[#bca142] font-bold py-3 px-6 rounded-lg shadow-md hover:bg-gray-50 transition-all duration-200 transform hover:scale-105">
                 🚀 Request a Quote
               </button>
             </div>

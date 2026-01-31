@@ -32,31 +32,31 @@ const AccountStatusModal = ({ isOpen, onClose, type, message, onLogout }) => {
         return {
           icon: Shield,
           title: 'Account Deactivated',
-          bgColor: 'bg-red-500',
-          borderColor: 'border-red-500',
-          iconColor: 'text-red-500',
-          gradientFrom: 'from-red-500',
-          gradientTo: 'to-red-600'
+          bgColor: 'bg-[#bca142]',
+          borderColor: 'border-[#bca142]',
+          iconColor: 'text-[#bca142]',
+          gradientFrom: 'from-[#bca142]',
+          gradientTo: 'to-black'
         };
       case 'blacklisted':
         return {
           icon: Ban,
           title: 'Account Blacklisted',
-          bgColor: 'bg-gray-800',
-          borderColor: 'border-gray-800',
-          iconColor: 'text-gray-800',
-          gradientFrom: 'from-gray-800',
-          gradientTo: 'to-gray-900'
+          bgColor: 'bg-black',
+          borderColor: 'border-black',
+          iconColor: 'text-black',
+          gradientFrom: 'from-black',
+          gradientTo: 'to-[#bca142]'
         };
       default:
         return {
           icon: AlertTriangle,
           title: 'Account Issue',
-          bgColor: 'bg-orange-500',
-          borderColor: 'border-orange-500',
-          iconColor: 'text-orange-500',
-          gradientFrom: 'from-orange-500',
-          gradientTo: 'to-orange-600'
+          bgColor: 'bg-[#bca142]',
+          borderColor: 'border-[#bca142]',
+          iconColor: 'text-[#bca142]',
+          gradientFrom: 'from-[#bca142]',
+          gradientTo: 'to-black'
         };
     }
   };
@@ -108,7 +108,7 @@ const AccountStatusModal = ({ isOpen, onClose, type, message, onLogout }) => {
               {message || `Your account has been ${type}.`}
             </p>
             <p className="text-gray-600 text-sm">
-              You will be automatically logged out in <span className="font-semibold text-red-600">{countdown} seconds</span>.
+              You will be automatically logged out in <span className="font-semibold text-[#bca142]">{countdown} seconds</span>.
             </p>
           </div>
 
@@ -129,8 +129,8 @@ const AccountStatusModal = ({ isOpen, onClose, type, message, onLogout }) => {
           </div>
 
           {/* Contact support */}
-          <div className="mt-4 p-3 bg-blue-50 rounded-xl border border-blue-200">
-            <p className="text-blue-800 text-sm text-center">
+          <div className="mt-4 p-3 bg-gray-50 rounded-xl border border-gray-200">
+            <p className="text-black text-sm text-center">
               <strong>Need help?</strong> Contact support for assistance with your account.
             </p>
           </div>

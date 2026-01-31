@@ -104,7 +104,7 @@ const EnhancedQuoteResponse = ({ quote, onClose, onSuccess }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B] p-6 rounded-t-2xl">
+        <div className="bg-[#bca142] p-6 rounded-t-2xl">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold text-white flex items-center gap-3">
               <FiFileText className="text-3xl" />
@@ -121,81 +121,81 @@ const EnhancedQuoteResponse = ({ quote, onClose, onSuccess }) => {
 
         <div className="p-6 space-y-6">
           {/* Quote Request Details */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200">
-            <h3 className="text-xl font-bold text-blue-800 mb-4 flex items-center gap-2">
-              <FiUser className="text-blue-600" />
+          <div className="bg-[#bca142]/10 rounded-xl p-6 border-2 border-[#bca142]/30">
+            <h3 className="text-xl font-bold text-[#bca142] mb-4 flex items-center gap-2">
+              <FiUser className="text-[#bca142]" />
               Quote Request Details
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <FiUser className="text-blue-600" />
+                  <FiUser className="text-[#bca142]" />
                   <div>
-                    <p className="text-sm font-semibold text-blue-700">From:</p>
-                    <p className="text-blue-900 font-medium">{quote.user_name || 'N/A'}</p>
+                    <p className="text-sm font-semibold text-black">From:</p>
+                    <p className="text-black font-medium">{quote.user_name || 'N/A'}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <FiMail className="text-blue-600" />
+                  <FiMail className="text-[#bca142]" />
                   <div>
-                    <p className="text-sm font-semibold text-blue-700">Email:</p>
-                    <p className="text-blue-800">{quote.user_email || 'N/A'}</p>
+                    <p className="text-sm font-semibold text-black">Email:</p>
+                    <p className="text-black">{quote.user_email || 'N/A'}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <FiTruck className="text-blue-600" />
+                  <FiTruck className="text-[#bca142]" />
                   <div>
-                    <p className="text-sm font-semibold text-blue-700">Shipping Mode:</p>
-                    <p className="text-blue-900 font-medium capitalize">{quote.shipping_mode || 'N/A'}</p>
+                    <p className="text-sm font-semibold text-black">Shipping Mode:</p>
+                    <p className="text-black font-medium capitalize">{quote.shipping_mode || 'N/A'}</p>
                   </div>
                 </div>
               </div>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <FiMapPin className="text-blue-600" />
+                  <FiMapPin className="text-[#bca142]" />
                   <div>
-                    <p className="text-sm font-semibold text-blue-700">Route:</p>
-                    <p className="text-blue-900 font-medium">{quote.departure_country} → {quote.arrival_country}</p>
+                    <p className="text-sm font-semibold text-black">Route:</p>
+                    <p className="text-black font-medium">{quote.departure_country} → {quote.arrival_country}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <FiPackage className="text-blue-600" />
+                  <FiPackage className="text-[#bca142]" />
                   <div>
-                    <p className="text-sm font-semibold text-blue-700">Product:</p>
-                    <p className="text-blue-800">{quote.product_description || 'N/A'}</p>
+                    <p className="text-sm font-semibold text-black">Product:</p>
+                    <p className="text-black">{quote.product_description || 'N/A'}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <FiCalendar className="text-blue-600" />
+                  <FiCalendar className="text-[#bca142]" />
                   <div>
-                    <p className="text-sm font-semibold text-blue-700">Arrival Date:</p>
-                    <p className="text-blue-800">{quote.arrival_date ? new Date(quote.arrival_date).toLocaleDateString() : 'N/A'}</p>
+                    <p className="text-sm font-semibold text-black">Arrival Date:</p>
+                    <p className="text-black">{quote.arrival_date ? new Date(quote.arrival_date).toLocaleDateString() : 'N/A'}</p>
                   </div>
                 </div>
               </div>
             </div>
             {quote.weight && (
-              <div className="mt-4 p-3 bg-blue-100 rounded-lg">
-                <p className="text-blue-800"><strong>Weight:</strong> {quote.weight}</p>
+              <div className="mt-4 p-3 bg-[#bca142]/20 rounded-lg">
+                <p className="text-black"><strong>Weight:</strong> {quote.weight}</p>
               </div>
             )}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Quote Response Section */}
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200">
-              <h3 className="text-xl font-bold text-green-800 mb-4 flex items-center gap-2">
-                <FiDollarSign className="text-green-600" />
+            <div className="bg-[#bca142]/10 rounded-xl p-6 border-2 border-[#bca142]/30">
+              <h3 className="text-xl font-bold text-[#bca142] mb-4 flex items-center gap-2">
+                <FiDollarSign className="text-[#bca142]" />
                 Your Quote Response
               </h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="amount" className="block text-sm font-semibold text-green-700 mb-2">
+                  <label htmlFor="amount" className="block text-sm font-semibold text-black mb-2">
                     Quote Amount ($) *
                   </label>
                   <div className="relative">
-                    <FiDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" />
+                    <FiDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#bca142]" />
                     <input
                       type="number"
                       id="amount"
@@ -205,18 +205,18 @@ const EnhancedQuoteResponse = ({ quote, onClose, onSuccess }) => {
                       step="0.01"
                       min="0"
                       required
-                      className="w-full pl-10 pr-4 py-3 border-2 border-green-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                      className="w-full pl-10 pr-4 py-3 border-2 border-[#bca142]/30 rounded-xl focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142] transition-colors"
                       placeholder="Enter your quote amount"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label htmlFor="transit_time" className="block text-sm font-semibold text-green-700 mb-2">
+                  <label htmlFor="transit_time" className="block text-sm font-semibold text-black mb-2">
                     Transit Time
                   </label>
                   <div className="relative">
-                    <FiTruck className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" />
+                    <FiTruck className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#bca142]" />
                     <input
                       type="text"
                       id="transit_time"
@@ -224,19 +224,19 @@ const EnhancedQuoteResponse = ({ quote, onClose, onSuccess }) => {
                       value={responseData.transit_time || ''}
                       onChange={handleInputChange}
                       placeholder="e.g., 5-7 days, 2 weeks, 1 month"
-                      className="w-full pl-10 pr-4 py-3 border-2 border-green-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                      className="w-full pl-10 pr-4 py-3 border-2 border-[#bca142]/30 rounded-xl focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142] transition-colors"
                     />
                   </div>
-                  <p className="text-xs text-green-600 mt-1">How long will the shipment take?</p>
+                  <p className="text-xs text-gray-600 mt-1">How long will the shipment take?</p>
                 </div>
               </div>
 
               <div className="mt-4">
-                <label htmlFor="estimated_completion" className="block text-sm font-semibold text-green-700 mb-2">
+                <label htmlFor="estimated_completion" className="block text-sm font-semibold text-black mb-2">
                   Valid Until Date *
                 </label>
                 <div className="relative">
-                  <FiCalendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" />
+                  <FiCalendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#bca142]" />
                   <input
                     type="date"
                     id="estimated_completion"
@@ -245,14 +245,14 @@ const EnhancedQuoteResponse = ({ quote, onClose, onSuccess }) => {
                     onChange={handleInputChange}
                     min={new Date().toISOString().split('T')[0]}
                     required
-                    className="w-full pl-10 pr-4 py-3 border-2 border-green-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                    className="w-full pl-10 pr-4 py-3 border-2 border-[#bca142]/30 rounded-xl focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142] transition-colors"
                   />
                 </div>
-                <p className="text-xs text-green-600 mt-1">This is when your quote expires, not the completion date</p>
+                <p className="text-xs text-gray-600 mt-1">This is when your quote expires, not the completion date</p>
               </div>
 
               <div className="mt-4">
-                <label htmlFor="description" className="block text-sm font-semibold text-green-700 mb-2">
+                <label htmlFor="description" className="block text-sm font-semibold text-black mb-2">
                   Service Description *
                 </label>
                 <textarea
@@ -263,12 +263,12 @@ const EnhancedQuoteResponse = ({ quote, onClose, onSuccess }) => {
                   rows="4"
                   placeholder="Describe what services you will provide..."
                   required
-                  className="w-full px-4 py-3 border-2 border-green-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors resize-none"
+                  className="w-full px-4 py-3 border-2 border-[#bca142]/30 rounded-xl focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142] transition-colors resize-none"
                 />
               </div>
 
               <div className="mt-4">
-                <label htmlFor="terms_conditions" className="block text-sm font-semibold text-green-700 mb-2">
+                <label htmlFor="terms_conditions" className="block text-sm font-semibold text-black mb-2">
                   Terms & Conditions
                 </label>
                 <textarea
@@ -278,25 +278,25 @@ const EnhancedQuoteResponse = ({ quote, onClose, onSuccess }) => {
                   onChange={handleInputChange}
                   rows="3"
                   placeholder="Any specific terms or conditions..."
-                  className="w-full px-4 py-3 border-2 border-green-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors resize-none"
+                  className="w-full px-4 py-3 border-2 border-[#bca142]/30 rounded-xl focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142] transition-colors resize-none"
                 />
               </div>
             </div>
 
             {/* Payment Bank Details Section */}
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-200">
-              <h3 className="text-xl font-bold text-purple-800 mb-4 flex items-center gap-2">
-                <FiCreditCard className="text-purple-600" />
+            <div className="bg-[#bca142]/10 rounded-xl p-6 border-2 border-[#bca142]/30">
+              <h3 className="text-xl font-bold text-[#bca142] mb-4 flex items-center gap-2">
+                <FiCreditCard className="text-[#bca142]" />
                 Payment Bank Details
               </h3>
               
               {!Array.isArray(bankDetails) || bankDetails.length === 0 ? (
                 <div className="text-center py-8">
-                  <FiAlertCircle className="text-4xl text-red-500 mx-auto mb-4" />
-                  <p className="text-red-700 font-medium mb-4">No active bank details found. Please add bank details first.</p>
+                  <FiAlertCircle className="text-4xl text-black mx-auto mb-4" />
+                  <p className="text-black font-medium mb-4">No active bank details found. Please add bank details first.</p>
                   <button 
                     type="button" 
-                    className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+                    className="bg-black text-white px-6 py-3 rounded-xl hover:bg-[#bca142] transition-all duration-300 transform hover:scale-105"
                   >
                     Add Bank Details
                   </button>
@@ -304,7 +304,7 @@ const EnhancedQuoteResponse = ({ quote, onClose, onSuccess }) => {
               ) : (
                 <>
                   <div className="mb-4">
-                    <label htmlFor="bank_select" className="block text-sm font-semibold text-purple-700 mb-2">
+                    <label htmlFor="bank_select" className="block text-sm font-semibold text-black mb-2">
                       Select Bank Account for Payment *
                     </label>
                     <select
@@ -312,7 +312,7 @@ const EnhancedQuoteResponse = ({ quote, onClose, onSuccess }) => {
                       value={selectedBankId}
                       onChange={(e) => setSelectedBankId(e.target.value)}
                       required
-                      className="w-full px-4 py-3 border-2 border-purple-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                      className="w-full px-4 py-3 border-2 border-[#bca142]/30 rounded-xl focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142] transition-colors"
                     >
                       {Array.isArray(bankDetails) && bankDetails.map(bank => (
                         <option key={bank.id} value={bank.id}>
@@ -323,36 +323,36 @@ const EnhancedQuoteResponse = ({ quote, onClose, onSuccess }) => {
                   </div>
 
                   {selectedBank && (
-                    <div className="bg-white rounded-xl p-4 border-2 border-purple-300">
-                      <h4 className="font-bold text-purple-800 mb-3 flex items-center gap-2">
-                        <FiCheck className="text-green-500" />
+                    <div className="bg-white rounded-xl p-4 border-2 border-[#bca142]/30">
+                      <h4 className="font-bold text-[#bca142] mb-3 flex items-center gap-2">
+                        <FiCheck className="text-[#bca142]" />
                         Selected Bank Details (Customer will see this):
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                         <div>
-                          <p className="text-purple-700"><strong>Bank Name:</strong> {selectedBank.bank_name}</p>
-                          <p className="text-purple-700"><strong>Account Holder:</strong> {selectedBank.account_holder_name}</p>
-                          <p className="text-purple-700"><strong>Account Number:</strong> {selectedBank.account_number}</p>
+                          <p className="text-black"><strong>Bank Name:</strong> {selectedBank.bank_name}</p>
+                          <p className="text-black"><strong>Account Holder:</strong> {selectedBank.account_holder_name}</p>
+                          <p className="text-black"><strong>Account Number:</strong> {selectedBank.account_number}</p>
                         </div>
                         <div>
                           {selectedBank.branch_name && (
-                            <p className="text-purple-700"><strong>Branch Name:</strong> {selectedBank.branch_name}</p>
+                            <p className="text-black"><strong>Branch Name:</strong> {selectedBank.branch_name}</p>
                           )}
                           {selectedBank.ifsc_code && (
-                            <p className="text-purple-700"><strong>IFSC Code:</strong> {selectedBank.ifsc_code}</p>
+                            <p className="text-black"><strong>IFSC Code:</strong> {selectedBank.ifsc_code}</p>
                           )}
                           {selectedBank.iban_number && (
-                            <p className="text-purple-700"><strong>IBAN Number:</strong> {selectedBank.iban_number}</p>
+                            <p className="text-black"><strong>IBAN Number:</strong> {selectedBank.iban_number}</p>
                           )}
                           {selectedBank.swift_code && (
-                            <p className="text-purple-700"><strong>SWIFT Code:</strong> {selectedBank.swift_code}</p>
+                            <p className="text-black"><strong>SWIFT Code:</strong> {selectedBank.swift_code}</p>
                           )}
                         </div>
                       </div>
                       {selectedBank.payment_instructions && (
-                        <div className="mt-3 p-3 bg-purple-100 rounded-lg">
-                          <p className="text-purple-800"><strong>Payment Instructions:</strong></p>
-                          <p className="text-purple-700 text-sm mt-1">{selectedBank.payment_instructions}</p>
+                        <div className="mt-3 p-3 bg-[#bca142]/20 rounded-lg">
+                          <p className="text-black"><strong>Payment Instructions:</strong></p>
+                          <p className="text-black text-sm mt-1">{selectedBank.payment_instructions}</p>
                         </div>
                       )}
                     </div>
@@ -373,7 +373,7 @@ const EnhancedQuoteResponse = ({ quote, onClose, onSuccess }) => {
               <button 
                 type="submit" 
                 disabled={loading || !Array.isArray(bankDetails) || bankDetails.length === 0}
-                className="flex-1 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white py-4 px-6 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none font-medium text-lg flex items-center justify-center gap-2"
+                className="flex-1 bg-[#bca142] text-white py-4 px-6 rounded-xl hover:bg-black transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none font-medium text-lg flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>

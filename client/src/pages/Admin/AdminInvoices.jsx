@@ -12,14 +12,14 @@ const SortableHeader = ({ children, sortKey, sortConfig, onSort }) => {
     const isSorted = sortConfig.key === sortKey;
     return (
         <th 
-            className="p-3 text-left text-sm font-semibold text-gray-600 tracking-wider cursor-pointer hover:bg-gray-100"
+            className="p-3 text-left text-sm font-semibold text-white tracking-wider cursor-pointer hover:bg-gray-100"
             onClick={() => onSort(sortKey)}
         >
             <div className="flex items-center">
                 <span>{children}</span>
                 <div className="flex flex-col ml-auto">
-                    <FiChevronUp className={`h-3 w-3 -mb-1 ${isSorted && sortConfig.direction === 'asc' ? 'text-gray-700' : 'text-gray-400'}`}/>
-                    <FiChevronDown className={`h-3 w-3 -mt-1 ${isSorted && sortConfig.direction === 'desc' ? 'text-gray-700' : 'text-gray-400'}`}/>
+                    <FiChevronUp className={`h-3 w-3 -mb-1 ${isSorted && sortConfig.direction === 'asc' ? 'text-white' : 'text-gray-400'}`}/>
+                    <FiChevronDown className={`h-3 w-3 -mt-1 ${isSorted && sortConfig.direction === 'desc' ? 'text-white' : 'text-gray-400'}`}/>
                 </div>
             </div>
         </th>
@@ -225,8 +225,8 @@ const AdminInvoices = () => {
 
   const getStatusBadge = (status) => {
     const colors = {
-      paid: 'bg-green-100 text-green-800',
-      pending: 'bg-yellow-100 text-yellow-800',
+      paid: 'bg-[#bca142] text-white',
+      pending: 'bg-yellow-100 text-[#bca142]',
       overdue: 'bg-red-100 text-red-800',
       cancelled: 'bg-gray-100 text-gray-800'
     };
@@ -313,7 +313,7 @@ const AdminInvoices = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#CDA435]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#bca142]"></div>
       </div>
     );
   }
@@ -324,13 +324,13 @@ const AdminInvoices = () => {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-              <FaFileInvoiceDollar className="text-[#CDA435]" />
+              <FaFileInvoiceDollar className="text-[#bca142]" />
               Admin Invoices
             </h1>
-            <p className="text-gray-600 text-sm mt-1">Manage and download all system invoices</p>
+            <p className="text-gray-500 text-sm mt-1">Manage and download all system invoices</p>
           </div>
           <div className="flex items-center gap-4">
-            <div className="bg-yellow-50 text-[#CDA435] px-4 py-2 rounded-lg">
+            <div className="bg-yellow-50 text-[#bca142] px-4 py-2 rounded-lg">
               <span className="font-semibold">{invoices.length}</span> Total Invoices
             </div>
           </div>
@@ -342,7 +342,7 @@ const AdminInvoices = () => {
             onClick={() => setActiveTab('subscription')}
             className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
               activeTab === 'subscription'
-                ? 'border-[#CDA435] text-[#CDA435]'
+                ? 'border-[#bca142] text-[#bca142]'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -352,7 +352,7 @@ const AdminInvoices = () => {
             onClick={() => setActiveTab('transaction')}
             className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
               activeTab === 'transaction'
-                ? 'border-[#CDA435] text-[#CDA435]'
+                ? 'border-[#bca142] text-[#bca142]'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -401,7 +401,7 @@ const AdminInvoices = () => {
         {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-[#D9B95B]">
+            <thead className="bg-[#bca142]">
               <tr>
                 <SortableHeader sortKey="invoice_number" sortConfig={sortConfig} onSort={handleSort}>Invoice #</SortableHeader>
                 {activeTab === 'subscription' ? (
@@ -419,14 +419,14 @@ const AdminInvoices = () => {
                 <SortableHeader sortKey="total_amount" sortConfig={sortConfig} onSort={handleSort}>Amount</SortableHeader>
                 <SortableHeader sortKey="status" sortConfig={sortConfig} onSort={handleSort}>Status</SortableHeader>
                 <SortableHeader sortKey="created_at" sortConfig={sortConfig} onSort={handleSort}>Date</SortableHeader>
-                <th className="p-3 text-left text-sm font-semibold text-gray-600 tracking-wider">Actions</th>
+                <th className="p-3 text-left text-sm font-semibold text-white tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {currentEntries.length > 0 ? (
                 currentEntries.map((invoice) => (
                   <tr key={invoice.id} className="hover:bg-gray-50">
-                    <td className="p-3 whitespace-nowrap text-gray-700 font-mono">{invoice.invoice_number}</td>
+                    <td className="p-3 whitespace-nowrap text-gray-600 font-mono">{invoice.invoice_number}</td>
                     {activeTab === 'subscription' ? (
                       <>
                         <td className="p-3 whitespace-nowrap">
@@ -441,13 +441,13 @@ const AdminInvoices = () => {
                           </div>
                         </td>
                         <td className="p-3 whitespace-nowrap">
-                          <span className="font-semibold text-[#CDA435]">{invoice.plan_name}</span>
+                          <span className="font-semibold text-[#bca142]">{invoice.plan_name}</span>
                         </td>
                       </>
                     ) : (
                       <>
                         <td className="p-3 whitespace-nowrap">
-                          <span className="font-semibold text-[#CDA435]">#{invoice.quote_id}</span>
+                          <span className="font-semibold text-[#bca142]">#{invoice.quote_id}</span>
                         </td>
                         <td className="p-3 whitespace-nowrap">
                           <div className="flex items-center">
@@ -474,12 +474,12 @@ const AdminInvoices = () => {
                       </>
                     )}
                     <td className="p-3 whitespace-nowrap">
-                      <span className="font-semibold text-green-600">{formatCurrency(invoice.total_amount)}</span>
+                      <span className="font-semibold text-[#bca142]">{formatCurrency(invoice.total_amount)}</span>
                     </td>
                     <td className="p-3 whitespace-nowrap">
                       {getStatusBadge(invoice.status)}
                     </td>
-                    <td className="p-3 whitespace-nowrap text-gray-700">
+                    <td className="p-3 whitespace-nowrap text-gray-600">
                       <div className="flex items-center">
                         <FaCalendar className="text-gray-400 mr-1" />
                         {formatDate(invoice.created_at)}
@@ -489,7 +489,7 @@ const AdminInvoices = () => {
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handleViewInvoice(invoice.id)}
-                          className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                          className="p-2 bg-[#bca142] text-white rounded hover:bg-[#B8941F] transition-colors"
                           title="View Invoice"
                         >
                           <FaEye />
@@ -529,17 +529,17 @@ const AdminInvoices = () => {
           </p>
           <div className="flex items-center mt-2 sm:mt-0">
             <button 
-              className="px-3 py-1 border border-[#D9B95B] text-[#D9B95B] rounded-l-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-1 border border-[#bca142] text-[#bca142] rounded-l-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
             >
               Previous
             </button>
-            <span className="px-3 py-1 border-y border-[#D9B95B] bg-[#D9B95B] text-white">
+            <span className="px-3 py-1 border-y border-[#bca142] bg-[#bca142] text-white">
               {currentPage}
             </span>
             <button 
-              className="px-3 py-1 border border-[#D9B95B] text-[#D9B95B] rounded-r-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-1 border border-[#bca142] text-[#bca142] rounded-r-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages || totalPages === 0}
             >
@@ -587,7 +587,7 @@ const AdminInvoices = () => {
                       style={{ maxWidth: '48px', maxHeight: '48px' }}
                     />
                     <div>
-                      <h1 className="text-2xl font-bold mb-1" style={{ color: '#CDA435', fontSize: '24px', fontWeight: 'bold', marginBottom: '4px' }}>
+                      <h1 className="text-2xl font-bold mb-1" style={{ color: '#bca142', fontSize: '24px', fontWeight: 'bold', marginBottom: '4px' }}>
                         {activeTab === 'subscription' ? 'INVOICE' : 'TRANSACTION INVOICE'}
                       </h1>
                       <p className="font-semibold" style={{ color: '#4B5563', fontSize: '14px', fontWeight: '600', marginBottom: '2px' }}>GSN Network Services</p>

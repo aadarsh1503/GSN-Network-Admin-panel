@@ -167,7 +167,7 @@
 }
 
 .admin-toast-progress {
-  background: linear-gradient(90deg, #CDA435, #B8941F) !important;
+  background: linear-gradient(90deg, #bca142, #B8941F) !important;
   height: 4px !important;
 }
 
@@ -185,7 +185,7 @@
 }
 
 .admin-notification-progress {
-  background: linear-gradient(90deg, #CDA435, #B8941F);
+  background: linear-gradient(90deg, #bca142, #B8941F);
   height: 4px;
   border-radius: 0 0 12px 12px;
 }

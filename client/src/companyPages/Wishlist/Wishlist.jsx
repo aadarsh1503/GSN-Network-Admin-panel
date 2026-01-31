@@ -70,7 +70,7 @@ const Wishlist = () => {
       {wishlistItems.length === 0 ? (
         <div className="text-center text-gray-500 py-10">
           <p className="mb-4">Your wishlist is empty.</p>
-          <a href="/company/member-directory" className="text-[#CDA435] hover:underline">
+          <a href="/company/member-directory" className="text-[#bca142] hover:underline">
             Browse Members Directory
           </a>
         </div>
@@ -99,7 +99,7 @@ const Wishlist = () => {
                     className="w-24 h-24 rounded-full object-cover" 
                   />
                 ) : (
-                  <div className="w-24 h-24 rounded-full bg-[#CDA435] flex items-center justify-center text-white text-3xl font-bold">
+                  <div className="w-24 h-24 rounded-full bg-[#bca142] flex items-center justify-center text-white text-3xl font-bold">
                     {item.company_name?.charAt(0)}
                   </div>
                 )}
@@ -111,7 +111,7 @@ const Wishlist = () => {
                   {item.company_name}
                 </h3>
                 {item.average_rating > 0 && (
-                  <div className="flex items-center justify-center text-[#CDA435] text-sm mt-1">
+                  <div className="flex items-center justify-center text-[#bca142] text-sm mt-1">
                     <FiStar className="fill-current" />
                     <span className="ml-1">{item.average_rating}</span>
                   </div>
@@ -127,11 +127,11 @@ const Wishlist = () => {
               <button 
                 onClick={() => handleViewProfile(item)}
                 disabled={profileLoading}
-                className="mt-4 inline-flex items-center gap-2 text-sm text-[#CDA435] hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+                className="mt-4 inline-flex items-center gap-2 text-sm text-[#bca142] hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {profileLoading ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-[#CDA435] border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-4 h-4 border-2 border-[#bca142] border-t-transparent rounded-full animate-spin"></div>
                     Loading...
                   </>
                 ) : (

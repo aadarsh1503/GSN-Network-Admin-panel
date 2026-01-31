@@ -21,7 +21,7 @@ const PageLoader = ({ loading, error, children, loadingMessage = "Loading..." })
           </div>
           <button 
             onClick={() => window.location.reload()} 
-            className="bg-[#CDA435] text-white px-6 py-2 rounded hover:bg-yellow-600 transition-colors"
+            className="bg-[#bca142] text-white px-6 py-2 rounded hover:bg-yellow-600 transition-colors"
           >
             Retry
           </button>

@@ -13,7 +13,7 @@ input:focus,
 textarea:focus,
 select:focus {
   outline: none !important;
-  border-color: #CDA435 !important;
+  border-color: #bca142 !important;
   box-shadow: 0 0 0 3px rgba(205, 164, 53, 0.1) !important;
 }
 
@@ -30,7 +30,7 @@ select:focus {
 
 /* Ensure gradient buttons work properly */
 .gradient-btn {
-  background: linear-gradient(to right, #CDA435, #D9B95B);
+  background: linear-gradient(to right, #bca142, #D9B95B);
   color: white;
   border: none;
 }
@@ -42,7 +42,7 @@ select:focus {
 
 /* Account number privacy toggle */
 .privacy-toggle {
-  background: linear-gradient(to right, #CDA435, #D9B95B);
+  background: linear-gradient(to right, #bca142, #D9B95B);
   color: white;
   border: none;
   border-radius: 0.5rem;

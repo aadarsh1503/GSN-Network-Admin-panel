@@ -29,15 +29,15 @@ const createEmailTemplate = (title, content, footerNote = '') => {
         <style>
             body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; }
             .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
-            .header { background: linear-gradient(135deg, #CDA435 0%, #B8941F 100%); padding: 30px; text-align: center; }
+            .header { background: linear-gradient(135deg, #bca142 0%, #B8941F 100%); padding: 30px; text-align: center; }
             .header h1 { color: #ffffff; margin: 0; font-size: 28px; font-weight: bold; }
             .header p { color: #FFF3CD; margin: 10px 0 0 0; font-size: 16px; }
             .content { padding: 40px 30px; }
             .footer { background-color: #f8f9fa; padding: 20px 30px; text-align: center; border-top: 1px solid #e9ecef; }
             .footer p { color: #6c757d; margin: 0; font-size: 14px; }
-            .btn { display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #CDA435 0%, #B8941F 100%); color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 20px 0; }
+            .btn { display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #bca142 0%, #B8941F 100%); color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 20px 0; }
             .btn:hover { background: linear-gradient(135deg, #B8941F 0%, #A67C1A 100%); }
-            .ticket-info { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #CDA435; }
+            .ticket-info { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #bca142; }
             .priority-high { border-left-color: #dc3545; }
             .priority-urgent { border-left-color: #dc3545; background-color: #fff5f5; }
             .priority-medium { border-left-color: #ffc107; }

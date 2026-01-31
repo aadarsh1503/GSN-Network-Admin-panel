@@ -5,7 +5,8 @@ import {
     getCurrentVersion,
     getAllVersions,
     createVersion,
-    setCurrentVersion
+    setCurrentVersion,
+    deleteVersion
 } from '../controllers/versionController.js';
 
 // Public route - get current version
@@ -15,5 +16,6 @@ router.get('/current', getCurrentVersion);
 router.get('/all', protect, authorize('admin'), getAllVersions);
 router.post('/create', protect, authorize('admin'), createVersion);
 router.put('/set-current/:id', protect, authorize('admin'), setCurrentVersion);
+router.delete('/delete/:id', protect, authorize('admin'), deleteVersion);
 
 export default router;

@@ -38,6 +38,10 @@ const UserHelp = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedFaq, setExpandedFaq] = useState(null);
 
+  const toggleFaq = (index) => {
+    setExpandedFaq(expandedFaq === index ? null : index);
+  };
+
   useEffect(() => {
     fetchHelpData();
   }, []);
@@ -102,7 +106,7 @@ const UserHelp = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-yellow-200 border-t-yellow-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#bca142] border-t-white mx-auto mb-4"></div>
           <p className="text-xl font-semibold text-slate-700">Loading help center...</p>
         </div>
       </div>
@@ -148,7 +152,7 @@ const UserHelp = () => {
             placeholder="Search for help..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-white/80 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-300"
+            className="w-full pl-12 pr-4 py-3 bg-white/80 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
           />
         </div>
       </div>
@@ -156,43 +160,43 @@ const UserHelp = () => {
       {/* Contact Information Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {/* Email Support */}
-        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
+        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#bca142]">
           <div className="flex items-center mb-4">
-            <Mail className="text-yellow-600 text-2xl mr-3" />
+            <Mail className="text-[#bca142] text-2xl mr-3" />
             <h3 className="text-lg font-semibold text-gray-800">Email Support</h3>
           </div>
           <p className="text-gray-600 mb-2">Send us an email for detailed assistance</p>
           <a 
             href={`mailto:${helpData.contact_email}`}
-            className="text-yellow-600 hover:text-yellow-700 font-medium"
+            className="text-[#bca142] hover:text-black font-medium"
           >
             {helpData.contact_email || 'support@gsn.com'}
           </a>
         </div>
 
         {/* Phone Support */}
-        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#bca142]">
           <div className="flex items-center mb-4">
-            <Phone className="text-blue-600 text-2xl mr-3" />
+            <Phone className="text-[#bca142] text-2xl mr-3" />
             <h3 className="text-lg font-semibold text-gray-800">Phone Support</h3>
           </div>
           <p className="text-gray-600 mb-2">Call us for immediate assistance</p>
           <a 
             href={`tel:${helpData.contact_phone}`}
-            className="text-blue-600 hover:text-blue-700 font-medium"
+            className="text-[#bca142] hover:text-black font-medium"
           >
             {helpData.contact_phone || '+1-800-GSN-HELP'}
           </a>
         </div>
 
         {/* Support Hours */}
-        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
+        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#bca142]">
           <div className="flex items-center mb-4">
-            <Clock className="text-green-600 text-2xl mr-3" />
+            <Clock className="text-[#bca142] text-2xl mr-3" />
             <h3 className="text-lg font-semibold text-gray-800">Support Hours</h3>
           </div>
           <p className="text-gray-600 mb-2">We're available during these hours</p>
-          <p className="text-green-600 font-medium">
+          <p className="text-[#bca142] font-medium">
             {helpData.support_hours || 'Monday - Friday: 9:00 AM - 6:00 PM EST'}
           </p>
         </div>
@@ -202,7 +206,7 @@ const UserHelp = () => {
       {helpData.address && (
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
           <div className="flex items-center mb-4">
-            <MapPin className="text-red-600 text-2xl mr-3" />
+            <MapPin className="text-[#bca142] text-2xl mr-3" />
             <h3 className="text-lg font-semibold text-gray-800">Our Location</h3>
           </div>
           <p className="text-gray-600">{helpData.address}</p>
@@ -213,26 +217,26 @@ const UserHelp = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Link 
           to="/user/tickets"
-          className="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500 hover:shadow-lg transition-all duration-300 cursor-pointer group"
+          className="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#bca142] hover:shadow-lg transition-all duration-300 cursor-pointer group"
         >
           <div className="flex items-center mb-4">
-            <MessageSquare className="text-purple-600 text-2xl mr-3" />
+            <MessageSquare className="text-[#bca142] text-2xl mr-3" />
             <h3 className="text-lg font-semibold text-gray-800">Support Tickets</h3>
           </div>
           <p className="text-gray-600 text-sm">Manage your support tickets and get help from our team</p>
         </Link>
 
-        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-indigo-500">
+        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#bca142]">
           <div className="flex items-center mb-4">
-            <Book className="text-indigo-600 text-2xl mr-3" />
+            <Book className="text-[#bca142] text-2xl mr-3" />
             <h3 className="text-lg font-semibold text-gray-800">User Guide</h3>
           </div>
           <p className="text-gray-600 text-sm">Learn how to use the platform effectively</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-teal-500">
+        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#bca142]">
           <div className="flex items-center mb-4">
-            <LifeBuoy className="text-teal-600 text-2xl mr-3" />
+            <LifeBuoy className="text-[#bca142] text-2xl mr-3" />
             <h3 className="text-lg font-semibold text-gray-800">Live Support</h3>
           </div>
           <p className="text-gray-600 text-sm">Chat with our support team</p>
@@ -242,7 +246,7 @@ const UserHelp = () => {
       {/* User FAQ Section */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
         <div className="flex items-center mb-6">
-          <HelpCircle className="text-purple-600 text-2xl mr-3" />
+          <HelpCircle className="text-[#bca142] text-2xl mr-3" />
           <h3 className="text-xl font-semibold text-gray-800">User FAQ</h3>
         </div>
         
@@ -281,13 +285,13 @@ const UserHelp = () => {
       {/* User Services Guide */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
         <div className="flex items-center mb-6">
-          <User className="text-indigo-600 text-2xl mr-3" />
+          <User className="text-[#bca142] text-2xl mr-3" />
           <h3 className="text-xl font-semibold text-gray-800">User Services Guide</h3>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="flex items-start">
-            <FileText className="text-blue-500 text-xl mr-3 mt-1" />
+            <FileText className="text-[#bca142] text-xl mr-3 mt-1" />
             <div>
               <h4 className="font-medium text-gray-800 mb-2">Quote Requests</h4>
               <p className="text-gray-600 text-sm">
@@ -297,7 +301,7 @@ const UserHelp = () => {
           </div>
           
           <div className="flex items-start">
-            <User className="text-green-500 text-xl mr-3 mt-1" />
+            <User className="text-[#bca142] text-xl mr-3 mt-1" />
             <div>
               <h4 className="font-medium text-gray-800 mb-2">Profile Management</h4>
               <p className="text-gray-600 text-sm">
@@ -312,7 +316,7 @@ const UserHelp = () => {
       {helpData.contact_details && (
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex items-center mb-4">
-            <MessageSquare className="text-indigo-600 text-2xl mr-3" />
+            <MessageSquare className="text-[#bca142] text-2xl mr-3" />
             <h3 className="text-lg font-semibold text-gray-800">Additional Contact Information</h3>
           </div>
           <div 

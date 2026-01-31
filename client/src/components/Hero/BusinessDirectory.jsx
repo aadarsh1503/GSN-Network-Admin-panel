@@ -219,10 +219,10 @@ const BusinessDirectory = () => {
               </span>
               
               {/* Animated gradient overlay */}
-              <span className="absolute inset-0 bg-gradient-to-r from-[#D9B95B] via-[#CDA435] to-[#D9B95B] translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-700 ease-in-out opacity-90 rounded-full"></span>
+              <span className="absolute inset-0 bg-gradient-to-r from-[#D9B95B] via-[#bca142] to-[#D9B95B] translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-700 ease-in-out opacity-90 rounded-full"></span>
               
               {/* Glow effect */}
-              <span className="absolute inset-0 rounded-full bg-gradient-to-r from-[#D9B95B] to-[#CDA435] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500"></span>
+              <span className="absolute inset-0 rounded-full bg-gradient-to-r from-[#D9B95B] to-[#bca142] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500"></span>
             </button>
 
           </div>

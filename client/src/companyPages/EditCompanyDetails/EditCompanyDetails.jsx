@@ -15,7 +15,7 @@ const InputField = ({ label, name, value, onChange, placeholder, type = 'text' }
             value={value || ''}
             onChange={onChange}
             placeholder={placeholder}
-            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200"
+            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142] transition-all duration-200"
         />
     </div>
 );
@@ -29,13 +29,13 @@ const SelectField = ({ label, name, value, onChange, children, loading = false, 
             value={value || ''}
             onChange={onChange}
             disabled={disabled || loading}
-            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed appearance-none"
+            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142] transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed appearance-none"
         >
             {children}
         </select>
         {loading && (
             <div className="absolute right-3 top-9">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600"></div>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#bca142]"></div>
             </div>
         )}
         {!loading && (
@@ -56,7 +56,7 @@ const PhoneField = ({ label, name, value, onChange }) => (
             country={'in'}
             value={value || ''}
             onChange={(phone) => onChange({ target: { name, value: phone } })}
-            inputClass="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200"
+            inputClass="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142] transition-all duration-200"
             buttonClass="border border-gray-300 rounded-l-md bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
             dropdownClass="border border-gray-300 rounded-md shadow-lg"
             containerClass="react-phone-input-wrapper"
@@ -77,12 +77,12 @@ const CheckboxField = ({ label, name, checked, onChange }) => (
                 type="checkbox"
                 checked={checked || false}
                 onChange={onChange}
-                className="h-5 w-5 text-yellow-600 border-gray-300 rounded focus:ring-yellow-500 transition-colors duration-200 opacity-0 absolute"
+                className="h-5 w-5 text-[#bca142] border-gray-300 rounded focus:ring-[#bca142] transition-colors duration-200 opacity-0 absolute"
             />
             <div className={`h-5 w-5 border-2 rounded flex items-center justify-center transition-all duration-200 ${
                 checked 
-                    ? 'bg-yellow-600 border-yellow-600' 
-                    : 'bg-white border-gray-300 group-hover:border-yellow-400'
+                    ? 'bg-[#bca142] border-[#bca142]' 
+                    : 'bg-white border-gray-300 group-hover:border-[#bca142]'
             }`}>
                 {checked && (
                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -106,14 +106,14 @@ const TextareaField = ({ label, name, value, onChange, rows = 3 }) => (
             rows={rows}
             value={value || ''}
             onChange={onChange}
-            className="w-full p-3 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200 resize-vertical"
+            className="w-full p-3 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142] transition-all duration-200 resize-vertical"
         ></textarea>
     </div>
 );
 
 const SectionHeader = ({ title }) => (
     <h2 className="text-2xl font-bold text-gray-800 border-b border-gray-200 pb-3 mb-6 flex items-center">
-        <span className="bg-yellow-100 text-yellow-800 p-2 rounded-lg mr-3">
+        <span className="bg-[#bca142] text-white p-2 rounded-lg mr-3">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
@@ -124,7 +124,7 @@ const SectionHeader = ({ title }) => (
 
 // Loading Spinner Component
 const LoadingSpinner = ({ size = 'small' }) => (
-    <div className={`animate-spin rounded-full border-b-2 border-yellow-600 ${
+    <div className={`animate-spin rounded-full border-b-2 border-[#bca142] ${
         size === 'small' ? 'h-4 w-4' : 
         size === 'medium' ? 'h-6 w-6' : 
         'h-8 w-8'
@@ -155,7 +155,7 @@ const LogoUpload = ({ currentLogo, onFileChange }) => {
     return (
         <div className="flex items-center space-x-6 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
             <div className="shrink-0">
-                <div className="h-24 w-24 rounded-full overflow-hidden bg-white border-2 border-yellow-500 relative flex items-center justify-center group shadow-sm">
+                <div className="h-24 w-24 rounded-full overflow-hidden bg-white border-2 border-[#bca142] relative flex items-center justify-center group shadow-sm">
                     {preview ? (
                         <img src={preview} alt="Company Logo" className="h-full w-full object-cover" />
                     ) : (
@@ -600,13 +600,13 @@ const EditCompanyDetails = () => {
                 <div className="bg-white rounded-2xl shadow-xl p-6 mb-8 border border-gray-200">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-800 bg-gradient-to-r from-yellow-600 to-yellow-700 bg-clip-text text-transparent">
+                            <h1 className="text-3xl font-bold text-gray-800 bg-gradient-to-r from-[#bca142] to-black bg-clip-text text-transparent">
                                 Edit Company Details
                             </h1>
                             <p className="text-gray-600 mt-2">Update your company information and profile settings</p>
                         </div>
                         <div className="hidden md:block">
-                            <div className="bg-yellow-100 text-yellow-800 p-3 rounded-xl">
+                            <div className="bg-gray-100 text-black p-3 rounded-xl">
                                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
@@ -729,7 +729,7 @@ const EditCompanyDetails = () => {
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Incharge Photo</label>
                                 <div className="flex items-center space-x-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
                                     <div className="shrink-0">
-                                        <div className="h-20 w-20 rounded-full overflow-hidden bg-white border-2 border-yellow-500 relative flex items-center justify-center group shadow-sm">
+                                        <div className="h-20 w-20 rounded-full overflow-hidden bg-white border-2 border-[#bca142] relative flex items-center justify-center group shadow-sm">
                                             {formData.incharge_image ? (
                                                 <img src={formData.incharge_image} alt="Incharge" className="h-full w-full object-cover" />
                                             ) : (
@@ -764,7 +764,7 @@ const EditCompanyDetails = () => {
                                         <button
                                             type="button"
                                             onClick={() => document.getElementById('incharge-image-upload').click()}
-                                            className="py-2 px-4 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-colors"
+                                            className="py-2 px-4 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#bca142] transition-colors"
                                         >
                                             Upload Incharge Photo
                                         </button>
@@ -840,21 +840,21 @@ const EditCompanyDetails = () => {
                             {/* Location Method Selection */}
 <div className="mt-8 relative group">
     {/* Futuristic Background Glow Effect */}
-    <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400/20 to-yellow-100/20 rounded-2xl blur-lg opacity-75 group-hover:opacity-100 transition duration-1000"></div>
+    <div className="absolute -inset-1 bg-[#bca142]/20 rounded-2xl blur-lg opacity-75 group-hover:opacity-100 transition duration-1000"></div>
     
-    <div className="relative bg-white/90 backdrop-blur-xl rounded-2xl border border-yellow-200 shadow-2xl overflow-hidden">
+    <div className="relative bg-white/90 backdrop-blur-xl rounded-2xl border border-gray-200 shadow-2xl overflow-hidden">
         {/* Header Section */}
-        <div className="p-6 border-b border-yellow-100 bg-gradient-to-r from-yellow-50/50 to-transparent">
-            <h3 className="text-xl font-bold text-yellow-900 flex items-center tracking-tight">
-                <span className="p-2 bg-yellow-400 rounded-lg mr-3 shadow-md shadow-yellow-200">
-                    <svg className="w-6 h-6 text-yellow-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="p-6 border-b border-gray-100 bg-gray-50">
+            <h3 className="text-xl font-bold text-black flex items-center tracking-tight">
+                <span className="p-2 bg-[#bca142] rounded-lg mr-3 shadow-md shadow-gray-200">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                 </span>
                 Spatial Configuration
             </h3>
-            <p className="mt-2 text-yellow-700/80 text-sm font-medium">
+            <p className="mt-2 text-gray-700 text-sm font-medium">
                 Select a positioning protocol to synchronize your precise geographic location.
             </p>
         </div>
@@ -868,8 +868,8 @@ const EditCompanyDetails = () => {
                 }}
                 className={`group/card relative p-5 rounded-xl border-2 transition-all duration-500 cursor-pointer ${
                 locationMethod === 'coordinates'
-                    ? 'bg-white border-yellow-400 shadow-xl shadow-yellow-100 translate-y-[-2px]' 
-                    : 'bg-gray-50/50 border-gray-100 hover:border-yellow-200'
+                    ? 'bg-white border-[#bca142] shadow-xl shadow-gray-100 translate-y-[-2px]' 
+                    : 'bg-gray-50/50 border-gray-100 hover:border-gray-200'
             }`}>
                 <div className="flex items-center mb-5">
                     <div className="relative flex items-center justify-center">
@@ -882,10 +882,10 @@ const EditCompanyDetails = () => {
                                 setLocationMethod('coordinates');
                                 setFormData(prev => ({ ...prev, map_location: '' }));
                             }}
-                            className="w-5 h-5 text-yellow-600 focus:ring-yellow-500 border-gray-300 transition-all cursor-pointer"
+                            className="w-5 h-5 text-[#bca142] focus:ring-[#bca142] border-gray-300 transition-all cursor-pointer"
                         />
                     </div>
-                    <label htmlFor="coordinates-method" className={`ml-3 font-bold tracking-wide uppercase text-xs transition-colors ${locationMethod === 'coordinates' ? 'text-yellow-800' : 'text-gray-500'}`}>
+                    <label htmlFor="coordinates-method" className={`ml-3 font-bold tracking-wide uppercase text-xs transition-colors ${locationMethod === 'coordinates' ? 'text-black' : 'text-gray-500'}`}>
                         GPS Satellite Protocol
                     </label>
                 </div>
@@ -933,7 +933,7 @@ const EditCompanyDetails = () => {
                                 setError('Geolocation is not supported by this browser.');
                             }
                         }}
-                        className="w-full flex items-center justify-center px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all duration-300 active:scale-95 shadow-lg shadow-blue-200"
+                        className="w-full flex items-center justify-center px-4 py-3 bg-[#bca142] hover:bg-black text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all duration-300 active:scale-95 shadow-lg shadow-gray-200"
                     >
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -951,8 +951,8 @@ const EditCompanyDetails = () => {
                 }}
                 className={`group/card relative p-5 rounded-xl border-2 transition-all duration-500 cursor-pointer ${
                 locationMethod === 'maps'
-                    ? 'bg-white border-yellow-400 shadow-xl shadow-yellow-100 translate-y-[-2px]' 
-                    : 'bg-gray-50/50 border-gray-100 hover:border-yellow-200'
+                    ? 'bg-white border-[#bca142] shadow-xl shadow-gray-100 translate-y-[-2px]' 
+                    : 'bg-gray-50/50 border-gray-100 hover:border-gray-200'
             }`}>
                 <div className="flex items-center mb-5">
                     <input
@@ -964,9 +964,9 @@ const EditCompanyDetails = () => {
                             setLocationMethod('maps');
                             setFormData(prev => ({ ...prev, latitude: '', longitude: '' }));
                         }}
-                        className="w-5 h-5 text-yellow-600 focus:ring-yellow-500 border-gray-300 transition-all cursor-pointer"
+                        className="w-5 h-5 text-[#bca142] focus:ring-[#bca142] border-gray-300 transition-all cursor-pointer"
                     />
-                    <label htmlFor="maps-method" className={`ml-3 font-bold tracking-wide uppercase text-xs transition-colors ${locationMethod === 'maps' ? 'text-yellow-800' : 'text-gray-500'}`}>
+                    <label htmlFor="maps-method" className={`ml-3 font-bold tracking-wide uppercase text-xs transition-colors ${locationMethod === 'maps' ? 'text-black' : 'text-gray-500'}`}>
                         Cloud Map Integration
                     </label>
                 </div>
@@ -987,10 +987,10 @@ const EditCompanyDetails = () => {
                             }));
                         }}
                         placeholder="Paste shared embed data source..."
-                        className="w-full p-4 bg-gray-100/50 border-none rounded-xl text-sm font-mono focus:ring-2 focus:ring-yellow-400 transition-all resize-none shadow-inner"
+                        className="w-full p-4 bg-gray-100/50 border-none rounded-xl text-sm font-mono focus:ring-2 focus:ring-[#bca142] transition-all resize-none shadow-inner"
                     />
                     <div className="mt-3 flex items-center text-[10px] text-gray-500 font-bold uppercase tracking-tighter">
-                        <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full mr-2 animate-pulse"></span>
+                        <span className="w-1.5 h-1.5 bg-[#bca142] rounded-full mr-2 animate-pulse"></span>
                         Instruction: Maps → Share → Embed a map → Copy HTML
                     </div>
                 </div>
@@ -1009,7 +1009,7 @@ const EditCompanyDetails = () => {
                     <span className="text-xs text-yellow-900 font-medium">Long press marker</span>
                 </div>
             </div> */}
-            <div className="px-3 py-1 bg-white rounded-full border border-yellow-200 text-[11px] font-bold text-yellow-700">
+            <div className="px-3 py-1 bg-white rounded-full border border-gray-200 text-[11px] font-bold text-gray-700">
                 Ready for sync
             </div>
         </div>
@@ -1104,7 +1104,7 @@ const EditCompanyDetails = () => {
                         <div className="flex  justify-center pt-8">
                             <button 
                                 type="submit" 
-                                className="px-12 cursor-pointer py-4 bg-gradient-to-r from-yellow-600 to-yellow-700 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200 flex items-center space-x-3"
+                                className="px-12 cursor-pointer py-4 bg-[#bca142] text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl hover:bg-black transform hover:-translate-y-1 transition-all duration-200 flex items-center space-x-3"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

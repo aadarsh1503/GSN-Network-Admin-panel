@@ -37,9 +37,7 @@ const ProfileCompletionModal = ({
             'Contact information',
             'Business description and services'
           ],
-          gradient: 'from-blue-500 to-cyan-600',
-          icon: <FiUser className="w-8 h-8" />,
-          color: 'blue'
+          icon: <FiUser className="w-8 h-8" />
         };
       case 'business':
         return {
@@ -57,9 +55,7 @@ const ProfileCompletionModal = ({
             'Contact details and hours',
             'Business type and requirements'
           ],
-          gradient: 'from-purple-500 to-indigo-600',
-          icon: <FiUser className="w-8 h-8" />,
-          color: 'purple'
+          icon: <FiUser className="w-8 h-8" />
         };
       case 'user':
         return {
@@ -77,9 +73,7 @@ const ProfileCompletionModal = ({
             'Location details',
             'Preferences and requirements'
           ],
-          gradient: 'from-green-500 to-emerald-600',
-          icon: <FiUser className="w-8 h-8" />,
-          color: 'green'
+          icon: <FiUser className="w-8 h-8" />
         };
       default:
         return {
@@ -88,9 +82,7 @@ const ProfileCompletionModal = ({
           profileUrl: '/profile',
           benefits: ['Better user experience'],
           requiredFields: ['Basic information'],
-          gradient: 'from-gray-500 to-gray-600',
-          icon: <FiUser className="w-8 h-8" />,
-          color: 'gray'
+          icon: <FiUser className="w-8 h-8" />
         };
     }
   };
@@ -163,17 +155,17 @@ const ProfileCompletionModal = ({
           className="relative w-full max-w-lg mx-auto"
         >
           {/* Glow effect */}
-          <div className={`absolute inset-0 bg-gradient-to-r ${config.gradient} rounded-3xl blur-xl opacity-20 animate-pulse`} />
+          <div className="absolute inset-0 bg-[#bca142] rounded-3xl blur-xl opacity-20 animate-pulse" />
           
           {/* Main modal */}
-          <div className="relative bg-white rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
+          <div className="relative bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden">
             
             {/* Header */}
-            <div className="relative p-6 text-center bg-gradient-to-br from-gray-50 to-white">
+            <div className="relative p-6 text-center bg-white">
               {/* Close button */}
               <button
                 onClick={handleSkipForNow}
-                className="absolute top-3 right-3 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all duration-200"
+                className="absolute top-3 right-3 p-2 text-gray-400 hover:text-black hover:bg-gray-100 rounded-full transition-all duration-200"
               >
                 <FiX className="w-4 h-4" />
               </button>
@@ -184,14 +176,14 @@ const ProfileCompletionModal = ({
                   initial={{ rotate: 0 }}
                   animate={{ rotate: [0, 5, -5, 0] }}
                   transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  className={`p-3 bg-gradient-to-r ${config.gradient} rounded-full text-white shadow-lg`}
+                  className="p-3 bg-[#bca142] rounded-full text-white shadow-lg"
                 >
                   <FiUser className="w-6 h-6" />
                 </motion.div>
               </div>
 
               {/* Title */}
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">
+              <h2 className="text-2xl font-bold text-black mb-2">
                 {config.title}
               </h2>
 
@@ -201,8 +193,8 @@ const ProfileCompletionModal = ({
               </p>
 
               {/* Welcome message */}
-              <div className="inline-flex items-center px-3 py-1 bg-yellow-50 border border-yellow-200 rounded-full text-xs text-yellow-700 mb-4">
-                <FiCheckCircle className="w-3 h-3 mr-1" />
+              <div className="inline-flex items-center px-3 py-1 bg-[#bca142] bg-opacity-10 border border-[#bca142] border-opacity-30 rounded-full text-xs text-black mb-4">
+                <FiCheckCircle className="w-3 h-3 mr-1 text-[#bca142]" />
                 Welcome, <span className="font-semibold ml-1">{userName}!</span>
               </div>
             </div>
@@ -210,9 +202,9 @@ const ProfileCompletionModal = ({
             {/* Content */}
             <div className="p-6">
               {/* Warning */}
-              <div className="flex items-start p-3 bg-amber-50 border border-amber-200 rounded-lg mb-4">
-                <FiAlertTriangle className="w-4 h-4 text-amber-600 mr-2 mt-0.5 flex-shrink-0" />
-                <div className="text-xs text-amber-700">
+              <div className="flex items-start p-3 bg-white border border-[#bca142] border-opacity-30 rounded-lg mb-4">
+                <FiAlertTriangle className="w-4 h-4 text-[#bca142] mr-2 mt-0.5 flex-shrink-0" />
+                <div className="text-xs text-black">
                   <p className="font-semibold mb-1">Important:</p>
                   <p>
                     {userRole === 'company' && "Complete your profile so users can accept your quote responses and build trust."}
@@ -224,14 +216,14 @@ const ProfileCompletionModal = ({
 
               {/* Benefits - Compact */}
               <div className="mb-4">
-                <h3 className="text-sm font-semibold text-gray-800 mb-2 flex items-center">
-                  <FiCheckCircle className="w-4 h-4 text-green-500 mr-1" />
+                <h3 className="text-sm font-semibold text-black mb-2 flex items-center">
+                  <FiCheckCircle className="w-4 h-4 text-[#bca142] mr-1" />
                   Key Benefits
                 </h3>
                 <div className="grid grid-cols-1 gap-1">
                   {config.benefits.slice(0, 3).map((benefit, index) => (
                     <div key={index} className="flex items-center text-xs text-gray-600">
-                      <div className={`w-1.5 h-1.5 bg-${config.color}-500 rounded-full mr-2`}></div>
+                      <div className="w-1.5 h-1.5 bg-[#bca142] rounded-full mr-2"></div>
                       {benefit}
                     </div>
                   ))}
@@ -246,7 +238,7 @@ const ProfileCompletionModal = ({
                   whileTap={{ scale: 0.98 }}
                   onClick={handleCompleteProfile}
                   disabled={isNavigating}
-                  className={`w-full px-4 py-3 bg-gradient-to-r ${config.gradient} hover:shadow-lg text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed`}
+                  className="w-full px-4 py-3 bg-[#bca142] hover:bg-black hover:shadow-lg text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <div className="flex items-center justify-center">
                     {isNavigating ? (
@@ -274,7 +266,7 @@ const ProfileCompletionModal = ({
                   whileTap={{ scale: 0.98 }}
                   onClick={handleSkipForNow}
                   disabled={isNavigating}
-                  className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                  className="w-full px-4 py-2 bg-white border border-gray-300 hover:bg-gray-50 text-black font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                 >
                   Remind Me Later (7 days)
                 </motion.button>
@@ -285,7 +277,7 @@ const ProfileCompletionModal = ({
                   whileTap={{ scale: 0.98 }}
                   onClick={handleDontShowAgain}
                   disabled={isNavigating}
-                  className="w-full px-4 py-1.5 text-gray-500 hover:text-gray-700 font-medium text-xs transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed underline"
+                  className="w-full px-4 py-1.5 text-gray-500 hover:text-black font-medium text-xs transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed underline"
                 >
                   Don't show this again
                 </motion.button>

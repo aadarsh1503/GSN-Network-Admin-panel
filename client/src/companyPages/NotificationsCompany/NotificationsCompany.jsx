@@ -132,12 +132,12 @@ const NotificationsCompany = () => {
       <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
         <div className="relative max-w-4xl max-h-[90vh] bg-white rounded-2xl overflow-hidden shadow-2xl">
           {/* Modal Header */}
-          <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 p-4 text-white">
+          <div className="bg-[#bca142] p-4 text-white">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-bold truncate">{title || 'Notification Image'}</h3>
               <button 
                 onClick={onClose}
-                className="text-white hover:text-yellow-200 transition-colors p-2 rounded-full hover:bg-white hover:bg-opacity-20"
+                className="text-white hover:text-white/80 transition-colors p-2 rounded-full hover:bg-white hover:bg-opacity-20"
               >
                 <FaTimes size={20} />
               </button>
@@ -201,7 +201,7 @@ const NotificationsCompany = () => {
           <select 
             value={entries} 
             onChange={(e) => setEntries(e.target.value)}
-            className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+            className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#bca142]"
           >
             <option value="10">10</option>
             <option value="25">25</option>
@@ -216,7 +216,7 @@ const NotificationsCompany = () => {
             type="text" 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+            className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#bca142]"
           />
         </div>
       </div>
@@ -224,7 +224,7 @@ const NotificationsCompany = () => {
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white">
-          <thead className="bg-[#D9CBAA] text-gray-800 text-sm">
+          <thead className="bg-[#bca142] text-white text-sm">
             <tr>
               <th className="p-3 text-left font-semibold"><SortableHeader>Sr.No</SortableHeader></th>
               <th className="p-3 text-left font-semibold"><SortableHeader>Image</SortableHeader></th>
@@ -299,7 +299,7 @@ const NotificationsCompany = () => {
           <button className="px-3 py-1 border border-gray-300 rounded-l-md hover:bg-gray-100 disabled:opacity-50" disabled>
             Previous
           </button>
-          <button className="px-3 py-1 border-t border-b border-gray-300 text-gray-800 bg-[#D9CBAA]">
+          <button className="px-3 py-1 border-t border-b border-gray-300 text-white bg-[#bca142]">
             1
           </button>
           <button className="px-3 py-1 border border-gray-300 rounded-r-md hover:bg-gray-100">

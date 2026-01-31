@@ -191,7 +191,7 @@ const UserProfile = () => {
         <div className="flex flex-col items-center gap-3">
           <div className="relative">
             <div className="h-12 w-12 border-4 border-gray-200 rounded-full animate-spin">
-              <div className="h-12 w-12 border-4 border-transparent border-t-[#CDA435] rounded-full animate-spin"></div>
+              <div className="h-12 w-12 border-4 border-transparent border-t-[#bca142] rounded-full animate-spin"></div>
             </div>
           </div>
           <p className="text-gray-600 font-medium">Loading profile...</p>
@@ -212,7 +212,7 @@ const UserProfile = () => {
           {!editing && (
             <button
               onClick={() => setEditing(true)}
-              className="bg-[#CDA435] text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition-colors duration-200 flex items-center"
+              className="bg-[#bca142] text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition-colors duration-200 flex items-center"
             >
               <FaEdit className="mr-2" />
               Edit Profile
@@ -238,11 +238,11 @@ const UserProfile = () => {
                     }}
                   />
                   <div className="hidden w-full h-full bg-yellow-50 items-center justify-center">
-                    <FaUser className="text-[#CDA435] text-2xl" />
+                    <FaUser className="text-[#bca142] text-2xl" />
                   </div>
                 </>
               ) : (
-                <FaUser className="text-[#CDA435] text-2xl" />
+                <FaUser className="text-[#bca142] text-2xl" />
               )}
             </div>
             
@@ -254,7 +254,7 @@ const UserProfile = () => {
                   </div>
                 ) : (
                   <label htmlFor="logo-upload" className="cursor-pointer">
-                    <div className="w-8 h-8 bg-[#CDA435] rounded-full flex items-center justify-center hover:bg-yellow-600 transition-colors duration-200 shadow-lg">
+                    <div className="w-8 h-8 bg-[#bca142] rounded-full flex items-center justify-center hover:bg-yellow-600 transition-colors duration-200 shadow-lg">
                       <FaCamera className="text-white text-sm" />
                     </div>
                   </label>
@@ -411,7 +411,7 @@ const UserProfile = () => {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="px-4 py-2 bg-[#CDA435] text-white rounded-md hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center"
+              className="px-4 py-2 bg-[#bca142] text-white rounded-md hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center"
             >
               {saving ? (
                 <>

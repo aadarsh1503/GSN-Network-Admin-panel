@@ -228,35 +228,34 @@ const BusinessLayout = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      {/* Futuristic Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 shadow-2xl transform ${
+    <div className="flex h-screen bg-white">
+      {/* Sidebar */}
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-2xl transform ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } transition-all duration-500 ease-in-out lg:translate-x-0 lg:static lg:inset-0 border-r border-slate-700`}>
+      } transition-all duration-500 ease-in-out lg:translate-x-0 lg:static lg:inset-0 border-r border-gray-200`}>
         
-        {/* Logo with Glow Effect */}
-        <div className="flex items-center justify-between h-16 px-6 bg-gradient-to-r from-[#CDA435] via-[#B8941F] to-[#CDA435] relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 via-yellow-500/20 to-yellow-400/20 animate-pulse"></div>
+        {/* Logo Header */}
+        <div className="flex items-center justify-between h-16 px-6 bg-[#bca142] relative overflow-hidden">
           <Link to="/business/dashboard" className="text-white text-xl font-bold relative z-10 flex items-center">
-            <FaBuilding className="mr-2 text-yellow-200" />
-            <span className="bg-gradient-to-r from-yellow-200 to-yellow-100 bg-clip-text text-transparent">
+            <FaBuilding className="mr-2 text-white" />
+            <span className="text-white">
               Business Hub
             </span>
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="text-white lg:hidden relative z-10 hover:text-yellow-200 transition-colors"
+            className="text-white lg:hidden relative z-10 hover:text-gray-200 transition-colors"
           >
             <FaTimes size={20} />
           </button>
         </div>
 
-        {/* User Info with Futuristic Design */}
-        <div className="p-6 border-b border-slate-700 bg-gradient-to-r from-slate-800/50 to-slate-700/50">
+        {/* User Info */}
+        <div className="p-6 border-b border-gray-200 bg-white">
           <div className="flex items-center">
             <div className="relative">
               {businessProfile?.logo ? (
-                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#CDA435] shadow-lg">
+                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#bca142] shadow-lg">
                   <img 
                     src={businessProfile.logo} 
                     alt="Business Logo" 
@@ -267,27 +266,27 @@ const BusinessLayout = () => {
                       e.target.nextSibling.style.display = 'flex';
                     }}
                   />
-                  <div className="w-12 h-12 bg-gradient-to-br from-[#CDA435] to-[#B8941F] rounded-full flex items-center justify-center text-white font-semibold shadow-lg" style={{display: 'none'}}>
+                  <div className="w-12 h-12 bg-[#bca142] rounded-full flex items-center justify-center text-white font-semibold shadow-lg" style={{display: 'none'}}>
                     {businessProfile?.name?.charAt(0)?.toUpperCase() || user?.name?.charAt(0)?.toUpperCase() || 'B'}
                   </div>
                 </div>
               ) : (
-                <div className="w-12 h-12 bg-gradient-to-br from-[#CDA435] to-[#B8941F] rounded-full flex items-center justify-center text-white font-semibold shadow-lg">
+                <div className="w-12 h-12 bg-[#bca142] rounded-full flex items-center justify-center text-white font-semibold shadow-lg">
                   {businessProfile?.name?.charAt(0)?.toUpperCase() || user?.name?.charAt(0)?.toUpperCase() || 'B'}
                 </div>
               )}
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-slate-800 animate-pulse"></div>
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-black rounded-full border-2 border-white animate-pulse"></div>
             </div>
             <div className="ml-4 flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">
+              <p className="text-sm font-medium text-black truncate">
                 {businessProfile?.name || user?.name || 'Business User'}
               </p>
-              <p className="text-xs text-slate-300 truncate" title={businessProfile?.email || user?.email}>
+              <p className="text-xs text-gray-600 truncate" title={businessProfile?.email || user?.email}>
                 {businessProfile?.email || user?.email}
               </p>
               <div className="flex items-center mt-1">
-                <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
-                <span className="text-xs text-green-400">Online</span>
+                <div className="w-2 h-2 bg-black rounded-full mr-2 animate-pulse"></div>
+                <span className="text-xs text-black">Online</span>
               </div>
             </div>
           </div>
@@ -304,36 +303,26 @@ const BusinessLayout = () => {
                 to={item.path}
                 className={`flex items-center justify-between px-4 py-2 mb-2 text-sm font-medium transition-all duration-300 rounded-xl group relative overflow-hidden ${
                   isActive
-                    ? 'text-[#CDA435] bg-gradient-to-r from-yellow-600/30 to-yellow-500/30 border border-yellow-500/50 shadow-lg'
-                    : 'text-slate-300 hover:text-white hover:bg-gradient-to-r hover:from-slate-700/50 hover:to-slate-600/50 hover:border hover:border-slate-600'
+                    ? 'text-black bg-[#bca142]/10 border border-[#bca142]/30 shadow-lg'
+                    : 'text-black hover:text-black hover:bg-gray-50 hover:border hover:border-gray-200'
                 }`}
                 onClick={() => setSidebarOpen(false)}
               >
-                {/* Animated Background */}
-                <div className={`absolute inset-0 bg-gradient-to-r from-yellow-500/10 to-yellow-400/10 transform transition-transform duration-300 ${
-                  isActive ? 'scale-100' : 'scale-0 group-hover:scale-100'
-                }`}></div>
-                
                 <div className="flex items-center relative z-10">
                   <Icon className={`mr-3 transition-all duration-300 ${
-                    isActive ? 'text-[#CDA435] scale-110' : 'text-slate-400 group-hover:text-white group-hover:scale-110'
+                    isActive ? 'text-[#bca142] scale-110' : 'text-gray-600 group-hover:text-[#bca142] group-hover:scale-110'
                   }`} size={18} />
                   <span className="relative">
                     {item.label}
                     {isActive && (
-                      <div className="absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-[#CDA435] to-[#B8941F] rounded-full"></div>
+                      <div className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#bca142] rounded-full"></div>
                     )}
                   </span>
                 </div>
                 
                 {/* Notification Badges */}
-                {/* {item.label === 'Notifications' && unreadCount > 0 && (
-                  <span className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center animate-bounce shadow-lg relative z-10">
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </span>
-                )} */}
                 {item.label === 'Messages' && messageUnreadCount > 0 && (
-                  <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center animate-bounce shadow-lg relative z-10">
+                  <span className="bg-[#bca142] text-white text-xs rounded-full h-6 w-6 flex items-center justify-center animate-bounce shadow-lg relative z-10">
                     {messageUnreadCount > 99 ? '99+' : messageUnreadCount}
                   </span>
                 )}
@@ -342,11 +331,11 @@ const BusinessLayout = () => {
           })}
         </nav>
 
-        {/* Logout Button with Futuristic Style */}
+        {/* Logout Button */}
         <div className="absolute bottom-0 w-full p-6">
           <button
             onClick={handleLogout}
-            className="flex items-center w-full px-4 py-3 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-gradient-to-r hover:from-red-900/20 hover:to-pink-900/20 rounded-xl transition-all duration-300 border border-transparent hover:border-red-500/30 group"
+            className="flex items-center w-full px-4 py-3 text-sm font-medium text-black hover:text-white hover:bg-black rounded-xl transition-all duration-300 border border-gray-200 hover:border-black group"
           >
             <FaSignOutAlt className="mr-3 group-hover:scale-110 transition-transform duration-300" size={18} />
             <span>Logout</span>
@@ -364,7 +353,7 @@ const BusinessLayout = () => {
           <div className="flex items-center justify-between h-16 px-6">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="text-slate-600 hover:text-[#CDA435] lg:hidden transition-colors duration-300 p-2 rounded-lg hover:bg-yellow-50"
+              className="text-black hover:text-[#bca142] lg:hidden transition-colors duration-300 p-2 rounded-lg hover:bg-gray-50"
             >
               <FaBars size={20} />
             </button>
@@ -372,14 +361,14 @@ const BusinessLayout = () => {
             <div className="flex items-center space-x-4">
               <div className="hidden md:flex items-center space-x-2 text-slate-600">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-sm">Welcome back, <span className="font-semibold text-[#CDA435]">{businessProfile?.name || user?.name}</span>!</span>
+                <span className="text-sm">Welcome back, <span className="font-semibold text-[#bca142]">{businessProfile?.name || user?.name}</span>!</span>
               </div>
               
               {/* Quick Stats */}
               <div className="hidden lg:flex items-center space-x-4 text-xs">
-                <div className="flex items-center space-x-1 bg-[#CDA435]/10 px-3 py-1 rounded-full">
-                  <div className="w-2 h-2 bg-[#CDA435] rounded-full"></div>
-                  <span className="text-[#CDA435]">Active</span>
+                <div className="flex items-center space-x-1 bg-[#bca142]/10 px-3 py-1 rounded-full">
+                  <div className="w-2 h-2 bg-[#bca142] rounded-full"></div>
+                  <span className="text-[#bca142]">Active</span>
                 </div>
                 <div className="flex items-center space-x-1 bg-green-50 px-3 py-1 rounded-full">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>

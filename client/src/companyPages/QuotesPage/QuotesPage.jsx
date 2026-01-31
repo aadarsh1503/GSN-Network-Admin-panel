@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 
 const RightSidebar = () => (
   <div className="space-y-6 mt-2">
-    <a href="/company/quote" className="block w-full bg-[#CDA435] text-white font-bold py-3 rounded-lg shadow-md hover:bg-[#B8941F] transition-colors text-center">
+    <a href="/company/quote" className="block w-full bg-[#bca142] text-white font-bold py-3 rounded-lg shadow-md hover:bg-[#B8941F] transition-colors text-center">
       Request a quote
     </a>
     <div className="bg-[#C9A959] p-6 rounded-lg shadow-md text-center text-white">
@@ -273,7 +273,7 @@ const QuotesPage = () => {
       <div className="mt-4 flex justify-between items-center">
         <button 
           onClick={() => handleViewDetails(quote)} 
-          className="h-10 w-10 flex items-center justify-center border-2 border-[#CDA435] text-[#CDA435] rounded-full hover:bg-yellow-50"
+          className="h-10 w-10 flex items-center justify-center border-2 border-[#bca142] text-[#bca142] rounded-full hover:bg-yellow-50"
         >
           <FiEye size={20}/>
         </button>
@@ -295,7 +295,7 @@ const QuotesPage = () => {
 
     return (
       <div>
-        <button onClick={handleCloseDetails} className="text-sm text-[#CDA435] hover:underline mb-4">&larr; Back to Quotes List</button>
+        <button onClick={handleCloseDetails} className="text-sm text-[#bca142] hover:underline mb-4">&larr; Back to Quotes List</button>
         
         {/* Upgrade Prompt */}
         <UpgradePrompt />
@@ -437,7 +437,7 @@ const QuotesPage = () => {
               <button
                 type="submit"
                 disabled={submittingResponse}
-                className="w-full bg-[#CDA435] text-white font-bold py-3 rounded-lg shadow-md hover:bg-[#B8941F] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full bg-[#bca142] text-white font-bold py-3 rounded-lg shadow-md hover:bg-[#B8941F] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <FiSend />
                 {submittingResponse ? 'Submitting...' : 'Submit Quote Response'}

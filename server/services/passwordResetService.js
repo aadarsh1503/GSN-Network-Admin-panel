@@ -30,15 +30,15 @@ const createPasswordResetEmailTemplate = (resetUrl, userName) => {
         <style>
             body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; }
             .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
-            .header { background: linear-gradient(135deg, #CDA435 0%, #B8941F 100%); padding: 30px; text-align: center; }
+            .header { background: linear-gradient(135deg, #bca142 0%, #B8941F 100%); padding: 30px; text-align: center; }
             .header h1 { color: #ffffff; margin: 0; font-size: 28px; font-weight: bold; }
             .header p { color: #FFF3CD; margin: 10px 0 0 0; font-size: 16px; }
             .content { padding: 40px 30px; }
             .footer { background-color: #f8f9fa; padding: 20px 30px; text-align: center; border-top: 1px solid #e9ecef; }
             .footer p { color: #6c757d; margin: 0; font-size: 14px; }
-            .btn { display: inline-block; padding: 15px 30px; background: linear-gradient(135deg, #CDA435 0%, #B8941F 100%); color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; font-size: 16px; }
+            .btn { display: inline-block; padding: 15px 30px; background: linear-gradient(135deg, #bca142 0%, #B8941F 100%); color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; font-size: 16px; }
             .btn:hover { background: linear-gradient(135deg, #B8941F 0%, #A67C1A 100%); }
-            .info-box { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #CDA435; }
+            .info-box { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #bca142; }
             .warning-box { background-color: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107; }
             .security-note { background-color: #d1ecf1; padding: 15px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #17a2b8; }
         </style>

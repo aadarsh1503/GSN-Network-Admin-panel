@@ -25,15 +25,15 @@ import { api } from '../../utils/api';
 import ProfileCompletionModal from '../../components/Modal/ProfileCompletionModal';
 import { useProfileCompletion } from '../../hooks/useProfileCompletion';
 
-// Website color palette matching the Admin Dashboard
+// Website color palette - consistent theme
 const COLORS = {
-  primary: '#eab308', // yellow-500
-  secondary: '#f59e0b', // amber-500
-  success: '#10b981', // emerald-500
-  warning: '#f59e0b', // amber-500
-  danger: '#ef4444', // red-500
-  info: '#06b6d4', // cyan-500
-  gradient: ['#eab308', '#f59e0b', '#06b6d4', '#10b981', '#ef4444', '#8b5cf6']
+  primary: '#bca142',
+  secondary: '#bca142',
+  success: '#bca142',
+  warning: '#bca142',
+  danger: '#000000',
+  info: '#bca142',
+  gradient: ['#bca142']
 };
 
 // Enhanced Metric Card Component matching Admin Dashboard design
@@ -90,34 +90,34 @@ const MetricCard = ({
   
   const colorClasses = {
     yellow: {
-      bg: 'bg-white border-l-4 border-yellow-500',
-      icon: 'bg-yellow-100 text-yellow-600',
-      trend: 'text-yellow-600'
+      bg: 'bg-white border-l-4 border-[#bca142]',
+      icon: 'bg-[#bca142] text-white',
+      trend: 'text-[#bca142]'
     },
     green: {
-      bg: 'bg-white border-l-4 border-green-500',
-      icon: 'bg-green-100 text-green-600',
-      trend: 'text-green-600'
+      bg: 'bg-white border-l-4 border-[#bca142]',
+      icon: 'bg-[#bca142] text-white',
+      trend: 'text-[#bca142]'
     },
     blue: {
-      bg: 'bg-white border-l-4 border-blue-500',
-      icon: 'bg-blue-100 text-blue-600',
-      trend: 'text-blue-600'
+      bg: 'bg-white border-l-4 border-[#bca142]',
+      icon: 'bg-[#bca142] text-white',
+      trend: 'text-[#bca142]'
     },
     orange: {
-      bg: 'bg-white border-l-4 border-orange-500',
-      icon: 'bg-orange-100 text-orange-600',
-      trend: 'text-orange-600'
+      bg: 'bg-white border-l-4 border-[#bca142]',
+      icon: 'bg-[#bca142] text-white',
+      trend: 'text-[#bca142]'
     },
     red: {
-      bg: 'bg-white border-l-4 border-red-500',
-      icon: 'bg-red-100 text-red-600',
-      trend: 'text-red-600'
+      bg: 'bg-white border-l-4 border-black',
+      icon: 'bg-black text-white',
+      trend: 'text-black'
     },
     purple: {
-      bg: 'bg-white border-l-4 border-purple-500',
-      icon: 'bg-purple-100 text-purple-600',
-      trend: 'text-purple-600'
+      bg: 'bg-white border-l-4 border-[#bca142]',
+      icon: 'bg-[#bca142] text-white',
+      trend: 'text-[#bca142]'
     }
   };
 
@@ -135,7 +135,7 @@ const MetricCard = ({
       <div className="relative z-10">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <div className={`p-3 rounded-xl ${colors.icon} bg-opacity-20 backdrop-blur-sm group-hover:bg-opacity-30 transition-all duration-300`}>
+          <div className={`p-3 rounded-xl ${colors.icon} transition-all duration-300`}>
             <Icon className="h-6 w-6" />
           </div>
           
@@ -186,7 +186,7 @@ const RecentQuotesChart = ({ quotes }) => {
           <p className="text-gray-500 mb-4">No quotes yet</p>
           <Link
             to="/quote"
-            className="inline-flex items-center px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-lg transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-[#bca142] hover:bg-black text-white font-medium rounded-lg transition-colors"
           >
             <FileText className="mr-2 h-4 w-4" />
             Request Your First Quote
@@ -212,7 +212,7 @@ const RecentQuotesChart = ({ quotes }) => {
         </div>
         <Link
           to="/user/quotes"
-          className="text-yellow-600 hover:text-yellow-700 font-medium text-sm flex items-center"
+          className="text-[#bca142] hover:text-black font-medium text-sm flex items-center"
         >
           View All <ArrowUpRight className="ml-1 h-4 w-4" />
         </Link>
@@ -312,10 +312,10 @@ const UserDashboard = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'pending': return 'text-yellow-600 bg-yellow-100';
-      case 'running': return 'text-[#CDA435] bg-yellow-50';
-      case 'closed': return 'text-green-600 bg-green-100';
-      case 'rejected': return 'text-red-600 bg-red-100';
+      case 'pending': return 'text-[#bca142] bg-white border border-[#bca142]';
+      case 'running': return 'text-[#bca142] bg-white border border-[#bca142]';
+      case 'closed': return 'text-[#bca142] bg-white border border-[#bca142]';
+      case 'rejected': return 'text-black bg-white border border-black';
       default: return 'text-gray-600 bg-gray-100';
     }
   };
@@ -333,8 +333,7 @@ const UserDashboard = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="relative">
-            <div className="animate-spin rounded-full h-20 w-20 border-4 border-yellow-200 border-t-yellow-500 mx-auto mb-4"></div>
-            <div className="absolute inset-0 rounded-full h-20 w-20 border-4 border-orange-200 border-t-orange-500 animate-spin mx-auto" style={{ animationDirection: 'reverse', animationDuration: '3s' }}></div>
+            <div className="animate-spin rounded-full h-20 w-20 border-4 border-gray-200 border-t-[#bca142] mx-auto mb-4"></div>
           </div>
           <p className="text-2xl font-bold text-gray-800 mb-2">Loading Dashboard...</p>
           <p className="text-gray-600">Preparing your analytics</p>
@@ -356,7 +355,7 @@ const UserDashboard = () => {
             </h1>
             <button
               onClick={fetchDashboardData}
-              className="flex items-center space-x-2 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors"
+              className="flex items-center space-x-2 bg-[#bca142] hover:bg-black text-white px-4 py-2 rounded-lg transition-colors"
               title="Refresh Data"
             >
               <Activity className="h-4 w-4" />
@@ -376,23 +375,23 @@ const UserDashboard = () => {
 
         {/* Pending Quote Alert */}
         {showPendingQuote && (
-          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-6 shadow-lg">
+          <div className="bg-white border border-[#bca142] rounded-xl p-6 shadow-lg">
             <div className="flex items-start">
-              <div className="p-2 bg-yellow-100 rounded-lg mr-4">
-                <FaExclamationTriangle className="text-yellow-600" size={24} />
+              <div className="p-2 bg-[#bca142] rounded-lg mr-4">
+                <FaExclamationTriangle className="text-white" size={24} />
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-bold text-yellow-800 mb-2">
+                <h3 className="text-xl font-bold text-black mb-2">
                   You have a pending quote request!
                 </h3>
-                <p className="text-yellow-700 mb-4">
+                <p className="text-gray-700 mb-4">
                   You filled out a quote form before logging in. Would you like to submit it now?
                 </p>
                 <div className="flex space-x-3">
                   <button
                     onClick={handleSubmitPendingQuote}
                     disabled={submittingPendingQuote}
-                    className="bg-yellow-600 text-white px-6 py-3 rounded-lg hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center font-medium shadow-md hover:shadow-lg transition-all duration-200"
+                    className="bg-[#bca142] text-white px-6 py-3 rounded-lg hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed flex items-center font-medium shadow-md hover:shadow-lg transition-all duration-200"
                   >
                     {submittingPendingQuote ? (
                       <>
@@ -408,7 +407,7 @@ const UserDashboard = () => {
                   </button>
                   <button
                     onClick={handleDismissPendingQuote}
-                    className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 font-medium shadow-md hover:shadow-lg transition-all duration-200"
+                    className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 font-medium shadow-md hover:shadow-lg transition-all duration-200"
                   >
                     Dismiss
                   </button>
@@ -489,20 +488,20 @@ const UserDashboard = () => {
           <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-gray-800">Quick Actions</h3>
-              <Zap className="h-5 w-5 text-yellow-600" />
+              <Zap className="h-5 w-5 text-[#bca142]" />
             </div>
             
             <div className="space-y-4">
               <Link
                 to="/quote"
-                className="flex items-center p-4 bg-gradient-to-r from-yellow-50 to-orange-50 hover:from-yellow-100 hover:to-orange-100 rounded-xl transition-all duration-200 border border-yellow-200 hover:border-yellow-300 group"
+                className="flex items-center p-4 bg-white hover:bg-gray-50 rounded-xl transition-all duration-200 border border-[#bca142] hover:border-black group"
               >
-                <div className="p-2 bg-yellow-100 rounded-lg mr-4 group-hover:bg-yellow-200 transition-colors">
-                  <FileText className="text-yellow-600 h-5 w-5" />
+                <div className="p-2 bg-[#bca142] rounded-lg mr-4 group-hover:bg-black transition-colors">
+                  <FileText className="text-white h-5 w-5" />
                 </div>
                 <div>
-                  <span className="text-yellow-700 font-semibold block">Request New Quote</span>
-                  <span className="text-yellow-600 text-sm">Get quotes from logistics companies</span>
+                  <span className="text-black font-semibold block">Request New Quote</span>
+                  <span className="text-gray-600 text-sm">Get quotes from logistics companies</span>
                 </div>
               </Link>
               
@@ -517,7 +516,7 @@ const UserDashboard = () => {
                   <span className="text-gray-700 font-semibold block">Messages</span>
                   <span className="text-gray-600 text-sm">View conversations</span>
                   {stats.messages.unread_messages > 0 && (
-                    <span className="ml-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                    <span className="ml-2 bg-black text-white text-xs px-2 py-1 rounded-full">
                       {stats.messages.unread_messages}
                     </span>
                   )}
@@ -535,7 +534,7 @@ const UserDashboard = () => {
                   <span className="text-gray-700 font-semibold block">Notifications</span>
                   <span className="text-gray-600 text-sm">Check updates</span>
                   {stats.notifications.unread_notifications > 0 && (
-                    <span className="ml-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                    <span className="ml-2 bg-black text-white text-xs px-2 py-1 rounded-full">
                       {stats.notifications.unread_notifications}
                     </span>
                   )}
@@ -554,7 +553,7 @@ const UserDashboard = () => {
             </div>
             <Link
               to="/user/quotes"
-              className="flex items-center text-yellow-600 hover:text-yellow-700 font-medium"
+              className="flex items-center text-[#bca142] hover:text-black font-medium"
             >
               View All <ArrowUpRight className="ml-1 h-4 w-4" />
             </Link>
@@ -568,7 +567,7 @@ const UserDashboard = () => {
               <p className="text-gray-500 text-lg mb-4">No quotes yet</p>
               <Link
                 to="/quote"
-                className="inline-flex items-center px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-lg transition-colors shadow-md hover:shadow-lg"
+                className="inline-flex items-center px-6 py-3 bg-[#bca142] hover:bg-black text-white font-medium rounded-lg transition-colors shadow-md hover:shadow-lg"
               >
                 <FileText className="mr-2 h-4 w-4" />
                 Request Your First Quote

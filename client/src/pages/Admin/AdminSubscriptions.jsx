@@ -112,26 +112,26 @@ const AdminSubscriptions = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-purple-50 p-4 sm:p-1">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-1">
       <div className="max-w-6xl mx-auto space-y-6">
         
         {/* Header Section */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-12 h-12 bg-[#bca142] rounded-xl flex items-center justify-center shadow-lg">
                 <FaCreditCard className="text-white text-xl" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-bold text-gray-800">
                   Subscription Management
                 </h1>
-                <p className="text-slate-600 mt-1">View and manage all user subscriptions</p>
+                <p className="text-gray-600 mt-1">View and manage all user subscriptions</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2 text-sm text-slate-600">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <div className="w-2 h-2 bg-[#bca142] rounded-full animate-pulse"></div>
                 <span>Live Data</span>
               </div>
             </div>
@@ -140,73 +140,61 @@ const AdminSubscriptions = () => {
 
         {/* Stats Dashboard */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-slate-500 text-sm font-medium">Total Subscriptions</p>
-                <p className="text-3xl font-bold text-slate-800 mt-1">{stats.total}</p>
+                <p className="text-gray-500 text-sm font-medium">Total Subscriptions</p>
+                <p className="text-3xl font-bold text-gray-800 mt-1">{stats.total}</p>
               </div>
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex items-center justify-center">
-                <FaUsers className="text-purple-600" />
+              <div className="w-10 h-10 bg-[#bca142] rounded-lg flex items-center justify-center">
+                <FaUsers className="text-white" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-slate-500 text-sm font-medium">Total Revenue</p>
-                <p className="text-3xl font-bold text-emerald-600 mt-1">${stats.totalRevenue.toFixed(2)}</p>
+                <p className="text-gray-500 text-sm font-medium">Total Revenue</p>
+                <p className="text-3xl font-bold text-[#bca142] mt-1">${stats.totalRevenue.toFixed(2)}</p>
               </div>
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-lg flex items-center justify-center">
-                <FaDollarSign className="text-emerald-600" />
+              <div className="w-10 h-10 bg-[#bca142] rounded-lg flex items-center justify-center">
+                <FaDollarSign className="text-white" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-slate-500 text-sm font-medium">Active Plans</p>
-                <p className="text-2xl font-bold text-green-600 mt-1">{stats.active}</p>
+                <p className="text-gray-500 text-sm font-medium">Active Plans</p>
+                <p className="text-2xl font-bold text-[#bca142] mt-1">{stats.active}</p>
               </div>
-              <div className="w-10 h-10 bg-gradient-to-br from-green-100 to-green-200 rounded-lg flex items-center justify-center">
-                <FaCheckCircle className="text-green-600" />
+              <div className="w-10 h-10 bg-[#bca142] rounded-lg flex items-center justify-center">
+                <FaCheckCircle className="text-white" />
               </div>
             </div>
           </div>
 
-          {/* <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-slate-500 text-sm font-medium">Monthly Revenue</p>
-                <p className="text-2xl font-bold text-blue-600 mt-1">${stats.monthlyRevenue.toFixed(2)}</p>
-              </div>
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center">
-                <FaChartPie className="text-blue-600" />
-              </div>
-            </div>
-          </div> */}
-
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-500 text-sm font-medium">Expired</p>
+                <p className="text-gray-500 text-sm font-medium">Expired</p>
                 <p className="text-2xl font-bold text-red-600 mt-1">{stats.expired}</p>
               </div>
-              <div className="w-10 h-10 bg-gradient-to-br from-red-100 to-red-200 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
                 <FaClock className="text-red-600" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-slate-500 text-sm font-medium">Cancelled</p>
+                <p className="text-gray-500 text-sm font-medium">Cancelled</p>
                 <p className="text-2xl font-bold text-gray-600 mt-1">{stats.cancelled}</p>
               </div>
-              <div className="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
                 <FaTimes className="text-gray-600" />
               </div>
             </div>
@@ -214,28 +202,28 @@ const AdminSubscriptions = () => {
         </div>
 
         {/* Filters Section */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
           <div className="flex items-center space-x-3 mb-4">
-            <div className="w-8 h-8 bg-gradient-to-br from-slate-500 to-slate-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-[#bca142] rounded-lg flex items-center justify-center">
               <FaFilter className="text-white text-sm" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-800">Filters & Search</h3>
+            <h3 className="text-lg font-semibold text-gray-800">Filters & Search</h3>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="relative">
-              <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" />
+              <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search users, plans, transactions..."
-                className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             
             <select
-              className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+              className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
@@ -246,7 +234,7 @@ const AdminSubscriptions = () => {
             </select>
             
             <select
-              className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+              className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-transparent transition-all duration-300"
               value={paymentFilter}
               onChange={(e) => setPaymentFilter(e.target.value)}
             >
@@ -262,7 +250,7 @@ const AdminSubscriptions = () => {
                 setStatusFilter('');
                 setPaymentFilter('');
               }}
-              className="bg-gradient-to-r from-slate-500 to-slate-600 text-white px-6 py-3 rounded-xl hover:from-slate-600 hover:to-slate-700 transition-all duration-300 font-medium"
+              className="bg-[#bca142] text-white px-6 py-3 rounded-xl hover:bg-[#B8941F] transition-all duration-300 font-medium"
             >
               Reset Filters
             </button>
@@ -270,62 +258,62 @@ const AdminSubscriptions = () => {
         </div>
 
         {/* Subscriptions Table */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+              <thead className="bg-[#bca142]">
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">ID</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">User</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Plan</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Amount</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Start Date</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">End Date</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Status</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Payment</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Actions</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-white">ID</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-white">User</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-white">Plan</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-white">Amount</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-white">Start Date</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-white">End Date</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-white">Status</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-white">Payment</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-white">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-gray-200">
                 {filteredSubscriptions.length > 0 ? (
                   filteredSubscriptions.map((sub) => (
-                    <tr key={sub.id} className="hover:bg-slate-50/50 transition-colors duration-200">
+                    <tr key={sub.id} className="hover:bg-gray-50 transition-colors duration-200">
                       <td className="px-6 py-4">
-                        <span className="font-mono text-sm text-slate-600">{sub.id}</span>
+                        <span className="font-mono text-sm text-gray-600">{sub.id}</span>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-purple-200 rounded-full flex items-center justify-center">
-                            <span className="text-purple-600 font-semibold text-sm">
+                          <div className="w-10 h-10 bg-[#bca142] rounded-full flex items-center justify-center">
+                            <span className="text-white font-semibold text-sm">
                               {sub.user_name?.charAt(0)?.toUpperCase() || 'U'}
                             </span>
                           </div>
                           <div>
-                            <div className="font-medium text-slate-800">{sub.user_name}</div>
-                            <div className="text-sm text-slate-500">{sub.user_email}</div>
+                            <div className="font-medium text-gray-800">{sub.user_name}</div>
+                            <div className="text-sm text-gray-500">{sub.user_email}</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-2">
-                          <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center">
-                            <FaCreditCard className="text-blue-600 text-sm" />
+                          <div className="w-8 h-8 bg-[#bca142] rounded-lg flex items-center justify-center">
+                            <FaCreditCard className="text-white text-sm" />
                           </div>
-                          <span className="font-medium text-slate-700">{sub.plan_name}</span>
+                          <span className="font-medium text-gray-700">{sub.plan_name}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-lg font-bold text-emerald-600">${sub.amount_paid}</span>
+                        <span className="text-lg font-bold text-[#bca142]">${sub.amount_paid}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2 text-sm text-slate-600">
-                          <FaCalendarAlt className="text-slate-400" />
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                          <FaCalendarAlt className="text-gray-400" />
                           <span>{new Date(sub.start_date).toLocaleDateString()}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2 text-sm text-slate-600">
-                          <FaCalendarAlt className="text-slate-400" />
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                          <FaCalendarAlt className="text-gray-400" />
                           <span>{new Date(sub.end_date).toLocaleDateString()}</span>
                         </div>
                       </td>
@@ -342,7 +330,7 @@ const AdminSubscriptions = () => {
                       <td className="px-6 py-4">
                         <button
                           onClick={() => handleViewDetails(sub)}
-                          className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                          className="p-2 text-black hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-all duration-200"
                           title="View Details"
                         >
                           <FaEye />

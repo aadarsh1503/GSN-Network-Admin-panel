@@ -114,7 +114,7 @@ const BankDetailsManager = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#CDA435]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#bca142]"></div>
       </div>
     );
   }
@@ -127,14 +127,14 @@ const BankDetailsManager = () => {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-                <FiCreditCard className="text-[#CDA435]" />
+                <FiCreditCard className="text-[#bca142]" />
                 Company Bank Details
               </h1>
               <p className="text-gray-600 mt-1">Manage your company's bank account details for receiving payments</p>
             </div>
             <button
               onClick={() => setShowForm(true)}
-              className="px-4 py-2 bg-[#CDA435] text-white rounded-lg hover:bg-[#B8941F] transition-colors flex items-center gap-2"
+              className="px-4 py-2 bg-[#bca142] text-white rounded-lg hover:bg-[#B8941F] transition-colors flex items-center gap-2"
             >
               <FiPlus />
               Add Bank Details
@@ -175,7 +175,7 @@ const BankDetailsManager = () => {
               <p className="text-gray-500">No bank details added yet</p>
               <button
                 onClick={() => setShowForm(true)}
-                className="mt-4 px-4 py-2 bg-[#CDA435] text-white rounded-lg hover:bg-[#B8941F] transition-colors"
+                className="mt-4 px-4 py-2 bg-[#bca142] text-white rounded-lg hover:bg-[#B8941F] transition-colors"
               >
                 Add Your First Bank Details
               </button>
@@ -294,7 +294,7 @@ const BankDetailsManager = () => {
                         value={formData.bank_name}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#bca142]"
                         placeholder="e.g., State Bank of India"
                       />
                     </div>
@@ -309,7 +309,7 @@ const BankDetailsManager = () => {
                         value={formData.branch_name}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#bca142]"
                         placeholder="e.g., Mumbai Central Branch"
                       />
                     </div>
@@ -324,7 +324,7 @@ const BankDetailsManager = () => {
                         value={formData.account_holder_name}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#bca142]"
                         placeholder="e.g., Your Company Name Pvt Ltd"
                       />
                     </div>
@@ -339,7 +339,7 @@ const BankDetailsManager = () => {
                         value={formData.account_number}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#bca142]"
                         placeholder="e.g., 12345678901234"
                       />
                     </div>
@@ -354,7 +354,7 @@ const BankDetailsManager = () => {
                         value={formData.iban_number}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#bca142]"
                         placeholder="e.g., GB29 NWBK 6016 1331 9268 19"
                       />
                       <p className="text-xs text-gray-500 mt-1">Required for all bank accounts</p>
@@ -370,7 +370,7 @@ const BankDetailsManager = () => {
                         value={formData.swift_code}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#bca142]"
                         placeholder="e.g., SBININBB123"
                       />
                       <p className="text-xs text-gray-500 mt-1">Required for all transfers</p>
@@ -386,7 +386,7 @@ const BankDetailsManager = () => {
                       value={formData.payment_instructions}
                       onChange={handleInputChange}
                       rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#CDA435]"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#bca142]"
                       placeholder="Additional instructions for customers making payments..."
                     />
                   </div>
@@ -398,7 +398,7 @@ const BankDetailsManager = () => {
                       id="is_active"
                       checked={formData.is_active}
                       onChange={handleInputChange}
-                      className="h-4 w-4 text-[#CDA435] focus:ring-[#CDA435] border-gray-300 rounded"
+                      className="h-4 w-4 text-[#bca142] focus:ring-[#bca142] border-gray-300 rounded"
                     />
                     <label htmlFor="is_active" className="ml-2 block text-sm text-gray-700">
                       Set as active bank account
@@ -432,7 +432,7 @@ const BankDetailsManager = () => {
                     <button
                       type="submit"
                       disabled={!formData.iban_number || !formData.swift_code}
-                      className="px-4 py-2 bg-[#CDA435] text-white rounded-md hover:bg-[#B8941F] transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2 bg-[#bca142] text-white rounded-md hover:bg-[#B8941F] transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <FiSave />
                       {editingId ? 'Update' : 'Create'} Bank Details

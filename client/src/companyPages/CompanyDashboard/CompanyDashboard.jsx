@@ -37,15 +37,15 @@ const persistentLog = (message, type = 'info') => {
     }
 };
 
-// Website color palette matching the Admin Dashboard
+// Website color palette using only #bca142, white, and black
 const COLORS = {
-  primary: '#CDA435', // signature yellow
-  secondary: '#B8941F', // darker yellow
-  success: '#10b981', // emerald-500
-  warning: '#CDA435', // signature yellow
-  danger: '#ef4444', // red-500
-  info: '#06b6d4', // cyan-500
-  gradient: ['#CDA435', '#B8941F', '#06b6d4', '#10b981', '#ef4444', '#8b5cf6']
+  primary: '#bca142', // signature color
+  secondary: '#bca142', // same as primary
+  success: '#bca142', // use primary color
+  warning: '#bca142', // use primary color
+  danger: 'black', // use black for danger
+  info: '#bca142', // use primary color
+  gradient: ['#bca142', 'white', 'black'] // simplified palette
 };
 
 // Enhanced Metric Card Component matching Admin Dashboard design
@@ -101,34 +101,34 @@ const MetricCard = ({
   
   const colorClasses = {
     yellow: {
-      bg: 'bg-white border-l-4 border-[#CDA435]',
-      icon: 'bg-yellow-50 text-[#CDA435]',
-      trend: 'text-[#CDA435]'
+      bg: 'bg-white border-l-4 border-[#bca142]',
+      icon: 'bg-[#bca142]/10 text-[#bca142]',
+      trend: 'text-[#bca142]'
     },
     green: {
-      bg: 'bg-white border-l-4 border-green-500',
-      icon: 'bg-green-100 text-green-600',
-      trend: 'text-green-600'
+      bg: 'bg-white border-l-4 border-[#bca142]',
+      icon: 'bg-[#bca142]/10 text-[#bca142]',
+      trend: 'text-[#bca142]'
     },
     blue: {
-      bg: 'bg-white border-l-4 border-blue-500',
-      icon: 'bg-blue-100 text-blue-600',
-      trend: 'text-blue-600'
+      bg: 'bg-white border-l-4 border-[#bca142]',
+      icon: 'bg-[#bca142]/10 text-[#bca142]',
+      trend: 'text-[#bca142]'
     },
     orange: {
-      bg: 'bg-white border-l-4 border-orange-500',
-      icon: 'bg-orange-100 text-orange-600',
-      trend: 'text-orange-600'
+      bg: 'bg-white border-l-4 border-[#bca142]',
+      icon: 'bg-[#bca142]/10 text-[#bca142]',
+      trend: 'text-[#bca142]'
     },
     red: {
-      bg: 'bg-white border-l-4 border-red-500',
-      icon: 'bg-red-100 text-red-600',
-      trend: 'text-red-600'
+      bg: 'bg-white border-l-4 border-black',
+      icon: 'bg-black/10 text-black',
+      trend: 'text-black'
     },
     purple: {
-      bg: 'bg-white border-l-4 border-purple-500',
-      icon: 'bg-purple-100 text-purple-600',
-      trend: 'text-purple-600'
+      bg: 'bg-white border-l-4 border-[#bca142]',
+      icon: 'bg-[#bca142]/10 text-[#bca142]',
+      trend: 'text-[#bca142]'
     }
   };
 
@@ -205,15 +205,15 @@ const ReferralCard = ({ subscription, userProfile }) => {
         </div>
         
         <div 
-          className="flex items-center p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-xl cursor-pointer hover:from-yellow-100 hover:to-yellow-200 transition-all duration-200 border border-[#CDA435] hover:border-[#B8941F] group mb-6"
+          className="flex items-center p-4 bg-[#bca142]/10 rounded-xl cursor-pointer hover:bg-[#bca142]/20 transition-all duration-200 border border-[#bca142] hover:border-black group mb-6"
           onClick={copyReferralCode}
         >
-          <div className="p-2 bg-yellow-100 rounded-lg mr-4 group-hover:bg-yellow-200 transition-colors">
-            <Copy className="text-[#CDA435] h-5 w-5" />
+          <div className="p-2 bg-[#bca142] rounded-lg mr-4 group-hover:bg-black transition-colors">
+            <Copy className="text-white h-5 w-5" />
           </div>
           <div>
-            <span className="text-[#CDA435] font-semibold block">Your Referral Code</span>
-            <span className="text-[#B8941F] text-sm">{referralCode}</span>
+            <span className="text-[#bca142] font-semibold block">Your Referral Code</span>
+            <span className="text-black text-sm">{referralCode}</span>
           </div>
         </div>
         
@@ -225,36 +225,36 @@ const ReferralCard = ({ subscription, userProfile }) => {
          <div className="grid grid-cols-4 gap-3 justify-items-center">
             <a 
               href={userProfile?.facebook && userProfile.facebook !== '#' ? userProfile.facebook : "#"} 
-              className={`p-3 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 ${(!userProfile?.facebook || userProfile.facebook === '#') ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`p-3 rounded-xl border border-gray-200 hover:border-[#bca142] hover:bg-[#bca142]/10 transition-all duration-200 ${(!userProfile?.facebook || userProfile.facebook === '#') ? 'opacity-50 cursor-not-allowed' : ''}`}
               target={userProfile?.facebook && userProfile.facebook !== '#' ? "_blank" : "_self"}
               rel="noopener noreferrer"
             >
-              <Facebook className="h-5 w-5 text-blue-600" />
+              <Facebook className="h-5 w-5 text-[#bca142]" />
             </a>
             <a 
               href={userProfile?.twitter && userProfile.twitter !== '#' ? userProfile.twitter : "#"} 
-              className={`p-3 rounded-xl border border-gray-200 hover:border-sky-300 hover:bg-sky-50 transition-all duration-200 ${(!userProfile?.twitter || userProfile.twitter === '#') ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`p-3 rounded-xl border border-gray-200 hover:border-[#bca142] hover:bg-[#bca142]/10 transition-all duration-200 ${(!userProfile?.twitter || userProfile.twitter === '#') ? 'opacity-50 cursor-not-allowed' : ''}`}
               target={userProfile?.twitter && userProfile.twitter !== '#' ? "_blank" : "_self"}
               rel="noopener noreferrer"
             >
-              <Twitter className="h-5 w-5 text-sky-500" />
+              <Twitter className="h-5 w-5 text-[#bca142]" />
             </a>
             <a 
               href={userProfile?.linkedin && userProfile.linkedin !== '#' ? userProfile.linkedin : "#"} 
-              className={`p-3 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 ${(!userProfile?.linkedin || userProfile.linkedin === '#') ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`p-3 rounded-xl border border-gray-200 hover:border-[#bca142] hover:bg-[#bca142]/10 transition-all duration-200 ${(!userProfile?.linkedin || userProfile.linkedin === '#') ? 'opacity-50 cursor-not-allowed' : ''}`}
               target={userProfile?.linkedin && userProfile.linkedin !== '#' ? "_blank" : "_self"}
               rel="noopener noreferrer"
             >
-              <Linkedin className="h-5 w-5 text-blue-700" />
+              <Linkedin className="h-5 w-5 text-[#bca142]" />
             </a>
 
             <a 
               href={userProfile?.instagram && userProfile.instagram !== '#' ? userProfile.instagram : "#"} 
-              className={`p-3 rounded-xl border border-gray-200 hover:border-pink-300 hover:bg-pink-50 transition-all duration-200 ${(!userProfile?.instagram || userProfile.instagram === '#') ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`p-3 rounded-xl border border-gray-200 hover:border-[#bca142] hover:bg-[#bca142]/10 transition-all duration-200 ${(!userProfile?.instagram || userProfile.instagram === '#') ? 'opacity-50 cursor-not-allowed' : ''}`}
               target={userProfile?.instagram && userProfile.instagram !== '#' ? "_blank" : "_self"}
               rel="noopener noreferrer"
             >
-              <Instagram className="h-5 w-5 text-pink-500" />
+              <Instagram className="h-5 w-5 text-[#bca142]" />
             </a>
           </div>
         </div>
@@ -263,7 +263,7 @@ const ReferralCard = ({ subscription, userProfile }) => {
       <div className="mt-6">
         <a 
           href="/company/create-Ticket" 
-          className="w-full flex items-center justify-center bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-xl transition-colors shadow-md hover:shadow-lg"
+          className="w-full flex items-center justify-center bg-[#bca142] hover:bg-black text-white font-semibold py-3 px-4 rounded-xl transition-colors shadow-md hover:shadow-lg"
         >
           <Phone className="mr-2 h-4 w-4" />
           Contact Support
@@ -318,12 +318,12 @@ const NotificationTable = () => {
       <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
         <div className="relative max-w-4xl max-h-[90vh] bg-white rounded-2xl overflow-hidden shadow-2xl">
           {/* Modal Header */}
-          <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 p-4 text-white">
+          <div className="bg-[#bca142] p-4 text-white">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-bold truncate">{title || 'Notification Image'}</h3>
               <button 
                 onClick={onClose}
-                className="text-white hover:text-yellow-200 transition-colors p-2 rounded-full hover:bg-white hover:bg-opacity-20"
+                className="text-white hover:text-gray-200 transition-colors p-2 rounded-full hover:bg-black/20"
               >
                 <FaTimes size={20} />
               </button>
@@ -395,7 +395,7 @@ const NotificationTable = () => {
           <select 
             value={entries} 
             onChange={(e) => setEntries(Number(e.target.value))}
-            className="mx-2 border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-[#CDA435]"
+            className="mx-2 border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142]"
           >
             <option value="5">5</option>
             <option value="10">10</option>
@@ -410,7 +410,7 @@ const NotificationTable = () => {
             type="text" 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#CDA435] focus:border-[#CDA435] w-full md:w-64" 
+            className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142] w-full md:w-64" 
             placeholder="Search notifications..."
           />
         </div>
@@ -433,7 +433,7 @@ const NotificationTable = () => {
               <tr>
                 <td colSpan="5" className="p-8 text-center">
                   <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-4 border-yellow-200 border-t-[#CDA435]"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-4 border-[#bca142]/20 border-t-[#bca142]"></div>
                     <span className="ml-3 text-gray-500">Loading notifications...</span>
                   </div>
                 </td>
@@ -509,7 +509,7 @@ const NotificationTable = () => {
           >
             Previous
           </button>
-          <button className="px-3 py-2 border border-[#CDA435] bg-[#CDA435] text-white rounded-lg">
+          <button className="px-3 py-2 border border-[#bca142] bg-[#bca142] text-white rounded-lg">
             1
           </button>
           <button className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-100">
@@ -588,14 +588,14 @@ const Dashboard = () => {
           <div className="flex items-start">
             <div className="flex-shrink-0 pt-0.5">
               {isAccepted ? (
-                <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-                  <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="h-10 w-10 rounded-full bg-[#bca142]/20 flex items-center justify-center">
+                  <svg className="h-6 w-6 text-[#bca142]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
               ) : (
-                <div className="h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center">
-                  <svg className="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="h-10 w-10 rounded-full bg-black/20 flex items-center justify-center">
+                  <svg className="h-6 w-6 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
                 </div>
@@ -614,7 +614,7 @@ const Dashboard = () => {
                     window.location.href = '/company/freight-quotes';
                     toast.dismiss(t.id);
                   }}
-                  className="mt-2 text-sm font-medium text-green-600 hover:text-green-500"
+                  className="mt-2 text-sm font-medium text-[#bca142] hover:text-black"
                 >
                   View Quote Details →
                 </button>
@@ -775,8 +775,8 @@ const Dashboard = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="relative">
-            <div className="animate-spin rounded-full h-20 w-20 border-4 border-yellow-200 border-t-[#CDA435] mx-auto mb-4"></div>
-            <div className="absolute inset-0 rounded-full h-20 w-20 border-4 border-yellow-100 border-t-[#B8941F] animate-spin mx-auto" style={{ animationDirection: 'reverse', animationDuration: '3s' }}></div>
+            <div className="animate-spin rounded-full h-20 w-20 border-4 border-[#bca142]/20 border-t-[#bca142] mx-auto mb-4"></div>
+            <div className="absolute inset-0 rounded-full h-20 w-20 border-4 border-[#bca142]/10 border-t-black animate-spin mx-auto" style={{ animationDirection: 'reverse', animationDuration: '3s' }}></div>
           </div>
           <p className="text-2xl font-bold text-gray-800 mb-2">Loading Dashboard...</p>
           <p className="text-gray-600">Preparing your analytics</p>
@@ -801,7 +801,7 @@ const Dashboard = () => {
                 fetchDashboardData();
                 fetchTransactionAmount();
               }}
-              className="flex items-center space-x-2 bg-[#CDA435] hover:bg-[#B8941F] text-white px-4 py-2 rounded-lg transition-colors"
+              className="flex items-center space-x-2 bg-[#bca142] hover:bg-black text-white px-4 py-2 rounded-lg transition-colors"
               title="Refresh Data"
             >
               <Activity className="h-4 w-4" />
@@ -814,7 +814,7 @@ const Dashboard = () => {
               <Clock className="h-4 w-4" />
               <span>Last updated: {new Date().toLocaleTimeString()}</span>
             </div>
-            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+            <div className="w-2 h-2 rounded-full bg-[#bca142] animate-pulse"></div>
             <span>Live Data</span>
           </div>
         </div>

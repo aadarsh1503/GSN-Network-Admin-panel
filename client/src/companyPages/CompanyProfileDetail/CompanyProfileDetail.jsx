@@ -346,7 +346,7 @@ const CompanyProfileDetail = () => {
     return (
       <div className="bg-gray-50 p-4 sm:p-6 lg:p-8 min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#bca142] mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading company profile...</p>
         </div>
       </div>
@@ -377,12 +377,12 @@ const CompanyProfileDetail = () => {
                 <h1 className="text-3xl font-bold text-gray-800">{companyData.name}</h1>
                 <p className="text-gray-500 text-base mt-1">{companyData.address}</p>
                 <div className="flex flex-wrap gap-x-6 gap-y-2 text-base text-gray-600 items-center mt-4">
-                  <a href={companyData.website} target="_blank" rel="noopener noreferrer" className="flex items-center hover:text-yellow-600 transition-colors duration-200">
-                    <FiGlobe className="mr-2 text-yellow-600" /> 
+                  <a href={companyData.website} target="_blank" rel="noopener noreferrer" className="flex items-center hover:text-[#bca142] transition-colors duration-200">
+                    <FiGlobe className="mr-2 text-[#bca142]" /> 
                     {companyData.website}
                   </a>
                   <p className="flex items-center">
-                    <FiMapPin className="mr-2 text-yellow-600" /> 
+                    <FiMapPin className="mr-2 text-[#bca142]" /> 
                     {companyData.location}
                   </p>
                   {companyData.coordinates.latitude && companyData.coordinates.longitude && (
@@ -399,7 +399,7 @@ const CompanyProfileDetail = () => {
             </div>
             {/* Right Part: Member Tag and Socials */}
             <div className="flex flex-col items-start md:items-end gap-4">
-              <div className="bg-[#C9A959] text-white text-sm font-bold py-2 px-6 rounded-md shadow-sm">
+              <div className="bg-[#bca142] text-white text-sm font-bold py-2 px-6 rounded-md shadow-sm">
                 {companyData.subscriptionPlan}
               </div>
               <div className="flex space-x-2">
@@ -453,7 +453,7 @@ const CompanyProfileDetail = () => {
             {companyData.coordinates.latitude && companyData.coordinates.longitude && (
               <div className="bg-white p-8 rounded-lg shadow-md">
                 <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                  <FiMapPin className="mr-3 text-blue-600" />
+                  <FiMapPin className="mr-3 text-[#bca142]" />
                   Our Location
                 </h3>
                 
@@ -462,8 +462,8 @@ const CompanyProfileDetail = () => {
                   <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center space-x-4">
                       <div className="text-sm">
-                        <span className="font-medium text-blue-800">Coordinates:</span>
-                        <span className="ml-2 font-mono text-blue-700">
+                        <span className="font-medium text-black">Coordinates:</span>
+                        <span className="ml-2 font-mono text-gray-700">
                           {parseFloat(companyData.coordinates.latitude).toFixed(6)}, {parseFloat(companyData.coordinates.longitude).toFixed(6)}
                         </span>
                       </div>
@@ -515,7 +515,7 @@ const CompanyProfileDetail = () => {
                     href={`https://www.google.com/maps/dir/?api=1&destination=${companyData.coordinates.latitude},${companyData.coordinates.longitude}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                    className="inline-flex items-center px-4 py-2 bg-[#bca142] text-white rounded-lg hover:bg-black transition-colors duration-200"
                   >
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m-6 3l6-3" />
@@ -526,7 +526,7 @@ const CompanyProfileDetail = () => {
                     href={`https://www.google.com/maps/@${companyData.coordinates.latitude},${companyData.coordinates.longitude},18z`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
+                    className="inline-flex items-center px-4 py-2 bg-black text-white rounded-lg hover:bg-[#bca142] transition-colors duration-200"
                   >
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -555,7 +555,7 @@ const CompanyProfileDetail = () => {
             {companyData.mapLocation && !companyData.coordinates.latitude && !companyData.coordinates.longitude && (
               <div className="bg-white p-8 rounded-lg shadow-md">
                 <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                  <FiMapPin className="mr-3 text-yellow-600" />
+                  <FiMapPin className="mr-3 text-[#bca142]" />
                   Our Location
                 </h3>
                 <div className="w-full h-96 rounded-lg overflow-hidden border border-gray-200">
@@ -588,10 +588,10 @@ const CompanyProfileDetail = () => {
               <h3 className="text-2xl font-bold text-gray-800">{companyData.contactPerson.name}</h3>
               <p className="text-gray-500 text-base mt-1">{companyData.contactPerson.role}</p>
               <div className="flex items-center justify-center text-gray-500 my-4 text-base">
-                <FiPhone className="mr-2 text-yellow-600" />
+                <FiPhone className="mr-2 text-[#bca142]" />
                 <span>{companyData.contactPerson.phone}</span>
               </div>
-              <button className="w-full bg-[#C9A959] text-white font-bold py-3 rounded-lg shadow-md hover:bg-yellow-700 transition-colors duration-200 flex items-center justify-center text-lg transform hover:-translate-y-0.5">
+              <button className="w-full bg-[#bca142] text-white font-bold py-3 rounded-lg shadow-md hover:bg-black transition-colors duration-200 flex items-center justify-center text-lg transform hover:-translate-y-0.5">
                 <FiSend className="mr-2" />
                 Contact Now
               </button>

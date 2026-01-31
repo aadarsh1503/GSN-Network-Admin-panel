@@ -230,11 +230,11 @@ const AdminMessages = () => {
   const getUserTypeIcon = (user) => {
     switch (user.role) {
       case 'company':
-        return <FiBriefcase className="text-blue-500" size={16} />;
+        return <FiBriefcase className="text-[#bca142]" size={16} />;
       case 'admin':
-        return <FaCrown className="text-yellow-500" size={16} />;
+        return <FaCrown className="text-[#bca142]" size={16} />;
       default:
-        return <FiUser className="text-gray-500" size={16} />;
+        return <FiUser className="text-black" size={16} />;
     }
   };
 
@@ -283,22 +283,21 @@ const AdminMessages = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
+    <div className="min-h-screen bg-gray-50">
       <div className="p-2">
         <div className="max-w-7xl mx-auto">
-          <div className="bg-white/70 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 overflow-hidden">
+          <div className="bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden">
             <div className="flex h-[calc(100vh-80px)]">
-              <aside className="w-80 flex-shrink-0 border-r border-gray-200/50 flex flex-col bg-gradient-to-b from-white/80 to-gray-50/50 backdrop-blur-sm">
-                <header className="flex items-center justify-between p-3 border-b border-gray-200/50 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#CDA435]/90 to-[#D9B95B]/90 backdrop-blur-sm"></div>
-                  <div className="flex items-center gap-2 relative z-10">
-                    <div className="w-6 h-6 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
+              <aside className="w-80 flex-shrink-0 border-r border-gray-200 flex flex-col bg-white">
+                <header className="flex items-center justify-between p-2 border-b border-gray-200 bg-[#bca142]">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-white/20 rounded-lg flex items-center justify-center">
                       <FiMessageSquare className="text-white" size={14} />
                     </div>
                     <div>
                       <h2 className="text-base font-bold text-white">Messages</h2>
                       {unreadCount > 0 && (
-                        <span className="bg-white/90 text-[#CDA435] text-xs px-1.5 py-0.5 rounded-full font-bold shadow-sm">
+                        <span className="bg-white text-[#bca142] text-xs px-1.5 py-0.5 rounded-full font-bold shadow-sm">
                           {unreadCount} unread
                         </span>
                       )}
@@ -310,14 +309,14 @@ const AdminMessages = () => {
                       fetchConversations();
                       fetchUnreadCount();
                     }}
-                    className="text-white/90 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-all duration-200 backdrop-blur-sm relative z-10"
+                    className="text-white hover:text-gray-200 p-1.5 rounded-lg hover:bg-black/10 transition-all duration-200"
                     title="Refresh"
                   >
-                    <FiRefreshCw size={18} />
+                    <FiRefreshCw size={16} />
                   </button>
                 </header>
 
-                <div className="border-b border-gray-200/50 bg-white/50 backdrop-blur-sm">
+                <div className="border-b border-gray-200 bg-white">
                   <nav className="flex">
                     {[
                       { key: 'all', label: 'All Users', icon: FiUsers },
@@ -326,16 +325,16 @@ const AdminMessages = () => {
                       <button
                         key={tab.key}
                         onClick={() => setActiveTab(tab.key)}
-                        className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 text-sm font-medium border-b-2 transition-all duration-300 ${
+                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 text-sm font-medium border-b-2 transition-all duration-300 ${
                           activeTab === tab.key
-                            ? 'border-[#CDA435] text-[#CDA435] bg-gradient-to-t from-[#CDA435]/5 to-transparent shadow-sm'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-white/50'
+                            ? 'border-[#bca142] text-[#bca142] bg-[#bca142]/5'
+                            : 'border-transparent text-gray-500 hover:text-black hover:border-gray-300 hover:bg-gray-50'
                         }`}
                       >
                         <tab.icon size={14} />
                         {tab.label}
                         {tab.key === 'conversations' && conversations.length > 0 && (
-                          <span className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white text-xs px-1.5 py-0.5 rounded-full font-medium shadow-sm">
+                          <span className="bg-[#bca142] text-white text-xs px-1.5 py-0.5 rounded-full font-medium shadow-sm">
                             {conversations.length}
                           </span>
                         )}
@@ -344,15 +343,15 @@ const AdminMessages = () => {
                   </nav>
                 </div>
 
-                <div className="p-3 border-b border-gray-200/50 bg-gradient-to-r from-white/80 to-gray-50/50 backdrop-blur-sm">
-                  <div className="relative mb-2">
+                <div className="p-2 border-b border-gray-200 bg-white">
+                  <div className="relative mb-1.5">
                     <FiSearch className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400" size={14} />
                     <input 
                       type="text" 
                       placeholder={activeTab === 'all' ? "Search users..." : "Search conversations..."} 
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full bg-white/80 backdrop-blur-sm rounded-lg py-2 pl-8 pr-3 border border-gray-200/50 focus:outline-none focus:ring-2 focus:ring-[#CDA435]/50 focus:border-[#CDA435]/50 shadow-sm transition-all duration-200 placeholder-gray-400 text-sm"
+                      className="w-full bg-white rounded-lg py-1.5 pl-8 pr-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142] shadow-sm transition-all duration-200 placeholder-gray-400 text-sm"
                     />
                   </div>
                   
@@ -361,7 +360,7 @@ const AdminMessages = () => {
                       <select
                         value={userFilter}
                         onChange={(e) => setUserFilter(e.target.value)}
-                        className="flex-1 bg-white/80 backdrop-blur-sm rounded-lg py-2 px-2.5 text-sm border border-gray-200/50 focus:outline-none focus:ring-2 focus:ring-[#CDA435]/50 focus:border-[#CDA435]/50 shadow-sm transition-all duration-200"
+                        className="flex-1 bg-white rounded-lg py-1.5 px-2.5 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142] shadow-sm transition-all duration-200"
                       >
                         <option value="all">All Users ({allUsers.length})</option>
                         <option value="active">Active Users</option>
@@ -376,75 +375,72 @@ const AdminMessages = () => {
 
                 <div className="flex-1 overflow-y-auto">
                   {activeTab === 'all' ? (
-                    <div className="p-3">
-                      <div className="px-3 py-2 mb-3 bg-gradient-to-r from-[#CDA435]/10 via-[#D9B95B]/10 to-[#CDA435]/10 rounded-lg border border-[#CDA435]/20 backdrop-blur-sm">
-                        <p className="text-xs text-gray-700 font-medium">
-                          Showing <span className="font-bold text-[#CDA435]">{filteredUsers.length}</span> users
-                          {userFilter !== 'all' && <span className="text-[#D9B95B]"> ({userFilter})</span>}
+                    <div className="p-2">
+                      <div className="px-2 py-1.5 mb-2 bg-[#bca142]/10 rounded-lg border border-[#bca142]/20">
+                        <p className="text-xs text-black font-medium">
+                          Showing <span className="font-bold text-[#bca142]">{filteredUsers.length}</span> users
+                          {userFilter !== 'all' && <span className="text-black"> ({userFilter})</span>}
                           {searchTerm && <span className="text-gray-600"> matching "{searchTerm}"</span>}
                         </p>
                       </div>
                       
                       {loading ? (
                         <div className="text-center py-8">
-                          <div className="relative">
-                            <div className="animate-spin rounded-full h-8 w-8 border-4 border-[#CDA435]/20 border-t-[#CDA435] mx-auto mb-3"></div>
-                            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#CDA435]/10 to-[#D9B95B]/10 blur-xl"></div>
-                          </div>
+                          <div className="animate-spin rounded-full h-8 w-8 border-4 border-[#bca142]/20 border-t-[#bca142] mx-auto mb-3"></div>
                           <p className="text-gray-500 font-medium text-sm">Loading users...</p>
                         </div>
                       ) : filteredUsers.length === 0 ? (
                         <div className="text-center py-8 text-gray-500">
-                          <div className="w-12 h-12 bg-gradient-to-r from-gray-200 to-gray-300 rounded-xl flex items-center justify-center mx-auto mb-3">
+                          <div className="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center mx-auto mb-3">
                             <FiUsers size={24} className="text-gray-400" />
                           </div>
                           <p className="text-base font-medium text-gray-600 mb-1">No users found</p>
                           {searchTerm && <p className="text-xs text-gray-400">Try adjusting your search criteria</p>}
                         </div>
                       ) : (
-                        <div className="space-y-2">
+                        <div className="space-y-1">
                           {filteredUsers.map((user) => (
                             <div
                               key={user.id}
                               onClick={() => startConversationWithUser(user.id, user.name, user.logo, user.role)}
-                              className="p-3 rounded-lg cursor-pointer bg-white/60 backdrop-blur-sm border border-gray-200/50 hover:bg-gradient-to-r hover:from-[#CDA435]/5 hover:to-[#D9B95B]/5 hover:border-[#CDA435]/30 transition-all duration-300 hover:shadow-lg hover:shadow-[#CDA435]/10 group"
+                              className="p-2 rounded-lg cursor-pointer bg-white border border-gray-200 hover:bg-[#bca142]/5 hover:border-[#bca142]/30 transition-all duration-300 hover:shadow-lg group"
                             >
-                              <div className="flex items-start gap-3">
+                              <div className="flex items-start gap-2">
                                 <UserAvatar 
                                   user={user}
-                                  size="md"
+                                  size="sm"
                                   showRoleIndicator={true}
                                 />
                                 <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <h3 className="font-semibold text-gray-900 truncate group-hover:text-[#CDA435] transition-colors duration-300 text-sm">
+                                  <div className="flex items-center gap-1.5 mb-0.5">
+                                    <h3 className="font-semibold text-black truncate group-hover:text-[#bca142] transition-colors duration-300 text-sm">
                                       {user.name}
                                     </h3>
                                     <RoleBadge 
                                       role={user.role}
                                       user={user}
-                                      size="sm"
+                                      size="xs"
                                       showIcon={true}
                                       showPremium={true}
                                     />
                                   </div>
-                                  <p className="text-xs text-gray-500 truncate mb-2">{user.email}</p>
+                                  <p className="text-xs text-gray-500 truncate mb-1">{user.email}</p>
                                   
                                   <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-1.5">
                                       {getUserStatusBadge(user)}
                                       {user.subscription_status === 'active' && user.plan_name && (
-                                        <span className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white text-xs px-2 py-0.5 rounded-full font-medium shadow-sm">
+                                        <span className="bg-[#bca142] text-white text-xs px-1.5 py-0.5 rounded-full font-medium shadow-sm">
                                           {user.plan_name}
                                         </span>
                                       )}
                                     </div>
-                                    <button className="text-[#CDA435] hover:text-[#D9B95B] p-1.5 rounded-lg hover:bg-[#CDA435]/10 transition-all duration-300 group-hover:shadow-sm">
-                                      <FiMessageSquare size={16} />
+                                    <button className="text-[#bca142] hover:text-black p-1 rounded-lg hover:bg-[#bca142]/10 transition-all duration-300 group-hover:shadow-sm">
+                                      <FiMessageSquare size={14} />
                                     </button>
                                   </div>
                                   
-                                  <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
+                                  <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
                                     <FiClock size={10} />
                                     Joined {new Date(user.created_at).toLocaleDateString()}
                                   </p>
@@ -456,25 +452,22 @@ const AdminMessages = () => {
                       )}
                     </div>
                   ) : (
-                    <div className="p-3">
+                    <div className="p-2">
                       {loading ? (
                         <div className="text-center py-8">
-                          <div className="relative">
-                            <div className="animate-spin rounded-full h-8 w-8 border-4 border-[#CDA435]/20 border-t-[#CDA435] mx-auto mb-3"></div>
-                            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#CDA435]/10 to-[#D9B95B]/10 blur-xl"></div>
-                          </div>
+                          <div className="animate-spin rounded-full h-8 w-8 border-4 border-[#bca142]/20 border-t-[#bca142] mx-auto mb-3"></div>
                           <p className="text-gray-500 font-medium text-sm">Loading conversations...</p>
                         </div>
                       ) : filteredConversations.length === 0 ? (
                         <div className="text-center py-8 text-gray-500">
-                          <div className="w-12 h-12 bg-gradient-to-r from-gray-200 to-gray-300 rounded-xl flex items-center justify-center mx-auto mb-3">
+                          <div className="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center mx-auto mb-3">
                             <FiMessageSquare size={24} className="text-gray-400" />
                           </div>
                           <p className="text-base font-medium text-gray-600 mb-1">No conversations found</p>
                           {searchTerm && <p className="text-xs text-gray-400">Try adjusting your search criteria</p>}
                         </div>
                       ) : (
-                        <div className="space-y-1.5">
+                        <div className="space-y-1">
                           {filteredConversations.map((conv) => {
                             const isSelected = selectedConversation?.userId === conv.other_user_id;
                             
@@ -482,13 +475,13 @@ const AdminMessages = () => {
                               <div
                                 key={conv.other_user_id}
                                 onClick={() => handleSelectConversation(conv)}
-                                className={`p-3 rounded-lg cursor-pointer transition-all duration-300 border ${
+                                className={`p-2 rounded-lg cursor-pointer transition-all duration-300 border ${
                                   isSelected 
-                                    ? 'bg-gradient-to-r from-[#CDA435]/10 to-[#D9B95B]/10 border-[#CDA435]/40 shadow-lg shadow-[#CDA435]/10' 
-                                    : 'bg-white/60 backdrop-blur-sm border-gray-200/50 hover:bg-gradient-to-r hover:from-gray-50/80 hover:to-white/80 hover:border-gray-300/50'
-                                } ${conv.unread_count > 0 ? 'ring-2 ring-blue-200/50 bg-blue-50/30' : ''}`}
+                                    ? 'bg-[#bca142]/10 border-[#bca142]/40 shadow-lg' 
+                                    : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                                } ${conv.unread_count > 0 ? 'ring-2 ring-[#bca142]/20 bg-[#bca142]/5' : ''}`}
                               >
-                                <div className="flex items-start gap-3">
+                                <div className="flex items-start gap-2">
                                   <UserAvatar 
                                     user={{
                                       name: conv.other_user_name,
@@ -499,11 +492,11 @@ const AdminMessages = () => {
                                     showRoleIndicator={true}
                                   />
                                   <div className="flex-1 min-w-0">
-                                    <div className="flex justify-between items-start mb-1">
-                                      <div className="flex items-center gap-1.5">
+                                    <div className="flex justify-between items-start mb-0.5">
+                                      <div className="flex items-center gap-1">
                                         <p className={`font-semibold truncate transition-colors duration-300 text-sm ${
-                                          conv.unread_count > 0 ? 'text-gray-900' : 'text-gray-700'
-                                        } ${isSelected ? 'text-[#CDA435]' : ''}`}>
+                                          conv.unread_count > 0 ? 'text-black' : 'text-gray-700'
+                                        } ${isSelected ? 'text-[#bca142]' : ''}`}>
                                           {conv.other_user_name}
                                         </p>
                                         <RoleBadge 
@@ -512,22 +505,22 @@ const AdminMessages = () => {
                                           showIcon={true}
                                         />
                                       </div>
-                                      <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                                      <div className="flex items-center gap-1.5 flex-shrink-0 ml-1">
                                         <span className="text-xs text-gray-400 font-medium">
                                           {formatDate(conv.last_message_time)}
                                         </span>
                                         {conv.unread_count > 0 && (
-                                          <span className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center font-bold shadow-sm">
+                                          <span className="bg-[#bca142] text-white text-xs px-1.5 py-0.5 rounded-full min-w-[18px] text-center font-bold shadow-sm">
                                             {conv.unread_count}
                                           </span>
                                         )}
                                       </div>
                                     </div>
-                                    <p className="text-xs text-gray-500 truncate mb-1">{conv.last_message}</p>
+                                    <p className="text-xs text-gray-500 truncate mb-0.5">{conv.last_message}</p>
                                     {conv.has_system_messages && (
-                                      <div className="flex items-center gap-1.5 mt-1">
-                                        <div className="w-1.5 h-1.5 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-full shadow-sm"></div>
-                                        <span className="text-xs text-[#CDA435] font-medium">System Updates</span>
+                                      <div className="flex items-center gap-1 mt-0.5">
+                                        <div className="w-1 h-1 bg-[#bca142] rounded-full shadow-sm"></div>
+                                        <span className="text-xs text-[#bca142] font-medium">System Updates</span>
                                       </div>
                                     )}
                                   </div>
@@ -542,14 +535,13 @@ const AdminMessages = () => {
                 </div>
               </aside>
 
-              <main className="flex-1 flex flex-col bg-white/50 backdrop-blur-sm">
+              <main className="flex-1 flex flex-col bg-white">
                 {selectedConversation ? (
                   <>
-                    <header className="flex items-center p-3 border-b border-gray-200/50 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] relative overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#CDA435]/95 to-[#D9B95B]/95 backdrop-blur-sm"></div>
+                    <header className="flex items-center p-3 border-b border-gray-200 bg-[#bca142]">
                       <button 
                         onClick={() => setSelectedConversation(null)}
-                        className="md:hidden mr-2 text-white/90 hover:text-white transition-colors duration-200 relative z-10"
+                        className="md:hidden mr-2 text-white hover:text-gray-200 transition-colors duration-200"
                       >
                         <FiChevronLeft size={20} />
                       </button>
@@ -561,9 +553,9 @@ const AdminMessages = () => {
                         }}
                         size="sm"
                         showRoleIndicator={true}
-                        className="mr-3 relative z-10"
+                        className="mr-3"
                       />
-                      <div className="relative z-10 flex-1">
+                      <div className="flex-1">
                         <div className="flex items-center gap-1.5 mb-0.5">
                           <h2 className="font-bold text-white text-base">{selectedConversation.userName}</h2>
                           <RoleBadge 
@@ -582,39 +574,17 @@ const AdminMessages = () => {
                       </div>
                     </header>
 
-                    <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-gray-50/50 to-white/80 backdrop-blur-sm">
+                    <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
                       {conversationLoading ? (
                         // Futuristic Loader
                         <div className="flex items-center justify-center h-full">
                           <div className="text-center">
-                            <div className="relative mb-6">
-                              {/* Outer rotating ring */}
-                              <div className="w-16 h-16 border-4 border-[#CDA435]/20 rounded-full animate-spin mx-auto relative">
-                                <div className="absolute top-0 left-0 w-full h-full border-4 border-transparent border-t-[#CDA435] rounded-full animate-spin"></div>
-                                <div className="absolute top-2 left-2 w-12 h-12 border-4 border-transparent border-t-[#D9B95B] rounded-full animate-spin" style={{animationDirection: 'reverse', animationDuration: '1.5s'}}></div>
-                              </div>
-                              {/* Inner pulsing core */}
-                              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                                <div className="w-6 h-6 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-full animate-pulse shadow-lg"></div>
-                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full animate-ping"></div>
-                              </div>
-                              {/* Floating particles */}
-                              <div className="absolute -top-1 -left-1 w-1.5 h-1.5 bg-[#CDA435] rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
-                              <div className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-[#D9B95B] rounded-full animate-bounce" style={{animationDelay: '0.5s'}}></div>
-                              <div className="absolute -bottom-1 -left-1 w-1.5 h-1.5 bg-[#CDA435] rounded-full animate-bounce" style={{animationDelay: '1s'}}></div>
-                              <div className="absolute -bottom-1 -right-1 w-1.5 h-1.5 bg-[#D9B95B] rounded-full animate-bounce" style={{animationDelay: '1.5s'}}></div>
-                            </div>
+                            <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#bca142]/20 border-t-[#bca142] mx-auto mb-4"></div>
                             <div className="space-y-2">
-                              <h3 className="text-lg font-bold bg-gradient-to-r from-[#CDA435] to-[#D9B95B] bg-clip-text text-transparent">
+                              <h3 className="text-lg font-bold text-[#bca142]">
                                 Loading Conversation
                               </h3>
                               <p className="text-gray-600 font-medium text-sm">Fetching messages...</p>
-                              {/* Loading dots */}
-                              <div className="flex justify-center space-x-1.5">
-                                <div className="w-1.5 h-1.5 bg-[#CDA435] rounded-full animate-pulse" style={{animationDelay: '0s'}}></div>
-                                <div className="w-1.5 h-1.5 bg-[#D9B95B] rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                                <div className="w-1.5 h-1.5 bg-[#CDA435] rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
-                              </div>
                             </div>
                           </div>
                         </div>
@@ -627,36 +597,36 @@ const AdminMessages = () => {
                         if (isSystem) {
                           return (
                             <div key={msg.id} className="flex justify-center">
-                              <div className={`max-w-[80%] rounded-lg p-3 shadow-sm border-l-4 backdrop-blur-sm ${
-                                systemType === 'ticket' ? 'bg-yellow-50/80 border-yellow-500' :
-                                systemType === 'response' ? 'bg-green-50/80 border-green-500' :
-                                systemType === 'status' ? 'bg-blue-50/80 border-blue-500' :
-                                systemType === 'dispute' ? 'bg-red-50/80 border-red-500' :
-                                'bg-gradient-to-r from-[#CDA435]/10 to-[#D9B95B]/10 border-[#CDA435]'
+                              <div className={`max-w-[80%] rounded-lg p-3 shadow-sm border-l-4 ${
+                                systemType === 'ticket' ? 'bg-[#bca142]/10 border-[#bca142]' :
+                                systemType === 'response' ? 'bg-[#bca142]/10 border-[#bca142]' :
+                                systemType === 'status' ? 'bg-[#bca142]/10 border-[#bca142]' :
+                                systemType === 'dispute' ? 'bg-black/10 border-black' :
+                                'bg-[#bca142]/10 border-[#bca142]'
                               }`}>
                                 <div className="flex items-center gap-1.5 mb-1.5">
-                                  {systemType === 'ticket' && <FiMessageSquare className="text-yellow-600" size={14} />}
-                                  {systemType === 'response' && <FaCheck className="text-green-600" size={14} />}
-                                  {systemType === 'status' && <FaClock className="text-blue-600" size={14} />}
-                                  {systemType === 'dispute' && <FiShield className="text-red-600" size={14} />}
+                                  {systemType === 'ticket' && <FiMessageSquare className="text-[#bca142]" size={14} />}
+                                  {systemType === 'response' && <FaCheck className="text-[#bca142]" size={14} />}
+                                  {systemType === 'status' && <FaClock className="text-[#bca142]" size={14} />}
+                                  {systemType === 'dispute' && <FiShield className="text-black" size={14} />}
                                   <p className={`text-xs font-semibold ${
-                                    systemType === 'ticket' ? 'text-yellow-700' :
-                                    systemType === 'response' ? 'text-green-700' :
-                                    systemType === 'status' ? 'text-blue-700' :
-                                    systemType === 'dispute' ? 'text-red-700' :
-                                    'text-[#CDA435]'
+                                    systemType === 'ticket' ? 'text-[#bca142]' :
+                                    systemType === 'response' ? 'text-[#bca142]' :
+                                    systemType === 'status' ? 'text-[#bca142]' :
+                                    systemType === 'dispute' ? 'text-black' :
+                                    'text-[#bca142]'
                                   }`}>
                                     {msg.subject || `Ticket ${msg.ticket_number || 'Response'}`}
                                   </p>
                                   {msg.ticket_number && (
-                                    <span className="bg-yellow-100 text-yellow-800 text-xs px-1.5 py-0.5 rounded-full font-medium">
+                                    <span className="bg-[#bca142] text-white text-xs px-1.5 py-0.5 rounded-full font-medium">
                                       {msg.ticket_number}
                                     </span>
                                   )}
                                 </div>
                                 {msg.ticket_subject && (
-                                  <div className="mb-1.5 p-2 bg-white/50 rounded-lg border border-yellow-200">
-                                    <p className="text-xs text-yellow-700 font-medium">Ticket Subject:</p>
+                                  <div className="mb-1.5 p-2 bg-white/50 rounded-lg border border-[#bca142]/20">
+                                    <p className="text-xs text-[#bca142] font-medium">Ticket Subject:</p>
                                     <p className="text-sm text-gray-700">{msg.ticket_subject}</p>
                                   </div>
                                 )}
@@ -673,8 +643,8 @@ const AdminMessages = () => {
                           <div key={msg.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
                             <div className={`max-w-[70%] ${
                               isOwn 
-                                ? 'bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white shadow-lg' 
-                                : 'bg-white/80 backdrop-blur-sm border border-gray-200/50 shadow-sm'
+                                ? 'bg-[#bca142] text-white shadow-lg' 
+                                : 'bg-white border border-gray-200 shadow-sm'
                             } rounded-xl p-3 transition-all duration-300 hover:shadow-lg`}>
                               {!isOwn && (
                                 <div className="flex items-center gap-1.5 mb-1.5">
@@ -724,19 +694,19 @@ const AdminMessages = () => {
                       <div ref={messagesEndRef} />
                     </div>
 
-                    <form onSubmit={handleSendMessage} className="p-3 border-t border-gray-200/50 bg-white/80 backdrop-blur-sm shadow-lg">
+                    <form onSubmit={handleSendMessage} className="p-3 border-t border-gray-200 bg-white shadow-lg">
                       <div className="flex gap-2">
                         <input
                           type="text"
                           placeholder="Type a message as admin..."
                           value={newMessage}
                           onChange={(e) => setNewMessage(e.target.value)}
-                          className="flex-1 p-3 border border-gray-300/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#CDA435]/50 focus:border-[#CDA435]/50 transition-all duration-300 shadow-sm bg-white/80 backdrop-blur-sm placeholder-gray-400 text-sm"
+                          className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142] transition-all duration-300 shadow-sm bg-white placeholder-gray-400 text-sm"
                         />
                         <button
                           type="submit"
                           disabled={sendingMessage || !newMessage.trim()}
-                          className="bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white px-4 py-3 rounded-lg hover:from-[#D9B95B] hover:to-[#CDA435] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-xl disabled:hover:shadow-lg font-medium"
+                          className="bg-[#bca142] text-white px-4 py-3 rounded-lg hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-xl disabled:hover:shadow-lg font-medium"
                         >
                           {sendingMessage ? (
                             <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white"></div>
@@ -748,13 +718,12 @@ const AdminMessages = () => {
                     </form>
                   </>
                 ) : (
-                  <div className="flex-1 flex items-center justify-center bg-gradient-to-b from-gray-50/50 to-white/80 backdrop-blur-sm">
+                  <div className="flex-1 flex items-center justify-center bg-gray-50">
                     <div className="text-center text-gray-500 max-w-md">
-                      <div className="w-20 h-20 bg-gradient-to-r from-[#CDA435] to-[#D9B95B] rounded-xl flex items-center justify-center mx-auto mb-6 shadow-xl relative overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-r from-[#CDA435]/90 to-[#D9B95B]/90 backdrop-blur-sm"></div>
-                        <FiShield size={40} className="text-white relative z-10" />
+                      <div className="w-20 h-20 bg-[#bca142] rounded-xl flex items-center justify-center mx-auto mb-6 shadow-xl">
+                        <FiShield size={40} className="text-white" />
                       </div>
-                      <h2 className="text-2xl font-bold mb-3 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                      <h2 className="text-2xl font-bold mb-3 text-black">
                         Admin Message Center
                       </h2>
                       <p className="text-gray-500 mb-6 leading-relaxed text-sm">
@@ -766,8 +735,8 @@ const AdminMessages = () => {
                           onClick={() => setActiveTab('all')}
                           className={`px-6 py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl text-sm ${
                             activeTab === 'all' 
-                              ? 'bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white shadow-[#CDA435]/20' 
-                              : 'bg-white/80 backdrop-blur-sm text-gray-700 hover:bg-white border border-gray-200/50'
+                              ? 'bg-[#bca142] text-white' 
+                              : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
                           }`}
                         >
                           <FiUsers className="inline mr-1.5" size={16} />
@@ -777,8 +746,8 @@ const AdminMessages = () => {
                           onClick={() => setActiveTab('conversations')}
                           className={`px-6 py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl text-sm ${
                             activeTab === 'conversations' 
-                              ? 'bg-gradient-to-r from-[#CDA435] to-[#D9B95B] text-white shadow-[#CDA435]/20' 
-                              : 'bg-white/80 backdrop-blur-sm text-gray-700 hover:bg-white border border-gray-200/50'
+                              ? 'bg-[#bca142] text-white' 
+                              : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
                           }`}
                         >
                           <FiMessageSquare className="inline mr-1.5" size={16} />
