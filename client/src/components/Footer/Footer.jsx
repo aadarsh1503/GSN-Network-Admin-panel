@@ -5,6 +5,7 @@ import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaFacebookF, FaTwitter, FaLinke
 import footerBgImage from "./Footer.png";
 import GSN from "./GSN.jpg";
 import VersionDisplay from '../VersionDisplay/VersionDisplay';
+import i1 from "./i1.png"
 
 const Footer = () => {
   // --- NEWSLETTER LOGIC ---
@@ -94,7 +95,7 @@ const Footer = () => {
           
           {/* Column 1: Logo & Info */}
           <div className="ml-8">
-            <img src="https://res.cloudinary.com/ds1dt3qub/image/upload/v1769604932/gulf_star_network_4_znl5cm.png" alt="Logistics Logo" className="w-28 bg-white" />
+            <img src={i1} alt="Logistics Logo" className="w-44" />
             <p className="mt-2 text-gray-400">
               Provide a freight quote from our select premium members 
             </p>
@@ -134,11 +135,11 @@ const Footer = () => {
             <div className="w-16 h-1 bg-[#bca142] mt-2 mb-6"></div>
             <ul className="space-y-3">
               <li><a href="/company-directory" className="hover:text-[#bca142] transition-colors">Member Directory</a></li>
-              <li><a href="#" className="hover:text-[#bca142] transition-colors">Quotes</a></li>
-              <li><a href="#" className="hover:text-[#bca142] transition-colors">Blacklist Directory</a></li>
-              <li><a href="#" className="hover:text-[#bca142] transition-colors">Register Today</a></li>
+              <li><a href="/quote" className="hover:text-[#bca142] transition-colors">Quotes</a></li>
+              {/* <li><a href="#" className="hover:text-[#bca142] transition-colors">Blacklist Directory</a></li> */}
+              <li><a href="/register" className="hover:text-[#bca142] transition-colors">Register Today</a></li>
               <li><a href="/login" className="hover:text-[#bca142] transition-colors">Login</a></li>
-              <li><a href="#" className="hover:text-[#bca142] transition-colors">Due Delight</a></li>
+              {/* <li><a href="#" className="hover:text-[#bca142] transition-colors">Due Delight</a></li> */}
             </ul>
           </div>
 

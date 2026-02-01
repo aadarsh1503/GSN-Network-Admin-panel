@@ -115,7 +115,7 @@ const Navbar = () => {
     const baseLinks = [
       { name: 'Home', href: '/' },
       { name: 'About Us', href: '#' },
-      { name: 'Member', href: '#' },
+      { name: 'Member', href: '/company-directory' },
       // { name: 'Business', href: '#' },
       { name: 'Subscriptions', href: '/subscriptions' },
       // { name: 'Blacklist', href: '#' },

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { FiSend, FiUsers, FiMail, FiEye, FiBarChart } from "react-icons/fi";
+import { FiSend, FiUsers, FiMail, FiEye, FiBarChart, FiFilter, FiCalendar, FiClock } from "react-icons/fi";
 import { api } from "../../utils/api";
 import { adminToast } from "../../utils/adminToast";
 import $ from "jquery";
@@ -17,12 +17,29 @@ const SendEmails = () => {
   const [userCounts, setUserCounts] = useState({});
   const [sendySubscriberCount, setSendySubscriberCount] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [campaigns, setCampaigns] = useState([]);
+  const [campaignFilters, setCampaignFilters] = useState({
+    method: 'all',
+    userType: 'all',
+    dateFrom: '',
+    dateTo: ''
+  });
+  const [campaignPagination, setCampaignPagination] = useState({
+    page: 1,
+    limit: 5,
+    total: 0,
+    pages: 0
+  });
   const wrapperRef = useRef(null);
 
   // Fetch email statistics and user counts
   useEffect(() => {
     fetchEmailStats();
-  }, []);
+    if (showHistory) {
+      fetchCampaigns();
+    }
+  }, [showHistory, campaignFilters, campaignPagination.page]);
 
   const fetchEmailStats = async () => {
     try {
@@ -47,6 +64,32 @@ const SendEmails = () => {
       });
       adminToast.error('Unable to fetch user counts. Database connection issue.');
     }
+  };
+
+  const fetchCampaigns = async () => {
+    try {
+      const params = new URLSearchParams({
+        page: campaignPagination.page,
+        limit: campaignPagination.limit,
+        ...campaignFilters
+      });
+      
+      const data = await api.get(`/api/admin/email-campaigns?${params}`);
+      setCampaigns(data.campaigns);
+      setCampaignPagination(prev => ({
+        ...prev,
+        total: data.pagination.total,
+        pages: data.pagination.pages
+      }));
+    } catch (error) {
+      console.error('❌ Error fetching campaigns:', error);
+      setCampaigns([]);
+    }
+  };
+
+  const handleFilterChange = (key, value) => {
+    setCampaignFilters(prev => ({ ...prev, [key]: value }));
+    setCampaignPagination(prev => ({ ...prev, page: 1 }));
   };
 
   const handleChange = (e) => {
@@ -140,14 +183,23 @@ const SendEmails = () => {
       if (formData.emailMethod === 'sendy') {
         adminToast.success(result.message || 'Campaign sent successfully via Sendy!');
         
+        // Show subscription results
         if (result.subscriptionResults) {
-          const { successful, failed } = result.subscriptionResults;
+          const { successful, failed, alreadySubscribed } = result.subscriptionResults;
           if (successful > 0) {
-            adminToast.success(`✅ Added ${successful} users to Sendy list`);
+            adminToast.success(`✅ Added ${successful} users to ${formData.userType} list AND All Users list`);
+          }
+          if (alreadySubscribed > 0) {
+            adminToast.info(`ℹ️ ${alreadySubscribed} users were already in the lists`);
           }
           if (failed > 0) {
-            adminToast.error(`❌ ${failed} users failed to be added to list`);
+            adminToast.error(`❌ ${failed} users failed to be added to lists`);
           }
+        }
+        
+        // Show specific list information
+        if (result.userType && result.targetListId) {
+          adminToast.success(`📧 Campaign sent to ${result.userType} Sendy list (${result.targetListId})`);
         }
       } else {
         adminToast.success(`Email sent successfully to ${result.successful} users!`);
@@ -168,8 +220,11 @@ const SendEmails = () => {
         }
       }
 
-      // Refresh stats
+      // Refresh stats and campaigns
       fetchEmailStats();
+      if (showHistory) {
+        fetchCampaigns();
+      }
 
     } catch (error) {
       console.error('Error sending emails:', error);
@@ -293,12 +348,12 @@ const SendEmails = () => {
                       className="mr-3"
                     />
                     <div>
-                      <h3 className="font-semibold text-gray-900">Sendy (Recommended)</h3>
-                      <p className="text-sm text-gray-600">Professional email campaigns with analytics</p>
+                      <h3 className="font-semibold text-gray-900">Sendy (Targeted Lists)</h3>
+                      <p className="text-sm text-gray-600">Professional targeted campaigns via dedicated Sendy lists</p>
                       <div className="mt-2 flex flex-wrap gap-2">
+                        <span className="px-2 py-1 bg-[#bca142]/20 text-[#bca142] text-xs rounded">Targeted</span>
                         <span className="px-2 py-1 bg-[#bca142]/20 text-[#bca142] text-xs rounded">Better Deliverability</span>
-                        <span className="px-2 py-1 bg-[#bca142]/20 text-[#bca142] text-xs rounded">Analytics</span>
-                        <span className="px-2 py-1 bg-[#bca142]/20 text-[#bca142] text-xs rounded">Cost Effective</span>
+                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">Professional</span>
                       </div>
                     </div>
                   </div>
@@ -336,14 +391,14 @@ const SendEmails = () => {
               {formData.emailMethod === 'sendy' && (
                 <div className="mt-3 p-3 bg-[#bca142]/10 border border-[#bca142]/30 rounded-md">
                   <p className="text-sm text-gray-800">
-                    <strong>Sendy Campaign Process:</strong> 
-                    <br />1. Selected users will be added to your Sendy subscriber list
-                    <br />2. A professional email campaign will be created and sent
-                    <br />3. You'll get detailed analytics in your Sendy dashboard
+                    <strong>✅ Dual List Addition:</strong> 
+                    <br />1. Selected users are added to their specific Sendy list (e.g., Business Owners)
+                    <br />2. Users are ALSO added to the "All Users" list for future broadcasts
+                    <br />3. Campaign is sent to the specific target list only
+                    <br />4. Professional Sendy infrastructure with better deliverability
                   </p>
                   <p className="text-xs text-gray-600 mt-2">
-                    Current Sendy subscribers: {sendySubscriberCount} | 
-                    This method provides better deliverability and professional analytics.
+                    <strong>Benefit:</strong> Users are available for both targeted campaigns and general broadcasts
                   </p>
                 </div>
               )}
@@ -491,43 +546,146 @@ const SendEmails = () => {
           </form>
         </div>
 
-        {/* Email Statistics */}
-        {emailStats && emailStats.length > 0 && (
-          <div className="bg-white p-6 rounded-lg shadow-md mt-6">
-            <div className="flex items-center mb-4">
-              <FiBarChart className="h-5 w-5 text-[#bca142] mr-2" />
-              <h3 className="text-lg font-semibold text-gray-800">Recent Email Activity</h3>
+        {/* Email Campaign History */}
+        <div className="bg-white p-4 rounded-lg shadow-md mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center">
+              <FiClock className="h-5 w-5 text-[#bca142] mr-2" />
+              <h3 className="text-lg font-semibold text-gray-800">Campaign History</h3>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                <p className="text-sm font-medium text-green-800">Emails Sent (Last 30 Days)</p>
-                <p className="text-2xl font-bold text-green-900">
-                  {emailStats.filter(stat => stat.status === 'sent').reduce((sum, stat) => sum + stat.count, 0)}
-                </p>
-              </div>
-              
-              <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-                <p className="text-sm font-medium text-red-800">Failed Emails</p>
-                <p className="text-2xl font-bold text-red-900">
-                  {emailStats.filter(stat => stat.status === 'failed').reduce((sum, stat) => sum + stat.count, 0)}
-                </p>
-              </div>
-              
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <p className="text-sm font-medium text-blue-800">Success Rate</p>
-                <p className="text-2xl font-bold text-blue-900">
-                  {(() => {
-                    const sent = emailStats.filter(stat => stat.status === 'sent').reduce((sum, stat) => sum + stat.count, 0);
-                    const failed = emailStats.filter(stat => stat.status === 'failed').reduce((sum, stat) => sum + stat.count, 0);
-                    const total = sent + failed;
-                    return total > 0 ? Math.round((sent / total) * 100) : 0;
-                  })()}%
-                </p>
-              </div>
-            </div>
+            <button
+              onClick={() => setShowHistory(!showHistory)}
+              className="flex items-center text-sm text-[#bca142] hover:text-black"
+            >
+              <FiEye className="mr-1" />
+              {showHistory ? 'Hide History' : 'Show History'}
+            </button>
           </div>
-        )}
+
+          {showHistory && (
+            <>
+              {/* Compact Filters */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 p-3 bg-gray-50 rounded-md">
+                <select
+                  value={campaignFilters.method}
+                  onChange={(e) => handleFilterChange('method', e.target.value)}
+                  className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#bca142]"
+                >
+                  <option value="all">All Methods</option>
+                  <option value="sendy">Sendy</option>
+                  <option value="smtp">SMTP</option>
+                </select>
+
+                <select
+                  value={campaignFilters.userType}
+                  onChange={(e) => handleFilterChange('userType', e.target.value)}
+                  className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#bca142]"
+                >
+                  <option value="all">All User Types</option>
+                  <option value="all">All Users</option>
+                  <option value="users">Regular Users</option>
+                  <option value="companies">Company Members</option>
+                  <option value="business_owners">Business Owners</option>
+                  <option value="subscribers">Active Subscribers</option>
+                </select>
+
+                <input
+                  type="date"
+                  value={campaignFilters.dateFrom}
+                  onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
+                  className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#bca142]"
+                  placeholder="From Date"
+                />
+
+                <input
+                  type="date"
+                  value={campaignFilters.dateTo}
+                  onChange={(e) => handleFilterChange('dateTo', e.target.value)}
+                  className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#bca142]"
+                  placeholder="To Date"
+                />
+              </div>
+
+              {/* Compact Campaign List */}
+              <div className="space-y-2">
+                {campaigns.length > 0 ? (
+                  campaigns.map((campaign) => (
+                    <div key={campaign.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md text-sm">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            campaign.method === 'sendy' 
+                              ? 'bg-[#bca142]/20 text-[#bca142]' 
+                              : 'bg-gray-200 text-gray-700'
+                          }`}>
+                            {campaign.method.toUpperCase()}
+                          </span>
+                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                            {getUserTypeLabel(campaign.user_type)}
+                          </span>
+                        </div>
+                        <p className="font-medium text-gray-900 mt-1 truncate">{campaign.subject}</p>
+                      </div>
+                      
+                      <div className="flex items-center space-x-4 text-xs text-gray-600">
+                        <div className="text-center">
+                          <div className="font-medium text-gray-900">{campaign.total_users}</div>
+                          <div>Total</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="font-medium text-green-600">{campaign.successful_users}</div>
+                          <div>Sent</div>
+                        </div>
+                        {campaign.failed_users > 0 && (
+                          <div className="text-center">
+                            <div className="font-medium text-red-600">{campaign.failed_users}</div>
+                            <div>Failed</div>
+                          </div>
+                        )}
+                        <div className="text-center">
+                          <div className="font-medium text-gray-900">
+                            {new Date(campaign.created_at).toLocaleDateString()}
+                          </div>
+                          <div>{new Date(campaign.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-4 text-gray-500">
+                    <FiMail className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>No campaigns found</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Compact Pagination */}
+              {campaignPagination.pages > 1 && (
+                <div className="flex items-center justify-between mt-4 text-sm">
+                  <span className="text-gray-600">
+                    Page {campaignPagination.page} of {campaignPagination.pages} ({campaignPagination.total} total)
+                  </span>
+                  <div className="flex space-x-1">
+                    <button
+                      onClick={() => setCampaignPagination(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
+                      disabled={campaignPagination.page === 1}
+                      className="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs disabled:opacity-50"
+                    >
+                      Prev
+                    </button>
+                    <button
+                      onClick={() => setCampaignPagination(prev => ({ ...prev, page: Math.min(prev.pages, prev.page + 1) }))}
+                      disabled={campaignPagination.page === campaignPagination.pages}
+                      className="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs disabled:opacity-50"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

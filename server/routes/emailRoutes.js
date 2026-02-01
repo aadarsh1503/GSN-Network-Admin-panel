@@ -2,7 +2,8 @@ import express from 'express';
 import {
     sendBulkEmails,
     getEmailStats,
-    getEmailLogs
+    getEmailLogs,
+    getEmailCampaigns
 } from '../controllers/emailController.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
 
@@ -25,5 +26,10 @@ router.get('/email-stats', getEmailStats);
 // @desc    Get email logs with pagination
 // @access  Private/Admin
 router.get('/email-logs', getEmailLogs);
+
+// @route   GET /api/admin/email-campaigns
+// @desc    Get email campaign history with filters
+// @access  Private/Admin
+router.get('/email-campaigns', getEmailCampaigns);
 
 export default router;

@@ -37,8 +37,6 @@ class KeepAliveService {
     this.intervalId = setInterval(() => {
       this.sendPing();
     }, this.pingInterval);
-
-    console.log('🚀 Keep-alive service started with', this.pingInterval / 60000, 'minute intervals');
   }
 
   // Stop the keep-alive service
@@ -50,7 +48,6 @@ class KeepAliveService {
     this.isRunning = false;
     this.retryCount = 0;
     this.consecutiveFailures = 0;
-    console.log('🛑 Keep-alive service stopped');
   }
 
   // Send a ping to the server with improved error handling
@@ -58,26 +55,13 @@ class KeepAliveService {
     const pingId = Math.random().toString(36).substring(7);
     const token = getToken();
     
-    // 🔍 DETAILED LOGGING: Keep-alive ping start
-    console.log(`📡 [KEEPALIVE-${pingId}] Starting keep-alive ping at ${new Date().toISOString()}:`, {
-      hasToken: !!token,
-      tokenExpired: token ? isTokenExpired(token) : 'no-token',
-      consecutiveFailures: this.consecutiveFailures,
-      retryCount: this.retryCount,
-      isRunning: this.isRunning,
-      currentPath: window.location.pathname,
-      userRole: JSON.parse(localStorage.getItem('user') || '{}').role
-    });
-    
     if (!token || isTokenExpired(token)) {
-      console.log(`🚫 [KEEPALIVE-${pingId}] Keep-alive stopped: No valid token`);
       this.stop();
       return;
     }
 
     try {
       const startTime = Date.now();
-      console.log(`📡 [KEEPALIVE-${pingId}] Sending keep-alive ping...`);
       
       const response = await api.get('/api/user/keep-alive');
       
@@ -87,14 +71,6 @@ class KeepAliveService {
       if (response.success) {
         this.retryCount = 0; // Reset retry count on success
         this.consecutiveFailures = 0; // Reset consecutive failures
-        
-        console.log(`✅ [KEEPALIVE-${pingId}] Keep-alive ping successful (${duration}ms):`, {
-          userId: response.userId,
-          userRole: response.userRole,
-          timestamp: response.timestamp,
-          duration: `${duration}ms`,
-          resetFailures: true
-        });
       } else {
         throw new Error('Keep-alive ping failed: Invalid response');
       }
@@ -104,31 +80,8 @@ class KeepAliveService {
       
       const errorTime = Date.now();
       
-      // 🔍 DETAILED LOGGING: Keep-alive error analysis
-      console.error(`💥 [KEEPALIVE-${pingId}] Keep-alive ping failed at ${new Date(errorTime).toISOString()}:`, {
-        errorName: error.name,
-        errorMessage: error.message,
-        errorStack: error.stack,
-        retryCount: this.retryCount,
-        maxRetries: this.maxRetries,
-        consecutiveFailures: this.consecutiveFailures,
-        connectionOnline: navigator.onLine,
-        currentPath: window.location.pathname,
-        userRole: JSON.parse(localStorage.getItem('user') || '{}').role
-      });
-      
-      // 🔍 SPECIFIC ECONNRESET TRACKING for keep-alive
+      // ECONNRESET TRACKING for keep-alive
       if (error.message.includes('ECONNRESET')) {
-        console.error(`🔥 [KEEPALIVE-${pingId}] ECONNRESET in Keep-Alive Service:`, {
-          timestamp: new Date().toISOString(),
-          consecutiveFailures: this.consecutiveFailures,
-          retryCount: this.retryCount,
-          userRole: JSON.parse(localStorage.getItem('user') || '{}').role,
-          currentPath: window.location.pathname,
-          connectionOnline: navigator.onLine,
-          stackTrace: error.stack
-        });
-        
         // Log to localStorage for debugging
         try {
           const keepAliveLogs = JSON.parse(localStorage.getItem('keepalive_econnreset_logs') || '[]');
@@ -145,11 +98,9 @@ class KeepAliveService {
           if (keepAliveLogs.length > 15) keepAliveLogs.splice(15);
           localStorage.setItem('keepalive_econnreset_logs', JSON.stringify(keepAliveLogs));
         } catch (e) {
-          console.warn(`[KEEPALIVE-${pingId}] Failed to log ECONNRESET to localStorage:`, e);
+          // Silent fail for logging
         }
       }
-
-      console.warn(`⚠️ [KEEPALIVE-${pingId}] Keep-alive ping failed (attempt ${this.retryCount}/${this.maxRetries}):`, error.message);
 
       // Calculate backoff delay
       const backoffDelay = Math.min(
@@ -161,12 +112,6 @@ class KeepAliveService {
       if (this.retryCount >= this.maxRetries) {
         // Don't stop the service immediately, but increase the ping interval temporarily
         if (this.consecutiveFailures >= 3) {
-          console.warn(`🔄 [KEEPALIVE-${pingId}] Multiple keep-alive failures, implementing backoff strategy:`, {
-            consecutiveFailures: this.consecutiveFailures,
-            backoffDelay: `${backoffDelay}ms`,
-            newInterval: `${(this.pingInterval * 2) / 60000} minutes`
-          });
-          
           // Temporarily increase ping interval
           if (this.intervalId) {
             clearInterval(this.intervalId);
@@ -180,7 +125,6 @@ class KeepAliveService {
           
           // Only stop service after many consecutive failures
           if (this.consecutiveFailures >= 10) {
-            console.error(`🚫 [KEEPALIVE-${pingId}] Stopping keep-alive service after ${this.consecutiveFailures} consecutive failures`);
             this.stop();
             
             // Dispatch custom event to notify the app about persistent connection issues
@@ -197,7 +141,6 @@ class KeepAliveService {
           }
         } else {
           // For fewer failures, just retry with backoff
-          console.log(`🔄 [KEEPALIVE-${pingId}] Retrying keep-alive in ${backoffDelay}ms`);
           setTimeout(() => {
             this.sendPing();
           }, backoffDelay);
@@ -206,7 +149,6 @@ class KeepAliveService {
         }
       } else {
         // Retry with exponential backoff
-        console.log(`🔄 [KEEPALIVE-${pingId}] Retrying keep-alive with backoff in ${backoffDelay}ms (attempt ${this.retryCount}/${this.maxRetries})`);
         setTimeout(() => {
           this.sendPing();
         }, backoffDelay);
@@ -257,8 +199,6 @@ class KeepAliveService {
         this.sendPing();
       }, this.pingInterval);
     }
-    
-    console.log('🔄 Keep-alive failure counters reset');
   }
 }
 

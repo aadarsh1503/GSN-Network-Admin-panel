@@ -5,7 +5,7 @@ import PhoneInput from 'react-phone-input-2';
 import toast from 'react-hot-toast';
 import 'react-phone-input-2/lib/style.css';
 import { api, publicAPI } from '../../utils/api';
-import { submitPendingQuote, hasPendingQuote } from '../../utils/pendingQuote';
+import { submitPendingQuote, hasPendingQuote, checkAndClearInvalidPendingQuote } from '../../utils/pendingQuote';
 
 // Importing icons for a better UI
 import { User, Phone, Mail, Lock, Building, ChevronDown, Check, Loader2, Eye, EyeOff } from 'lucide-react';
@@ -213,9 +213,15 @@ const RegisterPage = () => {
                     
                     // Check if there's a pending quote to submit
                     if (hasPendingQuote()) {
-                        const quoteResult = await submitPendingQuote();
-                        if (quoteResult.success) {
-                            toast.success('Your quote request has been submitted!');
+                        // First check if the pending quote should be cleared due to user role
+                        const wasCleared = checkAndClearInvalidPendingQuote();
+                        
+                        if (!wasCleared) {
+                            // Only submit if it wasn't cleared (i.e., user is business or regular user)
+                            const quoteResult = await submitPendingQuote();
+                            if (quoteResult.success) {
+                                toast.success('Your quote request has been submitted!');
+                            }
                         }
                     }
                     
@@ -235,9 +241,15 @@ const RegisterPage = () => {
                         
                         // Check if there's a pending quote to submit
                         if (hasPendingQuote()) {
-                            const quoteResult = await submitPendingQuote();
-                            if (quoteResult.success) {
-                                toast.success('Your quote request has been submitted!');
+                            // First check if the pending quote should be cleared due to user role
+                            const wasCleared = checkAndClearInvalidPendingQuote();
+                            
+                            if (!wasCleared) {
+                                // Only submit if it wasn't cleared (i.e., user is business or regular user)
+                                const quoteResult = await submitPendingQuote();
+                                if (quoteResult.success) {
+                                    toast.success('Your quote request has been submitted!');
+                                }
                             }
                         }
                         
@@ -286,9 +298,15 @@ const RegisterPage = () => {
                 
                 // Check if there's a pending quote to submit
                 if (hasPendingQuote()) {
-                    const quoteResult = await submitPendingQuote();
-                    if (quoteResult.success) {
-                        toast.success('Your quote request has been submitted!');
+                    // First check if the pending quote should be cleared due to user role
+                    const wasCleared = checkAndClearInvalidPendingQuote();
+                    
+                    if (!wasCleared) {
+                        // Only submit if it wasn't cleared (i.e., user is business or regular user)
+                        const quoteResult = await submitPendingQuote();
+                        if (quoteResult.success) {
+                            toast.success('Your quote request has been submitted!');
+                        }
                     }
                 }
                 

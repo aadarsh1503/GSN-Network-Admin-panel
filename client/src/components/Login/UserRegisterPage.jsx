@@ -4,7 +4,7 @@ import { Listbox, Transition } from '@headlessui/react';
 import PhoneInput from 'react-phone-input-2';
 import toast from 'react-hot-toast';
 import 'react-phone-input-2/lib/style.css';
-import { submitPendingQuote, hasPendingQuote } from '../../utils/pendingQuote';
+import { submitPendingQuote, hasPendingQuote, checkAndClearInvalidPendingQuote } from '../../utils/pendingQuote';
 import { api, publicAPI } from '../../utils/api';
 
 // Importing icons for a better UI
@@ -175,7 +175,13 @@ const UserRegisterPage = () => {
           toast.success('Registration successful! Welcome!');
           
           if (hasPendingQuote()) {
-            await submitPendingQuote();
+            // First check if the pending quote should be cleared due to user role
+            const wasCleared = checkAndClearInvalidPendingQuote();
+            
+            if (!wasCleared) {
+              // Only submit if it wasn't cleared (i.e., user is business or regular user)
+              await submitPendingQuote();
+            }
           }
           
           navigate(from, { replace: true });

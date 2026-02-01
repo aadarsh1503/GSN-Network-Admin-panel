@@ -10,6 +10,29 @@ export const submitPendingQuote = async () => {
       return { success: false, message: 'No pending quote found' };
     }
 
+    // Check user role before submitting
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    // If user is a company, clear the pending quote and don't submit
+    if (user.role === 'company') {
+      localStorage.removeItem('pendingQuote');
+      console.log('Pending quote cleared - Company users cannot request quotes');
+      return { 
+        success: false, 
+        message: 'Company users cannot request quotes. Pending quote cleared.' 
+      };
+    }
+
+    // Only allow business and regular users to submit quotes
+    if (user.role !== 'business' && user.role !== 'user') {
+      localStorage.removeItem('pendingQuote');
+      console.log('Pending quote cleared - Invalid user role for quote requests');
+      return { 
+        success: false, 
+        message: 'Invalid user role for quote requests. Pending quote cleared.' 
+      };
+    }
+
     const quoteData = JSON.parse(pendingQuoteData);
     
     // Submit the quote
@@ -43,4 +66,19 @@ export const hasPendingQuote = () => {
 
 export const clearPendingQuote = () => {
   localStorage.removeItem('pendingQuote');
+};
+
+// New function to check if pending quote should be cleared based on user role
+export const checkAndClearInvalidPendingQuote = () => {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const pendingQuote = localStorage.getItem('pendingQuote');
+  
+  // If there's a pending quote and user is a company, clear it
+  if (pendingQuote && user.role === 'company') {
+    localStorage.removeItem('pendingQuote');
+    console.log('Cleared pending quote - Company users cannot request quotes');
+    return true;
+  }
+  
+  return false;
 };

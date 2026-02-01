@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { submitPendingQuote, hasPendingQuote } from '../../utils/pendingQuote';
+import { submitPendingQuote, hasPendingQuote, checkAndClearInvalidPendingQuote } from '../../utils/pendingQuote';
 import toast from 'react-hot-toast';
 import { api, isTokenExpired } from '../../utils/api';
 import activityTracker from '../../utils/activityTracker';
@@ -149,9 +149,15 @@ const LoginPage = () => {
 
             // Check if there's a pending quote to submit
             if (hasPendingQuote()) {
-                const quoteResult = await submitPendingQuote();
-                if (quoteResult.success) {
-                    toast.success('Your quote request has been submitted!');
+                // First check if the pending quote should be cleared due to user role
+                const wasCleared = checkAndClearInvalidPendingQuote();
+                
+                if (!wasCleared) {
+                    // Only submit if it wasn't cleared (i.e., user is business or regular user)
+                    const quoteResult = await submitPendingQuote();
+                    if (quoteResult.success) {
+                        toast.success('Your quote request has been submitted!');
+                    }
                 }
             }
 

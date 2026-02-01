@@ -268,10 +268,33 @@ const RequestQuote = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Basic validation
-    if (!formData.shippingMode || !formData.arrivalDate || !formData.departureCountry || 
-        !formData.arrivalCountry || !formData.productDescription) {
-      toast.error('Please fill in all required fields');
+    // Comprehensive validation for all required fields
+    const requiredFields = [
+      { field: 'shippingMode', label: 'Shipping mode' },
+      { field: 'arrivalDate', label: 'Arrival date' },
+      { field: 'departureCountry', label: 'Departure country' },
+      { field: 'departureState', label: 'Departure state' },
+      { field: 'departureCity', label: 'Departure city' },
+      { field: 'departureType', label: 'Departure type' },
+      { field: 'arrivalCountry', label: 'Arrival country' },
+      { field: 'arrivalState', label: 'Arrival state' },
+      { field: 'arrivalCity', label: 'Arrival city' },
+      { field: 'arrivalType', label: 'Arrival type' },
+      { field: 'productDescription', label: 'Product description' },
+      { field: 'packing', label: 'Packing type' },
+      { field: 'quantity', label: 'Quantity' },
+      { field: 'weight', label: 'Weight' },
+      { field: 'length', label: 'Length' },
+      { field: 'width', label: 'Width' },
+      { field: 'height', label: 'Height' },
+      { field: 'dimensionUnit', label: 'Dimension unit' }
+    ];
+
+    // Check for missing required fields
+    const missingFields = requiredFields.filter(({ field }) => !formData[field] || formData[field].trim() === '');
+    
+    if (missingFields.length > 0) {
+      toast.error('Please fill all required fields');
       return;
     }
 
@@ -461,6 +484,7 @@ const RequestQuote = () => {
                     onChange={handleInputChange}
                     loading={loadingDepartureStates}
                     disabled={!formData.departureCountry}
+                    required
                   >
                     <option value="">Select State</option>
                     {departureStates.map(state => (
@@ -476,6 +500,7 @@ const RequestQuote = () => {
                     onChange={handleInputChange}
                     loading={loadingDepartureCities}
                     disabled={!formData.departureState}
+                    required
                   >
                     <option value="">Select City</option>
                     {departureCities.map(city => (
@@ -590,8 +615,9 @@ const RequestQuote = () => {
                     name="incoterms"
                     value={formData.incoterms}
                     onChange={handleInputChange}
+                    required
                   >
-                    <option value="">Unknown</option>
+                    <option value="">Please select</option>
                     <option value="EXW">EXW - Ex Works</option>
                     <option value="FOB">FOB - Free on Board</option>
                     <option value="CIF">CIF - Cost, Insurance & Freight</option>
@@ -620,6 +646,7 @@ const RequestQuote = () => {
                     name="type"
                     value={formData.type}
                     onChange={handleInputChange}
+                    required
                   >
                     <option value="">Select one</option>
                     <option value="general">General Cargo</option>
@@ -643,6 +670,7 @@ const RequestQuote = () => {
                     value={formData.length}
                     onChange={handleInputChange}
                     placeholder="Length" 
+                    required
                   />
                   <InputField 
                     label="Width" 
@@ -650,6 +678,7 @@ const RequestQuote = () => {
                     value={formData.width}
                     onChange={handleInputChange}
                     placeholder="Width" 
+                    required
                   />
                   <InputField 
                     label="Height" 
@@ -657,12 +686,14 @@ const RequestQuote = () => {
                     value={formData.height}
                     onChange={handleInputChange}
                     placeholder="Height" 
+                    required
                   />
                   <SelectField 
                     label="Unit" 
                     name="dimensionUnit"
                     value={formData.dimensionUnit}
                     onChange={handleInputChange}
+                    required
                   >
                     <option value="">Select unit</option>
                     <option value="cm">📏 Centimeters</option>

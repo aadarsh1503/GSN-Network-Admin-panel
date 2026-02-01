@@ -95,7 +95,7 @@ const MyCertificatePage = () => {
               {/* Header */}
               <div className="cert-header-row">
                 <div className="cert-brand">
-                  <img src="https://res.cloudinary.com/ds1dt3qub/image/upload/v1769074782/subscription-payment-proofs/bjqpu3ymz19amvbu5ugq.jpg" alt="GSN" className="cert-logo-img" />
+                  <img src="https://res.cloudinary.com/ds1dt3qub/image/upload/v1769844600/general-settings/i5kw2gfteolnkvs0qq6q.png" alt="GSN" className="cert-logo-img" />
                   <div className="brand-titles">
                     <h3>GULF STAR NETWORK</h3>
                     <p>Global Logistics Excellence</p>

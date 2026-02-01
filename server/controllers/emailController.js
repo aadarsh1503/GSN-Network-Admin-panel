@@ -7,17 +7,9 @@ import { sendBulkEmailViaSendy, getSendySubscriberCount } from '../services/send
 // @access  Private/Admin
 export const sendBulkEmails = async (req, res) => {
     try {
-        console.log('📧 Bulk email request received:', {
-            userType: req.body.userType,
-            subject: req.body.subject,
-            emailMethod: req.body.emailMethod,
-            bodyLength: req.body.body?.length
-        });
-
         const { userType, subject, body, emailMethod = 'smtp' } = req.body;
 
         if (!userType || !subject || !body) {
-            console.log('❌ Missing required fields:', { userType, subject, bodyExists: !!body });
             return res.status(400).json({ 
                 message: 'User type, subject, and body are required' 
             });
@@ -49,22 +41,13 @@ export const sendBulkEmails = async (req, res) => {
                 `;
                 break;
             default:
-                console.log('❌ Invalid user type:', userType);
                 return res.status(400).json({ message: 'Invalid user type' });
         }
 
-        console.log('🔍 Executing SQL query for userType:', userType);
-        
         // Get users based on the query
         const [users] = await db.execute(sql, params);
 
-        console.log(`📊 Found ${users.length} users for ${userType}`);
-        if (users.length > 0) {
-            console.log('👥 Sample users:', users.slice(0, 3).map(u => ({ email: u.email, name: u.name })));
-        }
-
         if (users.length === 0) {
-            console.log('❌ No users found for type:', userType);
             return res.status(404).json({ 
                 message: 'No users found for the selected type' 
             });
@@ -73,38 +56,116 @@ export const sendBulkEmails = async (req, res) => {
         let result;
 
         if (emailMethod === 'sendy') {
-            console.log('📨 Sending via Sendy...');
-            // Send via Sendy
-            result = await sendBulkEmailViaSendy(users, subject, body);
-            
-            console.log('✅ Sendy result:', result);
+            // Send via Sendy to specific list based on user type
+            result = await sendBulkEmailViaSendy(users, subject, body, userType);
             
             if (result.success) {
+                // Log the campaign to database
+                try {
+                    // First ensure the table exists
+                    await db.execute(`
+                        CREATE TABLE IF NOT EXISTS email_campaigns (
+                            id INT AUTO_INCREMENT PRIMARY KEY,
+                            user_type VARCHAR(50) NOT NULL,
+                            subject VARCHAR(255) NOT NULL,
+                            method ENUM('sendy', 'smtp') NOT NULL,
+                            total_users INT NOT NULL DEFAULT 0,
+                            successful_users INT NOT NULL DEFAULT 0,
+                            failed_users INT NOT NULL DEFAULT 0,
+                            target_list_id VARCHAR(100) NULL,
+                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            INDEX idx_user_type (user_type),
+                            INDEX idx_method (method),
+                            INDEX idx_created_at (created_at)
+                        )
+                    `);
+                    
+                    // Now insert the campaign record
+                    const campaignData = [
+                        userType, 
+                        subject, 
+                        'sendy', 
+                        users.length, 
+                        result.subscriptionResults?.successful || 0,
+                        result.subscriptionResults?.failed || 0,
+                        result.targetListId
+                    ];
+                    
+                    const insertResult = await db.execute(
+                        `INSERT INTO email_campaigns (user_type, subject, method, total_users, successful_users, failed_users, target_list_id, created_at) 
+                         VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
+                        campaignData
+                    );
+                } catch (logError) {
+                    console.error('❌ Failed to log Sendy campaign:', logError);
+                }
+
                 res.status(200).json({
                     message: result.message,
                     method: 'sendy',
                     totalUsers: users.length,
                     campaignSent: true,
+                    userType: result.userType,
+                    targetListId: result.targetListId,
                     subscriptionResults: result.subscriptionResults,
                     details: {
                         userType,
                         subject,
-                        recipients: users.map(u => u.email)
+                        recipients: users.map(u => u.email),
+                        note: `Users added to ${userType} Sendy list and campaign sent`
                     }
                 });
             } else {
-                console.log('❌ Sendy failed:', result.message);
                 res.status(500).json({
                     message: result.message || 'Failed to send via Sendy',
-                    method: 'sendy'
+                    method: 'sendy',
+                    subscriptionResults: result.subscriptionResults
                 });
             }
         } else {
-            console.log('📧 Sending via SMTP with improved error handling...');
             // Send via SMTP using improved bulk email service
             const result = await sendBulkEmailsService(users, subject, body);
 
-            console.log(`✅ SMTP results: ${result.successful} successful, ${result.failed} failed`);
+            // Log the campaign to database
+            try {
+                // First ensure the table exists
+                await db.execute(`
+                    CREATE TABLE IF NOT EXISTS email_campaigns (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        user_type VARCHAR(50) NOT NULL,
+                        subject VARCHAR(255) NOT NULL,
+                        method ENUM('sendy', 'smtp') NOT NULL,
+                        total_users INT NOT NULL DEFAULT 0,
+                        successful_users INT NOT NULL DEFAULT 0,
+                        failed_users INT NOT NULL DEFAULT 0,
+                        target_list_id VARCHAR(100) NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        INDEX idx_user_type (user_type),
+                        INDEX idx_method (method),
+                        INDEX idx_created_at (created_at)
+                    )
+                `);
+                
+                // Now insert the campaign record
+                const campaignData = [userType, subject, 'smtp', result.total, result.successful, result.failed];
+                
+                console.log('📝 Inserting SMTP campaign record with data:', {
+                    userType,
+                    subject,
+                    method: 'smtp',
+                    total: result.total,
+                    successful: result.successful,
+                    failed: result.failed
+                });
+                
+                await db.execute(
+                    `INSERT INTO email_campaigns (user_type, subject, method, total_users, successful_users, failed_users, created_at) 
+                     VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+                    campaignData
+                );
+            } catch (logError) {
+                console.error('❌ Failed to log SMTP campaign:', logError);
+            }
 
             // Provide detailed error information
             let responseMessage = 'Bulk email sending completed via SMTP';
@@ -241,8 +302,173 @@ export const getEmailLogs = async (req, res) => {
     }
 };
 
+// @desc    Get email campaign history
+// @route   GET /api/admin/email-campaigns
+// @access  Private/Admin
+export const getEmailCampaigns = async (req, res) => {
+    console.log('🚀 getEmailCampaigns API called');
+
+    try {
+        const { page = 1, limit = 10, method, userType, dateFrom, dateTo } = req.query;
+
+        console.log('📥 Incoming query params:', {
+            page,
+            limit,
+            method,
+            userType,
+            dateFrom,
+            dateTo
+        });
+
+        const offset = (page - 1) * limit;
+        console.log('📐 Pagination calculated:', { offset });
+
+        // ==============================
+        // TABLE CHECK
+        // ==============================
+        try {
+            console.log('🔍 Checking if email_campaigns table exists...');
+            const [tableCheck] = await db.execute(
+                "SHOW TABLES LIKE 'email_campaigns'"
+            );
+
+            console.log('📋 Table check result:', tableCheck);
+
+            if (tableCheck.length === 0) {
+                console.log('⚠️ email_campaigns table not found. Creating table...');
+
+                await db.execute(`
+                    CREATE TABLE email_campaigns (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        user_type VARCHAR(50) NOT NULL,
+                        subject VARCHAR(255) NOT NULL,
+                        method ENUM('sendy', 'smtp') NOT NULL,
+                        total_users INT NOT NULL DEFAULT 0,
+                        successful_users INT NOT NULL DEFAULT 0,
+                        failed_users INT NOT NULL DEFAULT 0,
+                        target_list_id VARCHAR(100) NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        INDEX idx_user_type (user_type),
+                        INDEX idx_method (method),
+                        INDEX idx_created_at (created_at)
+                    )
+                `);
+
+                console.log('✅ email_campaigns table created successfully');
+            } else {
+                console.log('✅ email_campaigns table already exists');
+            }
+        } catch (tableError) {
+            console.error('❌ Error while checking/creating table:', tableError);
+
+            return res.status(200).json({
+                campaigns: [],
+                pagination: { page: 1, limit: 10, total: 0, pages: 0 }
+            });
+        }
+
+        // ==============================
+        // FILTERS
+        // ==============================
+        let whereClause = 'WHERE 1=1';
+        let params = [];
+
+        if (method && method !== 'all') {
+            whereClause += ' AND method = ?';
+            params.push(method);
+        }
+
+        if (userType && userType !== 'all') {
+            whereClause += ' AND user_type = ?';
+            params.push(userType);
+        }
+
+        if (dateFrom) {
+            whereClause += ' AND DATE(created_at) >= ?';
+            params.push(dateFrom);
+        }
+
+        if (dateTo) {
+            whereClause += ' AND DATE(created_at) <= ?';
+            params.push(dateTo);
+        }
+
+        // ==============================
+        // MAIN QUERY
+        // ==============================
+        const limitInt = parseInt(limit) || 10;
+        const offsetInt = parseInt(offset) || 0;
+        
+        // Build query with LIMIT and OFFSET directly in SQL to avoid parameter binding issues
+        const campaignsQuery = `
+            SELECT 
+                id,
+                user_type,
+                subject,
+                method,
+                total_users,
+                successful_users,
+                failed_users,
+                target_list_id,
+                created_at
+            FROM email_campaigns 
+            ${whereClause}
+            ORDER BY created_at DESC
+            LIMIT ${limitInt} OFFSET ${offsetInt}
+        `;
+
+        const [campaigns] = await db.execute(campaignsQuery, params);
+
+        // ==============================
+        // COUNT QUERY
+        // ==============================
+        const countQuery = `
+            SELECT COUNT(*) as total 
+            FROM email_campaigns 
+            ${whereClause}
+        `;
+
+        const [countResult] = await db.execute(countQuery, params);
+        const total = countResult[0]?.total || 0;
+
+        console.log('📈 Total campaigns count:', total);
+
+        // ==============================
+        // RESPONSE
+        // ==============================
+        const response = {
+            campaigns,
+            pagination: {
+                page: parseInt(page),
+                limit: limitInt,
+                total,
+                pages: Math.ceil(total / limitInt)
+            }
+        };
+
+        console.log('✅ Final response:', response);
+
+        res.status(200).json(response);
+
+    } catch (error) {
+        console.error('🔥 Unexpected error in getEmailCampaigns:', error);
+
+        res.status(200).json({
+            campaigns: [],
+            pagination: {
+                page: parseInt(req.query.page || 1),
+                limit: parseInt(req.query.limit || 10),
+                total: 0,
+                pages: 0
+            }
+        });
+    }
+};
+
+
 export default {
     sendBulkEmails,
     getEmailStats,
-    getEmailLogs
+    getEmailLogs,
+    getEmailCampaigns
 };

@@ -144,18 +144,9 @@ export const apiRequest = async (endpoint, options = {}, retryCount = 0) => {
   const maxRetries = 3;
   const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 10000); // Exponential backoff, max 10s
   
-  // 🔍 DETAILED LOGGING: Track request details
+  // Track request details
   const requestId = Math.random().toString(36).substring(7);
   const timestamp = new Date().toISOString();
-  console.log(`🚀 [${requestId}] API Request Started:`, {
-    endpoint,
-    method: options.method || 'GET',
-    timestamp,
-    retryCount,
-    hasToken: !!getToken(),
-    userAgent: navigator.userAgent,
-    url: `${API_BASE_URL}${endpoint}`
-  });
   
   let token = getToken();
   
@@ -164,18 +155,14 @@ export const apiRequest = async (endpoint, options = {}, retryCount = 0) => {
     try {
       // Only refresh if token is not completely expired
       if (!isTokenExpired(token)) {
-        console.log(`🔄 [${requestId}] Token expiring soon, refreshing...`);
         token = await refreshAuthToken();
-        console.log(`✅ [${requestId}] Token refreshed successfully`);
       } else {
         // Token is completely expired, redirect to login
-        console.error(`❌ [${requestId}] Token completely expired, redirecting to login`);
         const error = new Error('Authentication failed: Your session has expired. Please login again.');
         handleAuthFailure(error);
         return;
       }
     } catch (refreshError) {
-      console.error(`❌ [${requestId}] Token refresh failed:`, refreshError);
       const error = new Error('Authentication failed: Unable to refresh session. Please login again.');
       handleAuthFailure(error);
       return;
@@ -205,46 +192,17 @@ export const apiRequest = async (endpoint, options = {}, retryCount = 0) => {
     config.body = JSON.stringify(options.body);
   }
 
-  // 🔍 DETAILED LOGGING: Log request configuration
-  console.log(`📤 [${requestId}] Request Config:`, {
-    method: config.method,
-    headers: { ...config.headers, Authorization: config.headers.Authorization ? '[REDACTED]' : undefined },
-    bodyType: config.body ? typeof config.body : 'none',
-    bodySize: config.body ? (typeof config.body === 'string' ? config.body.length : 'FormData') : 0
-  });
-
   try {
     const fetchStartTime = Date.now();
-    console.log(`🌐 [${requestId}] Fetch starting at ${new Date(fetchStartTime).toISOString()}`);
     
     const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
     
     const fetchEndTime = Date.now();
     const fetchDuration = fetchEndTime - fetchStartTime;
     
-    // 🔍 DETAILED LOGGING: Log response details
-    console.log(`📥 [${requestId}] Response received:`, {
-      status: response.status,
-      statusText: response.statusText,
-      ok: response.ok,
-      duration: `${fetchDuration}ms`,
-      headers: Object.fromEntries(response.headers.entries()),
-      url: response.url,
-      type: response.type,
-      redirected: response.redirected
-    });
-    
     // Handle different response types
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      
-      console.error(`❌ [${requestId}] HTTP Error Response:`, {
-        status: response.status,
-        statusText: response.statusText,
-        errorData,
-        endpoint,
-        duration: `${fetchDuration}ms`
-      });
       
       // Handle token validation errors
       if (response.status === 401 || response.status === 403) {
@@ -260,29 +218,18 @@ export const apiRequest = async (endpoint, options = {}, retryCount = 0) => {
         const isAccountDeactivated = errorData.accountDeactivated === true;
         const isAccountBlacklisted = errorData.accountBlacklisted === true;
         
-        console.log(`🔍 [${requestId}] Auth Error Analysis:`, {
-          isTokenError,
-          isRoleError,
-          isAccountDeactivated,
-          isAccountBlacklisted,
-          message: errorData.message
-        });
-        
         if (isTokenError || isAccountDeactivated || isAccountBlacklisted) {
           // Handle token issues, account deactivation, and blacklisting
           const error = new Error('Authentication failed: ' + (errorData.message || 'Please login again'));
           const issueType = isAccountDeactivated ? 'deactivated' : isAccountBlacklisted ? 'blacklisted' : null;
-          console.error(`🚫 [${requestId}] Authentication failure - redirecting to login:`, { issueType, message: error.message });
           handleAuthFailure(error, issueType);
           return;
         } else if (isRoleError) {
           // For role errors, just throw the error without clearing localStorage
-          console.error(`🚫 [${requestId}] Role authorization error:`, errorData.message);
           throw new Error(errorData.message || `Access denied: ${response.status}`);
         } else {
           // For other 401/403 errors, be cautious and clear localStorage
           const error = new Error('Authentication failed: ' + (errorData.message || 'Please login again'));
-          console.error(`🚫 [${requestId}] Unknown auth error - clearing localStorage:`, error.message);
           handleAuthFailure(error);
           return;
         }
@@ -295,47 +242,16 @@ export const apiRequest = async (endpoint, options = {}, retryCount = 0) => {
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
       const responseData = await response.json();
-      console.log(`✅ [${requestId}] JSON Response parsed successfully (${fetchDuration}ms)`);
       return responseData;
     }
     
     const responseText = await response.text();
-    console.log(`✅ [${requestId}] Text Response received (${fetchDuration}ms):`, responseText.substring(0, 100) + (responseText.length > 100 ? '...' : ''));
     return responseText;
   } catch (error) {
     const errorTime = Date.now();
     
-    // 🔍 DETAILED LOGGING: Comprehensive error analysis
-    console.error(`💥 [${requestId}] Request Error at ${new Date(errorTime).toISOString()}:`, {
-      errorName: error.name,
-      errorMessage: error.message,
-      errorStack: error.stack,
-      endpoint,
-      method: config.method,
-      retryCount,
-      maxRetries,
-      isNetworkError: error.name === 'TypeError' || 
-                     error.message.includes('ECONNRESET') ||
-                     error.message.includes('ENOTFOUND') ||
-                     error.message.includes('ECONNREFUSED') ||
-                     error.message.includes('fetch'),
-      connectionStatus: navigator.onLine ? 'online' : 'offline',
-      userAgent: navigator.userAgent
-    });
-    
-    // 🔍 SPECIFIC ECONNRESET TRACKING
+    // ECONNRESET TRACKING
     if (error.message.includes('ECONNRESET')) {
-      console.error(`🔥 [${requestId}] ECONNRESET ERROR DETECTED:`, {
-        endpoint,
-        method: config.method,
-        retryCount,
-        timestamp: new Date().toISOString(),
-        userRole: JSON.parse(localStorage.getItem('user') || '{}').role,
-        currentPath: window.location.pathname,
-        connectionOnline: navigator.onLine,
-        stackTrace: error.stack
-      });
-      
       // Log to localStorage for debugging
       try {
         const econnresetLogs = JSON.parse(localStorage.getItem('econnreset_debug_logs') || '[]');
@@ -352,13 +268,12 @@ export const apiRequest = async (endpoint, options = {}, retryCount = 0) => {
         if (econnresetLogs.length > 20) econnresetLogs.splice(20);
         localStorage.setItem('econnreset_debug_logs', JSON.stringify(econnresetLogs));
       } catch (e) {
-        console.warn('Failed to log ECONNRESET to localStorage:', e);
+        // Silent fail for logging
       }
     }
     
     // If it's an auth error, it's already handled above
     if (error.message.includes('Authentication failed')) {
-      console.log(`🔍 [${requestId}] Auth error already handled, re-throwing`);
       throw error;
     }
     
@@ -370,30 +285,14 @@ export const apiRequest = async (endpoint, options = {}, retryCount = 0) => {
                           error.message.includes('fetch');
     
     if (isNetworkError && retryCount < maxRetries) {
-      console.warn(`🔄 [${requestId}] Network error detected, retrying in ${retryDelay}ms (attempt ${retryCount + 1}/${maxRetries}):`, {
-        error: error.message,
-        endpoint,
-        method: config.method
-      });
-      
       // Wait before retrying
       await new Promise(resolve => setTimeout(resolve, retryDelay));
       
       // Retry the request
-      console.log(`🔄 [${requestId}] Retrying request (attempt ${retryCount + 1})`);
       return apiRequest(endpoint, options, retryCount + 1);
     }
     
     // If all retries failed or it's not a network error, throw the error
-    if (retryCount >= maxRetries) {
-      console.error(`❌ [${requestId}] Request failed after ${maxRetries} retries:`, {
-        error: error.message,
-        endpoint,
-        method: config.method,
-        finalRetryCount: retryCount
-      });
-    }
-    
     throw error;
   }
 };
@@ -487,7 +386,6 @@ export const publicAPI = {
       }
       return await response.json();
     } catch (error) {
-      console.error('Geo API Error:', error);
       throw new Error(`Geo service failed: ${error.message}`);
     }
   },
@@ -541,7 +439,6 @@ export const checkAccountStatus = async () => {
 
     return { active: false, reason: 'unknown' };
   } catch (error) {
-    console.error('Account status check failed:', error);
     return { active: false, reason: 'network_error' };
   }
 };
@@ -560,8 +457,6 @@ export const startAccountStatusMonitoring = (intervalMinutes = 5) => {
 
     const status = await checkAccountStatus();
     if (!status.active) {
-      console.log('🚫 Account status check failed:', status.reason);
-      
       if (status.reason === 'deactivated') {
         // Account was deactivated - force logout with specific message
         const error = new Error(status.message || 'Your account has been deactivated');
