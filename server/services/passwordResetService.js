@@ -113,9 +113,9 @@ export const storeResetToken = async (userId, token) => {
     // Delete any existing reset tokens for this user
     await db.execute('DELETE FROM password_reset_tokens WHERE user_id = ?', [userId]);
     
-    // Insert new reset token
+    // Insert new reset token using UTC_TIMESTAMP for consistency
     await db.execute(
-      'INSERT INTO password_reset_tokens (user_id, token, expires_at, created_at) VALUES (?, ?, ?, NOW())',
+      'INSERT INTO password_reset_tokens (user_id, token, expires_at, created_at) VALUES (?, ?, ?, UTC_TIMESTAMP())',
       [userId, token, expiresAt]
     );
     
@@ -147,8 +147,8 @@ export const sendPasswordResetEmail = async (email, resetUrl, userName) => {
     try {
       await db.execute(
         `INSERT INTO email_notifications (recipient_email, subject, message, type, status, created_at) 
-         VALUES (?, ?, ?, 'password_reset', 'sent', NOW())`,
-        [email, 'Password Reset Request', 'Password reset email sent', 'password_reset']
+         VALUES (?, ?, ?, 'password_reset', 'sent', UTC_TIMESTAMP())`,
+        [email, 'Password Reset Request', 'Password reset email sent']
       );
     } catch (dbError) {
       console.error('Error logging email to database:', dbError.message);
@@ -169,7 +169,7 @@ export const verifyResetToken = async (token) => {
       `SELECT prt.*, u.id as user_id, u.email, u.name, u.role 
        FROM password_reset_tokens prt 
        JOIN users u ON prt.user_id = u.id 
-       WHERE prt.token = ? AND prt.expires_at > NOW() AND prt.used = 0`,
+       WHERE prt.token = ? AND prt.expires_at > UTC_TIMESTAMP() AND prt.used = 0`,
       [token]
     );
     
@@ -188,7 +188,7 @@ export const verifyResetToken = async (token) => {
 export const markTokenAsUsed = async (token) => {
   try {
     await db.execute(
-      'UPDATE password_reset_tokens SET used = 1, used_at = NOW() WHERE token = ?',
+      'UPDATE password_reset_tokens SET used = 1, used_at = UTC_TIMESTAMP() WHERE token = ?',
       [token]
     );
     return { success: true };
@@ -202,7 +202,7 @@ export const markTokenAsUsed = async (token) => {
 export const cleanupExpiredTokens = async () => {
   try {
     const [result] = await db.execute(
-      'DELETE FROM password_reset_tokens WHERE expires_at < NOW() OR used = 1'
+      'DELETE FROM password_reset_tokens WHERE expires_at < UTC_TIMESTAMP() OR used = 1'
     );
     console.log(`🧹 Cleaned up ${result.affectedRows} expired/used reset tokens`);
     return { success: true, deletedCount: result.affectedRows };
