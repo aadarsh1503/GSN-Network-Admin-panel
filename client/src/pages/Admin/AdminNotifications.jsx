@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   FaBell, 
   FaCheck, 
@@ -16,6 +17,7 @@ import toast from 'react-hot-toast';
 import { api } from '../../utils/api';
 
 const AdminNotifications = () => {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -84,6 +86,65 @@ const AdminNotifications = () => {
     setShowDetails(true);
     if (!notification.is_read) {
       markAsRead(notification.id);
+    }
+  };
+
+  const handleNotificationClick = (notification) => {
+    // Mark as read first
+    if (!notification.is_read) {
+      markAsRead(notification.id);
+    }
+
+    // Handle registration notifications with redirect
+    if (notification.type === 'registration') {
+      try {
+        // Get user_role from multiple possible sources
+        let userRole = null;
+        
+        // First, try to get it directly from the notification (from users table join)
+        if (notification.user_role) {
+          userRole = notification.user_role;
+        }
+        // If not found, try to parse from additional_data
+        else if (notification.additional_data) {
+          try {
+            const additionalData = typeof notification.additional_data === 'string' 
+              ? JSON.parse(notification.additional_data) 
+              : notification.additional_data;
+            userRole = additionalData.user_role;
+          } catch (parseError) {
+            console.error('Error parsing additional_data:', parseError);
+          }
+        }
+
+        // Redirect based on user role
+        switch (userRole) {
+          case 'user':
+            navigate('/admin/users');
+            toast.success('Redirected to Regular Users page');
+            return; // Important: return to prevent fallback
+          case 'business':
+            navigate('/admin/business-Owners');
+            toast.success('Redirected to Business Owners page');
+            return; // Important: return to prevent fallback
+          case 'company':
+            navigate('/admin/company-Owners');
+            toast.success('Redirected to Company Owners page');
+            return; // Important: return to prevent fallback
+          default:
+            // If we can't determine the role, show the details modal
+            console.warn('Unknown user role or missing role data:', userRole);
+            handleViewDetails(notification);
+            break;
+        }
+      } catch (error) {
+        console.error('Error handling registration notification:', error);
+        // Fallback to showing details
+        handleViewDetails(notification);
+      }
+    } else {
+      // For non-registration notifications, show details modal
+      handleViewDetails(notification);
     }
   };
 
@@ -370,10 +431,12 @@ const AdminNotifications = () => {
                   {filteredAndSortedNotifications().map((notification) => (
                     <tr
                       key={notification.id}
-                      className={`hover:bg-gray-50 transition-colors cursor-pointer ${
-                        !notification.is_read ? 'bg-[#bca142]' : 'bg-white'
+                      className={`transition-colors cursor-pointer ${
+                        !notification.is_read 
+                          ? 'bg-[#bca142] hover:bg-[#a89138]' // Darker gold on hover for unread
+                          : 'bg-white hover:bg-gray-50' // Light gray on hover for read
                       }`}
-                      onClick={() => handleViewDetails(notification)}
+                      onClick={() => handleNotificationClick(notification)}
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">

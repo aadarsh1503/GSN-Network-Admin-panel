@@ -103,7 +103,7 @@ const RequestQuote = () => {
   const [loadingArrivalStates, setLoadingArrivalStates] = useState(false);
   const [loadingArrivalCities, setLoadingArrivalCities] = useState(false);
 
-  // Check if company member is trying to access quote request
+  // Check if agent is trying to access quote request
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     

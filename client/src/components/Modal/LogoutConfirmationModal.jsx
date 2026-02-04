@@ -77,8 +77,7 @@ const LogoutConfirmationModal = ({
           icon: <FiShield className="w-8 h-8" />,
           title: 'Admin Logout',
           description: 'You are about to logout from the admin panel',
-          gradient: 'from-[#bca142] to-black',
-          glowColor: '[#bca142]/20'
+          gradient: 'from-[#bca142] to-black'
         };
       case 'company':
         return {
@@ -86,8 +85,7 @@ const LogoutConfirmationModal = ({
           icon: <FiZap className="w-8 h-8" />,
           title: 'Member Logout',
           description: 'You are about to logout from the member panel',
-          gradient: 'from-[#bca142] to-black',
-          glowColor: '[#bca142]/20'
+          gradient: 'from-[#bca142] to-black'
         };
       case 'business':
         return {
@@ -95,8 +93,7 @@ const LogoutConfirmationModal = ({
           icon: <FiZap className="w-8 h-8" />,
           title: 'Business Logout',
           description: 'You are about to logout from the business panel',
-          gradient: 'from-[#bca142] to-black',
-          glowColor: '[#bca142]/20'
+          gradient: 'from-[#bca142] to-black'
         };
       default:
         return {
@@ -104,8 +101,7 @@ const LogoutConfirmationModal = ({
           icon: <FiUser className="w-8 h-8" />,
           title: 'User Logout',
           description: 'You are about to logout from your account',
-          gradient: 'from-[#bca142] to-black',
-          glowColor: '[#bca142]/20'
+          gradient: 'from-[#bca142] to-black'
         };
     }
   };
@@ -134,8 +130,7 @@ const LogoutConfirmationModal = ({
           transition={{ type: "spring", duration: 0.5 }}
           className="relative w-full max-w-md mx-auto"
         >
-          {/* Glow effect */}
-          <div className={`absolute inset-0 bg-[#bca142] rounded-3xl blur-xl opacity-20 animate-pulse`} />
+          {/* Glow effect removed */}
           
           {/* Main modal */}
           <div className="relative bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200 overflow-hidden">
@@ -176,9 +171,8 @@ const LogoutConfirmationModal = ({
                 <FiX className="w-5 h-5" />
               </button>
 
-              {/* Icon with glow */}
+              {/* Icon without glow */}
               <div className="relative inline-block mb-6">
-                <div className={`absolute inset-0 bg-[#bca142] rounded-full blur-lg opacity-30 animate-pulse`} />
                 <motion.div
                   initial={{ rotate: 0 }}
                   animate={{ rotate: 360 }}

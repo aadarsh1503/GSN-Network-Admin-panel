@@ -363,15 +363,28 @@ const UserInvoices = () => {
                 {/* Invoice Header */}
                 <div className="flex justify-between items-start mb-6">
                   <div className="flex items-center gap-3">
-                    <img 
-                      src="https://res.cloudinary.com/ds1dt3qub/image/upload/v1767724966/GSN_vebkrv.jpg"
-                      alt="GSN Logo" 
-                      className="w-12 h-12 object-contain"
-                    />
+                    {selectedInvoice.company_logo ? (
+                      <img 
+                        src={selectedInvoice.company_logo}
+                        alt={`${selectedInvoice.company_name} Logo`} 
+                        className="w-32 h-32 object-contain"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 bg-[#bca142] rounded-lg flex items-center justify-center">
+                        <FaUser className="text-white text-xl" />
+                      </div>
+                    )}
                     <div>
                       <h1 className="text-2xl font-bold mb-1" style={{ color: '#bca142', fontSize: '24px', fontWeight: 'bold' }}>TRANSACTION INVOICE</h1>
-                      <p className="font-semibold" style={{ color: '#4B5563', fontSize: '14px', fontWeight: '600' }}>GSN Network Services</p>
-                      <p className="text-xs" style={{ color: '#6B7280', fontSize: '12px' }}>Freight Forwarding & Logistics</p>
+                      <p className="font-semibold" style={{ color: '#4B5563', fontSize: '14px', fontWeight: '600' }}>{selectedInvoice.company_name}</p>
+                      <p className="text-xs" style={{ color: '#6B7280', fontSize: '12px' }}>
+                        {selectedInvoice.company_description || 'Freight Forwarding & Logistics Services'}
+                      </p>
+                      {selectedInvoice.company_website && (
+                        <p className="text-xs" style={{ color: '#6B7280', fontSize: '12px' }}>
+                          {selectedInvoice.company_website}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div className="text-right">
@@ -431,6 +444,7 @@ const UserInvoices = () => {
                       <tr>
                         <th className="p-2 text-left" style={{ border: '1px solid #D1D5DB', padding: '8px', textAlign: 'left', fontWeight: '600', fontSize: '12px', color: 'white' }}>Service Description</th>
                         <th className="p-2 text-center" style={{ border: '1px solid #D1D5DB', padding: '8px', textAlign: 'center', fontWeight: '600', fontSize: '12px', color: 'white' }}>Route</th>
+                        <th className="p-2 text-center" style={{ border: '1px solid #D1D5DB', padding: '8px', textAlign: 'center', fontWeight: '600', fontSize: '12px', color: 'white' }}>Transit Time</th>
                         <th className="p-2 text-right" style={{ border: '1px solid #D1D5DB', padding: '8px', textAlign: 'right', fontWeight: '600', fontSize: '12px', color: 'white' }}>Amount</th>
                       </tr>
                     </thead>
@@ -440,6 +454,15 @@ const UserInvoices = () => {
                           <div>
                             <p className="font-semibold" style={{ fontWeight: '600', fontSize: '12px', marginBottom: '4px' }}>Freight Forwarding Service</p>
                             <p className="text-xs" style={{ color: '#4B5563', fontSize: '11px', marginBottom: '4px' }}>Quote #{selectedInvoice.quote_id} - Shipping Service</p>
+                            {selectedInvoice.product_description && (
+                              <p className="text-xs" style={{ color: '#6B7280', fontSize: '10px', marginBottom: '2px' }}>Product: {selectedInvoice.product_description}</p>
+                            )}
+                            {selectedInvoice.inclusions && (
+                              <p className="text-xs" style={{ color: '#6B7280', fontSize: '10px', marginBottom: '2px' }}>Inclusions: {selectedInvoice.inclusions}</p>
+                            )}
+                            {selectedInvoice.value_added_services && (
+                              <p className="text-xs" style={{ color: '#6B7280', fontSize: '10px', marginBottom: '2px' }}>Value Added: {selectedInvoice.value_added_services}</p>
+                            )}
                             <p className="text-xs" style={{ color: '#6B7280', fontSize: '10px' }}>Payment verified and service approved</p>
                           </div>
                         </td>
@@ -449,8 +472,11 @@ const UserInvoices = () => {
                             'Shipping Route'
                           }
                         </td>
+                        <td className="p-2 text-center text-xs" style={{ border: '1px solid #D1D5DB', padding: '8px', textAlign: 'center', fontSize: '11px', verticalAlign: 'top' }}>
+                          {selectedInvoice.transit_time || 'As per agreement'}
+                        </td>
                         <td className="p-2 text-right font-semibold" style={{ border: '1px solid #D1D5DB', padding: '8px', textAlign: 'right', fontWeight: '600', fontSize: '12px', verticalAlign: 'top' }}>
-                          {formatCurrency(selectedInvoice.amount)}
+                          {formatCurrency(selectedInvoice.quote_price || selectedInvoice.amount)}
                         </td>
                       </tr>
                     </tbody>
@@ -460,20 +486,27 @@ const UserInvoices = () => {
                 {/* Invoice Summary */}
                 <div className="flex justify-end mb-6">
                   <div className="w-48">
-                    <div className="flex justify-between py-1" style={{ borderBottom: '1px solid #D1D5DB', paddingTop: '4px', paddingBottom: '4px', fontSize: '12px' }}>
-                      <span>Subtotal:</span>
-                      <span>{formatCurrency(selectedInvoice.amount)}</span>
-                    </div>
-                    <div className="flex justify-between py-1" style={{ borderBottom: '1px solid #D1D5DB', paddingTop: '4px', paddingBottom: '4px', fontSize: '12px' }}>
-                      <span>Service Fee:</span>
-                      <span>{formatCurrency(selectedInvoice.service_fee || 0)}</span>
-                    </div>
                     <div className="flex justify-between py-1 font-bold" style={{ borderBottom: '2px solid #1F2937', paddingTop: '4px', paddingBottom: '4px', fontWeight: 'bold', fontSize: '14px' }}>
-                      <span>Total:</span>
-                      <span>{formatCurrency(selectedInvoice.total_amount)}</span>
+                      <span>Total Amount:</span>
+                      <span>{formatCurrency(selectedInvoice.quote_price || selectedInvoice.amount)}</span>
                     </div>
                   </div>
                 </div>
+
+                {/* Terms and Notes */}
+                {(selectedInvoice.terms || selectedInvoice.quote_notes) && (
+                  <div className="p-3 rounded-lg mb-4" style={{ backgroundColor: '#F9FAFB', padding: '12px', borderRadius: '6px', border: '1px solid #E5E7EB' }}>
+                    <h4 className="font-semibold mb-2" style={{ fontWeight: '600', marginBottom: '6px', fontSize: '12px', color: '#374151' }}>Terms & Conditions</h4>
+                    <div className="text-xs" style={{ color: '#4B5563', fontSize: '11px', lineHeight: '1.5' }}>
+                      {selectedInvoice.terms && (
+                        <p style={{ marginBottom: '4px' }}><strong>Terms:</strong> {selectedInvoice.terms}</p>
+                      )}
+                      {selectedInvoice.quote_notes && (
+                        <p style={{ margin: '0' }}><strong>Notes:</strong> {selectedInvoice.quote_notes}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Payment Information */}
                 <div className="p-3 rounded-lg mb-4" style={{ backgroundColor: '#bca142', padding: '12px', borderRadius: '6px', border: '1px solid #bca142' }}>
@@ -487,7 +520,7 @@ const UserInvoices = () => {
 
                 {/* Footer */}
                 <div className="mt-4 pt-3 text-center text-xs" style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #D1D5DB', textAlign: 'center', fontSize: '11px', color: '#6B7280' }}>
-                  <p style={{ marginBottom: '2px' }}>Thank you for choosing GSN Network!</p>
+                  <p style={{ marginBottom: '2px' }}>Thank you for choosing {selectedInvoice.company_name}!</p>
                   <p style={{ margin: '0' }}>Your freight forwarding service will begin as scheduled.</p>
                 </div>
               </div>

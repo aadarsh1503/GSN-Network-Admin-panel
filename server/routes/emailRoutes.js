@@ -3,7 +3,8 @@ import {
     sendBulkEmails,
     getEmailStats,
     getEmailLogs,
-    getEmailCampaigns
+    getEmailCampaigns,
+    getCampaignRecipients
 } from '../controllers/emailController.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
 
@@ -31,5 +32,10 @@ router.get('/email-logs', getEmailLogs);
 // @desc    Get email campaign history with filters
 // @access  Private/Admin
 router.get('/email-campaigns', getEmailCampaigns);
+
+// @route   GET /api/admin/email-campaigns/:id/recipients
+// @desc    Get recipients for a specific email campaign
+// @access  Private/Admin
+router.get('/email-campaigns/:id/recipients', getCampaignRecipients);
 
 export default router;

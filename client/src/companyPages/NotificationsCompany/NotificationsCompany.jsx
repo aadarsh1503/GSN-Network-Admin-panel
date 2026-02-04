@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaSort, FaTimes } from 'react-icons/fa';
 import { FiClock } from 'react-icons/fi'; 
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../../contexts/NotificationContext';
 
 const NotificationsCompany = () => {
@@ -11,6 +12,7 @@ const NotificationsCompany = () => {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(null); // State for image modal
   const { markAsRead, fetchUnreadCount } = useNotifications();
+  const navigate = useNavigate();
 
   // 1. Fetch Data from Backend
   useEffect(() => {
@@ -31,8 +33,14 @@ const NotificationsCompany = () => {
           return;
         }
 
-        const response = await axios.get('/api/notifications/my-notifications', {
-            headers: { Authorization: `Bearer ${token}` }
+        // Add cache-busting parameter to ensure fresh data
+        const cacheBuster = Date.now();
+        const response = await axios.get(`/api/notifications/my-notifications?t=${cacheBuster}`, {
+            headers: { 
+              Authorization: `Bearer ${token}`,
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache'
+            }
         });
         
         console.log('🔍 DEBUG: Full API response:', response.data);
@@ -92,6 +100,11 @@ const NotificationsCompany = () => {
     };
 
     fetchNotifications();
+    
+    // Set up auto-refresh every 30 seconds to get new notifications
+    const refreshInterval = setInterval(fetchNotifications, 30000);
+    
+    return () => clearInterval(refreshInterval);
   }, [fetchUnreadCount]); // Remove markAsRead from dependencies since we're not using it
 
   // 2. Format Date helper
@@ -158,6 +171,17 @@ const NotificationsCompany = () => {
         </div>
       </div>
     );
+  };
+
+  // Handle notification click for redirection
+  const handleNotificationClick = (notification) => {
+    if (notification.redirect_url) {
+      // If notification has a redirect URL, navigate to it
+      navigate(notification.redirect_url);
+    } else if (notification.type === 'payment_proof') {
+      // For payment proof notifications, redirect to PaymentManagement
+      navigate('/company/payment-management');
+    }
   };
 
   // Handle image click
@@ -250,7 +274,14 @@ const NotificationsCompany = () => {
                   }
                   
                   return (
-                    <tr key={item.id} className="border-b border-gray-200 last:border-b-0 hover:bg-gray-50">
+                    <tr 
+                      key={item.id} 
+                      className={`border-b border-gray-200 last:border-b-0 hover:bg-gray-50 transition-colors ${
+                        item.type === 'payment_proof' ? 'cursor-pointer hover:bg-[#bca142]/10' : ''
+                      }`}
+                      onClick={() => item.type === 'payment_proof' ? handleNotificationClick(item) : null}
+                      title={item.type === 'payment_proof' ? 'Click to view Payment Management' : ''}
+                    >
                         <td className="p-3 text-sm text-gray-700 align-top">{index + 1}</td>
                         <td className="p-3 align-top">
                         {item.image ? (
@@ -259,12 +290,18 @@ const NotificationsCompany = () => {
                                   src={item.image} 
                                   alt={item.title || 'Notification'} 
                                   className="h-16 w-24 object-contain border p-1 rounded-md bg-white cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 transform" 
-                                  onClick={() => handleImageClick(item.image, item.title)}
+                                  onClick={(e) => {
+                                    e.stopPropagation(); // Prevent row click when clicking image
+                                    handleImageClick(item.image, item.title);
+                                  }}
                                   title="Click to view larger image"
                               />
                               {/* Hover overlay with zoom icon */}
                               <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-md cursor-pointer"
-                                   onClick={() => handleImageClick(item.image, item.title)}>
+                                   onClick={(e) => {
+                                     e.stopPropagation(); // Prevent row click when clicking overlay
+                                     handleImageClick(item.image, item.title);
+                                   }}>
                                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
                                 </svg>
@@ -274,14 +311,32 @@ const NotificationsCompany = () => {
                             <span className="text-gray-400 text-xs">No Image</span>
                         )}
                         </td>
-                        <td className="p-3 text-sm text-gray-700 align-top">{item.title || 'No Title'}</td>
+                        <td className="p-3 text-sm text-gray-700 align-top">
+                          <div className="flex items-center gap-2">
+                            {item.type === 'payment_proof' && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#bca142] text-white">
+                                 Payment Proof
+                              </span>
+                            )}
+                            {/* <span>{item.title || 'No Title'}</span> */}
+                          </div>
+                        </td>
                         <td className="p-3 text-sm text-gray-700 align-top whitespace-nowrap">
                         <div className="flex items-center gap-2">
                             <FiClock />
                             <span>{item.created_at ? formatDate(item.created_at) : 'No Date'}</span>
                         </div>
                         </td>
-                        <td className="p-3 text-sm text-gray-700 align-top">{item.message || 'No Message'}</td>
+                        <td className="p-3 text-sm text-gray-700 align-top">
+                          <div className="flex items-center gap-2">
+                            <span>{item.message || 'No Message'}</span>
+                            {item.type === 'payment_proof' && (
+                              <span className="text-xs text-[#bca142] font-medium">
+                                (Click to review)
+                              </span>
+                            )}
+                          </div>
+                        </td>
                     </tr>
                   );
                 })

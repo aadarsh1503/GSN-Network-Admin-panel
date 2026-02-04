@@ -319,6 +319,51 @@ router.post('/upload-payment-proof', authenticateToken, authorizeRoles('user', '
                         day: 'numeric'
                     });
 
+                    // 🔔 CREATE NOTIFICATION FOR COMPANY - New Payment Proof Uploaded
+                    try {
+                        const notificationTitle = `New Payment Proof Uploaded - Quote #${quote_id}`;
+                        const notificationMessage = `${userDetails[0].name} has uploaded payment proof for Quote #${quote_id} (Amount: $${quoteResponseDetails[0].price}). Please review and verify the payment in your Payment Management section.
+
+📋 Details:
+👤 Customer: ${userDetails[0].name} (${userDetails[0].email})
+💰 Amount: $${quoteResponseDetails[0].price}
+📅 Payment Date: ${paymentDate}
+📤 Upload Date: ${currentDate}
+${payment_notes ? `📝 Notes: ${payment_notes}` : ''}
+
+⚡ Action Required: Please verify this payment proof to proceed with the quote.`;
+
+                        // Create notification for the specific company
+                        await db.execute(
+                            `INSERT INTO notifications (type, title, message, target_role, target_audience, image, redirect_url, created_at)
+                             VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
+                            [
+                                'payment_proof',
+                                notificationTitle,
+                                notificationMessage,
+                                'user_specific',
+                                'companies',
+                                uploadResult.secure_url, // Use the payment proof image as notification image
+                                '/company/payment-management', // Redirect to PaymentManagement page
+                            ]
+                        );
+
+                        // Get the notification ID
+                        const [notificationResult] = await db.execute('SELECT LAST_INSERT_ID() as id');
+                        const notificationId = notificationResult[0].id;
+
+                        // Create user-specific notification entry for the company
+                        await db.execute(
+                            `INSERT INTO user_notifications (user_id, notification_id, is_read, read_at)
+                             VALUES (?, ?, 0, NULL)`,
+                            [company_id, notificationId]
+                        );
+
+                        console.log(`✅ Payment proof notification created for company ${company_id} (Quote #${quote_id})`);
+                    } catch (notificationError) {
+                        console.error('❌ Failed to create payment proof notification:', notificationError);
+                    }
+
                     // Send email to company
                     try {
                         await sendQuoteEmail('paymentProofToCompany', {

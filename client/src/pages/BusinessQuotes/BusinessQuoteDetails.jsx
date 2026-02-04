@@ -44,6 +44,364 @@ import PaymentUpload from '../../components/PaymentUpload/PaymentUpload';
 import CompanyProfileModal from '../../components/CompanyProfileModal/CompanyProfileModal';
 import { useQuoteStatusSync } from '../../hooks/useQuoteStatusSync';
 
+// Business Compact Response Row Component
+const BusinessCompactResponseRow = ({ 
+  response, 
+  quote, 
+  onAccept, 
+  onReject, 
+  onViewCompany, 
+  onUploadPayment, 
+  onMessageCompany,
+  actionLoading, 
+  hasAcceptedResponse, 
+  formatDate,
+  getPaymentStatusBadge
+}) => {
+  const [showDetails, setShowDetails] = useState(false);
+
+  const getStatusBadge = () => {
+    if (response.user_response_status === 'accepted') {
+      if (response.payment_status === 'verified') {
+        return <span className="px-2 py-1 bg-green-500 text-white text-xs rounded-full">✅ Approved</span>;
+      }
+      if (response.payment_status === 'rejected') {
+        return <span className="px-2 py-1 bg-red-500 text-white text-xs rounded-full">❌ Rejected</span>;
+      }
+      if (response.payment_status === 'pending') {
+        return <span className="px-2 py-1 bg-orange-500 text-white text-xs rounded-full">⏳ Pending</span>;
+      }
+      return <span className="px-2 py-1 bg-blue-500 text-white text-xs rounded-full">✅ Accepted</span>;
+    }
+    if (response.user_response_status === 'rejected') {
+      return <span className="px-2 py-1 bg-gray-500 text-white text-xs rounded-full">❌ Rejected</span>;
+    }
+    return <span className="px-2 py-1 bg-gray-300 text-gray-700 text-xs rounded-full">⏳ Pending</span>;
+  };
+
+  return (
+    <div className={`border rounded-xl p-4 transition-all duration-300 ${
+      response.user_response_status === 'accepted' 
+        ? 'border-[#bca142] bg-gradient-to-r from-green-50 to-yellow-50 shadow-lg ring-2 ring-[#bca142] ring-opacity-50' 
+        : response.user_response_status === 'rejected'
+        ? 'border-red-300 bg-red-50'
+        : 'border-gray-200 bg-white hover:border-[#bca142]'
+    }`}>
+      {/* Compact Row */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4 flex-1">
+          {/* Company Info */}
+          <div className="flex items-center space-x-3">
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center relative ${
+              response.user_response_status === 'accepted' 
+                ? 'bg-gradient-to-br from-[#bca142] to-yellow-500 shadow-lg' 
+                : 'bg-[#bca142]'
+            }`}>
+              <FaBuilding className="text-white h-5 w-5" />
+              {response.user_response_status === 'accepted' && (
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                  <CheckCircle className="h-2.5 w-2.5 text-white" />
+                </div>
+              )}
+            </div>
+            <div>
+              <div className="flex items-center space-x-2">
+                <h4 className="font-semibold text-gray-900">{response.company_name}</h4>
+                {response.user_response_status === 'accepted' && (
+                  <span className="px-2 py-1 bg-[#bca142] text-white text-xs font-bold rounded-full animate-pulse">
+                    🏆 APPROVED COMPANY
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-gray-600">{response.company_email}</p>
+            </div>
+          </div>
+
+          {/* Key Metrics in Row */}
+          <div className="flex items-center space-x-6 text-sm">
+            <div className="flex items-center space-x-1">
+              <FaDollarSign className="h-4 w-4 text-[#bca142]" />
+              <span className="font-semibold">${response.price}</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <Clock className="h-4 w-4 text-[#bca142]" />
+              <span>{response.transit_time}</span>
+            </div>
+            {response.valid_until && (
+              <div className="flex items-center space-x-1">
+                <Calendar className="h-4 w-4 text-[#bca142]" />
+                <span>Valid: {formatDate(response.valid_until)}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Status Badge */}
+          <div className="flex items-center space-x-2">
+            {getStatusBadge()}
+            {getPaymentStatusBadge(response) && (
+              <div className="ml-2">
+                {getPaymentStatusBadge(response)}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setShowDetails(!showDetails)}
+            className="flex items-center space-x-1 px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm"
+          >
+            <FaEye className="h-3 w-3" />
+            <span>{showDetails ? 'Hide' : 'View'} Details</span>
+          </button>
+          
+          <button
+            onClick={onViewCompany}
+            className="flex items-center space-x-1 px-3 py-1 bg-[#bca142] hover:bg-black text-white rounded-lg transition-colors text-sm"
+          >
+            <FaBuilding className="h-3 w-3" />
+            <span>Company</span>
+          </button>
+
+          <button
+            onClick={onMessageCompany}
+            className="flex items-center space-x-1 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm"
+          >
+            <FaComments className="h-3 w-3" />
+            <span>Message</span>
+          </button>
+
+          {/* Quick Action Buttons */}
+          {response.user_response_status === 'accepted' ? (
+            <div className="flex items-center space-x-2">
+              <span className="px-3 py-1 bg-green-500 text-white text-sm font-bold rounded-lg flex items-center space-x-1">
+                <CheckCircle className="h-3 w-3" />
+                <span>SELECTED</span>
+              </span>
+            </div>
+          ) : !hasAcceptedResponse && !response.user_response_status && (
+            <>
+              {(Boolean(response.payment_proof_uploaded) || (!response.bank_name && !response.account_number)) ? (
+                <>
+                  <button
+                    onClick={onAccept}
+                    disabled={actionLoading === response.id}
+                    className="flex items-center space-x-1 px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors text-sm disabled:opacity-50"
+                  >
+                    <CheckCircle className="h-3 w-3" />
+                    <span>Accept</span>
+                  </button>
+                  <button
+                    onClick={onReject}
+                    disabled={actionLoading === response.id}
+                    className="flex items-center space-x-1 px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors text-sm disabled:opacity-50"
+                  >
+                    <XCircle className="h-3 w-3" />
+                    <span>Reject</span>
+                  </button>
+                </>
+              ) : (response.bank_name || response.account_number) && (
+                <button
+                  onClick={onUploadPayment}
+                  className="flex items-center space-x-1 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm"
+                >
+                  <Upload className="h-3 w-3" />
+                  <span>Pay</span>
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Expandable Details */}
+      {showDetails && (
+        <div className="mt-4 pt-4 border-t border-gray-200 space-y-4">
+          {/* Detailed Information */}
+          {(response.inclusions || response.value_added_services || response.terms || response.notes) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {response.inclusions && (
+                <div className="bg-white rounded-lg p-3 border border-gray-200">
+                  <h5 className="font-semibold text-gray-800 mb-2 flex items-center space-x-1">
+                    <CheckCircle className="h-4 w-4 text-[#bca142]" />
+                    <span>Inclusions</span>
+                  </h5>
+                  <p className="text-gray-700 text-sm">{response.inclusions}</p>
+                </div>
+              )}
+              
+              {response.value_added_services && (
+                <div className="bg-white rounded-lg p-3 border border-gray-200">
+                  <h5 className="font-semibold text-gray-800 mb-2 flex items-center space-x-1">
+                    <Star className="h-4 w-4 text-[#bca142]" />
+                    <span>Value Added Services</span>
+                  </h5>
+                  <p className="text-gray-700 text-sm">{response.value_added_services}</p>
+                </div>
+              )}
+              
+              {response.terms && (
+                <div className="bg-white rounded-lg p-3 border border-gray-200">
+                  <h5 className="font-semibold text-gray-800 mb-2 flex items-center space-x-1">
+                    <Shield className="h-4 w-4 text-[#bca142]" />
+                    <span>Terms & Conditions</span>
+                  </h5>
+                  <p className="text-gray-700 text-sm">{response.terms}</p>
+                </div>
+              )}
+              
+              {response.notes && (
+                <div className="bg-white rounded-lg p-3 border border-gray-200">
+                  <h5 className="font-semibold text-gray-800 mb-2 flex items-center space-x-1">
+                    <Award className="h-4 w-4 text-[#bca142]" />
+                    <span>Additional Notes</span>
+                  </h5>
+                  <p className="text-gray-700 text-sm">{response.notes}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Bank Details */}
+          {(response.bank_name || response.account_number) && (
+            <div className="bg-white rounded-lg p-4 border border-[#bca142]">
+              <h5 className="font-semibold text-gray-800 mb-3 flex items-center space-x-1">
+                <FaUniversity className="h-4 w-4 text-[#bca142]" />
+                <span>Payment Bank Details</span>
+              </h5>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {response.bank_name && (
+                  <div>
+                    <span className="text-gray-600 text-xs">Bank Name:</span>
+                    <p className="text-gray-800 font-semibold text-sm">{response.bank_name}</p>
+                  </div>
+                )}
+                {response.account_holder_name && (
+                  <div>
+                    <span className="text-gray-600 text-xs">Account Holder:</span>
+                    <p className="text-gray-800 font-semibold text-sm">{response.account_holder_name}</p>
+                  </div>
+                )}
+                {response.account_number && (
+                  <div>
+                    <span className="text-gray-600 text-xs">Account Number:</span>
+                    <p className="text-gray-800 font-semibold text-sm">{response.account_number}</p>
+                  </div>
+                )}
+                {response.swift_code && (
+                  <div>
+                    <span className="text-gray-600 text-xs">SWIFT Code:</span>
+                    <p className="text-gray-800 font-semibold text-sm">{response.swift_code}</p>
+                  </div>
+                )}
+                {response.ifsc_code && (
+                  <div>
+                    <span className="text-gray-600 text-xs">IFSC Code:</span>
+                    <p className="text-gray-800 font-semibold text-sm">{response.ifsc_code}</p>
+                  </div>
+                )}
+                {response.branch_name && (
+                  <div>
+                    <span className="text-gray-600 text-xs">Branch:</span>
+                    <p className="text-gray-800 font-semibold text-sm">{response.branch_name}</p>
+                  </div>
+                )}
+              </div>
+              {response.bank_instructions && (
+                <div className="mt-3 p-2 bg-gray-50 rounded border">
+                  <span className="text-gray-600 text-xs">Instructions:</span>
+                  <p className="text-gray-800 text-sm mt-1">{response.bank_instructions}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Payment Status Details */}
+          {(response.user_response_status === 'accepted' || response.payment_status === 'rejected') && (
+            <div className="space-y-3">
+              {response.payment_status === 'verified' && (
+                <div className="bg-green-100 border border-green-300 rounded-lg p-3">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span className="font-semibold text-green-800">Payment Verified ✅</span>
+                  </div>
+                  <p className="text-green-700 text-sm mt-1">Payment has been verified. Work will begin as scheduled.</p>
+                </div>
+              )}
+              
+              {response.payment_status === 'pending' && (
+                <div className="bg-orange-100 border border-orange-300 rounded-lg p-3">
+                  <div className="flex items-center space-x-2">
+                    <FaCreditCard className="h-4 w-4 text-orange-600" />
+                    <span className="font-semibold text-orange-800">Payment Verification Pending</span>
+                  </div>
+                  <p className="text-orange-700 text-sm mt-1">Payment proof is being verified by the company.</p>
+                </div>
+              )}
+              
+              {response.payment_status === 'rejected' && (
+                <div className="bg-red-100 border border-red-300 rounded-lg p-3">
+                  <div className="flex items-center space-x-2">
+                    <XCircle className="h-4 w-4 text-red-600" />
+                    <span className="font-semibold text-red-800">Payment Verification Failed</span>
+                  </div>
+                  <p className="text-red-700 text-sm mt-1">Please contact the company or upload a clearer payment proof.</p>
+                  {response.payment_company_notes && (
+                    <p className="text-red-600 text-xs mt-1">Note: {response.payment_company_notes}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Action Buttons in Details */}
+          {!hasAcceptedResponse && !response.user_response_status && (
+            <div className="flex flex-col sm:flex-row gap-3 pt-3 border-t border-gray-200">
+              {!Boolean(response.payment_proof_uploaded) && (response.bank_name || response.account_number) && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between">
+                  <div>
+                    <h6 className="font-semibold text-blue-800 text-sm">Payment Required First</h6>
+                    <p className="text-blue-700 text-xs">Make payment and upload proof before accepting.</p>
+                  </div>
+                  <button
+                    onClick={onUploadPayment}
+                    className="flex items-center space-x-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                  >
+                    <Upload className="h-3 w-3" />
+                    <span>Upload Payment</span>
+                  </button>
+                </div>
+              )}
+
+              {Boolean(response.payment_proof_uploaded) && (
+                <div className="flex space-x-3">
+                  <button
+                    onClick={onAccept}
+                    disabled={actionLoading === response.id}
+                    className="flex-1 flex items-center justify-center space-x-2 bg-[#bca142] hover:bg-black text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    <CheckCircle className="h-4 w-4" />
+                    <span>Accept Quote</span>
+                  </button>
+                  <button
+                    onClick={onReject}
+                    disabled={actionLoading === response.id}
+                    className="flex-1 flex items-center justify-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    <XCircle className="h-4 w-4" />
+                    <span>Reject Quote</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const BusinessQuoteDetails = () => {
   const { quoteId } = useParams();
   const navigate = useNavigate();
@@ -306,18 +664,77 @@ const BusinessQuoteDetails = () => {
                   The company will begin working on your shipment as scheduled.
                 </p>
                 {(() => {
-                  const acceptedResponse = responses.find(r => r.user_response_status === 'accepted');
+                  // Try multiple fallback strategies to find the approved company
+                  let acceptedResponse = null;
+                  
+                  // Strategy 1: Look for accepted response with verified payment (most accurate)
+                  acceptedResponse = responses.find(r => r.user_response_status === 'accepted' && r.payment_status === 'verified');
+                  
+                  // Strategy 2: Look for any accepted response (for older data)
+                  if (!acceptedResponse) {
+                    acceptedResponse = responses.find(r => r.user_response_status === 'accepted');
+                  }
+                  
+                  // Strategy 3: Look for any response with verified payment
+                  if (!acceptedResponse) {
+                    acceptedResponse = responses.find(r => r.payment_status === 'verified');
+                  }
+                  
+                  // Strategy 4: Look for any response with payment proof uploaded (fallback for old data)
+                  if (!acceptedResponse) {
+                    acceptedResponse = responses.find(r => r.payment_proof_uploaded);
+                  }
+                  
+                  // Strategy 5: If quote is approved but no specific response found, show first response with company info
+                  if (!acceptedResponse && responses.length > 0) {
+                    acceptedResponse = responses.find(r => r.company_name && r.company_email);
+                  }
+                  
                   return acceptedResponse ? (
-                    <div className="bg-white/20 rounded-lg p-3 border border-white/20">
+                    <div className="bg-white/20 rounded-lg p-4 border border-white/20">
                       <div className="flex items-center space-x-3">
-                        <FaBuilding className="h-4 w-4 text-white" />
+                        <FaBuilding className="h-5 w-5 text-white" />
                         <div>
-                          <p className="text-white font-semibold">{acceptedResponse.company_name}</p>
+                          <p className="text-white font-semibold text-lg">{acceptedResponse.company_name}</p>
                           <p className="text-white text-sm">{acceptedResponse.company_email}</p>
+                          {acceptedResponse.company_phone && (
+                            <p className="text-white text-sm flex items-center space-x-1 mt-1">
+                              <FaPhone className="h-3 w-3" />
+                              <span>{acceptedResponse.company_phone}</span>
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="mt-3 text-sm text-white">
+                        {acceptedResponse.payment_status === 'verified' ? (
+                          <p className="font-medium">✅ Payment verified and approved by this company</p>
+                        ) : acceptedResponse.user_response_status === 'accepted' ? (
+                          <p className="font-medium">✅ Quote accepted by this company</p>
+                        ) : (
+                          <p className="font-medium">✅ This company is handling your approved quote</p>
+                        )}
+                        {acceptedResponse.verification_date && (
+                          <p className="text-xs text-white/80 mt-1">
+                            Verified on: {new Date(acceptedResponse.verification_date).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-white/20 rounded-lg p-4 border border-white/20">
+                      <div className="flex items-center space-x-3">
+                        <FaBuilding className="h-5 w-5 text-white" />
+                        <div>
+                          <p className="text-white font-semibold text-lg">Approved Company</p>
+                          <p className="text-white text-sm">Your quote has been approved and is being processed</p>
                         </div>
                       </div>
                     </div>
-                  ) : null;
+                  );
                 })()}
               </div>
               <div className="text-white text-sm font-medium bg-white/20 px-3 py-1 rounded-lg">
@@ -544,6 +961,162 @@ const BusinessQuoteDetails = () => {
           </div>
         </div>
 
+        {/* Company Responses - Compact Row Format */}
+        {Array.isArray(responses) && responses.length > 0 ? (
+          <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-white/20">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-[#bca142] rounded-2xl">
+                  <FaRocket className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-black">Company Responses</h2>
+                  <div className="flex items-center space-x-4">
+                    <p className="text-gray-600">Review and manage incoming proposals</p>
+                    {(() => {
+                      // Use the same fallback logic to find approved company
+                      let approvedCompany = null;
+                      
+                      // Strategy 1: Look for accepted response with verified payment (most accurate)
+                      approvedCompany = responses.find(r => r.user_response_status === 'accepted' && r.payment_status === 'verified');
+                      
+                      // Strategy 2: Look for any accepted response (for older data)
+                      if (!approvedCompany) {
+                        approvedCompany = responses.find(r => r.user_response_status === 'accepted');
+                      }
+                      
+                      // Strategy 3: Look for any response with verified payment
+                      if (!approvedCompany) {
+                        approvedCompany = responses.find(r => r.payment_status === 'verified');
+                      }
+                      
+                      // Strategy 4: Look for any response with payment proof uploaded (fallback for old data)
+                      if (!approvedCompany) {
+                        approvedCompany = responses.find(r => r.payment_proof_uploaded);
+                      }
+                      
+                      // Strategy 5: If quote is approved but no specific response found, show first response with company info
+                      if (!approvedCompany && responses.length > 0 && quote && quote.status === 'approved') {
+                        approvedCompany = responses.find(r => r.company_name && r.company_email);
+                      }
+                      
+                      return approvedCompany && (
+                        <p className="text-sm text-[#bca142] font-bold flex items-center space-x-1 bg-[#bca142] bg-opacity-10 px-3 py-1 rounded-full">
+                          <span>🏆</span>
+                          <span>Approved: {approvedCompany.company_name}</span>
+                        </p>
+                      );
+                    })()}
+                  </div>
+                </div>
+              </div>
+              <div className="text-sm text-gray-600 font-medium">
+                {responses.length} Response{responses.length !== 1 ? 's' : ''}
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              {(() => {
+                // Filter responses based on quote status
+                let filteredResponses = Array.isArray(responses) ? responses : [];
+                
+                // If quote is approved, show only the company that accepted the payment
+                if (quote && quote.status === 'approved') {
+                  filteredResponses = responses.filter(response => {
+                    const isAccepted = response.user_response_status === 'accepted';
+                    const hasVerifiedPayment = response.payment_status === 'verified';
+                    const hasVerifiedPaymentStatus = response.payment_verification_status === 'verified';
+                    const hasPaymentProof = response.payment_proof_uploaded;
+                    
+                    return isAccepted || hasVerifiedPayment || hasVerifiedPaymentStatus || hasPaymentProof;
+                  });
+                  
+                  if (filteredResponses.length === 0) {
+                    filteredResponses = responses.filter(response => 
+                      response.payment_proof_uploaded || response.user_response_status
+                    );
+                  }
+                }
+                
+                if (!filteredResponses || filteredResponses.length === 0) {
+                  return null;
+                }
+                
+                // Sort responses to put approved company first
+                const sortedResponses = filteredResponses.sort((a, b) => {
+                  if (a.user_response_status === 'accepted' && b.user_response_status !== 'accepted') return -1;
+                  if (b.user_response_status === 'accepted' && a.user_response_status !== 'accepted') return 1;
+                  return 0;
+                });
+                
+                return sortedResponses.map((response, index) => (
+                  <BusinessCompactResponseRow 
+                    key={response.id} 
+                    response={response} 
+                    quote={quote}
+                    onAccept={() => handleAcceptResponse(response.id, response.company_id)}
+                    onReject={() => handleRejectResponse(response.id, response.company_id)}
+                    onViewCompany={() => {
+                      setSelectedCompanyId(response.company_id);
+                      setShowCompanyProfileModal(true);
+                    }}
+                    onUploadPayment={() => {
+                      setSelectedResponseForPayment({
+                        ...response,
+                        quote_id: quote.id,
+                        amount: response.price,
+                        company_name: response.company_name,
+                        bank_details: {
+                          bank_name: response.bank_name,
+                          account_holder_name: response.account_holder_name,
+                          account_number: response.account_number,
+                          routing_number: response.routing_number,
+                          swift_code: response.swift_code,
+                          ifsc_code: response.ifsc_code,
+                          branch_name: response.branch_name,
+                          branch_address: response.branch_address,
+                          instructions: response.bank_instructions
+                        }
+                      });
+                      setShowPaymentModal(true);
+                    }}
+                    onMessageCompany={() => handleMessageCompany(response.company_id, response.company_name)}
+                    actionLoading={actionLoading}
+                    hasAcceptedResponse={hasAcceptedResponse}
+                    formatDate={formatDate}
+                    getPaymentStatusBadge={getPaymentStatusBadge}
+                  />
+                ));
+              })()}
+            </div>
+          </div>
+        ) : (
+          <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-white/20">
+            <div className="flex items-center space-x-4 mb-6">
+              <div className="p-3 bg-[#bca142] rounded-2xl">
+                <FaRocket className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-black">Company Responses</h2>
+                <p className="text-gray-600">Review and manage incoming proposals</p>
+              </div>
+            </div>
+            <div className="text-center py-12">
+              <div className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-full p-8 w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+                <FaShippingFast className="text-slate-400 h-12 w-12" />
+              </div>
+              <h3 className="text-xl font-semibold text-slate-800 mb-4">Awaiting Company Responses</h3>
+              <p className="text-slate-600 max-w-md mx-auto">
+                Companies are reviewing your quote request. You'll receive notifications as responses arrive.
+              </p>
+              <div className="flex items-center justify-center space-x-2 mt-4">
+                <div className="w-2 h-2 bg-[#bca142] rounded-full animate-pulse"></div>
+                <span className="text-[#bca142] font-medium text-sm">Live Updates Active</span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Quote Details Card */}
         <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-white/20">
           <div className="flex items-center space-x-3 mb-6">
@@ -630,563 +1203,6 @@ const BusinessQuoteDetails = () => {
               <p className="text-slate-700 leading-relaxed">{quote.notes}</p>
             </div>
           )}
-        </div>
-
-        {/* Quote Responses Section */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/20 overflow-hidden">
-          <div className="bg-[#bca142] p-8">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="p-3 bg-white rounded-2xl">
-                  <FaRocket className="h-6 w-6 text-[#bca142]" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-white">
-                    {quote && quote.status === 'approved' ? 'Selected Company' : 'Quote Responses'}
-                  </h2>
-                  <p className="text-white">
-                    {quote && quote.status === 'approved' 
-                      ? 'Company that accepted your payment and will handle your shipment' 
-                      : 'Review and manage incoming proposals'
-                    }
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-4">
-                {quote && quote.status === 'approved' ? (
-                  <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-2xl border border-white/20">
-                    <span className="text-white font-semibold">Approved Company</span>
-                  </div>
-                ) : (
-                  <>
-                    <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-2xl border border-white/20">
-                      <span className="text-white font-semibold">{responses.length} Total</span>
-                    </div>
-                    {responses.filter(r => r.user_response_status === 'accepted').length > 0 && (
-                      <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-2xl border border-white/20">
-                        <span className="text-white font-semibold">
-                          {responses.filter(r => r.user_response_status === 'accepted').length} Accepted
-                        </span>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="p-8">
-            {Array.isArray(responses) && responses.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-full p-8 w-32 h-32 mx-auto mb-6 flex items-center justify-center">
-                  <FaShippingFast className="text-slate-400 h-16 w-16" />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-800 mb-4">Awaiting Responses</h3>
-                <p className="text-slate-600 text-lg max-w-md mx-auto">
-                  Companies are reviewing your quote request. You'll receive notifications as responses come in.
-                </p>
-                <div className="flex items-center justify-center space-x-2 mt-6">
-                  <div className="w-2 h-2 bg-[#bca142] rounded-full animate-pulse"></div>
-                  <span className="text-[#bca142] font-medium">Live Updates Active</span>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-8">
-                {(() => {
-                  // Filter responses based on quote status
-                  let filteredResponses = Array.isArray(responses) ? responses : [];
-                  
-                  // If quote is approved, show only the company that accepted the payment
-                  if (quote && quote.status === 'approved') {
-                    // For approved quotes, show companies that:
-                    // 1. Have been accepted by user (user_response_status === 'accepted')
-                    // 2. OR have verified payment (payment_status === 'verified')
-                    // 3. OR have payment verification status (payment_verification_status === 'verified')
-                    filteredResponses = responses.filter(response => {
-                      const isAccepted = response.user_response_status === 'accepted';
-                      const hasVerifiedPayment = response.payment_status === 'verified';
-                      const hasVerifiedPaymentStatus = response.payment_verification_status === 'verified';
-                      const hasPaymentProof = response.payment_proof_uploaded;
-                      
-                      // For approved quotes, prioritize companies with verified payments or accepted status
-                      return isAccepted || hasVerifiedPayment || hasVerifiedPaymentStatus || hasPaymentProof;
-                    });
-                    
-                    // If still no results, show any company that has interaction with this quote
-                    if (filteredResponses.length === 0) {
-                      filteredResponses = responses.filter(response => 
-                        response.payment_proof_uploaded || response.user_response_status
-                      );
-                    }
-                  }
-                  
-                  // Ensure we always return valid JSX
-                  if (!filteredResponses || filteredResponses.length === 0) {
-                    return null;
-                  }
-                  
-                  const mapResult = filteredResponses.map((response, index) => {
-                    return (
-                  <div key={response.id} className="group relative">
-                    {/* Response Card */}
-                    <div className={`relative overflow-hidden rounded-3xl border-2 transition-all duration-500 ${
-                      response.user_response_status === 'accepted' 
-                        ? 'border-[#bca142] bg-white shadow-xl' 
-                        : response.user_response_status === 'rejected'
-                        ? 'border-black bg-white shadow-lg'
-                        : 'border-gray-200 bg-white hover:border-[#bca142] hover:shadow-2xl'
-                    }`}>
-                      
-                      {/* Status Indicator */}
-                      {response.user_response_status && (
-                        <div className={`absolute top-0 right-0 w-full h-2 ${
-                          response.user_response_status === 'accepted' ? 'bg-[#bca142]' :
-                          'bg-black'
-                        }`}></div>
-                      )}
-                      
-                      <div className="p-8">
-                        {/* Company Header */}
-                        <div className="flex items-center justify-between mb-8">
-                          <div className="flex items-center space-x-4">
-                            <div className="relative">
-                              <div className="w-16 h-16 bg-[#bca142] rounded-2xl flex items-center justify-center shadow-lg">
-                                <FaBuilding className="text-white h-8 w-8" />
-                              </div>
-                              {response.user_response_status === 'accepted' && (
-                                <div className="absolute -top-2 -right-2 w-6 h-6 bg-[#bca142] rounded-full flex items-center justify-center">
-                                  <CheckCircle className="h-4 w-4 text-white" />
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center space-x-3 mb-1">
-                                <h3 className="text-2xl font-bold text-black">{response.company_name}</h3>
-                                <button
-                                  onClick={() => {
-                                    setSelectedCompanyId(response.company_id);
-                                    setShowCompanyProfileModal(true);
-                                  }}
-                                  className="flex items-center space-x-2 bg-[#bca142] hover:bg-black text-white font-medium py-2 px-4 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105"
-                                >
-                                  <FaEye className="h-4 w-4" />
-                                  <span className="text-sm">View Company Details</span>
-                                </button>
-                              </div>
-                              <div className="flex items-center space-x-6 text-gray-600">
-                                <div className="flex items-center space-x-2">
-                                  <FaEnvelope className="h-4 w-4 text-[#bca142]" />
-                                  <span className="font-medium">{response.company_email}</span>
-                                </div>
-                                {response.company_phone && (
-                                  <div className="flex items-center space-x-2">
-                                    <FaPhone className="h-4 w-4 text-[#bca142]" />
-                                    <span className="font-medium">{response.company_phone}</span>
-                                  </div>
-                                )}
-                              </div>
-                              {/* Payment Status Badge */}
-                              {getPaymentStatusBadge(response) && (
-                                <div className="mt-2">
-                                  {getPaymentStatusBadge(response)}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          
-                          {/* {response.user_response_status && (
-                            <div className={`px-6 py-3 rounded-2xl font-bold text-lg ${
-                              response.user_response_status === 'accepted' 
-                                ? 'bg-green-500 text-white shadow-lg shadow-green-200' 
-                                : 'bg-red-500 text-white shadow-lg shadow-red-200'
-                            }`}>
-                              <div className="flex items-center space-x-2">
-                                {response.user_response_status === 'accepted' ? (
-                                  <CheckCircle className="h-5 w-5" />
-                                ) : (
-                                  <XCircle className="h-5 w-5" />
-                                )}
-                                <span className="capitalize">{response.user_response_status}</span>
-                              </div>
-                            </div>
-                          )} */}
-                        </div>
-
-                        {/* Key Metrics */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                          <div className="bg-white rounded-2xl p-6 border border-gray-200">
-                            <div className="flex items-center space-x-3 mb-3">
-                              <div className="p-2 bg-[#bca142] rounded-xl">
-                                <FaDollarSign className="h-5 w-5 text-white" />
-                              </div>
-                              <span className="font-semibold text-black">Total Price</span>
-                            </div>
-                            <p className="text-3xl font-bold text-black">${response.price}</p>
-                            <div className="flex items-center space-x-2 mt-2">
-                              <TrendingUp className="h-4 w-4 text-[#bca142]" />
-                              <span className="text-sm text-[#bca142] font-medium">Competitive Rate</span>
-                            </div>
-                          </div>
-                          
-                          <div className="bg-white rounded-2xl p-6 border border-gray-200">
-                            <div className="flex items-center space-x-3 mb-3">
-                              <div className="p-2 bg-[#bca142] rounded-xl">
-                                <Clock className="h-5 w-5 text-white" />
-                              </div>
-                              <span className="font-semibold text-black">Transit Time</span>
-                            </div>
-                            <p className="text-2xl font-bold text-black">{response.transit_time}</p>
-                            <div className="flex items-center space-x-2 mt-2">
-                              <Zap className="h-4 w-4 text-[#bca142]" />
-                              <span className="text-sm text-[#bca142] font-medium">Express Service</span>
-                            </div>
-                          </div>
-                          
-                          {response.valid_until && (
-                            <div className="bg-white rounded-2xl p-6 border border-gray-200">
-                              <div className="flex items-center space-x-3 mb-3">
-                                <div className="p-2 bg-[#bca142] rounded-xl">
-                                  <Calendar className="h-5 w-5 text-white" />
-                                </div>
-                                <span className="font-semibold text-black">Valid Until</span>
-                              </div>
-                              <p className="text-xl font-bold text-black">
-                                {formatDate(response.valid_until)}
-                              </p>
-                              <div className="flex items-center space-x-2 mt-2">
-                                <Shield className="h-4 w-4 text-[#bca142]" />
-                                <span className="text-sm text-[#bca142] font-medium">Price Guaranteed</span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Detailed Information */}
-                        {(response.inclusions || response.value_added_services || response.terms || response.notes) && (
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                            {response.inclusions && (
-                              <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
-                                <h4 className="font-bold text-black mb-3 flex items-center space-x-2">
-                                  <CheckCircle className="h-5 w-5 text-[#bca142]" />
-                                  <span>Inclusions</span>
-                                </h4>
-                                <p className="text-gray-700 leading-relaxed">{response.inclusions}</p>
-                              </div>
-                            )}
-                            
-                            {response.value_added_services && (
-                              <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
-                                <h4 className="font-bold text-black mb-3 flex items-center space-x-2">
-                                  <Star className="h-5 w-5 text-[#bca142]" />
-                                  <span>Value Added Services</span>
-                                </h4>
-                                <p className="text-gray-700 leading-relaxed">{response.value_added_services}</p>
-                              </div>
-                            )}
-                            
-                            {response.terms && (
-                              <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
-                                <h4 className="font-bold text-black mb-3 flex items-center space-x-2">
-                                  <Shield className="h-5 w-5 text-[#bca142]" />
-                                  <span>Terms & Conditions</span>
-                                </h4>
-                                <p className="text-gray-700 leading-relaxed">{response.terms}</p>
-                              </div>
-                            )}
-                            
-                            {response.notes && (
-                              <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
-                                <h4 className="font-bold text-black mb-3 flex items-center space-x-2">
-                                  <Award className="h-5 w-5 text-[#bca142]" />
-                                  <span>Additional Notes</span>
-                                </h4>
-                                <p className="text-gray-700 leading-relaxed">{response.notes}</p>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Bank Details Section */}
-                        {(response.bank_name || response.account_number) && (
-                          <div className="mb-8 bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
-                            <h4 className="font-bold text-black mb-4 flex items-center space-x-2">
-                              <FaUniversity className="h-5 w-5 text-[#bca142]" />
-                              <span>Payment Bank Details</span>
-                            </h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              {response.bank_name && (
-                                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                                  <span className="text-gray-600 font-medium text-sm">Bank Name:</span>
-                                  <p className="text-black font-bold">{response.bank_name}</p>
-                                </div>
-                              )}
-                              {response.account_holder_name && (
-                                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                                  <span className="text-gray-600 font-medium text-sm">Bank Holder Name:</span>
-                                  <p className="text-black font-bold">{response.account_holder_name}</p>
-                                </div>
-                              )}
-                              {response.account_number && (
-                                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                                  <span className="text-gray-600 font-medium text-sm">Account Number:</span>
-                                  <p className="text-black font-bold">{response.account_number}</p>
-                                </div>
-                              )}
-                              {response.branch_name && (
-                                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                                  <span className="text-gray-600 font-medium text-sm">Branch Name:</span>
-                                  <p className="text-black font-bold">{response.branch_name}</p>
-                                </div>
-                              )}
-                              {response.iban_number && (
-                                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                                  <span className="text-gray-600 font-medium text-sm">IBAN Number:</span>
-                                  <p className="text-black font-bold">{response.iban_number}</p>
-                                </div>
-                              )}
-                              {response.swift_code && (
-                                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                                  <span className="text-gray-600 font-medium text-sm">SWIFT Code:</span>
-                                  <p className="text-black font-bold">{response.swift_code}</p>
-                                </div>
-                              )}
-                              {response.branch_address && (
-                                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                                  <span className="text-gray-600 font-medium text-sm">Branch Address:</span>
-                                  <p className="text-black font-bold text-sm">{response.branch_address}</p>
-                                </div>
-                              )}
-                            </div>
-                            {response.bank_instructions && (
-                              <div className="mt-4 bg-gray-50 rounded-xl p-4 border border-gray-200">
-                                <span className="text-black font-medium text-sm">Payment Instructions:</span>
-                                <p className="text-gray-700 text-sm mt-1">{response.bank_instructions}</p>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Payment Status Section - Enhanced with Company Logic */}
-                        {(response.user_response_status === 'accepted' || response.payment_status === 'rejected') && (
-                          <div className="mb-8">
-                            {/* Payment Verification Status */}
-                            {response.payment_status === 'verified' && (
-                              <div className="bg-white border-2 border-[#bca142] rounded-2xl p-6 shadow-sm">
-                                <div className="flex items-center space-x-4">
-                                  <div className="p-3 bg-[#bca142] rounded-xl shadow-sm">
-                                    <CheckCircle className="h-5 w-5 text-white" />
-                                  </div>
-                                  <div className="flex-1">
-                                    <h4 className="font-bold text-black">✅ Payment Verified</h4>
-                                    <p className="text-gray-700">Your payment has been verified by the company. Work will begin as scheduled.</p>
-                                    {response.verification_date && (
-                                      <p className="text-gray-600 text-sm mt-1">
-                                        <strong>Verified on:</strong> {formatDate(response.verification_date)}
-                                      </p>
-                                    )}
-                                  </div>
-                                  <div className="bg-[#bca142] px-4 py-2 rounded-2xl border border-gray-300">
-                                    <span className="text-white font-semibold">Payment Approved</span>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                            
-                            {response.payment_status === 'pending' && (
-                              <div className="bg-white border-2 border-[#bca142] rounded-2xl p-6 shadow-sm">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center space-x-4">
-                                    <div className="p-3 bg-[#bca142] rounded-xl shadow-sm">
-                                      <FaCreditCard className="h-5 w-5 text-white" />
-                                    </div>
-                                    <div>
-                                      <h4 className="font-bold text-black">⏳ Payment Verification Pending</h4>
-                                      <p className="text-gray-700">Your payment proof is being verified by the company. You'll be notified once it's reviewed.</p>
-                                      {response.payment_proof_date && (
-                                        <p className="text-gray-600 text-sm mt-1">
-                                          <strong>Uploaded on:</strong> {formatDate(response.payment_proof_date)}
-                                        </p>
-                                      )}
-                                    </div>
-                                  </div>
-                                  <div className="bg-[#bca142] px-4 py-2 rounded-2xl border border-gray-300">
-                                    <span className="text-white font-semibold">Under Review</span>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                            
-                            {!response.payment_status && (response.bank_name || response.account_number) && (
-                              <div className="bg-white border-2 border-[#bca142] rounded-2xl p-6 shadow-sm">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center space-x-4">
-                                    <div className="p-3 bg-[#bca142] rounded-xl shadow-sm">
-                                      <FaUpload className="h-5 w-5 text-white" />
-                                    </div>
-                                    <div>
-                                      <h4 className="font-bold text-black">💳 Payment Required</h4>
-                                      <p className="text-gray-700">Please make payment to the bank details above and upload proof to proceed.</p>
-                                    </div>
-                                  </div>
-                                  <button
-                                    onClick={() => {
-                                      setSelectedResponseForPayment({
-                                        ...response,
-                                        quote_id: quote.id,
-                                        amount: response.price,
-                                        company_name: response.company_name,
-                                        bank_details: {
-                                          bank_name: response.bank_name,
-                                          account_holder_name: response.account_holder_name,
-                                          account_number: response.account_number,
-                                          routing_number: response.routing_number,
-                                          swift_code: response.swift_code,
-                                          ifsc_code: response.ifsc_code,
-                                          branch_name: response.branch_name,
-                                          branch_address: response.branch_address,
-                                          instructions: response.bank_instructions
-                                        }
-                                      });
-                                      setShowPaymentModal(true);
-                                    }}
-                                    className="flex items-center space-x-2 bg-[#bca142] hover:bg-black text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-                                  >
-                                    <Upload className="h-5 w-5" />
-                                    <span>Upload Payment Proof</span>
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Action Buttons */}
-                        {!response.user_response_status && !hasAcceptedResponse && (
-                          <div className="space-y-6">
-                            {/* Payment Upload Required First */}
-                            {!Boolean(response.payment_proof_uploaded) && (response.bank_name || response.account_number) && (
-                              <div className="bg-white border-2 border-[#bca142] rounded-2xl p-6 shadow-sm">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center space-x-4">
-                                    <div className="p-3 bg-[#bca142] rounded-xl shadow-sm">
-                                      <FaUpload className="h-5 w-5 text-white" />
-                                    </div>
-                                    <div>
-                                      <h4 className="font-bold text-black">Payment Required First</h4>
-                                      <p className="text-gray-700">Please make payment and upload proof before accepting this quote.</p>
-                                    </div>
-                                  </div>
-                                  <button
-                                    onClick={() => {
-                                      setSelectedResponseForPayment({
-                                        ...response,
-                                        quote_id: quote.id,
-                                        amount: response.price,
-                                        company_name: response.company_name,
-                                        bank_details: {
-                                          bank_name: response.bank_name,
-                                          account_holder_name: response.account_holder_name,
-                                          account_number: response.account_number,
-                                          routing_number: response.routing_number,
-                                          swift_code: response.swift_code,
-                                          ifsc_code: response.ifsc_code,
-                                          branch_name: response.branch_name,
-                                          branch_address: response.branch_address,
-                                          instructions: response.bank_instructions
-                                        }
-                                      });
-                                      setShowPaymentModal(true);
-                                    }}
-                                    className="flex items-center space-x-2 bg-[#bca142] hover:bg-black text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-                                  >
-                                    <Upload className="h-5 w-5" />
-                                    <span>Upload Payment Proof</span>
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Payment Uploaded - Now Can Accept */}
-                            {Boolean(response.payment_proof_uploaded) && response.payment_status === 'pending' && (
-                              <div className="bg-white border-2 border-[#bca142] rounded-2xl p-6 shadow-sm">
-                                <div className="flex items-center space-x-4">
-                                  <div className="p-3 bg-[#bca142] rounded-xl shadow-sm">
-                                    <FaCreditCard className="h-5 w-5 text-white" />
-                                  </div>
-                                  <div>
-                                    <h4 className="font-bold text-black">Payment Proof Uploaded ✓</h4>
-                                    <p className="text-gray-700">You can now accept this quote. The company will verify your payment.</p>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Accept/Reject Buttons - Only show if payment proof uploaded OR no bank details required */}
-                            {(Boolean(response.payment_proof_uploaded) || (!response.bank_name && !response.account_number)) && (
-                              <div className="flex flex-col sm:flex-row gap-4">
-                                <button
-                                  onClick={() => handleAcceptResponse(response.id, response.company_id)}
-                                  disabled={actionLoading === response.id}
-                                  className="flex-1 group relative overflow-hidden bg-[#bca142] hover:bg-black text-white font-bold py-4 px-8 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                                >
-                                  <div className="relative flex items-center justify-center space-x-3">
-                                    {actionLoading === response.id ? (
-                                      <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
-                                    ) : (
-                                      <>
-                                        <CheckCircle className="h-6 w-6" />
-                                        <span className="text-lg">Accept Quote</span>
-                                      </>
-                                    )}
-                                  </div>
-                                </button>
-                            
-                            <button
-                              onClick={() => handleRejectResponse(response.id, response.company_id)}
-                              disabled={actionLoading === response.id}
-                              className="flex-1 group relative overflow-hidden bg-black hover:bg-[#bca142] text-white font-bold py-4 px-8 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                            >
-                              <div className="relative flex items-center justify-center space-x-3">
-                                {actionLoading === response.id ? (
-                                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
-                                ) : (
-                                  <>
-                                    <XCircle className="h-6 w-6" />
-                                    <span className="text-lg">Reject Quote</span>
-                                  </>
-                                )}
-                              </div>
-                            </button>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {hasAcceptedResponse && !response.user_response_status && (
-                          <div className="bg-white border-2 border-gray-200 rounded-2xl p-6">
-                            <div className="flex items-center space-x-3">
-                              <div className="p-2 bg-[#bca142] rounded-xl">
-                                <FaShieldAlt className="h-5 w-5 text-white" />
-                              </div>
-                              <div>
-                                <h4 className="font-bold text-black">Quote Already Accepted</h4>
-                                <p className="text-gray-700">You have already accepted another quote for this request.</p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  );
-                  });
-                  
-                  return mapResult;
-                })()}
-              </div>
-            )}
-          </div>
         </div>
       </div>
 

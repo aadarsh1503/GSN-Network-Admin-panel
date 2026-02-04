@@ -425,10 +425,10 @@ Date: ${new Date(qrData.date).toLocaleDateString()}`);
                 <div className="flex justify-between items-start mb-6">
                   <div className="flex items-center gap-3">
                     <img 
-                      src="https://res.cloudinary.com/ds1dt3qub/image/upload/v1767724966/GSN_vebkrv.jpg"
+                      src="https://res.cloudinary.com/ds1dt3qub/image/upload/v1769604932/gulf_star_network_4_znl5cm.png"
                       alt="GSN Logo" 
-                      className="w-12 h-12 object-contain"
-                      style={{ maxWidth: '48px', maxHeight: '48px' }}
+                      className="w-32 h-32 object-contain"
+                      style={{ maxWidth: '108px', maxHeight: '108px' }}
                     />
                     <div>
                       <h1 className="text-2xl font-bold mb-1" style={{ color: '#bca142', fontSize: '24px', fontWeight: 'bold' }}>INVOICE</h1>

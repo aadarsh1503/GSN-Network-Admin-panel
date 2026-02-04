@@ -6,7 +6,7 @@ import {
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import api from '../../utils/api';
-
+import "./enhence.css"
 const EnhancedQuoteResponse = ({ quote, onClose, onSuccess }) => {
   const [bankDetails, setBankDetails] = useState([]);
   const [selectedBankId, setSelectedBankId] = useState('');
@@ -88,8 +88,22 @@ const EnhancedQuoteResponse = ({ quote, onClose, onSuccess }) => {
       await api.post('/api/quote-responses/submit', payload);
       
       toast.success('Quote response sent successfully with bank details');
-      onSuccess && onSuccess();
-      onClose && onClose();
+      
+      // Call success callback if provided
+      if (onSuccess) {
+        onSuccess();
+      }
+      
+      // Close modal if provided
+      if (onClose) {
+        onClose();
+      }
+      
+      // Refresh the page after a short delay to allow toast to show
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+      
     } catch (error) {
       console.error('Error sending quote response:', error);
       toast.error('Failed to send quote response');
@@ -194,21 +208,21 @@ const EnhancedQuoteResponse = ({ quote, onClose, onSuccess }) => {
                   <label htmlFor="amount" className="block text-sm font-semibold text-black mb-2">
                     Quote Amount ($) *
                   </label>
-                  <div className="relative">
-                    <FiDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#bca142]" />
-                    <input
-                      type="number"
-                      id="amount"
-                      name="amount"
-                      value={responseData.amount}
-                      onChange={handleInputChange}
-                      step="0.01"
-                      min="0"
-                      required
-                      className="w-full pl-10 pr-4 py-3 border-2 border-[#bca142]/30 rounded-xl focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142] transition-colors"
-                      placeholder="Enter your quote amount"
-                    />
-                  </div>
+                 <div className="relative">
+  <FiDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#bca142]" />
+  <input
+    type="number"
+    id="amount"
+    name="amount"
+    value={responseData.amount}
+    onChange={handleInputChange}
+    min="0"
+    required
+    className="no-spinner w-full pl-10 pr-4 py-3 border-2 border-[#bca142]/30 rounded-xl focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142] transition-colors"
+    placeholder="Enter your quote amount"
+  />
+</div>
+
                 </div>
 
                 <div>

@@ -1221,10 +1221,20 @@ const getBusinessTransactionInvoices = async (req, res) => {
                 q.shipping_mode,
                 c.name as company_name,
                 c.email as company_email,
-                c.phone as company_phone
+                c.phone as company_phone,
+                c.logo as company_logo,
+                c.about_company as company_description,
+                c.website as company_website,
+                qr.price as quote_price,
+                qr.transit_time,
+                qr.inclusions,
+                qr.value_added_services,
+                qr.terms,
+                qr.notes as quote_notes
             FROM transaction_invoices ti
             LEFT JOIN quotes q ON ti.quote_id = q.id
             LEFT JOIN users c ON ti.company_id = c.id
+            LEFT JOIN quote_responses qr ON qr.quote_id = q.id AND qr.company_id = c.id
             WHERE ti.user_id = ?
             ORDER BY ti.created_at DESC
         `;
@@ -1273,10 +1283,20 @@ const getBusinessTransactionInvoiceById = async (req, res) => {
                 q.shipping_mode,
                 c.name as company_name,
                 c.email as company_email,
-                c.phone as company_phone
+                c.phone as company_phone,
+                c.logo as company_logo,
+                c.about_company as company_description,
+                c.website as company_website,
+                qr.price as quote_price,
+                qr.transit_time,
+                qr.inclusions,
+                qr.value_added_services,
+                qr.terms,
+                qr.notes as quote_notes
             FROM transaction_invoices ti
             LEFT JOIN quotes q ON ti.quote_id = q.id
             LEFT JOIN users c ON ti.company_id = c.id
+            LEFT JOIN quote_responses qr ON qr.quote_id = q.id AND qr.company_id = c.id
             WHERE ti.id = ? AND ti.user_id = ?
         `;
 

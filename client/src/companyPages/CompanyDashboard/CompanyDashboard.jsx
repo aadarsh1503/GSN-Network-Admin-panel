@@ -539,7 +539,7 @@ const Dashboard = () => {
 
   // Profile completion logic
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const { shouldShowPrompt, isModalOpen, closeModal, markProfileCompleted, dismissPermanently } = useProfileCompletion('company', user.id);
+  const { shouldShowPrompt, isModalOpen, closeModal: closeProfileModal, markProfileCompleted, dismissPermanently, openModal: openProfileModal } = useProfileCompletion('company', user.id);
 
   useEffect(() => {
     persistentLog('🎯 CompanyDashboard useEffect triggered', 'info');
@@ -817,6 +817,16 @@ const Dashboard = () => {
             <div className="w-2 h-2 rounded-full bg-[#bca142] animate-pulse"></div>
             <span>Live Data</span>
           </div>
+          
+          {/* Test Profile Modal Button */}
+          <div className="mt-4">
+            <button
+              onClick={openProfileModal}
+              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm"
+            >
+              Test Profile Modal
+            </button>
+          </div>
         </div>
 
         {/* Enhanced Stats Cards with Admin Dashboard Design */}
@@ -916,7 +926,7 @@ const Dashboard = () => {
       {/* Profile Completion Modal */}
       <ProfileCompletionModal
         isOpen={isModalOpen}
-        onClose={closeModal}
+        onClose={closeProfileModal}
         userRole="company"
         userName={user.name || 'Company User'}
         onComplete={markProfileCompleted}

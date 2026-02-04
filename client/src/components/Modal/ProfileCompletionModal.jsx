@@ -154,9 +154,6 @@ const ProfileCompletionModal = ({
           transition={{ type: "spring", duration: 0.5 }}
           className="relative w-full max-w-lg mx-auto"
         >
-          {/* Glow effect */}
-          <div className="absolute inset-0 bg-[#bca142] rounded-3xl blur-xl opacity-20 animate-pulse" />
-          
           {/* Main modal */}
           <div className="relative bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden">
             

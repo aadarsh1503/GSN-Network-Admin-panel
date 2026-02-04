@@ -21,6 +21,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AdminLayout from "./layouts/AdminLayout";
 import CompanyLayout from "./layouts/CompanyLayout";
 import UnauthorizedPage from "./pages/UnauthorizedPage";
+import TitleManager from "./components/TitleManager";
 
 // --- Auth & Public Pages ---
 import Hero from "./components/Hero/Hero";
@@ -231,6 +232,9 @@ function App() {
         <GlobalNotificationProvider>
           <SubscriptionProvider>
             <Router>
+            {/* Title Manager - Updates page title dynamically based on user role and current page */}
+            <TitleManager />
+            
             {/* ScrollToTop must be inside Router to access useLocation */}
             <ScrollToTop />
             

@@ -119,7 +119,7 @@ const Navbar = () => {
       // { name: 'Business', href: '#' },
       { name: 'Subscriptions', href: '/subscriptions' },
       // { name: 'Blacklist', href: '#' },
-      { name: 'Contact Us', href: '#', icon: <FaSearch size={14} /> },
+      { name: 'Contact Us', href: '#', icon: <FaSearch size={14} />, onClick: handleContactUsClick },
     ];
 
     // Add auth links only if user is not logged in
@@ -186,6 +186,20 @@ const Navbar = () => {
     openLogoutModal();
   };
 
+  // Handle smooth scroll to contact us section
+  const handleContactUsClick = (e) => {
+    e.preventDefault();
+    const contactSection = document.getElementById('contact-us');
+    if (contactSection) {
+      contactSection.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+    // Close mobile menu if open
+    setIsMobileMenuOpen(false);
+  };
+
   const navClasses = `
     fixed top-0 left-0 w-full z-50 transition-transform duration-300 ease-in-out
     ${isScrolled ? 'bg-white text-black shadow-md' : 'bg-[#111111] text-white'}
@@ -203,7 +217,12 @@ const Navbar = () => {
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
           {getNavLinks().map((link) => (
-            <a key={link.name} href={link.href} className="flex items-center space-x-2 font-medium hover:text-[#bca142] transition-colors">
+            <a 
+              key={link.name} 
+              href={link.href} 
+              onClick={link.onClick}
+              className="flex items-center space-x-2 font-medium hover:text-[#bca142] transition-colors"
+            >
               {link.icon}
               <span>{link.name}</span>
             </a>
@@ -301,7 +320,12 @@ const Navbar = () => {
 
             {/* Navigation Links */}
             {getNavLinks().map((link) => (
-              <a key={link.name} href={link.href} className="flex items-center space-x-2 font-medium hover:text-[#bca142] transition-colors">
+              <a 
+                key={link.name} 
+                href={link.href} 
+                onClick={link.onClick}
+                className="flex items-center space-x-2 font-medium hover:text-[#bca142] transition-colors"
+              >
                 {link.icon}
                 <span>{link.name}</span>
               </a>

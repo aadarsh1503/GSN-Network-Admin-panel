@@ -13,44 +13,23 @@ class DatabaseRetry {
     const queryId = Math.random().toString(36).substring(7);
     
     try {
-      console.log(`🗄️ [DB-${queryId}] Executing query (attempt ${retryCount + 1}/${this.maxRetries + 1}):`, {
-        query: query.substring(0, 100) + (query.length > 100 ? '...' : ''),
-        paramsCount: params.length,
-        timestamp: new Date().toISOString()
-      });
+
 
       const startTime = Date.now();
       const result = await db.execute(query, params);
       const duration = Date.now() - startTime;
 
-      console.log(`✅ [DB-${queryId}] Query executed successfully (${duration}ms):`, {
-        rowsAffected: result[0].length || result[1]?.affectedRows || 0,
-        duration: `${duration}ms`
-      });
+
 
       return result;
     } catch (error) {
       const errorTime = Date.now();
-      
-      console.error(`💥 [DB-${queryId}] Query failed at ${new Date(errorTime).toISOString()}:`, {
-        errorName: error.name,
-        errorMessage: error.message,
-        errorCode: error.code,
-        errno: error.errno,
-        sqlState: error.sqlState,
-        query: query.substring(0, 100) + (query.length > 100 ? '...' : ''),
-        paramsCount: params.length,
-        retryCount,
-        maxRetries: this.maxRetries
-      });
 
       // Check if this is a retryable error
       const isRetryableError = this.isRetryableError(error);
       
       if (isRetryableError && retryCount < this.maxRetries) {
         const delay = Math.min(this.baseDelay * Math.pow(2, retryCount), this.maxDelay);
-        
-        console.warn(`🔄 [DB-${queryId}] Retrying query in ${delay}ms due to ${error.code || error.name}...`);
         
         // Wait before retrying
         await new Promise(resolve => setTimeout(resolve, delay));
@@ -60,9 +39,6 @@ class DatabaseRetry {
       }
 
       // If not retryable or max retries reached, throw the error
-      if (retryCount >= this.maxRetries) {
-        console.error(`❌ [DB-${queryId}] Query failed after ${this.maxRetries + 1} attempts`);
-      }
 
       throw error;
     }
@@ -132,7 +108,6 @@ class DatabaseRetry {
         timestamp: new Date().toISOString()
       };
     } catch (error) {
-      console.warn('Could not get pool status:', error.message);
       return { 
         error: 'Unable to get pool status',
         timestamp: new Date().toISOString()

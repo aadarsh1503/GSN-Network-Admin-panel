@@ -7,6 +7,7 @@ import { protect as authenticateToken, authorize as authorizeRoles } from '../mi
 import db from '../config/db.js';
 import { queueSubscriptionEmails } from '../services/emailQueue.js';
 import { getAdminEmailsWithFallback } from '../utils/adminUtils.js';
+import { createTransactionInvoice } from '../services/transactionInvoiceService.js';
 
 const router = express.Router();
 
@@ -557,6 +558,44 @@ router.put('/verify-enhanced/:verificationId', authenticateToken, authorizeRoles
       );
 
       console.log(`✅ Quote #${verification.quote_id} automatically approved due to payment verification`);
+
+      // Create transaction invoice for verified payment
+      try {
+        // Get quote response details for invoice creation
+        const [quoteResponseData] = await db.execute(`
+          SELECT qr.price, qr.quote_id, qr.company_id, q.user_id
+          FROM quote_responses qr
+          JOIN quotes q ON qr.quote_id = q.id
+          WHERE qr.quote_id = ? AND qr.company_id = ?
+        `, [verification.quote_id, companyId]);
+
+        if (quoteResponseData.length > 0) {
+          const responseData = quoteResponseData[0];
+          
+          // Check if transaction invoice already exists for this quote
+          const [existingInvoice] = await db.execute(
+            'SELECT id FROM transaction_invoices WHERE quote_id = ? AND user_id = ? AND company_id = ?',
+            [verification.quote_id, responseData.user_id, companyId]
+          );
+
+          if (existingInvoice.length === 0) {
+            const invoice = await createTransactionInvoice({
+              quoteId: verification.quote_id,
+              userId: responseData.user_id,
+              companyId: companyId,
+              amount: responseData.price,
+              serviceFee: 0 // No service fee as per user request
+            });
+
+            console.log(`✅ Transaction invoice created: ${invoice.invoice_number} for quote #${verification.quote_id}`);
+          } else {
+            console.log(`ℹ️ Transaction invoice already exists for quote #${verification.quote_id}`);
+          }
+        }
+      } catch (invoiceError) {
+        console.error('❌ Error creating transaction invoice:', invoiceError);
+        // Don't fail the payment verification if invoice creation fails
+      }
 
       // Create admin notification for auto-approval
       try {

@@ -16,6 +16,15 @@ export const useProfileCompletion = (userRole, userId) => {
     // Check if user has completed profile
     const hasCompletedProfile = checkProfileCompletion(userRole);
     
+    // TEMPORARY: Force show modal for testing
+    console.log('Profile completion check:', {
+      userRole,
+      userId,
+      permanentlyDismissed,
+      promptShown,
+      hasCompletedProfile
+    });
+    
     // Show prompt if:
     // 1. Not permanently dismissed
     // 2. Profile is not complete
@@ -69,6 +78,7 @@ export const useProfileCompletion = (userRole, userId) => {
 
   const openModal = () => {
     setIsModalOpen(true);
+    setShouldShowPrompt(true);
   };
 
   return {

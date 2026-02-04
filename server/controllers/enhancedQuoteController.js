@@ -166,8 +166,9 @@ const getCompanyResponsesWithPayments = async (req, res) => {
     try {
         const [responses] = await db.execute(`
             SELECT 
-                qr.id,
-                qr.quote_id,
+                qr.id as response_id,
+                qr.quote_id as id,  -- Use quote_id as the main id for frontend compatibility
+                qr.quote_id,        -- Keep quote_id for backward compatibility
                 qr.company_id,
                 qr.price,
                 qr.transit_time,
@@ -322,8 +323,9 @@ const getAllCompanyResponsesWithPayments = async (req, res) => {
     try {
         const [responses] = await db.execute(`
             SELECT 
-                   qr.id,
-                   qr.quote_id,
+                   qr.id as response_id,
+                   qr.quote_id as id,  -- Use quote_id as the main id for frontend compatibility
+                   qr.quote_id,        -- Keep quote_id for backward compatibility
                    qr.company_id,
                    qr.price,
                    qr.transit_time,

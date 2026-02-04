@@ -353,7 +353,7 @@ const BusinessDashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch business user's dashboard statistics from the new business-quotes API
+      // Fetch company user's dashboard statistics from the new business-quotes API
       const statsResponse = await api.get('/api/business-quotes/dashboard-stats');
       const dashboardStats = statsResponse;
 
@@ -376,7 +376,7 @@ const BusinessDashboard = () => {
         }
       });
 
-      // Fetch recent quotes that the business user has submitted
+      // Fetch recent quotes that the company user has submitted
       const quotesResponse = await api.get('/api/business-quotes/my-quotes');
       const quotesData = Array.isArray(quotesResponse) ? quotesResponse : [];
       setRecentQuotes(quotesData.slice(0, 5));

@@ -377,9 +377,9 @@ const CompanyProfileModal = ({ companyId, onClose }) => {
                 </div>
               </div>
               <div className="flex flex-col items-end gap-3">
-                <div className="bg-[#C9A959] text-white text-xs font-bold py-2 px-4 rounded-md shadow-sm">
+                {/* <div className="bg-[#C9A959] text-white text-xs font-bold py-2 px-4 rounded-md shadow-sm">
                   {companyData.subscriptionPlan}
-                </div>
+                </div> */}
                 <div className="flex space-x-2">
                   <a href={companyData.socialLinks.facebook} className="h-8 w-8 flex items-center justify-center border border-gray-300 rounded-md text-gray-600 hover:bg-gray-100 transition-colors duration-200">
                     <FaFacebookF size={12} />

@@ -65,7 +65,7 @@ function BusinessOwners() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
-  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
+  const [sortConfig, setSortConfig] = useState({ key: 'created_at', direction: 'descending' });
   const [filters, setFilters] = useState({ status: '', blacklist: '' });
   const [editingUser, setEditingUser] = useState(null);
   const [editForm, setEditForm] = useState({});
@@ -117,13 +117,13 @@ function BusinessOwners() {
   useEffect(() => {
     const fetchBusinessUsers = async () => {
       try {
-        console.log('Fetching business users...'); // Debug log
+        console.log('Fetching company users...'); // Debug log
         const response = await api.get('/api/user/business-owners');
-        console.log('Business users response:', response); // Debug log
+        console.log('Company users response:', response); // Debug log
         setUsers(response);
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching business users:", error);
+        console.error("Error fetching company users:", error);
         console.error("Error details:", error.response || error); // More detailed error logging
         adminToast.error(error.message || "Failed to fetch business users");
         setLoading(false);
@@ -479,11 +479,15 @@ function BusinessOwners() {
 
     // Apply Search
     if (searchTerm) {
-        sortableUsers = sortableUsers.filter(user =>
-        Object.values(user).some(val =>
-          String(val).toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      );
+      sortableUsers = sortableUsers.filter(user => {
+        const searchLower = searchTerm.toLowerCase();
+        return (
+          (user.name && user.name.toLowerCase().includes(searchLower)) ||
+          (user.email && user.email.toLowerCase().includes(searchLower)) ||
+          (user.mobile && user.mobile.toLowerCase().includes(searchLower)) ||
+          (user.phone && user.phone.toLowerCase().includes(searchLower))
+        );
+      });
     }
 
     // Apply Sorting
@@ -493,6 +497,13 @@ function BusinessOwners() {
              if (a[sortConfig.key] === b[sortConfig.key]) return 0;
              const comparison = a[sortConfig.key] ? -1 : 1;
              return sortConfig.direction === 'ascending' ? comparison : -comparison;
+        }
+        
+        // Handle date sorting
+        if (sortConfig.key === 'created_at') {
+          const dateA = new Date(a[sortConfig.key]);
+          const dateB = new Date(b[sortConfig.key]);
+          return sortConfig.direction === 'ascending' ? dateA - dateB : dateB - dateA;
         }
         
         if (a[sortConfig.key] < b[sortConfig.key]) {
@@ -546,7 +557,7 @@ function BusinessOwners() {
       <div className="max-w-7xl mx-auto">
         {/* --- Top Filter Section --- */}
         <div className="bg-white p-4 rounded-t-lg ">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 <select 
                     className="w-full p-2 border border-gray-300 rounded-md"
                     value={filters.status}
@@ -565,9 +576,22 @@ function BusinessOwners() {
                     <option value="true">On Blacklist</option>
                     <option value="false">Not on Blacklist</option>
                 </select>
+                <select className="w-full p-2 border border-gray-300 rounded-md" 
+                        value={`${sortConfig.key}-${sortConfig.direction}`} 
+                        onChange={(e) => {
+                          const [key, direction] = e.target.value.split('-');
+                          setSortConfig({ key, direction });
+                        }}>
+                    <option value="created_at-descending">Newest First</option>
+                    <option value="created_at-ascending">Oldest First</option>
+                    <option value="name-ascending">Name A-Z</option>
+                    <option value="name-descending">Name Z-A</option>
+                    <option value="email-ascending">Email A-Z</option>
+                    <option value="email-descending">Email Z-A</option>
+                </select>
                 <button 
                   type="button" 
-                  onClick={() => { setFilters({ status: '', blacklist: '' }); setSearchTerm(''); }}
+                  onClick={() => { setFilters({ status: '', blacklist: '' }); setSearchTerm(''); setSortConfig({ key: 'created_at', direction: 'descending' }); }}
                   className="w-full flex items-center justify-center bg-[#bca142] hover:bg-[#B8941F] text-white font-bold py-2 px-4 rounded-md"
                 >
                     Reset Filters
@@ -601,7 +625,7 @@ function BusinessOwners() {
               <input
                 id="search"
                 type="text"
-                placeholder="Search..."
+                placeholder="Search by name, email, or phone..."
                 className="p-2 border border-gray-300 rounded-md"
                 value={searchTerm}
                 onChange={(e) => {
@@ -621,6 +645,7 @@ function BusinessOwners() {
                   <SortableHeader name="name">Name</SortableHeader>
                   <SortableHeader name="email">Email</SortableHeader>
                   <SortableHeader name="mobile">Mobile</SortableHeader>
+                  <SortableHeader name="created_at">Registered</SortableHeader>
                   <SortableHeader name="onBlacklist">On Blacklist</SortableHeader>
                   <SortableHeader name="status">Status</SortableHeader>
                   <th className="p-3">Action</th>
@@ -634,6 +659,7 @@ function BusinessOwners() {
                       <td className="p-3 font-medium text-gray-900">{user.name}</td>
                       <td className="p-3">{user.email}</td>
                       <td className="p-3">{user.mobile}</td>
+                      <td className="p-3 text-sm">{user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}</td>
                       <td className="p-3">
                         <ToggleSwitch 
                             checked={user.onBlacklist} 
@@ -669,7 +695,7 @@ function BusinessOwners() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="7" className="text-center p-4">No matching records found</td>
+                    <td colSpan="8" className="text-center p-4">No matching records found</td>
                   </tr>
                 )}
               </tbody>

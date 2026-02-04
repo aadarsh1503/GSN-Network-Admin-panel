@@ -428,7 +428,7 @@ const UserNotifications = () => {
                         )}
 
                         {/* Actions - Compact */}
-                        <div className="flex items-center justify-between">
+                        {/* <div className="flex items-center justify-between">
                           {notification.type === 'quote_response' && !notification.user_response ? (
                             <div className="flex space-x-1" onClick={(e) => e.stopPropagation()}>
                               <button
@@ -496,7 +496,7 @@ const UserNotifications = () => {
                             <FaEye className="text-xs" />
                             View
                           </button>
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                   </div>

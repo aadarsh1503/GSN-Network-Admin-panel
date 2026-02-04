@@ -7,7 +7,7 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Create transporter with better error handling
 const createTransporter = () => {
-    return nodemailer.createTransporter({
+    return nodemailer.createTransport({
         host: process.env.EMAIL_HOST,
         port: process.env.EMAIL_PORT,
         secure: true, // true for 465, false for other ports
@@ -87,21 +87,30 @@ const sendEmailImproved = async (to, subject, htmlContent, type = 'general', quo
                 console.error('❌ Email rejected:', error);
                 
                 // Log failed email to database
-                await db.execute(
-                    `INSERT INTO email_notifications (recipient_email, subject, message, type, quote_id, status, error_message) 
-                     VALUES (?, ?, ?, ?, ?, 'failed', ?)`,
-                    [to, subject, htmlContent, type, quoteId, error]
-                );
+                try {
+                    await db.execute(
+                        `INSERT INTO email_notifications (recipient_email, subject, message, type, status, sent_at) 
+                         VALUES (?, ?, ?, ?, 'failed', NOW())`,
+                        [to, subject, htmlContent.substring(0, 500), 'bulk_email']
+                    );
+                } catch (dbError) {
+                    console.error('Failed to log email rejection to database:', dbError);
+                }
                 
                 return { success: false, error: error, errorType: 'REJECTED' };
             }
             
             // Log successful email to database
-            await db.execute(
-                `INSERT INTO email_notifications (recipient_email, subject, message, type, quote_id, status) 
-                 VALUES (?, ?, ?, ?, ?, 'sent')`,
-                [to, subject, htmlContent, type, quoteId]
-            );
+            try {
+                await db.execute(
+                    `INSERT INTO email_notifications (recipient_email, subject, message, type, status, sent_at) 
+                     VALUES (?, ?, ?, ?, 'sent', NOW())`,
+                    [to, subject, htmlContent.substring(0, 500), 'bulk_email']
+                );
+            } catch (dbError) {
+                console.error('Failed to log email success to database:', dbError);
+                // Continue execution even if logging fails
+            }
 
             console.log(`✅ Email sent successfully to ${to}: ${info.messageId}`);
             return { success: true, messageId: info.messageId };
@@ -137,13 +146,15 @@ const sendEmailImproved = async (to, subject, htmlContent, type = 'general', quo
             // If this is the last attempt or shouldn't retry, log failure
             if (attempt === retries || !shouldRetry) {
                 try {
+                    // Try to log with error_message column first, fallback if it doesn't exist
                     await db.execute(
-                        `INSERT INTO email_notifications (recipient_email, subject, message, type, quote_id, status, error_message) 
-                         VALUES (?, ?, ?, ?, ?, 'failed', ?)`,
-                        [to, subject, htmlContent, type, quoteId, `${errorType}: ${error.message}`]
+                        `INSERT INTO email_notifications (recipient_email, subject, message, type, status, sent_at) 
+                         VALUES (?, ?, ?, ?, 'failed', NOW())`,
+                        [to, subject, htmlContent.substring(0, 500), 'bulk_email']
                     );
                 } catch (dbError) {
                     console.error('Failed to log email failure to database:', dbError);
+                    // Continue execution even if logging fails
                 }
                 
                 return { 

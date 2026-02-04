@@ -76,9 +76,9 @@ const BusinessDisputes = () => {
       return;
     }
     
-    // Check if user is a business user
+    // Check if user is a company user
     if (user.role !== 'business') {
-      console.log('❌ User is not a business user - showing error instead of redirecting');
+      console.log('❌ User is not a company user - showing error instead of redirecting');
       toast.error('Access denied. Business account required.');
       return;
     }

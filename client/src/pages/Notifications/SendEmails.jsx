@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { FiSend, FiUsers, FiMail, FiEye, FiBarChart, FiFilter, FiCalendar, FiClock } from "react-icons/fi";
+import { FiSend, FiUsers, FiMail, FiEye, FiBarChart, FiFilter, FiCalendar, FiClock, FiX, FiUser } from "react-icons/fi";
 import { api } from "../../utils/api";
 import { adminToast } from "../../utils/adminToast";
 import $ from "jquery";
@@ -8,7 +8,7 @@ const SendEmails = () => {
   const [formData, setFormData] = useState({
     userType: "",
     subject: "",
-    emailMethod: "sendy" // Default to Sendy
+    emailMethod: "aws_ses" // Default to AWS SES as primary method
   });
 
   const [editorContent, setEditorContent] = useState("");
@@ -17,7 +17,7 @@ const SendEmails = () => {
   const [userCounts, setUserCounts] = useState({});
   const [sendySubscriberCount, setSendySubscriberCount] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
+  const [showHistory, setShowHistory] = useState(true);
   const [campaigns, setCampaigns] = useState([]);
   const [campaignFilters, setCampaignFilters] = useState({
     method: 'all',
@@ -31,6 +31,10 @@ const SendEmails = () => {
     total: 0,
     pages: 0
   });
+  const [showRecipientsModal, setShowRecipientsModal] = useState(false);
+  const [selectedCampaign, setSelectedCampaign] = useState(null);
+  const [campaignRecipients, setCampaignRecipients] = useState([]);
+  const [loadingRecipients, setLoadingRecipients] = useState(false);
   const wrapperRef = useRef(null);
 
   // Fetch email statistics and user counts
@@ -87,6 +91,36 @@ const SendEmails = () => {
     }
   };
 
+  const fetchCampaignRecipients = async (campaignId) => {
+    setLoadingRecipients(true);
+    try {
+      const data = await api.get(`/api/admin/email-campaigns/${campaignId}/recipients`);
+      setCampaignRecipients(data.recipients || []);
+    } catch (error) {
+      console.error('❌ Error fetching campaign recipients:', error);
+      adminToast.error('Failed to load campaign recipients');
+      setCampaignRecipients([]);
+    } finally {
+      setLoadingRecipients(false);
+    }
+  };
+
+  const handleViewRecipients = (campaign) => {
+    setSelectedCampaign(campaign);
+    setShowRecipientsModal(true);
+    fetchCampaignRecipients(campaign.id);
+  };
+
+  // Helper function to format date consistently
+  const formatDateTime = (dateString) => {
+    const date = new Date(dateString);
+    return {
+      date: date.toLocaleDateString(),
+      time: date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+      timezone: date.toLocaleTimeString([], {timeZoneName: 'short'}).split(' ').pop()
+    };
+  };
+
   const handleFilterChange = (key, value) => {
     setCampaignFilters(prev => ({ ...prev, [key]: value }));
     setCampaignPagination(prev => ({ ...prev, page: 1 }));
@@ -94,6 +128,12 @@ const SendEmails = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // Prevent selecting sendy or smtp methods (upcoming events)
+    if (name === 'emailMethod' && (value === 'sendy' || value === 'smtp')) {
+      return; // Don't allow sendy or smtp selection
+    }
+    
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -180,7 +220,12 @@ const SendEmails = () => {
       
       console.log('✅ Email response:', result);
       
-      if (formData.emailMethod === 'sendy') {
+      if (formData.emailMethod === 'aws_ses') {
+        adminToast.success(`📧 Emails sent immediately to ${result.successful} users via AWS SES!`);
+        if (result.failed > 0) {
+          adminToast.error(`❌ ${result.failed} emails failed to send`);
+        }
+      } else if (formData.emailMethod === 'sendy') {
         adminToast.success(result.message || 'Campaign sent successfully via Sendy!');
         
         // Show subscription results
@@ -197,19 +242,20 @@ const SendEmails = () => {
           }
         }
         
-        // Show specific list information
+        // Show specific list information with timing note
         if (result.userType && result.targetListId) {
-          adminToast.success(`📧 Campaign sent to ${result.userType} Sendy list (${result.targetListId})`);
+          adminToast.success(`📧 Campaign created for ${result.userType} Sendy list (${result.targetListId})`);
+          adminToast.info(`⏳ Campaign is now processing. Emails will start sending within 1-2 minutes.`);
         }
       } else {
-        adminToast.success(`Email sent successfully to ${result.successful} users!`);
+        adminToast.success(`📧 Emails sent immediately to ${result.successful} users via SMTP!`);
         if (result.failed > 0) {
-          adminToast.error(`${result.failed} emails failed to send`);
+          adminToast.error(`❌ ${result.failed} emails failed to send`);
         }
       }
 
       // Reset form
-      setFormData({ userType: "", subject: "", emailMethod: "sendy" });
+      setFormData({ userType: "", subject: "", emailMethod: "aws_ses" });
       setEditorContent("");
       
       // Clear editor content
@@ -278,7 +324,7 @@ const SendEmails = () => {
 
           {/* User Statistics Cards */}
           {Object.keys(userCounts).length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
               {Object.entries(userCounts).map(([type, count]) => (
                 <div key={type} className="bg-gradient-to-r from-[#bca142]/10 to-[#bca142]/20 p-4 rounded-lg border border-[#bca142]/30">
                   <div className="flex items-center justify-between">
@@ -292,19 +338,6 @@ const SendEmails = () => {
                   </div>
                 </div>
               ))}
-              
-              {/* Sendy Subscriber Count */}
-              <div className="bg-gradient-to-r from-[#bca142]/10 to-[#bca142]/20 p-4 rounded-lg border border-[#bca142]/30">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      Sendy Subscribers
-                    </p>
-                    <p className="text-2xl font-bold text-gray-900">{sendySubscriberCount}</p>
-                  </div>
-                  <FiMail className="h-8 w-8 text-[#bca142]" />
-                </div>
-              </div>
             </div>
           )}
 
@@ -329,79 +362,125 @@ const SendEmails = () => {
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 Email Delivery Method *
               </label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div 
                   className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                    formData.emailMethod === 'sendy' 
+                    formData.emailMethod === 'aws_ses' 
                       ? 'border-[#bca142] bg-[#bca142]/10' 
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
-                  onClick={() => setFormData(prev => ({ ...prev, emailMethod: 'sendy' }))}
+                  onClick={() => setFormData(prev => ({ ...prev, emailMethod: 'aws_ses' }))}
                 >
                   <div className="flex items-center">
                     <input
                       type="radio"
                       name="emailMethod"
-                      value="sendy"
-                      checked={formData.emailMethod === 'sendy'}
+                      value="aws_ses"
+                      checked={formData.emailMethod === 'aws_ses'}
                       onChange={handleChange}
                       className="mr-3"
                     />
                     <div>
-                      <h3 className="font-semibold text-gray-900">Sendy (Targeted Lists)</h3>
-                      <p className="text-sm text-gray-600">Professional targeted campaigns via dedicated Sendy lists</p>
+                      <h3 className="font-semibold text-gray-900">AWS SES (Primary)</h3>
+                      <p className="text-sm text-gray-600">Professional direct sending via Amazon SES infrastructure</p>
                       <div className="mt-2 flex flex-wrap gap-2">
-                        <span className="px-2 py-1 bg-[#bca142]/20 text-[#bca142] text-xs rounded">Targeted</span>
-                        <span className="px-2 py-1 bg-[#bca142]/20 text-[#bca142] text-xs rounded">Better Deliverability</span>
-                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">Professional</span>
+                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">Immediate</span>
+                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">Reliable</span>
+                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Professional</span>
+                        <span className="px-2 py-1 bg-[#bca142]/20 text-[#bca142] text-xs rounded">Recommended</span>
                       </div>
                     </div>
                   </div>
                 </div>
                 
                 <div 
-                  className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                    formData.emailMethod === 'smtp' 
-                      ? 'border-[#bca142] bg-[#bca142]/10' 
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                  onClick={() => setFormData(prev => ({ ...prev, emailMethod: 'smtp' }))}
+                  className="p-4 border-2 rounded-lg relative opacity-60 cursor-not-allowed border-gray-300 bg-gray-50"
                 >
                   <div className="flex items-center">
                     <input
                       type="radio"
                       name="emailMethod"
                       value="smtp"
-                      checked={formData.emailMethod === 'smtp'}
-                      onChange={handleChange}
-                      className="mr-3"
+                      disabled
+                      className="mr-3 cursor-not-allowed"
                     />
                     <div>
-                      <h3 className="font-semibold text-gray-900">SMTP (Direct)</h3>
-                      <p className="text-sm text-gray-600">Direct email sending via server</p>
+                      <h3 className="font-semibold text-gray-500">SMTP (Upcoming Event)</h3>
+                      <p className="text-sm text-gray-400">Direct server email sending - Available in next update</p>
                       <div className="mt-2 flex flex-wrap gap-2">
-                        <span className="px-2 py-1 bg-[#bca142]/20 text-[#bca142] text-xs rounded">Immediate</span>
-                        <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded">Basic</span>
+                        <span className="px-2 py-1 bg-gray-200 text-gray-500 text-xs rounded">Direct Sending</span>
+                        <span className="px-2 py-1 bg-gray-200 text-gray-500 text-xs rounded">Server SMTP</span>
+                        <span className="px-2 py-1 bg-orange-100 text-orange-600 text-xs rounded">Coming Soon</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div 
+                  className="p-4 border-2 rounded-lg relative opacity-60 cursor-not-allowed border-gray-300 bg-gray-50"
+                >
+                  <div className="flex items-center">
+                    <input
+                      type="radio"
+                      name="emailMethod"
+                      value="sendy"
+                      disabled
+                      className="mr-3 cursor-not-allowed"
+                    />
+                    <div>
+                      <h3 className="font-semibold text-gray-500">Sendy (Upcoming Event)</h3>
+                      <p className="text-sm text-gray-400">Advanced targeted campaigns - Available in next update</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <span className="px-2 py-1 bg-gray-200 text-gray-500 text-xs rounded">Targeted Lists</span>
+                        <span className="px-2 py-1 bg-gray-200 text-gray-500 text-xs rounded">Advanced Analytics</span>
+                        <span className="px-2 py-1 bg-orange-100 text-orange-600 text-xs rounded">Coming Soon</span>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
               
-              {formData.emailMethod === 'sendy' && (
-                <div className="mt-3 p-3 bg-[#bca142]/10 border border-[#bca142]/30 rounded-md">
-                  <p className="text-sm text-gray-800">
-                    <strong>✅ Dual List Addition:</strong> 
-                    <br />1. Selected users are added to their specific Sendy list (e.g., Business Owners)
-                    <br />2. Users are ALSO added to the "All Users" list for future broadcasts
-                    <br />3. Campaign is sent to the specific target list only
-                    <br />4. Professional Sendy infrastructure with better deliverability
+              {/* Method Information */}
+              {formData.emailMethod === 'aws_ses' && (
+                <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-md">
+                  <p className="text-sm text-green-800">
+                    <strong>✅ Primary Email Method - AWS SES:</strong> 
+                    <br />• Professional email delivery via Amazon's infrastructure
+                    <br />• Immediate sending with instant success/failure feedback
+                    <br />• High deliverability and reliability
+                    <br />• Perfect for all types of email campaigns
                   </p>
-                  <p className="text-xs text-gray-600 mt-2">
-                    <strong>Benefit:</strong> Users are available for both targeted campaigns and general broadcasts
+                  <p className="text-xs text-green-600 mt-2">
+                    <strong>Recommended:</strong> AWS SES is the primary method for all email campaigns
                   </p>
                 </div>
               )}
+              
+              {/* Upcoming Features Notice */}
+              {/* <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-orange-800">
+                      🚀 Advanced Email Features - Coming Soon!
+                    </h3>
+                    <div className="mt-2 text-sm text-orange-700">
+                      <p className="mb-2">We're working on exciting new email delivery options:</p>
+                      <ul className="list-disc list-inside space-y-1">
+                        <li><strong>Sendy Integration:</strong> Advanced targeted campaigns with detailed analytics and list management</li>
+                        <li><strong>Direct SMTP:</strong> Alternative server-based email delivery for specific use cases</li>
+                        <li><strong>Enhanced Analytics:</strong> Detailed open rates, click tracking, and engagement metrics</li>
+                        <li><strong>Template Library:</strong> Pre-designed email templates for different campaign types</li>
+                      </ul>
+                      <p className="mt-2 font-medium">Stay tuned for the next update!</p>
+                    </div>
+                  </div>
+                </div>
+              </div> */}
             </div>
 
             {/* User Type and Subject */}
@@ -510,7 +589,7 @@ const SendEmails = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    setFormData({ userType: "", subject: "", emailMethod: "sendy" });
+                    setFormData({ userType: "", subject: "", emailMethod: "aws_ses" });
                     setEditorContent("");
                     if (wrapperRef.current?.shadowRoot) {
                       const editorDiv = wrapperRef.current.shadowRoot.querySelector('div');
@@ -532,12 +611,12 @@ const SendEmails = () => {
                   {loading ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      {formData.emailMethod === 'sendy' ? 'Sending via Sendy...' : 'Sending via SMTP...'}
+                      Sending via AWS SES...
                     </>
                   ) : (
                     <>
                       <FiSend className="mr-2" />
-                      {formData.emailMethod === 'sendy' ? 'Send via Sendy' : 'Send via SMTP'}
+                      Send via AWS SES
                     </>
                   )}
                 </button>
@@ -552,6 +631,9 @@ const SendEmails = () => {
             <div className="flex items-center">
               <FiClock className="h-5 w-5 text-[#bca142] mr-2" />
               <h3 className="text-lg font-semibold text-gray-800">Campaign History</h3>
+              <span className="ml-2 text-xs text-gray-500">
+                (Times shown in your local timezone: {Intl.DateTimeFormat().resolvedOptions().timeZone})
+              </span>
             </div>
             <button
               onClick={() => setShowHistory(!showHistory)}
@@ -573,6 +655,7 @@ const SendEmails = () => {
                 >
                   <option value="all">All Methods</option>
                   <option value="sendy">Sendy</option>
+                  <option value="aws_ses">AWS SES</option>
                   <option value="smtp">SMTP</option>
                 </select>
 
@@ -616,9 +699,11 @@ const SendEmails = () => {
                           <span className={`px-2 py-1 rounded text-xs font-medium ${
                             campaign.method === 'sendy' 
                               ? 'bg-[#bca142]/20 text-[#bca142]' 
+                              : campaign.method === 'aws_ses'
+                              ? 'bg-green-100 text-green-800'
                               : 'bg-gray-200 text-gray-700'
                           }`}>
-                            {campaign.method.toUpperCase()}
+                            {campaign.method === 'aws_ses' ? 'AWS SES' : campaign.method.toUpperCase()}
                           </span>
                           <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
                             {getUserTypeLabel(campaign.user_type)}
@@ -644,10 +729,18 @@ const SendEmails = () => {
                         )}
                         <div className="text-center">
                           <div className="font-medium text-gray-900">
-                            {new Date(campaign.created_at).toLocaleDateString()}
+                            {formatDateTime(campaign.created_at).date}
                           </div>
-                          <div>{new Date(campaign.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                          <div>{formatDateTime(campaign.created_at).time}</div>
                         </div>
+                        <button
+                          onClick={() => handleViewRecipients(campaign)}
+                          className="flex items-center px-3 py-1 bg-[#bca142] text-white rounded text-xs hover:bg-black transition-colors"
+                          title="View Recipients"
+                        >
+                          <FiUsers className="mr-1" />
+                          Recipients
+                        </button>
                       </div>
                     </div>
                   ))
@@ -686,6 +779,126 @@ const SendEmails = () => {
             </>
           )}
         </div>
+
+        {/* Recipients Modal */}
+        {showRecipientsModal && selectedCampaign && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Campaign Recipients</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {selectedCampaign.subject} • {getUserTypeLabel(selectedCampaign.user_type)} • {formatDateTime(selectedCampaign.created_at).date} {formatDateTime(selectedCampaign.created_at).time}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowRecipientsModal(false);
+                    setSelectedCampaign(null);
+                    setCampaignRecipients([]);
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <FiX className="h-5 w-5 text-gray-500" />
+                </button>
+              </div>
+
+              {/* Modal Content */}
+              <div className="p-6 overflow-y-auto max-h-[60vh]">
+                {loadingRecipients ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#bca142] mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading recipients...</p>
+                  </div>
+                ) : campaignRecipients.length > 0 ? (
+                  <>
+                    {/* Summary Stats */}
+                    <div className="grid grid-cols-3 gap-4 mb-6">
+                      <div className="bg-gray-50 p-4 rounded-lg text-center">
+                        <div className="text-2xl font-bold text-gray-900">{campaignRecipients.length}</div>
+                        <div className="text-sm text-gray-600">Total Recipients</div>
+                      </div>
+                      <div className="bg-green-50 p-4 rounded-lg text-center">
+                        <div className="text-2xl font-bold text-green-600">
+                          {campaignRecipients.filter(r => r.status === 'sent' || r.status === 'success').length}
+                        </div>
+                        <div className="text-sm text-gray-600">Successfully Sent</div>
+                      </div>
+                      <div className="bg-red-50 p-4 rounded-lg text-center">
+                        <div className="text-2xl font-bold text-red-600">
+                          {campaignRecipients.filter(r => r.status === 'failed' || r.status === 'error').length}
+                        </div>
+                        <div className="text-sm text-gray-600">Failed</div>
+                      </div>
+                    </div>
+
+                    {/* Recipients List */}
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-gray-900 mb-3">Recipient Details</h4>
+                      {campaignRecipients.map((recipient, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            <div className="flex-shrink-0">
+                              <FiUser className="h-5 w-5 text-gray-400" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900">{recipient.name || 'N/A'}</p>
+                              <p className="text-sm text-gray-600">{recipient.email}</p>
+                              {recipient.role && (
+                                <p className="text-xs text-gray-500 capitalize">{recipient.role}</p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              recipient.status === 'sent' || recipient.status === 'success'
+                                ? 'bg-green-100 text-green-800'
+                                : recipient.status === 'failed' || recipient.status === 'error'
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {recipient.status === 'sent' || recipient.status === 'success' ? 'Sent' : 
+                               recipient.status === 'failed' || recipient.status === 'error' ? 'Failed' : 
+                               recipient.status || 'Unknown'}
+                            </span>
+                            {recipient.sent_at && (
+                              <span className="text-xs text-gray-500">
+                                {formatDateTime(recipient.sent_at).date} {formatDateTime(recipient.sent_at).time}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <FiUsers className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-600">No recipient data available for this campaign</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
+                <div className="text-sm text-gray-600">
+                  Campaign sent via {selectedCampaign.method === 'aws_ses' ? 'AWS SES' : selectedCampaign.method.toUpperCase()}
+                </div>
+                <button
+                  onClick={() => {
+                    setShowRecipientsModal(false);
+                    setSelectedCampaign(null);
+                    setCampaignRecipients([]);
+                  }}
+                  className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

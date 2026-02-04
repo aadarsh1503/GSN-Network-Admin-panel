@@ -12,7 +12,7 @@ const MembersDirectory = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [itemsPerPage, setItemsPerPage] = useState(12);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1, totalCompanies: 0 });
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [wishlistItems, setWishlistItems] = useState([]);
@@ -126,7 +126,7 @@ const MembersDirectory = () => {
                   <h1 className="text-4xl font-bold text-white">
                     Members Directory
                   </h1>
-                  <p className="text-white/90 text-lg font-medium mt-1">Explore our stellar network members</p>
+                  <p className="text-white/90 text-lg font-medium mt-1">Explore our network members</p>
                   <div className="flex items-center mt-2 space-x-2">
                     <div className="w-2 h-2 bg-white/60 rounded-full"></div>
                     <span className="text-white/70 text-sm">Premium Directory</span>
@@ -229,7 +229,7 @@ const MembersDirectory = () => {
               <div className="relative inline-block">
                 <div className="w-16 h-16 border-4 border-gray-300 border-t-[#bca142] rounded-full animate-spin"></div>
               </div>
-              <p className="mt-4 text-lg font-bold text-black">Loading stellar companies...</p>
+              <p className="mt-4 text-lg font-bold text-black">Loading  companies...</p>
               <div className="flex justify-center mt-2 space-x-1">
                 <div className="w-2 h-2 bg-[#bca142] rounded-full animate-bounce"></div>
                 <div className="w-2 h-2 bg-[#bca142] rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
@@ -246,7 +246,7 @@ const MembersDirectory = () => {
             <>
               <div className="mb-4 flex justify-between items-center relative z-10">
                 <div className="text-lg font-bold text-black bg-gray-100 px-4 py-2 rounded-2xl border border-gray-300">
-                  <span className="text-[#bca142]">{companies.length}</span> of <span className="text-[#bca142]">{pagination.totalCompanies}</span> stellar companies
+                  <span className="text-[#bca142]">{companies.length}</span> of <span className="text-[#bca142]">{pagination.totalCompanies}</span> companies
                 </div>
                 <div className="flex items-center space-x-3 text-sm text-black bg-gray-100 px-4 py-2 rounded-2xl border border-gray-300">
                   <div className="w-3 h-3 bg-[#bca142] rounded-full"></div>

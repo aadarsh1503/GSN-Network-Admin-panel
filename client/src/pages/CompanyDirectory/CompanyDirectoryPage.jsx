@@ -169,33 +169,6 @@ const CompanyProfileModal = ({ company, onClose }) => {
                   </div>
                 </div>
               )}
-
-              {/* Social Links */}
-              {(company.facebook || company.twitter || company.linkedin) && (
-                <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-6 shadow-lg border border-indigo-200">
-                  <h4 className="font-bold text-gray-800 mb-4 text-xl">Connect With Us</h4>
-                  <div className="flex space-x-4">
-                    {company.facebook && (
-                      <a href={company.facebook} target="_blank" rel="noopener noreferrer" 
-                         className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-md hover:shadow-lg">
-                        Facebook
-                      </a>
-                    )}
-                    {company.twitter && (
-                      <a href={company.twitter} target="_blank" rel="noopener noreferrer" 
-                         className="bg-blue-400 text-white px-6 py-3 rounded-lg hover:bg-blue-500 transition-colors font-medium shadow-md hover:shadow-lg">
-                        Twitter
-                      </a>
-                    )}
-                    {company.linkedin && (
-                      <a href={company.linkedin} target="_blank" rel="noopener noreferrer" 
-                         className="bg-blue-700 text-white px-6 py-3 rounded-lg hover:bg-blue-800 transition-colors font-medium shadow-md hover:shadow-lg">
-                        LinkedIn
-                      </a>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>

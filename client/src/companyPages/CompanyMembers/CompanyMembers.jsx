@@ -115,7 +115,7 @@ const AddCompanyMember = () => {
 
           {/* Member Phone No. */}
           <div>
-            <label htmlFor="memberPhone" className={labelClasses}>Member Phone No.</label>
+            <label htmlFor="memberPhone" className={labelClasses}>Member Mobile</label>
             <input type="tel" id="memberPhone" name="memberPhone" value={formData.memberPhone} onChange={handleChange} className={inputClasses} />
           </div>
 
@@ -137,7 +137,7 @@ const AddCompanyMember = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
           <div><label htmlFor="skype" className={labelClasses}>Skype</label><input type="url" id="skype" name="skype" value={formData.skype} onChange={handleChange} className={inputClasses} /></div>
           <div><label htmlFor="facebook" className={labelClasses}>Facebook</label><input type="url" id="facebook" name="facebook" value={formData.facebook} onChange={handleChange} className={inputClasses} /></div>
-          <div><label htmlFor="twitter" className={labelClasses}>Twitter</label><input type="url" id="twitter" name="twitter" value={formData.twitter} onChange={handleChange} className={inputClasses} /></div>
+          {/* <div><label htmlFor="twitter" className={labelClasses}>Twitter</label><input type="url" id="twitter" name="twitter" value={formData.twitter} onChange={handleChange} className={inputClasses} /></div> */}
           <div><label htmlFor="instagram" className={labelClasses}>Instagram</label><input type="url" id="instagram" name="instagram" value={formData.instagram} onChange={handleChange} className={inputClasses} /></div>
           <div><label htmlFor="whatsapp" className={labelClasses}>Whatsapp</label><input type="tel" id="whatsapp" name="whatsapp" value={formData.whatsapp} onChange={handleChange} className={inputClasses} /></div>
           <div><label htmlFor="linkedin" className={labelClasses}>Linkedin</label><input type="url" id="linkedin" name="linkedin" value={formData.linkedin} onChange={handleChange} className={inputClasses} /></div>

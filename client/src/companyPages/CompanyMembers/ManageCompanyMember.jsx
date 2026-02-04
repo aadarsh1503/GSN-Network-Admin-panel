@@ -138,7 +138,7 @@ const ManageCompanyMember = () => {
 
   return (
     <div className="bg-white p-6 md:p-8 rounded-lg shadow-md w-full max-w-6xl mx-auto my-8 relative">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Company Members</h2>
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">Agents</h2>
 
       {/* Top Controls */}
       <div className="flex flex-col md:flex-row items-center justify-between mb-4 gap-4">

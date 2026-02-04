@@ -312,11 +312,20 @@ const MyQuotes = () => {
   };
 
   const getPaymentStatusBadge = (quote) => {
-    // For approved quotes, show the approval status prominently
+    // For approved quotes with verified payment, show the approval status prominently
     if (quote.status === 'approved' && quote.payment_status === 'verified') {
       return (
         <span className="px-2 py-1 rounded-full text-xs font-medium bg-[#bca142] text-white border border-[#bca142]">
-          ✅ Auto-Approved (Payment Verified)
+          ✅ Payment Verified
+        </span>
+      );
+    }
+
+    // For quotes with approved status (updated from pending when payment verified)
+    if (quote.status === 'approved') {
+      return (
+        <span className="px-2 py-1 rounded-full text-xs font-medium bg-[#bca142] text-white border border-[#bca142]">
+          ✅ Quote Approved
         </span>
       );
     }
@@ -1418,7 +1427,7 @@ const MyQuotes = () => {
                           {statusUpdatingId === quote.id && (
                             <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-[#bca142] mx-auto"></div>
                           )}
-                          <div className="text-xs">
+                          <div className="text-xs mt-2">
                             {getPaymentStatusBadge(quote)}
                           </div>
                         </div>
