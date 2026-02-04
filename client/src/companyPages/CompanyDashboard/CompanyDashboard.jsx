@@ -819,14 +819,14 @@ const Dashboard = () => {
           </div>
           
           {/* Test Profile Modal Button */}
-          <div className="mt-4">
+          {/* <div className="mt-4">
             <button
               onClick={openProfileModal}
               className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm"
             >
               Test Profile Modal
             </button>
-          </div>
+          </div> */}
         </div>
 
         {/* Enhanced Stats Cards with Admin Dashboard Design */}
