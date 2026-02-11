@@ -97,6 +97,7 @@ import ManageCompanyMember from "./companyPages/CompanyMembers/ManageCompanyMemb
 import PlansPage from "./companyPages/Plans/PlansPage";
 import MyCertificatePage from "./companyPages/MyCertificatePage/MyCertificatePage";
 import SubscriptionPage from "./pages/SubscriptionPage";
+import PaymentPage from "./pages/PaymentPage";
 import MemberQuotesPage from "./pages/MemberQuotesPage";
 import Invoices from "./companyPages/Invoices/Invoices";
 import TransactionHistorycompany from "./companyPages/TransactionHistory/TransactionHistorycompany";
@@ -275,6 +276,7 @@ function App() {
           <Route path="reset-password" element={<ResetPassword />} />
           <Route path="quote" element={<RequestQuote />} />
           <Route path="subscriptions" element={<SubscriptionPage />} />
+          <Route path="payment" element={<PaymentPage />} />
           <Route path="/company/freight-quotes" element={<QuotesPage />} />
           <Route path="business-directory" element={<BusinessDirectoryPage />} />
           <Route path="company-directory" element={<CompanyDirectoryPage />} />

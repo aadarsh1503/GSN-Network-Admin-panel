@@ -11,7 +11,7 @@ export const getAllSubscriptionsAdmin = async (req, res) => {
         // Log the request for debugging
         console.log('🔍 Admin panel subscriptions requested');
         
-        // Get the latest subscription for each user, prioritizing paid subscriptions
+        // Get the latest ACTIVE subscription for each user
         const sql = `
             SELECT 
                 us.id,
@@ -30,14 +30,20 @@ export const getAllSubscriptionsAdmin = async (req, res) => {
                 us.payment_status,
                 us.transaction_id,
                 us.amount_paid,
+                us.proration_applied,
+                us.proration_details,
+                us.payment_method,
                 us.created_at
             FROM user_subscriptions us
             JOIN users u ON us.user_id = u.id
             JOIN membership_plans mp ON us.plan_id = mp.id
-            WHERE us.id IN (
+            WHERE us.status = 'active'
+            AND us.amount_paid > 0
+            AND us.id IN (
                 SELECT MAX(us2.id)
                 FROM user_subscriptions us2
                 WHERE us2.user_id = us.user_id
+                AND us2.status = 'active'
                 AND us2.amount_paid > 0
                 GROUP BY us2.user_id
             )

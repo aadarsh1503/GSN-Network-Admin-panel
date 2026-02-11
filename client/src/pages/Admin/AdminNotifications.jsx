@@ -95,6 +95,13 @@ const AdminNotifications = () => {
       markAsRead(notification.id);
     }
 
+    // Handle subscription notifications with redirect
+    if (notification.type === 'subscription') {
+      navigate('/admin/subscribers', { state: { activeTab: 'incoming' } });
+      toast.success('Redirected to Incoming Subscription Requests');
+      return;
+    }
+
     // Handle registration notifications with redirect
     if (notification.type === 'registration') {
       try {
@@ -170,29 +177,56 @@ const AdminNotifications = () => {
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    
     const date = new Date(dateString);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) return 'Invalid Date';
+    
     return date.toLocaleString('en-US', { 
-      month: 'short', day: 'numeric', year: 'numeric', 
-      hour: 'numeric', minute: 'numeric', hour12: true 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric', 
+      hour: 'numeric', 
+      minute: '2-digit', 
+      hour12: true 
     });
   };
 
   const formatDateShort = (dateString) => {
+    if (!dateString) return 'N/A';
+    
     const date = new Date(dateString);
     const now = new Date();
-    const diffInHours = (now - date) / (1000 * 60 * 60);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) return 'Invalid Date';
+    
+    const diffInMs = now - date;
+    const diffInHours = diffInMs / (1000 * 60 * 60);
     
     if (diffInHours < 24) {
+      // Show time for today
       return date.toLocaleTimeString('en-US', { 
-        hour: 'numeric', minute: 'numeric', hour12: true 
+        hour: 'numeric', 
+        minute: '2-digit', 
+        hour12: true 
       });
     } else if (diffInHours < 168) { // 7 days
-      return date.toLocaleDateString('en-US', { 
-        weekday: 'short', hour: 'numeric', minute: 'numeric', hour12: true 
+      // Show day and time for this week
+      return date.toLocaleString('en-US', { 
+        weekday: 'short', 
+        hour: 'numeric', 
+        minute: '2-digit', 
+        hour12: true 
       });
     } else {
+      // Show date for older notifications
       return date.toLocaleDateString('en-US', { 
-        month: 'short', day: 'numeric' 
+        month: 'short', 
+        day: 'numeric',
+        year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
       });
     }
   };

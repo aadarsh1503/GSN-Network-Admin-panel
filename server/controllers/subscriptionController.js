@@ -32,8 +32,17 @@ const getMySubscription = async (req, res) => {
     const userId = req.user.id;
 
     try {
+        // Check for pending subscription request
+        const pendingSql = `
+            SELECT COUNT(*) as pending_count
+            FROM subscription_requests
+            WHERE user_id = ? AND status = 'pending'
+        `;
+        const [pendingRows] = await db.execute(pendingSql, [userId]);
+        const hasPendingRequest = pendingRows[0].pending_count > 0;
+
         const sql = `
-            SELECT us.*, mp.name as plan_name, mp.features, mp.max_quotes, mp.max_responses
+            SELECT us.*, mp.name as plan_name, mp.price as plan_price, mp.features, mp.max_quotes, mp.max_responses
             FROM user_subscriptions us
             JOIN membership_plans mp ON us.plan_id = mp.id
             WHERE us.user_id = ? AND us.status = 'active' AND us.end_date >= CURDATE()
@@ -44,19 +53,21 @@ const getMySubscription = async (req, res) => {
         const [rows] = await db.execute(sql, [userId]);
         
         if (rows.length === 0) {
-            // Return guest plan info
+            // Return guest plan info with pending request flag
             return res.status(200).json({
                 plan_name: 'Guest',
                 status: 'active',
                 features: ['View directory', 'Submit quotes', 'Basic support'],
                 max_quotes: 5,
                 max_responses: 0,
-                is_guest: true
+                is_guest: true,
+                pending_request: hasPendingRequest
             });
         }
 
         const subscription = rows[0];
         subscription.features = subscription.features ? JSON.parse(subscription.features) : [];
+        subscription.pending_request = hasPendingRequest;
 
         res.status(200).json(subscription);
     } catch (error) {
@@ -150,12 +161,20 @@ const getAllPlans = async (req, res) => {
     }
 };
 
-// @desc    Activate subscription (without payment for now)
+// @desc    Activate subscription (with PayPal or manual payment)
 // @route   POST /api/subscriptions/activate
 // @access  Private
 const activateSubscription = async (req, res) => {
     const userId = req.user.id;
-    const { planId, paymentMethod = 'manual' } = req.body; // Default to manual for now
+    const { 
+        planId, 
+        paymentMethod = 'manual',
+        orderId,
+        payerId,
+        paymentDetails,
+        prorationApplied,
+        prorationDetails
+    } = req.body;
 
     if (!planId) {
         return res.status(400).json({ message: 'Plan ID is required' });
@@ -172,49 +191,138 @@ const activateSubscription = async (req, res) => {
 
         const plan = planRows[0];
 
+        // Get user details
+        const userSql = `SELECT * FROM users WHERE id = ?`;
+        const [userRows] = await db.execute(userSql, [userId]);
+        
+        if (userRows.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const user = userRows[0];
+
+        // Check if user already has a pending request
+        const existingRequestSql = `
+            SELECT * FROM subscription_requests 
+            WHERE user_id = ? AND status = 'pending'
+        `;
+        const [existingRequestRows] = await db.execute(existingRequestSql, [userId]);
+
+        if (existingRequestRows.length > 0) {
+            return res.status(400).json({ message: 'You already have a pending subscription request' });
+        }
+
         // Check if user already has an active subscription
         const existingSql = `
-            SELECT * FROM user_subscriptions 
-            WHERE user_id = ? AND status = 'active' AND end_date >= CURDATE()
+            SELECT us.*, mp.price as plan_price, mp.name as plan_name
+            FROM user_subscriptions us
+            JOIN membership_plans mp ON us.plan_id = mp.id
+            WHERE us.user_id = ? AND us.status = 'active' AND us.end_date >= CURDATE()
+            ORDER BY us.end_date DESC
+            LIMIT 1
         `;
         const [existingRows] = await db.execute(existingSql, [userId]);
 
+        let isUpgrade = false;
+        let oldSubscription = null;
+
         if (existingRows.length > 0) {
-            return res.status(400).json({ message: 'You already have an active subscription' });
+            oldSubscription = existingRows[0];
+            const currentPrice = parseFloat(oldSubscription.plan_price);
+            const newPrice = parseFloat(plan.price);
+
+            // Check if it's an upgrade
+            if (newPrice > currentPrice) {
+                isUpgrade = true;
+            } else if (newPrice <= currentPrice && oldSubscription.plan_id !== planId) {
+                // Prevent downgrade or same price plan change
+                return res.status(400).json({ 
+                    message: 'Downgrading is not available. Please contact support for assistance.' 
+                });
+            } else if (oldSubscription.plan_id === planId) {
+                return res.status(400).json({ message: 'You already have this plan active' });
+            }
         }
 
-        // Calculate end date
-        const startDate = new Date();
-        const endDate = new Date();
-        endDate.setMonth(endDate.getMonth() + plan.duration_months);
+        // Determine amount paid (with proration if applicable)
+        const amountPaid = prorationApplied && prorationDetails 
+            ? parseFloat(prorationDetails.amountToCharge)
+            : parseFloat(plan.price);
 
-        // Create subscription with payment method
-        const subscriptionSql = `
-            INSERT INTO user_subscriptions 
-            (user_id, plan_id, start_date, end_date, status, payment_status, payment_method, amount_paid)
-            VALUES (?, ?, ?, ?, 'active', 'paid', ?, ?)
+        // FOR PAYPAL: Create a subscription REQUEST (pending admin approval)
+        // Store the subscription request
+        const requestSql = `
+            INSERT INTO subscription_requests 
+            (user_id, plan_id, transaction_id, payment_method, payment_proof_url, status, company_name, user_name, user_email, user_phone, plan_name, plan_price, duration_months, paypal_order_id, paypal_payer_id, proration_applied, proration_details, is_upgrade, old_subscription_id)
+            VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
-        const [result] = await db.execute(subscriptionSql, [
-            userId, 
-            planId, 
-            startDate.toISOString().split('T')[0], 
-            endDate.toISOString().split('T')[0],
+        const paymentProofUrl = paymentMethod === 'paypal' ? 'PayPal Payment' : null;
+        const transactionId = orderId || `TXN-${Date.now()}`;
+
+        const [result] = await db.execute(requestSql, [
+            userId,
+            planId,
+            transactionId,
             paymentMethod,
-            plan.price
+            paymentProofUrl,
+            user.name || 'N/A',
+            user.name,
+            user.email,
+            user.phone || null,
+            plan.name,
+            amountPaid,
+            plan.duration_months,
+            orderId || null,
+            payerId || null,
+            prorationApplied ? 1 : 0,
+            prorationDetails ? JSON.stringify(prorationDetails) : null,
+            isUpgrade ? 1 : 0,
+            oldSubscription ? oldSubscription.id : null
         ]);
 
-        // Create invoice for this subscription
-        const invoiceResult = await createInvoice(result.insertId, plan.price, 0);
+        // 🚀 QUEUE EMAIL WORKFLOW - Payment Proof Submitted (NON-BLOCKING)
+        queueSubscriptionEmails.paymentProofSubmitted({
+            companyId: userId,
+            companyName: user.name || 'N/A',
+            companyEmail: user.email,
+            planName: plan.name,
+            planDuration: `${plan.duration_months} month${plan.duration_months > 1 ? 's' : ''}`,
+            planPrice: `${amountPaid}`,
+            paymentMethod: paymentMethod === 'paypal' ? 'PayPal' : paymentMethod,
+            transactionReference: transactionId,
+            subscriptionId: result.insertId
+        }).then(jobId => {
+            console.log(`✅ Payment proof submission emails queued (Job ID: ${jobId})`);
+        }).catch(error => {
+            console.error('❌ Failed to queue payment proof submission emails:', error);
+        });
+
+        // 🔔 CREATE ADMIN NOTIFICATION - Subscription Payment Proof Submitted
+        try {
+            await sendSubscriptionPaymentProofNotificationToAdmin(
+                userId,
+                user.name || 'N/A',
+                plan.name,
+                amountPaid,
+                transactionId,
+                result.insertId
+            );
+        } catch (notificationError) {
+            console.error('❌ Failed to create admin notification for subscription payment proof:', notificationError);
+            // Don't fail the request if notification creation fails
+        }
 
         res.status(201).json({
-            message: 'Subscription activated successfully',
-            subscriptionId: result.insertId,
+            message: isUpgrade 
+                ? 'Upgrade request submitted successfully. Admin will review and approve.' 
+                : 'Subscription request submitted successfully. Admin will review and approve.',
+            requestId: result.insertId,
             planName: plan.name,
-            endDate: endDate.toISOString().split('T')[0],
-            transactionId: result.insertId,
-            invoiceNumber: invoiceResult.invoiceNumber,
-            invoiceId: invoiceResult.invoiceId
+            status: 'pending',
+            amountPaid,
+            isUpgrade,
+            oldPlan: oldSubscription ? oldSubscription.plan_name : null
         });
 
     } catch (error) {
@@ -288,7 +396,7 @@ const deletePlan = async (req, res) => {
 // @access  Private
 const submitBankTransferRequest = async (req, res) => {
     const userId = req.user.id;
-    const { planId, transactionId, paymentMethod = 'bank_transfer' } = req.body;
+    const { planId, transactionId, paymentMethod = 'bank_transfer', prorationApplied, prorationDetails } = req.body;
 
     if (!planId || !transactionId) {
         return res.status(400).json({ message: 'Plan ID and transaction ID are required' });
@@ -330,11 +438,53 @@ const submitBankTransferRequest = async (req, res) => {
             return res.status(400).json({ message: 'You already have a pending subscription request' });
         }
 
-        // Store the subscription request
+        // Check if user already has an active subscription (for upgrade detection)
+        const existingSql = `
+            SELECT us.*, mp.price as plan_price, mp.name as plan_name
+            FROM user_subscriptions us
+            JOIN membership_plans mp ON us.plan_id = mp.id
+            WHERE us.user_id = ? AND us.status = 'active' AND us.end_date >= CURDATE()
+            ORDER BY us.end_date DESC
+            LIMIT 1
+        `;
+        const [existingSubRows] = await db.execute(existingSql, [userId]);
+
+        let isUpgrade = false;
+        let oldSubscription = null;
+
+        if (existingSubRows.length > 0) {
+            oldSubscription = existingSubRows[0];
+            const currentPrice = parseFloat(oldSubscription.plan_price);
+            const newPrice = parseFloat(plan.price);
+
+            // Check if it's an upgrade
+            if (newPrice > currentPrice) {
+                isUpgrade = true;
+            }
+        }
+
+        // Parse proration details
+        let parsedProrationDetails = null;
+        if (prorationDetails) {
+            try {
+                parsedProrationDetails = typeof prorationDetails === 'string' 
+                    ? JSON.parse(prorationDetails) 
+                    : prorationDetails;
+            } catch (e) {
+                console.error('Error parsing proration details:', e);
+            }
+        }
+
+        // Calculate amount paid with proration
+        const amountPaid = prorationApplied && parsedProrationDetails 
+            ? parseFloat(parsedProrationDetails.amountToCharge)
+            : parseFloat(plan.price);
+
+        // Store the subscription request with proration data
         const requestSql = `
             INSERT INTO subscription_requests 
-            (user_id, plan_id, transaction_id, payment_method, payment_proof_url, status, company_name, user_name, user_email, user_phone, plan_name, plan_price, duration_months)
-            VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?)
+            (user_id, plan_id, transaction_id, payment_method, payment_proof_url, status, company_name, user_name, user_email, user_phone, plan_name, plan_price, duration_months, proration_applied, proration_details, is_upgrade, old_subscription_id, amount_paid)
+            VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         const paymentProofUrl = req.file.path; // Cloudinary URL
@@ -351,7 +501,12 @@ const submitBankTransferRequest = async (req, res) => {
             user.phone || null,
             plan.name,
             plan.price,
-            plan.duration_months
+            plan.duration_months,
+            prorationApplied ? 1 : 0,
+            parsedProrationDetails ? JSON.stringify(parsedProrationDetails) : null,
+            isUpgrade ? 1 : 0,
+            oldSubscription ? oldSubscription.id : null,
+            amountPaid
         ]);
 
         // 🚀 QUEUE EMAIL WORKFLOW - Payment Proof Submitted (NON-BLOCKING)
@@ -361,7 +516,7 @@ const submitBankTransferRequest = async (req, res) => {
             companyEmail: user.email,
             planName: plan.name,
             planDuration: `${plan.duration_months} month${plan.duration_months > 1 ? 's' : ''}`,
-            planPrice: `$${plan.price}`,
+            planPrice: `$${amountPaid}`,
             paymentMethod: paymentMethod === 'bank_transfer' ? 'Bank Transfer' : paymentMethod,
             transactionReference: transactionId,
             subscriptionId: result.insertId
@@ -377,7 +532,7 @@ const submitBankTransferRequest = async (req, res) => {
                 userId,
                 user.name || 'N/A',
                 plan.name,
-                plan.price,
+                amountPaid,
                 transactionId,
                 result.insertId
             );
@@ -387,9 +542,14 @@ const submitBankTransferRequest = async (req, res) => {
         }
 
         res.status(201).json({
-            message: 'Subscription request submitted successfully',
+            message: isUpgrade 
+                ? 'Upgrade request submitted successfully. Admin will review and approve.' 
+                : 'Subscription request submitted successfully. Admin will review and approve.',
             requestId: result.insertId,
-            status: 'pending'
+            status: 'pending',
+            amountPaid,
+            isUpgrade,
+            oldPlan: oldSubscription ? oldSubscription.plan_name : null
         });
 
     } catch (error) {
@@ -462,7 +622,7 @@ const approveSubscriptionRequest = async (req, res) => {
     try {
         // Get request details
         const requestSql = `
-            SELECT sr.*, mp.duration_months, mp.price
+            SELECT sr.*, mp.duration_months, mp.price, mp.name as plan_name
             FROM subscription_requests sr
             JOIN membership_plans mp ON sr.plan_id = mp.id
             WHERE sr.id = ? AND sr.status = 'pending'
@@ -475,16 +635,28 @@ const approveSubscriptionRequest = async (req, res) => {
 
         const request = requestRows[0];
 
+        // 🔄 EXPIRE OLD SUBSCRIPTION IF EXISTS
+        await db.execute(`
+            UPDATE user_subscriptions 
+            SET status = 'expired', 
+                end_date = CURDATE() 
+            WHERE user_id = ? 
+            AND status = 'active'
+        `, [request.user_id]);
+
         // Calculate subscription dates
         const startDate = new Date();
         const endDate = new Date();
         endDate.setMonth(endDate.getMonth() + request.duration_months);
 
-        // Create subscription
+        // Determine amount paid (use prorated amount if available)
+        const amountPaid = request.amount_paid || request.plan_price || request.price;
+
+        // Create NEW subscription
         const subscriptionSql = `
             INSERT INTO user_subscriptions 
-            (user_id, plan_id, start_date, end_date, status, payment_status, payment_method, amount_paid, transaction_id)
-            VALUES (?, ?, ?, ?, 'active', 'paid', ?, ?, ?)
+            (user_id, plan_id, start_date, end_date, status, payment_status, payment_method, amount_paid, transaction_id, proration_applied, proration_details)
+            VALUES (?, ?, ?, ?, 'active', 'paid', ?, ?, ?, ?, ?)
         `;
 
         const [subscriptionResult] = await db.execute(subscriptionSql, [
@@ -493,8 +665,10 @@ const approveSubscriptionRequest = async (req, res) => {
             startDate.toISOString().split('T')[0],
             endDate.toISOString().split('T')[0],
             request.payment_method || 'bank_transfer',
-            request.plan_price,
-            request.transaction_id
+            amountPaid,
+            request.transaction_id,
+            request.proration_applied || 0,
+            request.proration_details || null
         ]);
 
         // Update request status
@@ -503,8 +677,8 @@ const approveSubscriptionRequest = async (req, res) => {
             [id]
         );
 
-        // Create invoice
-        const invoiceResult = await createInvoice(subscriptionResult.insertId, request.plan_price, 0);
+        // Create invoice with actual amount paid
+        const invoiceResult = await createInvoice(subscriptionResult.insertId, amountPaid, 0);
 
         // Get admin and company details for email
         const adminId = req.user.id;

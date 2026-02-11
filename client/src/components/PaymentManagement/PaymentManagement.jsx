@@ -238,8 +238,8 @@ const PaymentManagement = () => {
                     )}
                   </div>
 
-                  {/* Payment Proof Thumbnail */}
-                  {payment.payment_proof_url && (
+                  {/* Payment Proof Thumbnail - Only show for bank transfers */}
+                  {payment.payment_proof_url && payment.payment_method !== 'paypal' && (
                     <div className="mb-6">
                       <p className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                         <FiImage className="text-[#bca142]" />
@@ -257,6 +257,23 @@ const PaymentManagement = () => {
                           onClick={() => handleImageClick(payment.payment_proof_url)}
                         >
                           <FiEye className="text-white opacity-0 group-hover:opacity-100 text-2xl transition-opacity" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* PayPal Payment Badge */}
+                  {payment.payment_method === 'paypal' && (
+                    <div className="mb-6">
+                      <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                            <FiDollarSign className="text-white text-xl" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-blue-900">PayPal Payment</p>
+                            <p className="text-sm text-blue-700">Paid via PayPal - No proof image required</p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -418,8 +435,8 @@ const PaymentManagement = () => {
 
                 {/* Right Column - Payment Proof & Bank Details */}
                 <div className="space-y-6">
-                  {/* Payment Proof */}
-                  {selectedPayment.payment_proof_url && (
+                  {/* Payment Proof - Only show for bank transfers */}
+                  {selectedPayment.payment_proof_url && selectedPayment.payment_method !== 'paypal' && (
                     <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
                       <h3 className="text-xl font-bold text-black mb-4 flex items-center gap-2">
                         <FiImage className="text-[#bca142]" />

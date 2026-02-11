@@ -44,7 +44,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api } from '../../utils/api';
-import PaymentUpload from '../../components/PaymentUpload/PaymentUpload';
+import QuotePaymentModal from '../../components/QuotePayment/QuotePaymentModal';
 import CompanyProfileModal from '../../components/CompanyProfileModal/CompanyProfileModal';
 
 // Compact Response Row Component
@@ -1077,23 +1077,20 @@ const QuoteDetails = () => {
         </div>
       </div>
 
-      {/* Payment Upload Modal */}
+      {/* Payment Modal */}
       {showPaymentModal && selectedResponseForPayment && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <PaymentUpload 
-            quote={selectedResponseForPayment}
-            onClose={() => {
-              setShowPaymentModal(false);
-              setSelectedResponseForPayment(null);
-            }}
-            onSuccess={() => {
-              setShowPaymentModal(false);
-              setSelectedResponseForPayment(null);
-              fetchQuoteResponses(); // Refresh to show updated payment status
-              toast.success('Payment proof uploaded successfully! The company will verify your payment before work begins.');
-            }}
-          />
-        </div>
+        <QuotePaymentModal 
+          quote={selectedResponseForPayment}
+          onClose={() => {
+            setShowPaymentModal(false);
+            setSelectedResponseForPayment(null);
+          }}
+          onSuccess={() => {
+            setShowPaymentModal(false);
+            setSelectedResponseForPayment(null);
+            fetchQuoteResponses(); // Refresh to show updated payment status
+          }}
+        />
       )}
 
       {/* Company Profile Modal */}

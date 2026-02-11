@@ -20,9 +20,9 @@ router.get('/active', protect, async (req, res) => {
   try {
     const [bankDetails] = await db.execute(
       `SELECT 
-        id, bank_name, branch_name, ifsc_code, account_number, 
-        account_holder_name, iban_number, swift_code, 
-        payment_instructions, is_active, created_at
+        id, bank_name, branch_name, branch_address, ifsc_code, account_number, 
+        account_holder_name, iban_number, swift_code, payment_instructions, 
+        is_active, created_at
        FROM admin_bank_details 
        WHERE is_active = 1 
        ORDER BY created_at DESC 
@@ -47,9 +47,9 @@ router.get('/admin/all', protect, authorize('admin'), async (req, res) => {
   try {
     const [bankDetails] = await db.execute(
       `SELECT 
-        id, bank_name, branch_name, ifsc_code, account_number, 
-        account_holder_name, iban_number, swift_code, 
-        payment_instructions, is_active, created_at, updated_at
+        id, bank_name, branch_name, branch_address, ifsc_code, account_number, 
+        account_holder_name, iban_number, swift_code, payment_instructions, 
+        is_active, created_at, updated_at
        FROM admin_bank_details 
        ORDER BY is_active DESC, created_at DESC`
     );

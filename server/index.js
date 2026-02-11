@@ -50,6 +50,7 @@ dotenv.config();
 import userRoutes from './routes/userRoutes.js';
 import { createServer } from 'http';
 import realTimeAccountService from './services/realTimeAccountService.js';
+import emailQueue from './services/emailQueue.js';
 
 // For debugging: check if the variable is loaded
 console.log('JWT Secret Loaded:', process.env.JWT_SECRET ? 'Yes' : 'No'); 
@@ -130,4 +131,8 @@ console.log('📍 All routes mounted successfully');
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🔌 WebSocket server available at ws://localhost:${PORT}/ws/account-status`);
+  console.log(`📧 Email queue worker started and ready to process emails`);
+  
+  // Email queue is automatically processing in background
+  // Check status with: GET /api/email-queue/status
 });

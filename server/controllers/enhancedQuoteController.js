@@ -233,6 +233,9 @@ const getCompanyResponsesWithPayments = async (req, res) => {
                 pp.upload_date as payment_proof_date,
                 pp.notes as payment_notes,
                 pp.file_name as payment_proof_filename,
+                pp.payment_method,
+                pp.paypal_order_id,
+                pp.paypal_payer_id,
                 CASE WHEN pp.id IS NOT NULL THEN 1 ELSE 0 END as payment_proof_uploaded,
                 CASE WHEN pp.id IS NOT NULL THEN 1 ELSE 0 END as has_payment_proof,
                 

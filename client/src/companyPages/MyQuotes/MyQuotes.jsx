@@ -161,12 +161,16 @@ const MyQuotes = () => {
       // Use the same API as transaction history for consistency
       const data = await api.get('/api/enhanced-quotes/company-responses-with-payments');
       
-      // Filter for quotes that have been accepted by users OR have verified payments
+      // Filter for quotes that have been accepted by users OR have verified payments OR have PayPal payments
       const activeQuotes = data.filter(item => {
         return item.user_response_status === 'accepted' || 
                item.payment_status === 'verified' ||
-               item.payment_proof_url; // Has payment proof uploaded
+               item.payment_proof_url || // Has bank transfer payment proof uploaded
+               item.paypal_order_id; // Has PayPal payment
       });
+      
+      console.log('📊 Active quotes with payments:', activeQuotes.length);
+      console.log('Sample quote data:', activeQuotes[0]); // Debug first quote
       
       setQuotes(Array.isArray(activeQuotes) ? activeQuotes : []);
     } catch (error) {
@@ -1002,11 +1006,15 @@ const MyQuotes = () => {
                     {selectedQuote.payment_proof_url && !selectedQuote.payment_status && (
                       <p className="text-sm text-yellow-600 flex items-center gap-2">
                         <FiClock className="text-yellow-500" />
-                        <strong>Payment proof uploaded, awaiting your verification</strong>
+                        <strong>Payment {selectedQuote.payment_method === 'paypal' ? 'received' : 'proof uploaded'}, awaiting your verification</strong>
                       </p>
                     )}
                     
-                    {selectedQuote.has_payment_proof && !selectedQuote.payment_proof_url && (
+                    {/* Show waiting message only for bank transfers without proof */}
+                    {selectedQuote.has_payment_proof && 
+                     !selectedQuote.payment_proof_url && 
+                     !selectedQuote.paypal_order_id &&
+                     selectedQuote.payment_method !== 'paypal' && (
                       <p className="text-sm text-blue-600 flex items-center gap-2">
                         <FiAlertCircle className="text-blue-500" />
                         <strong>Waiting for customer to upload payment proof</strong>
@@ -1014,7 +1022,8 @@ const MyQuotes = () => {
                     )}
                   </div>
                   
-                  {selectedQuote.payment_proof_url && !selectedQuote.payment_status && (
+                  {/* Show Verify Payment button for unverified payments (both PayPal and Bank Transfer) */}
+                  {((selectedQuote.payment_proof_url || selectedQuote.paypal_order_id) && !selectedQuote.payment_status) && (
                     <button
                       onClick={() => navigate('/company/payment-management')}
                       className="w-full px-4 py-3 bg-[#bca142] text-white font-semibold rounded-xl hover:bg-black transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2"
@@ -1024,7 +1033,29 @@ const MyQuotes = () => {
                     </button>
                   )}
                   
-                  {selectedQuote.payment_proof_url && (
+                  {/* Show PayPal Order ID for PayPal payments */}
+                  {selectedQuote.payment_method === 'paypal' && selectedQuote.paypal_order_id && (
+                    <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                          <FiDollarSign className="text-white text-xl" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-semibold text-blue-900 mb-1">PayPal Payment</p>
+                          <p className="text-sm text-blue-700 mb-2">Paid via PayPal - No proof image required</p>
+                          <div className="bg-white rounded-lg p-2 border border-blue-200">
+                            <p className="text-xs text-gray-500 mb-1">PayPal Order ID:</p>
+                            <p className="text-sm font-mono font-semibold text-gray-900 break-all">
+                              {selectedQuote.paypal_order_id}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Show View Payment Proof button only for bank transfers */}
+                  {selectedQuote.payment_proof_url && selectedQuote.payment_method !== 'paypal' && (
                     <button
                       onClick={() => window.open(selectedQuote.payment_proof_url, '_blank')}
                       className="w-full px-4 py-3 border-2 border-[#bca142] text-[#bca142] font-semibold rounded-xl hover:bg-[#bca142] hover:text-white transition-all duration-200 flex items-center justify-center gap-2"

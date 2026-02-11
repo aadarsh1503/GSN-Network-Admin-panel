@@ -40,7 +40,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api } from '../../utils/api';
-import PaymentUpload from '../../components/PaymentUpload/PaymentUpload';
+import QuotePaymentModal from '../../components/QuotePayment/QuotePaymentModal';
 import CompanyProfileModal from '../../components/CompanyProfileModal/CompanyProfileModal';
 import { useQuoteStatusSync } from '../../hooks/useQuoteStatusSync';
 
@@ -1001,7 +1001,7 @@ const BusinessQuoteDetails = () => {
                       }
                       
                       return approvedCompany && (
-                        <p className="text-sm text-[#bca142] font-bold flex items-center space-x-1 bg-[#bca142] bg-opacity-10 px-3 py-1 rounded-full">
+                        <p className="text-sm text-[#ffffff] font-bold flex items-center space-x-1 bg-[#bca142] bg-opacity-10 px-3 py-1 rounded-full">
                           <span>🏆</span>
                           <span>Approved: {approvedCompany.company_name}</span>
                         </p>
@@ -1206,23 +1206,20 @@ const BusinessQuoteDetails = () => {
         </div>
       </div>
 
-      {/* Payment Upload Modal */}
+      {/* Payment Modal */}
       {showPaymentModal && selectedResponseForPayment && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <PaymentUpload 
-            quote={selectedResponseForPayment}
-            onClose={() => {
-              setShowPaymentModal(false);
-              setSelectedResponseForPayment(null);
-            }}
-            onSuccess={() => {
-              setShowPaymentModal(false);
-              setSelectedResponseForPayment(null);
-              fetchQuoteResponses(); // Refresh to show updated payment status
-              // Toast message is already shown in PaymentUpload component
-            }}
-          />
-        </div>
+        <QuotePaymentModal 
+          quote={selectedResponseForPayment}
+          onClose={() => {
+            setShowPaymentModal(false);
+            setSelectedResponseForPayment(null);
+          }}
+          onSuccess={() => {
+            setShowPaymentModal(false);
+            setSelectedResponseForPayment(null);
+            fetchQuoteResponses(); // Refresh to show updated payment status
+          }}
+        />
       )}
 
       {/* Company Profile Modal */}

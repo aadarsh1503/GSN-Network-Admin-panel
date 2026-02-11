@@ -127,7 +127,7 @@ const emailTemplates = {
           </div>
           <div class="footer">
             <p>GSN Network (Gulf Star Network) - Freight Forwarding & Logistics</p>
-            <p>Support: root@khaleeji.app | Website: ${process.env.FRONTEND_URL}</p>
+            <p>Support: ${process.env.ADMIN_EMAIL || 'info@gulfstarnetwork.com'} | Website: ${process.env.FRONTEND_URL}</p>
           </div>
         </div>
       </body>
@@ -191,7 +191,7 @@ const emailTemplates = {
             
             <div class="info-box">
               <h3>📞 Support Contact</h3>
-              <p><strong>Email:</strong> root@khaleeji.app</p>
+              <p><strong>Email:</strong> ${process.env.ADMIN_EMAIL || 'info@gulfstarnetwork.com'}</p>
               <p><strong>Website:</strong> ${process.env.FRONTEND_URL}</p>
               <p>Our support team is available to help you get the most out of your subscription.</p>
             </div>
@@ -309,7 +309,7 @@ const emailTemplates = {
             <div class="info-box">
               <h3>📞 Need Help?</h3>
               <p>If you have questions about the rejection or need assistance with resubmission:</p>
-              <p><strong>Support Email:</strong> root@khaleeji.app</p>
+              <p><strong>Support Email:</strong> ${process.env.ADMIN_EMAIL || 'info@gulfstarnetwork.com'}</p>
               <p><strong>Website:</strong> ${process.env.FRONTEND_URL}</p>
               <p>Our support team is here to help you resolve this issue quickly.</p>
             </div>
@@ -377,6 +377,8 @@ const emailTemplates = {
 // Main email sending function
 const sendSubscriptionEmail = async (emailType, data) => {
   try {
+    console.log(`📤 [SMTP] Preparing to send email: ${emailType} to ${data.recipientEmail}`);
+    
     const transporter = createTransporter();
     const template = emailTemplates[emailType];
     
@@ -393,7 +395,15 @@ const sendSubscriptionEmail = async (emailType, data) => {
       html: emailContent.html,
     };
     
+    console.log(`📤 [SMTP] Sending via ${process.env.EMAIL_HOST}:${process.env.EMAIL_PORT}`);
+    console.log(`📤 [SMTP] From: ${process.env.EMAIL_FROM}`);
+    console.log(`📤 [SMTP] To: ${data.recipientEmail}`);
+    console.log(`📤 [SMTP] Subject: ${emailContent.subject}`);
+    
     const result = await transporter.sendMail(mailOptions);
+    
+    console.log(`✅ [SMTP] Email sent successfully to ${data.recipientEmail}`);
+    console.log(`✅ [SMTP] Message ID: ${result.messageId}`);
     
     // Log email in database
     await logEmailHistory({
@@ -411,7 +421,8 @@ const sendSubscriptionEmail = async (emailType, data) => {
     return { success: true, messageId: result.messageId };
     
   } catch (error) {
-    console.error(`❌ Failed to send email (${emailType}):`, error);
+    console.error(`❌ [SMTP] Failed to send email (${emailType}) to ${data.recipientEmail}:`, error.message);
+    console.error(`❌ [SMTP] Error details:`, error);
     
     // Log failed email
     await logEmailHistory({
@@ -459,8 +470,13 @@ export const subscriptionEmailWorkflow = {
   async paymentProofSubmitted(subscriptionData) {
     const { companyId, companyName, companyEmail, planName, planDuration, planPrice, paymentMethod, transactionReference, subscriptionId } = subscriptionData;
     
+    console.log('📧 [EMAIL SERVICE] Starting paymentProofSubmitted workflow');
+    console.log('📧 [EMAIL SERVICE] Company:', companyName, '|', companyEmail);
+    
     // Get all admin emails
     const [admins] = await db.execute('SELECT id, email, name FROM users WHERE role = "admin"');
+    
+    console.log(`📧 [EMAIL SERVICE] Found ${admins.length} admin users:`, admins.map(a => a.email).join(', '));
     
     const submissionDate = new Date().toLocaleString('en-US', {
       year: 'numeric',
@@ -472,7 +488,9 @@ export const subscriptionEmailWorkflow = {
     });
     
     // Send email to all admins
+    console.log('📧 [EMAIL SERVICE] Sending emails to admins...');
     for (const admin of admins) {
+      console.log(`📧 [EMAIL SERVICE] Sending to admin: ${admin.email}`);
       await sendSubscriptionEmail('adminNewPaymentProof', {
         recipientEmail: admin.email,
         companyName,
@@ -488,8 +506,11 @@ export const subscriptionEmailWorkflow = {
         adminId: admin.id
       });
     }
+    console.log('📧 [EMAIL SERVICE] Admin emails completed');
+    console.log('📧 [EMAIL SERVICE] Admin emails completed');
     
     // Send confirmation to company
+    console.log(`📧 [EMAIL SERVICE] Sending confirmation to company: ${companyEmail}`);
     await sendSubscriptionEmail('companyPaymentSubmitted', {
       recipientEmail: companyEmail,
       companyName,
@@ -499,6 +520,8 @@ export const subscriptionEmailWorkflow = {
       subscriptionId,
       companyId
     });
+    console.log('📧 [EMAIL SERVICE] Company confirmation email completed');
+    console.log('📧 [EMAIL SERVICE] paymentProofSubmitted workflow finished successfully');
   },
   
   // 2. Admin approves payment

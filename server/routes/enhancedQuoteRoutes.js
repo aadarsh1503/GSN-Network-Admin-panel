@@ -149,11 +149,24 @@ router.put('/update-response-bank-details', authenticateToken, authorizeRoles('c
 // @access  Private/User,Business
 router.post('/upload-payment-proof', authenticateToken, authorizeRoles('user', 'business'), upload.single('payment_proof'), async (req, res) => {
     try {
-        const { quote_id, quote_response_id, payment_date, payment_notes } = req.body;
+        const { quote_id, quote_response_id, payment_date, payment_notes, payment_method, paypal_order_id, paypal_payer_id, payment_details } = req.body;
         const userId = req.user.id;
 
-        if (!req.file) {
-            return res.status(400).json({ message: 'Payment proof file is required' });
+        console.log('📥 Payment proof upload request:', {
+            payment_method,
+            quote_id,
+            quote_response_id,
+            has_file: !!req.file,
+            paypal_order_id,
+            user_id: userId
+        });
+
+        // Default to bank_transfer if not specified
+        const finalPaymentMethod = payment_method || 'bank_transfer';
+
+        // PayPal payments don't require a file, bank transfers do
+        if (finalPaymentMethod === 'bank_transfer' && !req.file) {
+            return res.status(400).json({ message: 'Payment proof file is required for bank transfers' });
         }
 
         if (!quote_id || !quote_response_id) {
@@ -202,35 +215,72 @@ router.post('/upload-payment-proof', authenticateToken, authorizeRoles('user', '
 
         const shouldUpdate = existingPayment.length > 0;
 
-        // Upload file to Cloudinary
-        const uploadResult = await cloudinary.uploader.upload(req.file.path, {
-            folder: 'payment_proofs',
-            resource_type: 'auto'
-        });
-
+        let uploadResult = null;
         let paymentProofId;
+
+        // Only upload file for bank transfers
+        if (finalPaymentMethod === 'bank_transfer' && req.file) {
+            // Upload file to Cloudinary
+            uploadResult = await cloudinary.uploader.upload(req.file.path, {
+                folder: 'payment_proofs',
+                resource_type: 'auto'
+            });
+        }
 
         if (shouldUpdate) {
             // Update existing payment proof
-            await db.execute(
-                `UPDATE payment_proofs 
-                 SET file_name = ?, file_path = ?, file_size = ?, file_type = ?, notes = ?, upload_date = ?
-                 WHERE quote_id = ? AND quote_response_id = ? AND user_id = ?`,
-                [req.file.originalname, uploadResult.secure_url, req.file.size, req.file.mimetype, 
-                 payment_notes, payment_date, quote_id, quote_response_id, userId]
-            );
+            if (finalPaymentMethod === 'bank_transfer' && uploadResult) {
+                await db.execute(
+                    `UPDATE payment_proofs 
+                     SET file_name = ?, file_path = ?, file_size = ?, file_type = ?, notes = ?, upload_date = ?
+                     WHERE quote_id = ? AND quote_response_id = ? AND user_id = ?`,
+                    [req.file.originalname, uploadResult.secure_url, req.file.size, req.file.mimetype, 
+                     payment_notes, payment_date, quote_id, quote_response_id, userId]
+                );
+            } else if (finalPaymentMethod === 'paypal') {
+                // For PayPal, just update notes and date
+                await db.execute(
+                    `UPDATE payment_proofs 
+                     SET notes = ?, upload_date = ?
+                     WHERE quote_id = ? AND quote_response_id = ? AND user_id = ?`,
+                    [payment_notes || `PayPal Order: ${paypal_order_id}`, payment_date,
+                     quote_id, quote_response_id, userId]
+                );
+            }
             paymentProofId = existingPayment[0].id;
         } else {
             // Insert new payment proof
-            const [result] = await db.execute(
-                `INSERT INTO payment_proofs 
-                 (quote_id, quote_response_id, user_id, company_id, file_name, file_path, file_size, file_type, notes, upload_date)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [quote_id, quote_response_id, userId, company_id, req.file.originalname, 
-                 uploadResult.secure_url, req.file.size, req.file.mimetype, payment_notes, payment_date]
-            );
-            paymentProofId = result.insertId;
+            if (finalPaymentMethod === 'bank_transfer' && uploadResult) {
+                const [result] = await db.execute(
+                    `INSERT INTO payment_proofs 
+                     (quote_id, quote_response_id, user_id, company_id, file_name, file_path, file_size, file_type, notes, upload_date)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [quote_id, quote_response_id, userId, company_id, req.file.originalname, 
+                     uploadResult.secure_url, req.file.size, req.file.mimetype, payment_notes, payment_date]
+                );
+                paymentProofId = result.insertId;
+            } else if (finalPaymentMethod === 'paypal') {
+                // For PayPal, create record without file
+                const [result] = await db.execute(
+                    `INSERT INTO payment_proofs 
+                     (quote_id, quote_response_id, user_id, company_id, notes, upload_date)
+                     VALUES (?, ?, ?, ?, ?, ?)`,
+                    [quote_id, quote_response_id, userId, company_id, 
+                     payment_notes || `PayPal Order: ${paypal_order_id}`, payment_date]
+                );
+                paymentProofId = result.insertId;
+            } else {
+                // Fallback - should not reach here
+                return res.status(400).json({ message: 'Invalid payment method or missing data' });
+            }
         }
+
+        // Verify paymentProofId was set
+        if (!paymentProofId) {
+            throw new Error('Failed to create or update payment proof record');
+        }
+
+        console.log('✅ Payment proof created/updated:', paymentProofId);
 
         // Create or update payment verification record
         const [existingVerification] = await db.execute(
@@ -273,8 +323,8 @@ router.post('/upload-payment-proof', authenticateToken, authorizeRoles('user', '
             );
         }
 
-        // Clean up local file
-        if (req.file.path) {
+        // Clean up local file (only for bank transfers)
+        if (req.file && req.file.path) {
             try {
                 await fs.unlink(req.file.path);
             } catch (unlinkError) {
@@ -343,7 +393,7 @@ ${payment_notes ? `📝 Notes: ${payment_notes}` : ''}
                                 notificationMessage,
                                 'user_specific',
                                 'companies',
-                                uploadResult.secure_url, // Use the payment proof image as notification image
+                                uploadResult ? uploadResult.secure_url : null, // Only use image for bank transfers
                                 '/company/payment-management', // Redirect to PaymentManagement page
                             ]
                         );
@@ -399,8 +449,9 @@ ${payment_notes ? `📝 Notes: ${payment_notes}` : ''}
                             amount: quoteResponseDetails[0].price,
                             paymentDate: paymentDate,
                             uploadDate: currentDate,
-                            fileName: req.file.originalname,
-                            paymentNotes: payment_notes || ''
+                            fileName: req.file ? req.file.originalname : 'PayPal Payment',
+                            paymentNotes: payment_notes || '',
+                            paymentMethod: payment_method || 'bank_transfer'
                         });
                         console.log('✅ Payment proof confirmation sent to user:', userDetails[0].email);
                     } catch (emailError) {
@@ -413,15 +464,28 @@ ${payment_notes ? `📝 Notes: ${payment_notes}` : ''}
         });
 
         res.status(201).json({ 
-            message: 'Payment proof uploaded successfully! Email notifications are being sent in the background.',
+            message: finalPaymentMethod === 'paypal' ? 'PayPal payment processed successfully! Email notifications are being sent in the background.' : 'Payment proof uploaded successfully! Email notifications are being sent in the background.',
             paymentProofId: paymentProofId,
-            fileUrl: uploadResult.secure_url,
+            fileUrl: uploadResult ? uploadResult.secure_url : null,
+            paymentMethod: finalPaymentMethod,
             async: true
         });
 
     } catch (error) {
-        console.error('Error uploading payment proof:', error);
-        res.status(500).json({ message: 'Server error uploading payment proof' });
+        console.error('❌ Error uploading payment proof:', error);
+        console.error('Error details:', {
+            message: error.message,
+            code: error.code,
+            sqlMessage: error.sqlMessage,
+            payment_method: req.body.payment_method
+        });
+        
+        // Send more detailed error message
+        const errorMessage = error.sqlMessage || error.message || 'Server error uploading payment proof';
+        res.status(500).json({ 
+            message: errorMessage,
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 });
 

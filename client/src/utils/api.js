@@ -332,7 +332,12 @@ export const api = {
 export const subscriptionAPI = {
   getPlans: () => api.get('/api/subscriptions/plans'),
   getMySubscription: () => api.get('/api/subscriptions/my-subscription'),
-  activateSubscription: (planId, paymentMethod = 'manual') => api.post('/api/subscriptions/activate', { planId, paymentMethod }),
+  activateSubscription: (planId, paymentMethod = 'manual', paymentData = {}) => 
+    api.post('/api/subscriptions/activate', { 
+      planId, 
+      paymentMethod,
+      ...paymentData 
+    }),
   getBankDetails: () => api.get('/api/bank-details/active'),
   submitBankTransferRequest: (formData) => api.post('/api/subscriptions/bank-transfer-request', formData, {
     headers: {

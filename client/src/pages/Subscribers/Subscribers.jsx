@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import { FiChevronUp, FiChevronDown } from 'react-icons/fi';
 import { FaEye, FaUser, FaCreditCard, FaCalendar, FaTrash, FaCheck, FaTimes, FaImage } from 'react-icons/fa';
 import { api } from '../../utils/api';
@@ -24,13 +25,30 @@ const SortableHeader = ({ children, sortKey, sortConfig, onSort }) => {
 };
 
 const Subscribers = () => {
+  const location = useLocation();
   const [subscribers, setSubscribers] = useState([]);
   const [incomingRequests, setIncomingRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('active'); // 'active' or 'incoming'
+  
+  // Default to 'active' tab, only use location state if explicitly set
+  const initialTab = 'active'; // Always default to active
+  console.log('🔍 Subscribers Page - Initial Tab:', initialTab);
+  console.log('🔍 Location state:', location.state);
+  
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
+  
+  // Handle navigation from notifications - set tab after mount
+  useEffect(() => {
+    if (location.state?.activeTab === 'incoming') {
+      console.log('🔔 Notification redirect detected - switching to incoming tab');
+      setActiveTab('incoming');
+      // Clear the location state to prevent it from persisting
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
   const [sortConfig, setSortConfig] = useState({ key: 'created_at', direction: 'desc' });
   const [viewingSubscriber, setViewingSubscriber] = useState(null);
   const [viewingRequest, setViewingRequest] = useState(null);
@@ -308,19 +326,6 @@ const Subscribers = () => {
           <div className="flex bg-gray-100 rounded-lg p-1">
             <button
               onClick={() => {
-                setActiveTab('incoming');
-                setCurrentPage(1);
-              }}
-              className={`flex-1 px-4 py-2 rounded-md font-semibold transition-all duration-200 ${
-                activeTab === 'incoming'
-                  ? 'bg-orange-500 text-white shadow-md'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
-            >
-              Incoming Requests ({incomingRequests.length})
-            </button>
-            <button
-              onClick={() => {
                 setActiveTab('active');
                 setCurrentPage(1);
               }}
@@ -331,6 +336,19 @@ const Subscribers = () => {
               }`}
             >
               Active Subscribers ({subscribers.length})
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('incoming');
+                setCurrentPage(1);
+              }}
+              className={`flex-1 px-4 py-2 rounded-md font-semibold transition-all duration-200 ${
+                activeTab === 'incoming'
+                  ? 'bg-orange-500 text-white shadow-md'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              Incoming Requests ({incomingRequests.length})
             </button>
           </div>
         </div>
@@ -405,7 +423,7 @@ const Subscribers = () => {
                 {activeTab === 'incoming' && (
                   <SortableHeader sortKey="transaction_id" sortConfig={sortConfig} onSort={handleSort}>Transaction ID</SortableHeader>
                 )}
-                <SortableHeader sortKey="status" sortConfig={sortConfig} onSort={handleSort}>Status</SortableHeader>
+                {/* <SortableHeader sortKey="status" sortConfig={sortConfig} onSort={handleSort}>Status</SortableHeader> */}
                 {activeTab === 'active' ? (
                   <>
                     <SortableHeader sortKey="start_date" sortConfig={sortConfig} onSort={handleSort}>Start Date</SortableHeader>
@@ -442,13 +460,51 @@ const Subscribers = () => {
                       <div className="font-medium text-gray-900">{formatCurrency(item.amount_paid || item.plan_price)}</div>
                       <div className="text-xs text-gray-500">
                         {activeTab === 'active' ? (
-                          item.payment_status === 'completed' ? (
-                            <span className="text-green-600">✓ Paid</span>
-                          ) : (
-                            <span className="text-red-600">✗ {item.payment_status}</span>
-                          )
+                          <>
+                            {(item.payment_status === 'completed' || item.payment_status === 'paid' || item.payment_status === 'success') ? (
+                              <span className="text-green-600">✓ Paid</span>
+                            ) : item.payment_status === 'pending' ? (
+                              <span className="text-yellow-600">⏳ Pending</span>
+                            ) : item.payment_status === 'failed' || item.payment_status === 'rejected' ? (
+                              <span className="text-red-600">✗ Failed</span>
+                            ) : (
+                              <span className="text-gray-600">• {item.payment_status || 'Unknown'}</span>
+                            )}
+                            {item.proration_details && (() => {
+                              try {
+                                const prorationData = typeof item.proration_details === 'string' 
+                                  ? JSON.parse(item.proration_details) 
+                                  : item.proration_details;
+                                
+                                // Show UPGRADE badge if proration data exists with a current plan
+                                if (prorationData && prorationData.currentPlanName) {
+                                  return (
+                                    <div className="flex items-center gap-1 mt-0.5">
+                                      <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">
+                                        UPGRADE
+                                      </span>
+                                    </div>
+                                  );
+                                }
+                              } catch (error) {
+                                console.error('Error parsing proration details:', error);
+                              }
+                              return null;
+                            })()}
+                          </>
                         ) : (
-                          <span className="text-blue-600">Bank Transfer</span>
+                          <>
+                            <span className="text-blue-600">
+                              {item.payment_method === 'paypal' ? 'PayPal' : 'Bank Transfer'}
+                            </span>
+                            {item.proration_applied && (
+                              <div className="flex items-center gap-1 mt-0.5">
+                                <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">
+                                  UPGRADE
+                                </span>
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     </td>
@@ -457,11 +513,11 @@ const Subscribers = () => {
                         <div className="font-mono text-sm text-gray-700">{item.transaction_id}</div>
                       </td>
                     )}
-                    <td className="p-3 whitespace-nowrap">
+                    {/* <td className="p-3 whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(item.status)}`}>
                         {item.status}
                       </span>
-                    </td>
+                    </td> */}
                     {activeTab === 'active' ? (
                       <>
                         <td className="p-3 whitespace-nowrap text-gray-700">
@@ -633,13 +689,111 @@ const Subscribers = () => {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
-                <p className="p-2 bg-gray-50 rounded border">Bank Transfer</p>
+                <p className="p-2 bg-gray-50 rounded border">
+                  {viewingRequest.payment_method === 'paypal' ? 'PayPal' : 'Bank Transfer'}
+                </p>
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Transaction ID</label>
                 <p className="p-2 bg-gray-50 rounded border font-mono">{viewingRequest.transaction_id}</p>
               </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Amount to Pay</label>
+                <p className="p-2 bg-gray-50 rounded border font-semibold text-lg">
+                  {formatCurrency(viewingRequest.amount_paid || viewingRequest.plan_price)}
+                </p>
+              </div>
+
+              {/* Proration Details Section */}
+              {viewingRequest.proration_applied && viewingRequest.proration_details && (() => {
+                let prorationData;
+                try {
+                  prorationData = typeof viewingRequest.proration_details === 'string' 
+                    ? JSON.parse(viewingRequest.proration_details) 
+                    : viewingRequest.proration_details;
+                  
+                  // Calculate days used from total days and days remaining
+                  const totalDays = parseInt(prorationData.totalDaysInPeriod || 0);
+                  const daysRemaining = parseInt(prorationData.daysRemaining || 0);
+                  const daysUsed = totalDays - daysRemaining;
+                  
+                  // Add calculated field
+                  prorationData.daysUsed = daysUsed;
+                } catch (e) {
+                  console.error('Error parsing proration details:', e);
+                  return null;
+                }
+
+                return (
+                  <div className="md:col-span-2 mt-4">
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <h4 className="text-lg font-medium text-blue-900 mb-3 flex items-center gap-2">
+                        <span className="bg-blue-500 text-white px-2 py-1 rounded text-sm">UPGRADE</span>
+                        Proration Applied
+                      </h4>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-blue-800 mb-1">Old Plan</label>
+                          <p className="p-2 bg-white rounded border border-blue-200">
+                            {prorationData.currentPlanName || 'Previous Plan'}
+                          </p>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-blue-800 mb-1">Days Remaining</label>
+                          <p className="p-2 bg-white rounded border border-blue-200">
+                            {prorationData.daysRemaining || 0} days
+                          </p>
+                        </div>
+                        
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium text-blue-800 mb-2">Calculation Breakdown</label>
+                          <div className="bg-white rounded border border-blue-200 p-3 space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">Old Plan Price:</span>
+                              <span className="font-medium">{formatCurrency(prorationData.currentPlanPrice || 0)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">Days Used / Total Days:</span>
+                              <span className="font-medium">
+                                {prorationData.daysUsed || 0} / {prorationData.totalDaysInPeriod || 0}
+                              </span>
+                            </div>
+                            <div className="flex justify-between text-sm text-green-600">
+                              <span className="font-medium">Credit from Old Plan:</span>
+                              <span className="font-semibold">+ {formatCurrency(prorationData.unusedValue || 0)}</span>
+                            </div>
+                            <div className="border-t border-blue-200 pt-2 mt-2"></div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">New Plan Price:</span>
+                              <span className="font-medium">{formatCurrency(prorationData.newPlanPrice || viewingRequest.plan_price)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm text-red-600">
+                              <span className="font-medium">Credit Applied:</span>
+                              <span className="font-semibold">- {formatCurrency(prorationData.unusedValue || 0)}</span>
+                            </div>
+                            <div className="border-t-2 border-blue-300 pt-2 mt-2"></div>
+                            <div className="flex justify-between text-base">
+                              <span className="font-bold text-blue-900">Final Amount to Pay:</span>
+                              <span className="font-bold text-blue-900 text-lg">
+                                {formatCurrency(prorationData.amountToCharge || viewingRequest.amount_paid || viewingRequest.plan_price)}
+                              </span>
+                            </div>
+                            <div className="bg-green-50 border border-green-200 rounded p-2 mt-2">
+                              <p className="text-xs text-green-800 text-center">
+                                💰 Customer saves {formatCurrency(prorationData.unusedValue || prorationData.savings || 0)} with proration
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Request Date</label>
@@ -653,8 +807,8 @@ const Subscribers = () => {
                 </p>
               </div>
 
-              {/* Payment Proof */}
-              {viewingRequest.payment_proof_url && (
+              {/* Payment Proof - Only show for Bank Transfer */}
+              {viewingRequest.payment_proof_url && viewingRequest.payment_method !== 'paypal' && (
                 <div className="md:col-span-2 mt-4">
                   <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">Payment Proof</h4>
                   <div className="bg-gray-50 rounded-lg p-4">
@@ -669,6 +823,35 @@ const Subscribers = () => {
                       onClick={() => window.open(viewingRequest.payment_proof_url, '_blank')}
                     />
                     <p className="text-xs text-gray-500 mt-2">Click image to view full size</p>
+                  </div>
+                </div>
+              )}
+              
+              {/* PayPal Transaction Info - Only show for PayPal */}
+              {viewingRequest.payment_method === 'paypal' && viewingRequest.paypal_order_id && (
+                <div className="md:col-span-2 mt-4">
+                  <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">PayPal Transaction</h4>
+                  <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-blue-800 mb-1">PayPal Order ID</label>
+                        <p className="p-2 bg-white rounded border border-blue-200 font-mono text-sm">
+                          {viewingRequest.paypal_order_id}
+                        </p>
+                      </div>
+                      {viewingRequest.paypal_payer_id && (
+                        <div>
+                          <label className="block text-sm font-medium text-blue-800 mb-1">Payer ID</label>
+                          <p className="p-2 bg-white rounded border border-blue-200 font-mono text-sm">
+                            {viewingRequest.paypal_payer_id}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-3 flex items-center gap-2 text-sm text-blue-700">
+                      <FaCheck className="text-green-500" />
+                      <span>Payment verified through PayPal</span>
+                    </div>
                   </div>
                 </div>
               )}
@@ -758,6 +941,17 @@ const Subscribers = () => {
               </button>
             </div>
             
+            {/* Debug Console Logs */}
+            {(() => {
+              console.log('=== VIEWING SUBSCRIBER DEBUG ===');
+              console.log('Full subscriber object:', viewingSubscriber);
+              console.log('Proration applied:', viewingSubscriber.proration_applied);
+              console.log('Proration details exists:', !!viewingSubscriber.proration_details);
+              console.log('Proration details value:', viewingSubscriber.proration_details);
+              console.log('Proration details type:', typeof viewingSubscriber.proration_details);
+              return null;
+            })()}
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Member Information */}
               <div className="md:col-span-2">
@@ -818,8 +1012,14 @@ const Subscribers = () => {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Payment Status</label>
-                <p className={`p-2 rounded border ${viewingSubscriber.payment_status === 'completed' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                  {viewingSubscriber.payment_status}
+                <p className={`p-2 rounded border ${
+                  (viewingSubscriber.payment_status === 'completed' || viewingSubscriber.payment_status === 'paid' || viewingSubscriber.payment_status === 'success') 
+                    ? 'bg-green-50 text-green-700' 
+                    : viewingSubscriber.payment_status === 'pending'
+                    ? 'bg-yellow-50 text-yellow-700'
+                    : 'bg-red-50 text-red-700'
+                }`}>
+                  {viewingSubscriber.payment_status || 'Unknown'}
                 </p>
               </div>
               
@@ -844,6 +1044,102 @@ const Subscribers = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Subscription Date</label>
                 <p className="p-2 bg-gray-50 rounded border">{new Date(viewingSubscriber.created_at).toLocaleString()}</p>
               </div>
+
+              {/* Proration Details Section */}
+              {viewingSubscriber.proration_details && (() => {
+                let prorationData;
+                try {
+                  console.log('Raw proration_details:', viewingSubscriber.proration_details);
+                  prorationData = typeof viewingSubscriber.proration_details === 'string' 
+                    ? JSON.parse(viewingSubscriber.proration_details) 
+                    : viewingSubscriber.proration_details;
+                  
+                  console.log('Parsed proration data:', prorationData);
+                  
+                  // Calculate days used from total days and days remaining
+                  const totalDays = parseInt(prorationData.totalDaysInPeriod || 0);
+                  const daysRemaining = parseInt(prorationData.daysRemaining || 0);
+                  const daysUsed = totalDays - daysRemaining;
+                  
+                  // Add calculated field
+                  prorationData.daysUsed = daysUsed;
+                } catch (e) {
+                  console.error('Error parsing proration details:', e);
+                  return null;
+                }
+
+                // Show proration section if data exists
+                if (prorationData && Object.keys(prorationData).length > 0) {
+                  return (
+                    <div className="md:col-span-2 mt-4">
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <h4 className="text-lg font-medium text-blue-900 mb-3 flex items-center gap-2">
+                          <span className="bg-blue-500 text-white px-2 py-1 rounded text-sm">UPGRADE</span>
+                          Proration Applied
+                        </h4>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-blue-800 mb-1">Old Plan</label>
+                            <p className="p-2 bg-white rounded border border-blue-200">
+                              {prorationData.currentPlanName || 'Previous Plan'}
+                            </p>
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-medium text-blue-800 mb-1">Days Remaining</label>
+                            <p className="p-2 bg-white rounded border border-blue-200">
+                              {prorationData.daysRemaining || 0} days
+                            </p>
+                          </div>
+                          
+                          <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-blue-800 mb-2">Calculation Breakdown</label>
+                            <div className="bg-white rounded border border-blue-200 p-3 space-y-2">
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-600">Old Plan Price:</span>
+                                <span className="font-medium">{formatCurrency(prorationData.currentPlanPrice || 0)}</span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-600">Days Used / Total Days:</span>
+                                <span className="font-medium">
+                                  {prorationData.daysUsed || 0} / {prorationData.totalDaysInPeriod || 0}
+                                </span>
+                              </div>
+                              <div className="flex justify-between text-sm text-green-600">
+                                <span className="font-medium">Credit from Old Plan:</span>
+                                <span className="font-semibold">+ {formatCurrency(prorationData.unusedValue || 0)}</span>
+                              </div>
+                              <div className="border-t border-blue-200 pt-2 mt-2"></div>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-600">New Plan Price:</span>
+                                <span className="font-medium">{formatCurrency(prorationData.newPlanPrice || viewingSubscriber.plan_price)}</span>
+                              </div>
+                              <div className="flex justify-between text-sm text-red-600">
+                                <span className="font-medium">Credit Applied:</span>
+                                <span className="font-semibold">- {formatCurrency(prorationData.unusedValue || 0)}</span>
+                              </div>
+                              <div className="border-t-2 border-blue-300 pt-2 mt-2"></div>
+                              <div className="flex justify-between text-base">
+                                <span className="font-bold text-blue-900">Final Amount Paid:</span>
+                                <span className="font-bold text-blue-900 text-lg">
+                                  {formatCurrency(prorationData.amountToCharge || viewingSubscriber.amount_paid)}
+                                </span>
+                              </div>
+                              <div className="bg-green-50 border border-green-200 rounded p-2 mt-2">
+                                <p className="text-xs text-green-800 text-center">
+                                  💰 Customer saved {formatCurrency(prorationData.unusedValue || prorationData.savings || 0)} with proration
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
             </div>
             
             <div className="mt-6 flex justify-end">

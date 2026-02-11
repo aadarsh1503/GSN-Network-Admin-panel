@@ -240,11 +240,43 @@ const UserNotifications = () => {
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('en-US', { 
-      month: 'short', day: 'numeric', year: 'numeric', 
-      hour: 'numeric', minute: 'numeric', hour12: true 
-    });
+    if (!dateString) return 'No Date';
+    
+    try {
+      // MySQL TIMESTAMP is returned as 'YYYY-MM-DD HH:MM:SS' in UTC
+      // We need to parse it correctly and convert to local time
+      let date;
+      
+      // Check if the date string contains 'T' (ISO format) or space (MySQL format)
+      if (dateString.includes('T')) {
+        // ISO format: 2024-01-15T10:30:00.000Z
+        date = new Date(dateString);
+      } else {
+        // MySQL format: 2024-01-15 10:30:00
+        // Append 'Z' to indicate it's UTC time
+        date = new Date(dateString.replace(' ', 'T') + 'Z');
+      }
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        console.error('Invalid date:', dateString);
+        return 'Invalid Date';
+      }
+      
+      // Format to local timezone
+      return date.toLocaleString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric', 
+        hour: 'numeric', 
+        minute: 'numeric', 
+        hour12: true,
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone // Use user's timezone
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error, dateString);
+      return 'Invalid Date';
+    }
   };
 
   const getNotificationIcon = (notification) => {

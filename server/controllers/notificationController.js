@@ -44,9 +44,21 @@ const getMyNotifications = async (req, res) => {
 
     try {
         if (userRole === 'admin') {
-            // Admin sees everything
-            const [allRows] = await db.execute('SELECT * FROM notifications ORDER BY created_at DESC');
-            return res.status(200).json(allRows);
+            // Admin sees everything - convert timestamps to ISO format
+            const [allRows] = await db.execute(`
+                SELECT *, 
+                       DATE_FORMAT(CONVERT_TZ(created_at, @@session.time_zone, '+00:00'), '%Y-%m-%dT%H:%i:%s.000Z') as created_at_iso
+                FROM notifications 
+                ORDER BY created_at DESC
+            `);
+            
+            // Replace created_at with ISO format
+            const formattedRows = allRows.map(row => ({
+                ...row,
+                created_at: row.created_at_iso || row.created_at
+            }));
+            
+            return res.status(200).json(formattedRows);
         }
 
         // Get user-specific notifications and general notifications for their role
@@ -57,7 +69,8 @@ const getMyNotifications = async (req, res) => {
                    CASE 
                        WHEN un.user_id IS NOT NULL THEN 1 
                        ELSE 0 
-                   END as is_user_specific
+                   END as is_user_specific,
+                   DATE_FORMAT(CONVERT_TZ(n.created_at, @@session.time_zone, '+00:00'), '%Y-%m-%dT%H:%i:%s.000Z') as created_at_iso
             FROM notifications n
             LEFT JOIN user_notifications un ON (n.id = un.notification_id AND un.user_id = ?)
             WHERE (
@@ -77,7 +90,13 @@ const getMyNotifications = async (req, res) => {
 
         const [rows] = await db.execute(sql, [userId, userId, userRole, userRole, userRole]);
 
-        res.status(200).json(rows);
+        // Replace created_at with ISO format for consistent frontend parsing
+        const formattedRows = rows.map(row => ({
+            ...row,
+            created_at: row.created_at_iso || row.created_at
+        }));
+
+        res.status(200).json(formattedRows);
 
     } catch (error) {
         console.error('Error fetching notifications:', error);
