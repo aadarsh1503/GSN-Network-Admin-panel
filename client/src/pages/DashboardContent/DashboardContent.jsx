@@ -329,38 +329,234 @@ const StatusDistributionChart = ({ data, title, totalLabel }) => {
   );
 };
 
-// Enhanced Recent Activity
-const RecentActivity = ({ activities }) => (
-  <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300">
-    <div className="flex items-center justify-between mb-6">
-      <h3 className="text-xl font-bold text-black">Recent Activity</h3>
-      <Activity className="h-5 w-5 text-black" />
-    </div>
-    
-    <div className="space-y-4 max-h-80 overflow-y-auto">
-      {activities.map((activity, index) => (
-        <div key={index} className="flex items-center space-x-4 p-4 rounded-xl bg-white hover:bg-[#bca142] transition-all duration-300 border border-gray-100 hover:border-[#bca142] group">
-          <div className="w-12 h-12 rounded-full bg-[#bca142] flex items-center justify-center text-white font-bold shadow-lg">
-            {activity.title?.charAt(0) || 'U'}
-          </div>
+// Enhanced Recent Activity with Pagination and Filters
+const RecentActivity = ({ activities }) => {
+  const [filteredActivities, setFilteredActivities] = useState(activities);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [filterType, setFilterType] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState('desc'); // 'asc' or 'desc'
+
+  useEffect(() => {
+    let filtered = [...activities];
+
+    // Apply type filter
+    if (filterType !== 'all') {
+      filtered = filtered.filter(activity => activity.type === filterType);
+    }
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(activity =>
+        activity.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        activity.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.created_at);
+      const dateB = new Date(b.created_at);
+      return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+    });
+
+    setFilteredActivities(filtered);
+    setCurrentPage(1); // Reset to first page when filters change
+  }, [activities, filterType, searchTerm, sortOrder]);
+
+  // Get unique activity types for filter dropdown
+  const activityTypes = ['all', ...new Set(activities.map(a => a.type).filter(Boolean))];
+
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredActivities.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredActivities.length / itemsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handlePrevious = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  const handleNext = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+
+  return (
+    <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-xl font-bold text-black">Recent Activity</h3>
+        <Activity className="h-5 w-5 text-black" />
+      </div>
+
+      {/* Filters and Controls */}
+      <div className="mb-4 space-y-3">
+        <div className="flex flex-col sm:flex-row gap-3">
+          {/* Search */}
           <div className="flex-1">
-            <p className="font-semibold text-black group-hover:text-white">{activity.title || 'New User'}</p>
-            <p className="text-sm text-black group-hover:text-white">{activity.description}</p>
-            <p className="text-xs text-black group-hover:text-white mt-1">
-              {new Date(activity.created_at).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
-            </p>
+            <input
+              type="text"
+              placeholder="Search activities..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] text-sm"
+            />
           </div>
-          <div className="w-2 h-2 rounded-full bg-[#bca142] group-hover:bg-white"></div>
+
+          {/* Type Filter */}
+          {/* <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] text-sm"
+          >
+            {activityTypes.map(type => (
+              <option key={type} value={type}>
+                {type === 'all' ? 'All Types' : type.charAt(0).toUpperCase() + type.slice(1)}
+              </option>
+            ))}
+          </select> */}
+
+          {/* Sort Order */}
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] text-sm"
+          >
+            <option value="desc">Newest First</option>
+            <option value="asc">Oldest First</option>
+          </select>
+
+          {/* Items Per Page */}
+          <select
+            value={itemsPerPage}
+            onChange={(e) => {
+              setItemsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] text-sm"
+          >
+            <option value="5">5 per page</option>
+            <option value="10">10 per page</option>
+            <option value="15">15 per page</option>
+            <option value="20">20 per page</option>
+          </select>
         </div>
-      ))}
+
+        {/* Results count */}
+        <div className="text-sm text-gray-600">
+          Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredActivities.length)} of {filteredActivities.length} activities
+        </div>
+      </div>
+
+      {/* Activities List */}
+      <div className="space-y-4 max-h-96 overflow-y-auto">
+        {currentItems.length > 0 ? (
+          currentItems.map((activity, index) => (
+            <div key={index} className="flex items-center space-x-4 p-4 rounded-xl bg-white hover:bg-[#bca142] transition-all duration-300 border border-gray-100 hover:border-[#bca142] group">
+              <div className="w-12 h-12 rounded-full bg-[#bca142] flex items-center justify-center text-white font-bold shadow-lg">
+                {activity.title?.charAt(0) || 'U'}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-black group-hover:text-white">{activity.title || 'New User'}</p>
+                  {activity.type && (
+                    <span className="px-2 py-0.5 text-xs rounded-full bg-[#bca142] text-white group-hover:bg-white group-hover:text-[#bca142]">
+                      {activity.type}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-black group-hover:text-white">{activity.description}</p>
+                <p className="text-xs text-black group-hover:text-white mt-1">
+                  {new Date(activity.created_at).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
+              </div>
+              <div className="w-2 h-2 rounded-full bg-[#bca142] group-hover:bg-white"></div>
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <Activity className="h-12 w-12 mx-auto mb-2 opacity-50" />
+            <p>No activities found</p>
+            {(searchTerm || filterType !== 'all') && (
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setFilterType('all');
+                }}
+                className="mt-2 text-sm text-[#bca142] hover:underline"
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-4 flex items-center justify-between border-t pt-4">
+          <button
+            onClick={handlePrevious}
+            disabled={currentPage === 1}
+            className="px-4 py-2 text-sm font-medium text-black bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            Previous
+          </button>
+
+          <div className="flex items-center gap-2">
+            {[...Array(totalPages)].map((_, index) => {
+              const pageNumber = index + 1;
+              // Show first page, last page, current page, and pages around current
+              if (
+                pageNumber === 1 ||
+                pageNumber === totalPages ||
+                (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+              ) {
+                return (
+                  <button
+                    key={pageNumber}
+                    onClick={() => handlePageChange(pageNumber)}
+                    className={`px-3 py-1 text-sm font-medium rounded-lg transition-colors ${
+                      currentPage === pageNumber
+                        ? 'bg-[#bca142] text-white'
+                        : 'bg-white text-black border border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {pageNumber}
+                  </button>
+                );
+              } else if (
+                pageNumber === currentPage - 2 ||
+                pageNumber === currentPage + 2
+              ) {
+                return <span key={pageNumber} className="px-2 text-gray-400">...</span>;
+              }
+              return null;
+            })}
+          </div>
+
+          <button
+            onClick={handleNext}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 text-sm font-medium text-black bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
-  </div>
-);
+  );
+};
 
 // Performance Metrics Component with website colors
 const PerformanceMetrics = ({ stats, realTimeData }) => {

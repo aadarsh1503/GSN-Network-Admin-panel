@@ -634,14 +634,26 @@ export const getTransactionInvoiceByIdAdmin = async (req, res) => {
                 q.id as quote_id,
                 q.departure_city,
                 q.arrival_city,
-                q.product,
+                q.product_description,
                 q.shipping_mode,
                 u.name as user_name,
                 u.email as user_email,
                 u.phone as user_phone,
+                u.country as user_country,
+                u.state as user_state,
+                u.city as user_city,
                 c.name as company_name,
                 c.email as company_email,
-                c.phone as company_phone
+                c.phone as company_phone,
+                c.logo as company_logo,
+                c.company_address as company_address,
+                c.city as company_city,
+                c.state as company_state,
+                c.country as company_country,
+                c.website as company_website,
+                c.owner_name as company_owner_name,
+                c.incharge_name as company_incharge_name,
+                c.incharge_phone as company_incharge_phone
             FROM transaction_invoices ti
             LEFT JOIN quotes q ON ti.quote_id = q.id
             LEFT JOIN users u ON ti.user_id = u.id

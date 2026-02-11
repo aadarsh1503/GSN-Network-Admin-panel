@@ -574,24 +574,40 @@ const AdminInvoices = () => {
               </div>
             </div>
 
-            {/* Invoice Content - Same as company invoice but with admin branding */}
+            {/* Invoice Content - Company branding for transaction invoices */}
             <div ref={invoiceRef} className="p-4" style={{ backgroundColor: '#ffffff', color: '#000000', maxWidth: '794px', margin: '0 auto', fontFamily: 'Arial, sans-serif', lineHeight: '1.5', wordSpacing: 'normal', letterSpacing: 'normal' }}>
               <div className="bg-white" style={{ backgroundColor: '#ffffff' }}>
                 {/* Invoice Header */}
                 <div className="flex justify-between items-start mb-6">
                   <div className="flex items-center gap-3">
-                    <img 
-                      src="https://res.cloudinary.com/ds1dt3qub/image/upload/v1767724966/GSN_vebkrv.jpg"
-                      alt="GSN Logo" 
-                      className="w-12 h-12 object-contain"
-                      style={{ maxWidth: '48px', maxHeight: '48px' }}
-                    />
+                    {activeTab === 'transaction' && selectedInvoice.company_logo ? (
+                      <img 
+                        src={selectedInvoice.company_logo}
+                        alt={`${selectedInvoice.company_name} Logo`}
+                        className="w-16 h-16 object-contain"
+                        style={{ maxWidth: '64px', maxHeight: '64px' }}
+                        onError={(e) => {
+                          e.target.src = "https://res.cloudinary.com/ds1dt3qub/image/upload/v1770749715/subscription-payment-proofs/k3hgx4zovpehx1ghvuvb.png";
+                        }}
+                      />
+                    ) : (
+                      <img 
+                        src="https://res.cloudinary.com/ds1dt3qub/image/upload/v1770749715/subscription-payment-proofs/k3hgx4zovpehx1ghvuvb.png"
+                        alt="GSN Logo" 
+                        className="w-32 h-32 object-contain"
+                        style={{ maxWidth: '100px', maxHeight: '100px' }}
+                      />
+                    )}
                     <div>
                       <h1 className="text-2xl font-bold mb-1" style={{ color: '#bca142', fontSize: '24px', fontWeight: 'bold', marginBottom: '4px' }}>
                         {activeTab === 'subscription' ? 'INVOICE' : 'TRANSACTION INVOICE'}
                       </h1>
-                      <p className="font-semibold" style={{ color: '#4B5563', fontSize: '14px', fontWeight: '600', marginBottom: '2px' }}>GSN Network Services</p>
-                      <p className="text-xs" style={{ color: '#6B7280', fontSize: '12px', margin: '0' }}>Freight Forwarding & Logistics</p>
+                      <p className="font-semibold" style={{ color: '#4B5563', fontSize: '14px', fontWeight: '600', marginBottom: '2px' }}>
+                        {activeTab === 'transaction' ? selectedInvoice.company_name : 'GSN Network Services'}
+                      </p>
+                      <p className="text-xs" style={{ color: '#6B7280', fontSize: '12px', margin: '0' }}>
+                        {activeTab === 'transaction' ? 'Freight Forwarding Services' : 'Freight Forwarding & Logistics'}
+                      </p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -606,7 +622,7 @@ const AdminInvoices = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   <div>
                     <h3 className="font-semibold mb-2" style={{ color: '#1F2937', fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>
-                      {activeTab === 'subscription' ? 'Bill To:' : 'Service Provider:'}
+                      {activeTab === 'subscription' ? 'Bill To:' : 'From (Service Provider):'}
                     </h3>
                     <div className="text-xs" style={{ color: '#4B5563', fontSize: '12px', lineHeight: '1.5' }}>
                       {activeTab === 'subscription' ? (
@@ -620,14 +636,44 @@ const AdminInvoices = () => {
                         </>
                       ) : (
                         <>
-                          <p className="font-medium">{selectedInvoice.company_name}</p>
-                          <p>{selectedInvoice.company_email}</p>
-                          {selectedInvoice.company_phone && <p>{selectedInvoice.company_phone}</p>}
+                          <p className="font-medium" style={{ fontWeight: '500', marginBottom: '2px' }}>{selectedInvoice.company_name}</p>
+                          <p style={{ marginBottom: '2px' }}>{selectedInvoice.company_email}</p>
+                          {selectedInvoice.company_phone && <p style={{ marginBottom: '2px' }}>Phone: {selectedInvoice.company_phone}</p>}
+                          {selectedInvoice.company_address && <p style={{ marginBottom: '2px' }}>{selectedInvoice.company_address}</p>}
+                          {selectedInvoice.company_city && (
+                            <p style={{ marginBottom: '2px' }}>
+                              {selectedInvoice.company_city}
+                              {selectedInvoice.company_state && `, ${selectedInvoice.company_state}`}
+                            </p>
+                          )}
+                          {selectedInvoice.company_country && <p style={{ marginBottom: '2px' }}>{selectedInvoice.company_country}</p>}
+                          {selectedInvoice.company_website && (
+                            <p style={{ margin: '0' }}>Website: {selectedInvoice.company_website}</p>
+                          )}
                         </>
                       )}
                     </div>
                   </div>
                   <div>
+                    {activeTab === 'transaction' && (
+                      <div className="mb-4">
+                        <h3 className="font-semibold mb-2" style={{ color: '#1F2937', fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>
+                          To (Customer):
+                        </h3>
+                        <div className="text-xs" style={{ color: '#4B5563', fontSize: '12px', lineHeight: '1.5' }}>
+                          <p className="font-medium" style={{ fontWeight: '500', marginBottom: '2px' }}>{selectedInvoice.user_name}</p>
+                          <p style={{ marginBottom: '2px' }}>{selectedInvoice.user_email}</p>
+                          {selectedInvoice.user_phone && <p style={{ marginBottom: '2px' }}>Phone: {selectedInvoice.user_phone}</p>}
+                          {selectedInvoice.user_city && (
+                            <p style={{ marginBottom: '2px' }}>
+                              {selectedInvoice.user_city}
+                              {selectedInvoice.user_state && `, ${selectedInvoice.user_state}`}
+                            </p>
+                          )}
+                          {selectedInvoice.user_country && <p style={{ margin: '0' }}>{selectedInvoice.user_country}</p>}
+                        </div>
+                      </div>
+                    )}
                     <div className="text-xs" style={{ fontSize: '12px', lineHeight: '1.5' }}>
                       <div className="mb-1" style={{ marginBottom: '4px' }}>
                         <span className="font-semibold" style={{ fontWeight: '600' }}>Invoice Number: </span>
@@ -769,11 +815,28 @@ const AdminInvoices = () => {
                 {/* Footer */}
                 <div className="mt-4 pt-3 text-center text-xs" style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #D1D5DB', textAlign: 'center', fontSize: '11px', color: '#6B7280' }}>
                   <p style={{ marginBottom: '2px' }}>
-                    {activeTab === 'subscription' ? 'Thank you for your business!' : 'Thank you for choosing GSN Network!'}
+                    {activeTab === 'subscription' 
+                      ? 'Thank you for your business!' 
+                      : `Thank you for choosing ${selectedInvoice.company_name}!`
+                    }
                   </p>
-                  <p style={{ margin: '0' }}>
-                    {activeTab === 'subscription' ? 'GSN Network - Connecting Global Trade' : 'Your freight forwarding service will begin as scheduled.'}
+                  <p style={{ marginBottom: '2px' }}>
+                    {activeTab === 'subscription' 
+                      ? 'GSN Network - Connecting Global Trade' 
+                      : 'Your freight forwarding service will begin as scheduled.'
+                    }
                   </p>
+                  {activeTab === 'transaction' && selectedInvoice.company_website && (
+                    <p style={{ margin: '0' }}>
+                      Visit us: {selectedInvoice.company_website}
+                    </p>
+                  )}
+                  {activeTab === 'transaction' && selectedInvoice.company_incharge_name && (
+                    <p style={{ margin: '0', marginTop: '4px' }}>
+                      Contact: {selectedInvoice.company_incharge_name}
+                      {selectedInvoice.company_incharge_phone && ` - ${selectedInvoice.company_incharge_phone}`}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
