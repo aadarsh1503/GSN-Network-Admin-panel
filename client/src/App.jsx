@@ -81,6 +81,7 @@ import AdminSubscriptions from "./pages/Admin/AdminSubscriptions";
 import AdminQuotes from "./pages/Admin/AdminQuotes";
 import AdminTransactions from "./pages/Admin/AdminTransactions";
 import AdminInvoices from "./pages/Admin/AdminInvoices";
+import AWSSettings from "./pages/Admin/AWSSettings";
 
 // --- Company Pages ---
 import CompanyDashboard from "./companyPages/CompanyDashboard/CompanyDashboard";
@@ -342,6 +343,7 @@ function App() {
           <Route path="quotes-management" element={<AdminQuotes />} />
           <Route path="transactions-management" element={<AdminTransactions />} />
           <Route path="invoices-management" element={<AdminInvoices />} />
+          <Route path="aws-settings" element={<AWSSettings />} />
         </Route>
 
         {/* ================= COMPANY ROUTES ================= */}

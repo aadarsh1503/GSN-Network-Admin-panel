@@ -141,10 +141,13 @@ const SidebarContent = () => {
     // System Settings (Lower Priority)
     { 
       name: 'System Settings', 
-      icon: <FiSettings />, 
-      path: 'general-settings',
+      icon: <FiSettings />,
       priority: 'low',
-      description: 'App configuration'
+      description: 'App configuration',
+      subItems: [
+        { name: 'General Settings', path: 'general-settings', icon: '⚙️' },
+        { name: 'AWS Settings', path: 'aws-settings', icon: '☁️' },
+      ]
     },
     
     { 

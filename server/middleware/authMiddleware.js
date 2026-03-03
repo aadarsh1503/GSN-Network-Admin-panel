@@ -96,18 +96,35 @@ const protect = async (req, res, next) => {
 // Middleware to check for specific roles
 const authorize = (...roles) => {
     return (req, res, next) => {
+        console.log('🔐 [Authorization] Checking authorization...');
+        console.log('   Required roles:', roles);
+        console.log('   User:', req.user);
+        console.log('   User role:', req.user?.role);
+        console.log('   User role type:', typeof req.user?.role);
+        
         // Normalize the user role (trim whitespace and handle any encoding issues)
         const userRole = req.user.role ? req.user.role.toString().trim() : '';
         
+        console.log('   Normalized user role:', `"${userRole}"`);
+        
         // Check if the user role is in the allowed roles
-        const isAuthorized = roles.some(role => role.toString().trim() === userRole);
+        const isAuthorized = roles.some(role => {
+            const normalizedRole = role.toString().trim();
+            const matches = normalizedRole === userRole;
+            console.log(`   Comparing "${normalizedRole}" === "${userRole}": ${matches}`);
+            return matches;
+        });
+        
+        console.log('   Is authorized:', isAuthorized);
         
         if (!isAuthorized) {
+            console.log('❌ [Authorization] Access denied');
             return res.status(403).json({ 
                 message: `User role '${req.user.role}' is not authorized to access this route` 
             });
         }
         
+        console.log('✅ [Authorization] Access granted');
         next();
     };
 };

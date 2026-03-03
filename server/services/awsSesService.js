@@ -1,61 +1,81 @@
 // AWS SES Service - Direct email sending via Amazon SES
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
-import dotenv from 'dotenv';
+import db from '../config/db.js';
 
-// Load environment variables
-dotenv.config();
-
-// Validate AWS credentials
-const validateAWSCredentials = () => {
-    const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
-    const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
-    const region = process.env.AWS_REGION;
-    
-    if (!accessKeyId || !secretAccessKey || !region) {
-        throw new Error(`Missing AWS credentials: 
-            AWS_ACCESS_KEY_ID: ${accessKeyId ? 'Set' : 'Missing'}
-            AWS_SECRET_ACCESS_KEY: ${secretAccessKey ? 'Set' : 'Missing'}
-            AWS_REGION: ${region ? 'Set' : 'Missing'}`);
+// Get AWS credentials from database
+const getAWSCredentialsFromDB = async () => {
+    try {
+        const [rows] = await db.execute(
+            `SELECT * FROM aws_settings WHERE is_active = 1 ORDER BY id DESC LIMIT 1`
+        );
+        
+        if (rows.length === 0) {
+            console.warn('⚠️ No AWS settings found in database, falling back to environment variables');
+            return {
+                accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+                region: process.env.AWS_REGION || 'eu-north-1',
+                fromEmail: process.env.AWS_SES_FROM_EMAIL || 'info@promo.gulfstarnetwork.com',
+                fromName: process.env.AWS_SES_FROM_NAME || 'GSN Network'
+            };
+        }
+        
+        const settings = rows[0];
+        console.log('✅ AWS credentials loaded from database');
+        console.log(`   Region: ${settings.region}`);
+        console.log(`   From Email: ${settings.ses_from_email}`);
+        console.log(`   From Name: ${settings.ses_from_name}`);
+        
+        return {
+            accessKeyId: settings.access_key_id,
+            secretAccessKey: settings.secret_access_key,
+            region: settings.region,
+            fromEmail: settings.ses_from_email,
+            fromName: settings.ses_from_name
+        };
+    } catch (error) {
+        console.error('❌ Error fetching AWS credentials from database:', error);
+        // Fallback to environment variables
+        return {
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+            region: process.env.AWS_REGION || 'eu-north-1',
+            fromEmail: process.env.AWS_SES_FROM_EMAIL || 'info@promo.gulfstarnetwork.com',
+            fromName: process.env.AWS_SES_FROM_NAME || 'GSN Network'
+        };
     }
-    
-    console.log('🔑 AWS Credentials validation:');
-    console.log(`   Access Key ID: ${accessKeyId.substring(0, 8)}...`);
-    console.log(`   Secret Key: ${secretAccessKey.substring(0, 8)}...`);
-    console.log(`   Region: ${region}`);
-    
-    return { accessKeyId, secretAccessKey, region };
 };
 
-// Configure AWS SES Client
-let sesClient;
-try {
-    const credentials = validateAWSCredentials();
-    sesClient = new SESClient({
-        region: credentials.region,
-        credentials: {
-            accessKeyId: credentials.accessKeyId,
-            secretAccessKey: credentials.secretAccessKey
-        }
-    });
-    console.log('✅ AWS SES Client initialized successfully');
-} catch (error) {
-    console.error('❌ Failed to initialize AWS SES Client:', error.message);
-}
-
-const FROM_EMAIL = process.env.AWS_SES_FROM_EMAIL || 'info@promo.gulfstarnetwork.com';
-const FROM_NAME = process.env.AWS_SES_FROM_NAME || 'GSN Network';
+// Create SES client with database credentials
+const createSESClient = async () => {
+    const credentials = await getAWSCredentialsFromDB();
+    
+    if (!credentials.accessKeyId || !credentials.secretAccessKey) {
+        throw new Error('AWS credentials not configured. Please configure them in the admin panel.');
+    }
+    
+    return {
+        client: new SESClient({
+            region: credentials.region,
+            credentials: {
+                accessKeyId: credentials.accessKeyId,
+                secretAccessKey: credentials.secretAccessKey
+            }
+        }),
+        fromEmail: credentials.fromEmail,
+        fromName: credentials.fromName
+    };
+};
 
 // Send single email via AWS SES
 export const sendSingleEmailViaSES = async (toEmail, subject, htmlContent, textContent = '') => {
     try {
-        if (!sesClient) {
-            throw new Error('AWS SES Client not initialized. Check your AWS credentials.');
-        }
+        const { client: sesClient, fromEmail, fromName } = await createSESClient();
         
         console.log(`📧 Sending single email via AWS SES to: ${toEmail}`);
         
         const params = {
-            Source: `${FROM_NAME} <${FROM_EMAIL}>`,
+            Source: `${fromName} <${fromEmail}>`,
             Destination: {
                 ToAddresses: [toEmail]
             },
@@ -101,9 +121,11 @@ export const sendSingleEmailViaSES = async (toEmail, subject, htmlContent, textC
 // Send bulk emails via AWS SES
 export const sendBulkEmailViaSES = async (users, subject, htmlContent, userType = 'all') => {
     try {
+        const { client: sesClient, fromEmail, fromName } = await createSESClient();
+        
         console.log(`📧 Starting AWS SES bulk email campaign for ${userType} with ${users.length} users`);
         console.log(`📧 Subject: ${subject}`);
-        console.log(`📧 From: ${FROM_NAME} <${FROM_EMAIL}>`);
+        console.log(`📧 From: ${fromName} <${fromEmail}>`);
         
         const results = {
             successful: 0,
@@ -127,29 +149,7 @@ export const sendBulkEmailViaSES = async (users, subject, htmlContent, userType 
             console.log(`📧 Processing batch ${batchIndex + 1}/${batches.length} with ${batch.length} emails`);
 
             try {
-                // Prepare destinations for bulk send
-                const destinations = batch.map(user => ({
-                    Destination: {
-                        ToAddresses: [user.email]
-                    },
-                    ReplacementTemplateData: JSON.stringify({
-                        name: user.name || 'Valued Customer'
-                    })
-                }));
-
-                // Prepare the bulk email parameters
-                const bulkParams = {
-                    Source: `${FROM_NAME} <${FROM_EMAIL}>`,
-                    Template: 'DefaultTemplate', // We'll use a simple approach instead
-                    DefaultTemplateData: JSON.stringify({
-                        subject: subject,
-                        content: htmlContent
-                    }),
-                    Destinations: destinations
-                };
-
-                // Since we don't have a template set up, let's send individual emails in this batch
-                // This is more reliable for the initial implementation
+                // Send individual emails in this batch
                 for (const user of batch) {
                     try {
                         const personalizedContent = htmlContent.replace(/\{name\}/g, user.name || 'Valued Customer');
@@ -238,9 +238,11 @@ export const testSESConnection = async () => {
     try {
         console.log('🔍 Testing AWS SES connection...');
         
+        const { fromEmail } = await getAWSCredentialsFromDB();
+        
         // Try to send a test email to the from address (should be verified)
         const testResult = await sendSingleEmailViaSES(
-            FROM_EMAIL,
+            fromEmail,
             'AWS SES Connection Test',
             '<h2>AWS SES Test</h2><p>This is a test email to verify AWS SES connection.</p>',
             'AWS SES Test - This is a test email to verify AWS SES connection.'
@@ -275,19 +277,19 @@ export const testSESConnection = async () => {
 // Get AWS SES sending statistics
 export const getSESStats = async () => {
     try {
-        // For now, return basic info. In production, you might want to use GetSendStatistics
+        const credentials = await getAWSCredentialsFromDB();
         return {
             service: 'AWS SES',
-            region: process.env.AWS_REGION,
-            fromEmail: FROM_EMAIL,
+            region: credentials.region,
+            fromEmail: credentials.fromEmail,
             status: 'Connected'
         };
     } catch (error) {
         console.error('Error getting SES stats:', error);
         return {
             service: 'AWS SES',
-            region: process.env.AWS_REGION,
-            fromEmail: FROM_EMAIL,
+            region: 'Unknown',
+            fromEmail: 'Unknown',
             status: 'Error',
             error: error.message
         };

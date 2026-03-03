@@ -2,7 +2,6 @@
 
 import express from 'express';
 import dotenv from 'dotenv';
-// Removed CORS import since using Vite proxy
 import companyRoutes from './routes/companyRoutes.js';
 import invoiceRoutes from './routes/invoiceRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
@@ -65,7 +64,6 @@ const server = createServer(app);
 realTimeAccountService.initialize(server);
 
 // Middlewares
-// Removed CORS middleware since using Vite proxy
 app.use(express.json()); // Middleware to parse JSON bodies
 app.use('/uploads', express.static('uploads')); // Serve uploaded files
 
@@ -111,6 +109,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/admin-panel', adminPanelRoutes);
 app.use('/api/admin', emailRoutes);
 app.use('/api/admin', adminAccountRoutes); // Real-time account management routes
+app.use('/api/admin', adminPanelRoutes); // Mount admin panel routes at /api/admin as well for AWS settings
 app.use('/api/test', testAccountStatusRoutes); // Test account status routes
 app.use('/api/general-settings', generalSettingsRoutes);
 app.use('/api/bank-details', bankDetailsRoutes);

@@ -34,6 +34,12 @@ import {
     rejectSubscriptionRequest
 } from '../controllers/subscriptionController.js';
 
+import {
+    getAWSSettings,
+    updateAWSSettings,
+    testAWSConnection
+} from '../controllers/awsSettingsController.js';
+
 // All routes require admin authentication
 router.use(protect, authorize('admin'));
 
@@ -77,5 +83,10 @@ router.delete('/users/:id', deleteUser);
 
 // ==================== DASHBOARD STATS ====================
 router.get('/dashboard-stats', getAdminDashboardStats);
+
+// ==================== AWS SETTINGS ROUTES ====================
+router.get('/aws-settings', getAWSSettings);
+router.put('/aws-settings', updateAWSSettings);
+router.post('/aws-settings/test', testAWSConnection);
 
 export default router;
