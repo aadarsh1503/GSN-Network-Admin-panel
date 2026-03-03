@@ -17,13 +17,14 @@ export const getAWSSettings = async (req, res) => {
             return res.status(404).json({ message: 'AWS settings not found' });
         }
 
-        // Don't send the full secret key to frontend for security
+        // Send the full secret key (no masking)
         const settings = {
-            ...rows[0],
-            secret_access_key: rows[0].secret_access_key ? '••••••••••••••••' : ''
+            ...rows[0]
         };
 
         console.log('✅ [AWS Settings] Settings retrieved successfully');
+        console.log('   Secret key length:', settings.secret_access_key?.length);
+        console.log('   Secret key preview:', settings.secret_access_key?.substring(0, 10) + '...');
         res.status(200).json(settings);
     } catch (error) {
         console.error('❌ [AWS Settings] Error fetching AWS settings:', error);

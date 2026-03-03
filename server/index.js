@@ -22,7 +22,6 @@ import userQuoteRoutes from './routes/userQuoteRoutes.js';
 import userNotificationRoutes from './routes/userNotificationRoutes.js';
 import companyQuoteRoutes from './routes/companyQuoteRoutes.js';
 import versionRoutes from './routes/versionRoutes.js';
-import testRoutes from './routes/testRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import adminPanelRoutes from './routes/adminPanelRoutes.js';
 import disputeRoutes from './routes/disputeRoutes.js';
@@ -37,10 +36,8 @@ import uploadRoutes from './routes/uploadRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import enhancedQuoteRoutes from './routes/enhancedQuoteRoutes.js';
 import emailQueueRoutes from './routes/emailQueueRoutes.js';
-import debugRoutes from './routes/debugRoutes.js';
 import geoRoutes from './routes/geoRoutes.js';
 import adminAccountRoutes from './routes/adminAccountRoutes.js';
-import testAccountStatusRoutes from './routes/testAccountStatus.js';
 // ==========================================================
 // CONFIGURE DOTENV AT THE VERY TOP
 dotenv.config();
@@ -104,13 +101,11 @@ app.use('/api/suggestions', suggestionRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/disputes', disputeRoutes);
 app.use('/api/version', versionRoutes);
-app.use('/api/test', testRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin-panel', adminPanelRoutes);
 app.use('/api/admin', emailRoutes);
 app.use('/api/admin', adminAccountRoutes); // Real-time account management routes
 app.use('/api/admin', adminPanelRoutes); // Mount admin panel routes at /api/admin as well for AWS settings
-app.use('/api/test', testAccountStatusRoutes); // Test account status routes
 app.use('/api/general-settings', generalSettingsRoutes);
 app.use('/api/bank-details', bankDetailsRoutes);
 app.use('/api/notifications', realTimeNotificationRoutes);
@@ -122,7 +117,6 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/enhanced-quotes', enhancedQuoteRoutes);
 app.use('/api', businessRoutes); // Mount business directory routes at /api level for public access
 app.use('/api/email-queue', emailQueueRoutes);
-app.use('/api/debug', debugRoutes);
 
 console.log('📍 All routes mounted successfully');
 
