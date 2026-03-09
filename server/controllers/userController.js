@@ -1389,9 +1389,9 @@ const forgotPassword = async (req, res) => {
     }
 
     try {
-        // Find user by email (exclude admin users)
+        // Find user by email (now includes admin users)
         const [rows] = await db.execute(
-            'SELECT id, name, email, role FROM users WHERE email = ? AND role != "admin"', 
+            'SELECT id, name, email, role FROM users WHERE email = ?', 
             [email]
         );
 
