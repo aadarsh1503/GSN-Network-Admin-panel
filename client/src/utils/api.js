@@ -398,12 +398,15 @@ export const publicAPI = {
   // Other public endpoints can be added here
   getCountries: async () => {
     try {
-      const response = await fetch('https://restcountries.com/v3.1/all?fields=name');
+      const response = await fetch(`${API_BASE_URL}/api/geo/countries`, {
+        method: 'GET',
+        credentials: 'omit'
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      return data.map(c => c.name.common).sort();
+      return data.countries;
     } catch (error) {
       throw new Error(`Countries service failed: ${error.message}`);
     }

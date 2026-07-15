@@ -109,6 +109,8 @@ const TitleManager = () => {
         title = 'GSN Network - Forgot Password';
       } else if (path.includes('/reset-password')) {
         title = 'GSN Network - Reset Password';
+      } else if (path.includes('/blacklist')) {
+        title = 'GSN Network - Blacklisted Companies';
       } else if (path.includes('/unauthorized')) {
         title = 'GSN Network - Unauthorized Access';
       }

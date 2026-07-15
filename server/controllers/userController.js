@@ -819,6 +819,35 @@ const getBlacklistedCompanies = async (req, res) => {
     }
 };
 
+// @desc    Get public blacklist (excludes sensitive information)
+// @route   GET /api/user/public-blacklist
+// @access  Public
+const getPublicBlacklist = async (req, res) => {
+    try {
+        const sql = `
+            SELECT 
+                id, 
+                name, 
+                blacklist_reason,
+                blacklist_date,
+                country,
+                city,
+                category,
+                created_at
+            FROM users 
+            WHERE role = 'company' AND is_blacklisted = 1
+            ORDER BY blacklist_date DESC
+        `;
+        
+        const [rows] = await db.execute(sql);
+        
+        res.status(200).json(rows);
+    } catch (error) {
+        console.error('Error fetching public blacklist:', error);
+        res.status(500).json({ message: 'Server error fetching public blacklist' });
+    }
+};
+
 const getBusinessUsers = async (req, res) => {
     try {
         // Fetch only users where role is 'business'
@@ -1566,6 +1595,7 @@ export {
     getCompanies,      
     toggleCompanyStatus,
     getBlacklistedCompanies,
+    getPublicBlacklist,
     getBusinessUsers,
     getRegularUsers,
     changePassword,

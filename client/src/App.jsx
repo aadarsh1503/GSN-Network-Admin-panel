@@ -30,6 +30,7 @@ import RegisterPage from "./components/Login/RegisterPage";
 import UserRegisterPage from "./components/Login/UserRegisterPage";
 import ForgotPassword from "./components/ForgotPassword/ForgotPassword";
 import ResetPassword from "./components/ResetPassword/ResetPassword";
+import PublicBlacklist from "./pages/PublicBlacklist/PublicBlacklist";
 
 // --- Admin Pages ---
 import Dashboard from "./pages/DashboardContent/DashboardContent";
@@ -275,6 +276,7 @@ function App() {
           <Route path="user-register" element={<UserRegisterPage />} />
           <Route path="forgot-password" element={<ForgotPassword />} />
           <Route path="reset-password" element={<ResetPassword />} />
+          <Route path="blacklist" element={<PublicBlacklist />} />
           <Route path="quote" element={<RequestQuote />} />
           <Route path="subscriptions" element={<SubscriptionPage />} />
           <Route path="payment" element={<PaymentPage />} />

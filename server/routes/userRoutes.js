@@ -16,6 +16,7 @@ import {
     getCompanies,
     toggleCompanyStatus,
     getBlacklistedCompanies,
+    getPublicBlacklist,
     getBusinessUsers,
     getRegularUsers,
     changePassword,
@@ -37,6 +38,7 @@ import {
 // Public Routes
 router.post('/login', loginUser);
 router.post('/register', registerUser);
+router.get('/public-blacklist', getPublicBlacklist); // Public blacklist route
 
 // Password Reset Routes (Public)
 router.post('/forgot-password', forgotPassword);

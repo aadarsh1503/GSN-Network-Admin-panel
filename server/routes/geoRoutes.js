@@ -279,6 +279,96 @@ router.get('/country', async (req, res) => {
   }
 });
 
+// @desc    Get all countries list (proxy to avoid CORS)
+// @route   GET /api/geo/countries
+// @access  Public
+router.get('/countries', async (req, res) => {
+  try {
+    const response = await fetch('https://restcountries.com/v3.1/all?fields=name', {
+      timeout: 10000,
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; GSNApp/1.0)' }
+    });
+
+    if (!response.ok) throw new Error(`restcountries error: ${response.status}`);
+
+    const data = await response.json();
+    const countries = data.map(c => c.name.common).sort();
+
+    res.json({ success: true, countries });
+  } catch (error) {
+    console.error('❌ Countries proxy failed:', error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// @desc    Get all countries with code and flag (proxy to avoid CORS)
+// @route   GET /api/geo/countries-full
+// @access  Public
+router.get('/countries-full', async (req, res) => {
+  try {
+    const response = await fetch('https://restcountries.com/v3.1/all?fields=name,cca2,flags', {
+      timeout: 10000,
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; GSNApp/1.0)' }
+    });
+
+    if (!response.ok) throw new Error(`restcountries error: ${response.status}`);
+
+    const data = await response.json();
+    const countries = data
+      .map(c => ({ name: c.name.common, code: c.cca2, flag: c.flags?.png || '' }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    res.json({ success: true, countries });
+  } catch (error) {
+    console.error('❌ Countries-full proxy failed:', error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// @desc    Get states for a country (proxy to avoid CORS)
+// @route   POST /api/geo/states
+// @access  Public
+router.post('/states', async (req, res) => {
+  try {
+    const { country } = req.body;
+    const response = await fetch('https://countriesnow.space/api/v0.1/countries/states', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ country }),
+      timeout: 10000
+    });
+
+    if (!response.ok) throw new Error(`countriesnow error: ${response.status}`);
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('❌ States proxy failed:', error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// @desc    Get cities for a country + state (proxy to avoid CORS)
+// @route   POST /api/geo/cities
+// @access  Public
+router.post('/cities', async (req, res) => {
+  try {
+    const { country, state } = req.body;
+    const response = await fetch('https://countriesnow.space/api/v0.1/countries/state/cities', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ country, state }),
+      timeout: 10000
+    });
+
+    if (!response.ok) throw new Error(`countriesnow error: ${response.status}`);
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('❌ Cities proxy failed:', error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Helper function to get country name from country code
 function getCountryName(countryCode) {
   const countryNames = {

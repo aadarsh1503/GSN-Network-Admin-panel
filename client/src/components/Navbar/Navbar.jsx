@@ -118,7 +118,7 @@ const Navbar = () => {
       { name: 'Member', href: '/company-directory' },
       // { name: 'Business', href: '#' },
       { name: 'Subscriptions', href: '/subscriptions' },
-      // { name: 'Blacklist', href: '#' },
+      { name: 'Blacklist', href: '/blacklist' },
       { name: 'Contact Us', href: '#', icon: <FaSearch size={14} />, onClick: handleContactUsClick },
     ];
 

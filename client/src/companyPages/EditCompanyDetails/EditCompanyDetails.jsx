@@ -229,21 +229,16 @@ const EditCompanyDetails = () => {
 
     // --- COUNTRY, STATE, CITY API FUNCTIONS ---
     
+    const API_BASE = import.meta.env.VITE_API_URL || '';
+
     // Fetch all countries
     const fetchCountries = async () => {
         setLoadingCountries(true);
         try {
-            const response = await fetch('https://restcountries.com/v3.1/all?fields=name,cca2,flags');
-            const countriesData = await response.json();
-            const sortedCountries = countriesData
-                .map(country => ({
-                    name: country.name.common,
-                    code: country.cca2,
-                    flag: country.flags.png
-                }))
-                .sort((a, b) => a.name.localeCompare(b.name));
-            
-            setCountries(sortedCountries);
+            const response = await fetch(`${API_BASE}/api/geo/countries-full`);
+            const data = await response.json();
+            if (!data.success) throw new Error('Failed to load countries');
+            setCountries(data.countries);
         } catch (err) {
             console.error('Error fetching countries:', err);
             setError('Failed to load countries');
@@ -265,22 +260,14 @@ const EditCompanyDetails = () => {
         setCities([]);
         
         try {
-            const response = await fetch(`https://countriesnow.space/api/v0.1/countries/states`, {
+            const response = await fetch(`${API_BASE}/api/geo/states`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    country: countryName
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ country: countryName })
             });
-            
             const statesData = await response.json();
             if (statesData.data && statesData.data.states) {
-                const sortedStates = statesData.data.states
-                    .map(state => state.name)
-                    .sort();
-                setStates(sortedStates);
+                setStates(statesData.data.states.map(state => state.name).sort());
             } else {
                 setStates([]);
             }
@@ -303,27 +290,15 @@ const EditCompanyDetails = () => {
         setCities([]);
         
         try {
-            // Clean the country and state names (remove extra spaces)
-            const cleanCountry = countryName.trim();
-            const cleanState = stateName.trim();
-            
-            const response = await fetch(`https://countriesnow.space/api/v0.1/countries/state/cities`, {
+            const response = await fetch(`${API_BASE}/api/geo/cities`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    country: cleanCountry,
-                    state: cleanState
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ country: countryName.trim(), state: stateName.trim() })
             });
-            
             const citiesData = await response.json();
             if (citiesData.data && Array.isArray(citiesData.data)) {
-                const sortedCities = citiesData.data.sort();
-                setCities(sortedCities);
+                setCities(citiesData.data.sort());
             } else {
-                console.log('No cities found for:', cleanCountry, cleanState);
                 setCities([]);
             }
         } catch (err) {
