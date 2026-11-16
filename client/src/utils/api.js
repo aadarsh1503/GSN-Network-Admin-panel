@@ -2,6 +2,26 @@
 
 const API_BASE_URL = ''; // Use relative URLs with Vite proxy
 
+// Endpoints that never need a session. A stale/expired token left in
+// localStorage must never bounce a guest off a public page (home, /quote,
+// /subscriptions, directories...), so these bypass all token handling.
+const PUBLIC_ENDPOINTS = [
+  '/api/user/login',
+  '/api/user/register',
+  '/api/user/forgot-password',
+  '/api/user/reset-password',
+  '/api/subscriptions/plans',
+  '/api/wallet/currency-rate',
+  '/api/geo/',
+  '/api/logistics-categories',
+  '/api/business-categories',
+  '/api/contact',
+  '/api/public',
+];
+
+const isPublicEndpoint = (endpoint) =>
+  typeof endpoint === 'string' && PUBLIC_ENDPOINTS.some((p) => endpoint.startsWith(p));
+
 // Token management
 export const getToken = () => {
   return localStorage.getItem('token');
@@ -129,8 +149,12 @@ const handleAuthFailure = (error, accountIssueType = null) => {
   
   // Only redirect if we're not already on login/public pages
   const currentPath = window.location.pathname;
-  const publicPaths = ['/login', '/register', '/user-register', '/forgot-password', '/reset-password', '/', '/unauthorized'];
-  
+  const publicPaths = [
+    '/login', '/register', '/user-register', '/forgot-password', '/reset-password',
+    '/', '/unauthorized', '/subscriptions', '/payment', '/blacklist',
+    '/business-directory', '/company-directory', '/company/freight-quotes',
+  ];
+
   if (!publicPaths.includes(currentPath) && !currentPath.startsWith('/quote')) {
     // Use window.location to force a full page redirect and clear any cached state
     window.location.href = '/login';
@@ -149,9 +173,18 @@ export const apiRequest = async (endpoint, options = {}, retryCount = 0) => {
   const timestamp = new Date().toISOString();
   
   let token = getToken();
-  
+  const isPublic = isPublicEndpoint(endpoint);
+
+  // Public endpoints must work for guests. If a stale token is sitting in
+  // localStorage we simply ignore it here — otherwise the expiry check below
+  // would clear the session and redirect the visitor to /login even though the
+  // page they are on is public (e.g. /subscriptions).
+  if (isPublic) {
+    token = null;
+  }
+
   // Check if token needs refreshing (expired or expiring soon)
-  if (token && (isTokenExpired(token) || isTokenExpiringSoon(token))) {
+  if (!isPublic && token && (isTokenExpired(token) || isTokenExpiringSoon(token))) {
     try {
       // Only refresh if token is not completely expired
       if (!isTokenExpired(token)) {
@@ -204,8 +237,9 @@ export const apiRequest = async (endpoint, options = {}, retryCount = 0) => {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       
-      // Handle token validation errors
-      if (response.status === 401 || response.status === 403) {
+      // Handle token validation errors. Public endpoints are skipped — they may
+      // legitimately fail for guests and must not clear the session/redirect.
+      if (!isPublic && (response.status === 401 || response.status === 403)) {
         // Check if this is a token validation error vs a role authorization error
         const isTokenError = errorData.message && (
           errorData.message.includes('token') || 
@@ -454,6 +488,9 @@ export const publicAPI = {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          // Lets the server fall back to the visitor's real timezone when all
+          // IP lookups fail, instead of guessing from the server's own clock.
+          'X-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone || '',
         },
         // Don't include credentials for public endpoints
         credentials: 'omit'

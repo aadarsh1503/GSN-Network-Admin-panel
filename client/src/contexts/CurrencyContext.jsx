@@ -19,8 +19,10 @@ const readStoredUser = () => {
 };
 
 // IP-detected country is cached so we only ask the geo API occasionally, not on
-// every page view.
-const GEO_COUNTRY_KEY = 'gsn_geo_country';
+// every page view. The key is versioned because older builds cached the
+// server's "everything failed -> United States" fallback, which showed USD to
+// visitors in other countries.
+const GEO_COUNTRY_KEY = 'gsn_geo_country_v2';
 const GEO_TTL_MS = 12 * 60 * 60 * 1000;
 
 const readGeoCountry = () => {
@@ -97,11 +99,20 @@ export const CurrencyProvider = ({ children }) => {
   const syncGeo = useCallback(async () => {
     if (readGeoCountry()) return;
     try {
-      const res = await fetch('/api/geo/country');
+      // The visitor's own timezone is sent along so the server can fall back to
+      // it (instead of its own UTC timezone) when every IP lookup fails.
+      const res = await fetch('/api/geo/country', {
+        headers: { 'X-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone || '' },
+      });
       if (!res.ok) return;
-      const name = (await res.json())?.data?.country_name;
+      const body = await res.json();
+      const name = body?.data?.country_name;
       if (!name) return;
-      localStorage.setItem(GEO_COUNTRY_KEY, JSON.stringify({ country: name, at: Date.now() }));
+      // Only cache a real IP lookup. A timezone/fallback guess must not stick
+      // around for 12 hours, otherwise a wrong country keeps the wrong currency.
+      if (!body?.data?.fallback_reason) {
+        localStorage.setItem(GEO_COUNTRY_KEY, JSON.stringify({ country: name, at: Date.now() }));
+      }
       setGeoCountry(name);
     } catch {
       /* best-effort; the profile or browser locale still applies */

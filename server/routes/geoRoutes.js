@@ -204,12 +204,13 @@ router.get('/country', async (req, res) => {
     if (!countryData) {
       console.log('⚠️ All geolocation services failed, using enhanced fallback...');
       
-      // Try to determine country based on timezone or other hints
-      const timezone = req.headers['timezone'] || Intl.DateTimeFormat().resolvedOptions().timeZone;
+      // Prefer the visitor's own timezone (sent by the browser) — the server's
+      // timezone is usually UTC, which would wrongly resolve to the US.
+      const timezone = req.headers['x-timezone'] || req.headers['timezone'] || Intl.DateTimeFormat().resolvedOptions().timeZone;
       console.log('Detected timezone:', timezone);
       
-      let fallbackCountry = 'US';
-      let fallbackCountryName = 'United States';
+      let fallbackCountry = null;
+      let fallbackCountryName = null;
       
       // Basic timezone to country mapping for common cases
       if (timezone) {
@@ -218,15 +219,46 @@ router.get('/country', async (req, res) => {
           'Asia/Calcutta': { code: 'IN', name: 'India' },
           'Asia/Mumbai': { code: 'IN', name: 'India' },
           'Asia/Delhi': { code: 'IN', name: 'India' },
-          'Europe/London': { code: 'GB', name: 'United Kingdom' },
-          'America/New_York': { code: 'US', name: 'United States' },
-          'America/Los_Angeles': { code: 'US', name: 'United States' },
+          'Asia/Karachi': { code: 'PK', name: 'Pakistan' },
+          'Asia/Dhaka': { code: 'BD', name: 'Bangladesh' },
+          'Asia/Kathmandu': { code: 'NP', name: 'Nepal' },
+          'Asia/Colombo': { code: 'LK', name: 'Sri Lanka' },
+          'Asia/Bahrain': { code: 'BH', name: 'Bahrain' },
+          'Asia/Riyadh': { code: 'SA', name: 'Saudi Arabia' },
+          'Asia/Qatar': { code: 'QA', name: 'Qatar' },
+          'Asia/Kuwait': { code: 'KW', name: 'Kuwait' },
+          'Asia/Muscat': { code: 'OM', name: 'Oman' },
           'Asia/Dubai': { code: 'AE', name: 'United Arab Emirates' },
+          'Asia/Amman': { code: 'JO', name: 'Jordan' },
+          'Asia/Beirut': { code: 'LB', name: 'Lebanon' },
+          'Asia/Baghdad': { code: 'IQ', name: 'Iraq' },
+          'Asia/Istanbul': { code: 'TR', name: 'Turkey' },
+          'Europe/Istanbul': { code: 'TR', name: 'Turkey' },
+          'Africa/Cairo': { code: 'EG', name: 'Egypt' },
+          'Africa/Lagos': { code: 'NG', name: 'Nigeria' },
+          'Africa/Nairobi': { code: 'KE', name: 'Kenya' },
+          'Africa/Johannesburg': { code: 'ZA', name: 'South Africa' },
+          'Europe/London': { code: 'GB', name: 'United Kingdom' },
+          'Europe/Berlin': { code: 'DE', name: 'Germany' },
+          'Europe/Paris': { code: 'FR', name: 'France' },
+          'Europe/Moscow': { code: 'RU', name: 'Russia' },
+          'America/New_York': { code: 'US', name: 'United States' },
+          'America/Chicago': { code: 'US', name: 'United States' },
+          'America/Denver': { code: 'US', name: 'United States' },
+          'America/Los_Angeles': { code: 'US', name: 'United States' },
+          'America/Toronto': { code: 'CA', name: 'Canada' },
+          'America/Sao_Paulo': { code: 'BR', name: 'Brazil' },
+          'Asia/Singapore': { code: 'SG', name: 'Singapore' },
+          'Asia/Hong_Kong': { code: 'HK', name: 'Hong Kong' },
           'Asia/Shanghai': { code: 'CN', name: 'China' },
           'Asia/Tokyo': { code: 'JP', name: 'Japan' },
+          'Asia/Seoul': { code: 'KR', name: 'South Korea' },
+          'Asia/Jakarta': { code: 'ID', name: 'Indonesia' },
+          'Asia/Manila': { code: 'PH', name: 'Philippines' },
+          'Asia/Kuala_Lumpur': { code: 'MY', name: 'Malaysia' },
+          'Asia/Bangkok': { code: 'TH', name: 'Thailand' },
           'Australia/Sydney': { code: 'AU', name: 'Australia' },
-          'Europe/Berlin': { code: 'DE', name: 'Germany' },
-          'Europe/Paris': { code: 'FR', name: 'France' }
+          'Pacific/Auckland': { code: 'NZ', name: 'New Zealand' }
         };
         
         const timezoneMatch = timezoneCountryMap[timezone];
@@ -237,13 +269,17 @@ router.get('/country', async (req, res) => {
         }
       }
       
+      // No guess is better than a wrong guess: when we truly cannot tell, hand
+      // back a null country so the client falls back to the browser locale.
       countryData = {
         country_code: fallbackCountry,
         country_name: fallbackCountryName,
         city: 'Unknown',
         region: 'Unknown',
         ip: clientIP || 'Unknown',
-        fallback_reason: 'All geolocation services failed, used timezone-based detection'
+        fallback_reason: fallbackCountry
+          ? 'All geolocation services failed, used timezone-based detection'
+          : 'All geolocation services failed and the timezone was unknown'
       };
     }
 
@@ -269,8 +305,8 @@ router.get('/country', async (req, res) => {
     res.json({
       success: false,
       data: {
-        country_code: 'US',
-        country_name: 'United States',
+        country_code: null,
+        country_name: null,
         city: 'Unknown',
         region: 'Unknown'
       },
