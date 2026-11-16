@@ -4,12 +4,16 @@ import {
   FiCalendar, FiDollarSign, FiFileText, FiCreditCard,
   FiCheck, FiAlertCircle
 } from 'react-icons/fi';
+import { FaPaypal } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import api from '../../utils/api';
+import { useProfileCompletionContext } from '../../contexts/ProfileCompletionContext';
 import "./enhence.css"
 const EnhancedQuoteResponse = ({ quote, onClose, onSuccess }) => {
+  const { missingRequired } = useProfileCompletionContext();
   const [bankDetails, setBankDetails] = useState([]);
   const [selectedBankId, setSelectedBankId] = useState('');
+  const [companyPaypal, setCompanyPaypal] = useState('');
   const [responseData, setResponseData] = useState({
     amount: '',
     description: '',
@@ -21,7 +25,17 @@ const EnhancedQuoteResponse = ({ quote, onClose, onSuccess }) => {
 
   useEffect(() => {
     fetchBankDetails();
+    fetchCompanyPaypal();
   }, []);
+
+  const fetchCompanyPaypal = async () => {
+    try {
+      const response = await api.get('/api/bank-details/paypal');
+      setCompanyPaypal(response?.paypal_email || '');
+    } catch (error) {
+      console.error('Error fetching PayPal details:', error);
+    }
+  };
 
   const fetchBankDetails = async () => {
     try {
@@ -59,7 +73,15 @@ const EnhancedQuoteResponse = ({ quote, onClose, onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
+    if (missingRequired.length > 0) {
+      toast.error(
+        `Complete your ${missingRequired.map((step) => step.label).join(' & ')} before sending a quote response.`,
+        { duration: 5000 }
+      );
+      return;
+    }
+
     if (!selectedBankId) {
       toast.error('Please select bank details for payment');
       return;
@@ -190,7 +212,7 @@ const EnhancedQuoteResponse = ({ quote, onClose, onSuccess }) => {
             </div>
             {quote.weight && (
               <div className="mt-4 p-3 bg-[#bca142]/20 rounded-lg">
-                <p className="text-black"><strong>Weight:</strong> {quote.weight}</p>
+                <p className="text-black"><strong>Weight:</strong> {quote.weight} kg</p>
               </div>
             )}
           </div>
@@ -308,12 +330,13 @@ const EnhancedQuoteResponse = ({ quote, onClose, onSuccess }) => {
                 <div className="text-center py-8">
                   <FiAlertCircle className="text-4xl text-black mx-auto mb-4" />
                   <p className="text-black font-medium mb-4">No active bank details found. Please add bank details first.</p>
-                  <button 
+                 <a href='/company/bank-details'> <button 
                     type="button" 
                     className="bg-black text-white px-6 py-3 rounded-xl hover:bg-[#bca142] transition-all duration-300 transform hover:scale-105"
                   >
                     Add Bank Details
                   </button>
+                  </a>
                 </div>
               ) : (
                 <>
@@ -373,7 +396,38 @@ const EnhancedQuoteResponse = ({ quote, onClose, onSuccess }) => {
                   )}
                 </>
               )}
+
+              {companyPaypal && (
+                <div className="mt-4 bg-white rounded-xl p-4 border-2 border-[#bca142]/30">
+                  <h4 className="font-bold text-[#bca142] mb-3 flex items-center gap-2">
+                    <FaPaypal className="text-[#bca142]" />
+                    PayPal Details (Customer will see this):
+                  </h4>
+                  <p className="text-black text-sm">
+                    <strong>PayPal Account:</strong> {companyPaypal}
+                  </p>
+                </div>
+              )}
             </div>
+
+            {/* Mandate notice */}
+            {missingRequired.length > 0 && (
+              <div className="rounded-xl border border-rose-200 bg-rose-50 p-4">
+                <p className="text-sm font-semibold text-rose-700 flex items-center gap-2">
+                  <FiAlertCircle /> Profile incomplete
+                </p>
+                <p className="mt-1 text-xs text-rose-600">
+                  You must complete <strong>{missingRequired.map((step) => step.label).join(' & ')}</strong> before you can
+                  send a quote response. Without this you will not receive quotes.
+                </p>
+                <a
+                  href={missingRequired[0]?.link || '/company/edit-Profile'}
+                  className="mt-2 inline-block text-xs font-semibold text-rose-700 underline"
+                >
+                  Complete now →
+                </a>
+              </div>
+            )}
 
             {/* Action Buttons */}
             <div className="flex gap-4 pt-4">
@@ -386,7 +440,7 @@ const EnhancedQuoteResponse = ({ quote, onClose, onSuccess }) => {
               </button>
               <button 
                 type="submit" 
-                disabled={loading || !Array.isArray(bankDetails) || bankDetails.length === 0}
+                disabled={loading || missingRequired.length > 0 || !Array.isArray(bankDetails) || bankDetails.length === 0}
                 className="flex-1 bg-[#bca142] text-white py-4 px-6 rounded-xl hover:bg-black transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none font-medium text-lg flex items-center justify-center gap-2"
               >
                 {loading ? (

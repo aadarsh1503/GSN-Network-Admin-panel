@@ -13,8 +13,7 @@ import {
     sendStatusUpdateMessage
 } from '../services/messageService.js';
 import queueSubscriptionEmails from '../services/emailQueue.js';
-
-// @desc    Get business user's quotes with responses
+import { issueOrderCompletionCoupons } from '../services/couponService.js';
 // @route   GET /api/business-quotes/my-quotes
 // @access  Private/Business
 const getBusinessUserQuotes = async (req, res) => {
@@ -611,6 +610,19 @@ const updateBusinessQuoteStatus = async (req, res) => {
                 quoteId,
                 status
             );
+        }
+
+        // 🎟️ ORDER COMPLETION REWARD
+        if (status === 'closed') {
+            db.execute(
+                `SELECT qr.company_id FROM user_quote_status uqs
+                 JOIN quote_responses qr ON uqs.quote_response_id = qr.id
+                 WHERE uqs.quote_id = ? AND uqs.status = 'accepted' LIMIT 1`,
+                [quoteId]
+            ).then(([rows]) => {
+                const companyId = rows[0]?.company_id || null;
+                return issueOrderCompletionCoupons(quoteId, businessId, companyId);
+            }).catch(err => console.error('❌ Order reward coupon error:', err));
         }
 
         res.status(200).json({ message: 'Quote status updated successfully' });

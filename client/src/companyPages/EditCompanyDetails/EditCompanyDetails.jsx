@@ -215,6 +215,7 @@ const EditCompanyDetails = () => {
     const [loadingCountries, setLoadingCountries] = useState(false);
     const [loadingStates, setLoadingStates] = useState(false);
     const [loadingCities, setLoadingCities] = useState(false);
+    const [categoryOptions, setCategoryOptions] = useState([]);
 
     const editorWrapperRef = useRef(null);
 
@@ -317,7 +318,19 @@ const EditCompanyDetails = () => {
             try {
                 // Fetch countries first
                 await fetchCountries();
-                
+
+                // Load the same category list the registration page uses. Categories
+                // are stored as their NAME (e.g. "Freight Forwarders"), so the
+                // dropdown must offer those names — otherwise the saved value never
+                // matches an option and the field looks empty.
+                try {
+                    const cats = await api.get('/api/logistics-categories');
+                    setCategoryOptions(Array.isArray(cats) ? cats.map((c) => c.name) : []);
+                } catch (catErr) {
+                    console.error('Error fetching categories:', catErr);
+                    setCategoryOptions([]);
+                }
+
                 // Then fetch company and user data
                 const [companyData, userData] = await Promise.all([
                     api.get('/api/company/profile'),
@@ -474,6 +487,18 @@ const EditCompanyDetails = () => {
         e.preventDefault();
         setError('');
         setSuccess('');
+
+        // About Company must be a real description, not a one-liner.
+        const aboutText = String(formData.about_company || '')
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/&nbsp;/gi, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+        if (aboutText.length < 50) {
+            setError('Please write at least 50 characters in "About Company" so customers know what your company does.');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
 
         try {
             const dataToSend = new FormData();
@@ -640,26 +665,14 @@ const EditCompanyDetails = () => {
                                     onChange={handleChange}
                                 >
                                     <option value="">Select Category...</option>
-                                    <option value="3pl">Third-Party Logistics Providers (3PLs)</option>
-                                    <option value="freight_forwarders">Freight Forwarders</option>
-                                    <option value="courier_parcel">Courier and Parcel Delivery Services</option>
-                                    <option value="warehousing_distribution">Warehousing and Distribution</option>
-                                    <option value="transportation_service">Transportation Service</option>
-                                    <option value="supply_chain_management">Supply Chain Management</option>
-                                    <option value="inventory_management">Inventory Management</option>
-                                    <option value="cold_chain_logistics">Cold Chain Logistics</option>
-                                    <option value="reverse_logistics">Reverse Logistics</option>
-                                    <option value="ecommerce_logistics">E-commerce Logistics</option>
-                                    <option value="cross_border_logistics">Cross-border Logistics</option>
-                                    <option value="specialized_logistics">Specialized Logistics</option>
-                                    <option value="technology_software_providers">Technology and Software Providers</option>
-                                    <option value="packaging_labeling_services">Packaging and Labeling Services</option>
-                                    <option value="last_mile_delivery">Last-Mile Delivery and Urban Logistics</option>
-                                    <option value="air_cargo_freight">Air Cargo and Freight Services</option>
-                                    <option value="rail_intermodal_logistics">Rail and Intermodal Logistics</option>
-                                    <option value="freight_brokerage">Freight Brokerage</option>
-                                    <option value="drone_autonomous_logistics">Drone and Autonomous Vehicle Logistics</option>
-                                    <option value="custom_brokerage">Custom Brokerage</option>
+                                    {/* Keep showing the already-saved category even if it
+                                        no longer exists in the live list. */}
+                                    {formData.category && !categoryOptions.includes(formData.category) && (
+                                        <option value={formData.category}>{formData.category}</option>
+                                    )}
+                                    {categoryOptions.map((name) => (
+                                        <option key={name} value={name}>{name}</option>
+                                    ))}
                                 </SelectField>
                             </div>
                         </section>
@@ -827,10 +840,10 @@ const EditCompanyDetails = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                 </span>
-                Spatial Configuration
+                Location
             </h3>
             <p className="mt-2 text-gray-700 text-sm font-medium">
-                Select a positioning protocol to synchronize your precise geographic location.
+                Choose how you want to set your company's location.
             </p>
         </div>
         
@@ -861,7 +874,7 @@ const EditCompanyDetails = () => {
                         />
                     </div>
                     <label htmlFor="coordinates-method" className={`ml-3 font-bold tracking-wide uppercase text-xs transition-colors ${locationMethod === 'coordinates' ? 'text-black' : 'text-gray-500'}`}>
-                        GPS Satellite Protocol
+                        GPS Coordinates
                     </label>
                 </div>
                 
@@ -913,7 +926,7 @@ const EditCompanyDetails = () => {
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         </svg>
-                        Auto-Detect Signal
+                        Auto-Detect Location
                     </button>
                 </div>
             </div>
@@ -942,7 +955,7 @@ const EditCompanyDetails = () => {
                         className="w-5 h-5 text-[#bca142] focus:ring-[#bca142] border-gray-300 transition-all cursor-pointer"
                     />
                     <label htmlFor="maps-method" className={`ml-3 font-bold tracking-wide uppercase text-xs transition-colors ${locationMethod === 'maps' ? 'text-black' : 'text-gray-500'}`}>
-                        Cloud Map Integration
+                        Google Maps Link
                     </label>
                 </div>
                 
@@ -1068,6 +1081,9 @@ const EditCompanyDetails = () => {
                             <div className="space-y-6">
                                 <div>
                                     <SectionHeader title="About Company" />
+                                    <p className="mb-2 text-sm text-gray-500">
+                                        Please write at least 50 characters describing your company.
+                                    </p>
                                     <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
                                         <div ref={editorWrapperRef}></div>
                                     </div>

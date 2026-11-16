@@ -5,6 +5,7 @@ import path from 'path';
 import fs from 'fs';
 import { protect as authenticateToken, authorize as authorizeRoles } from '../middleware/authMiddleware.js';
 import db from '../config/db.js';
+import couponService from '../services/couponService.js';
 import { queueSubscriptionEmails } from '../services/emailQueue.js';
 import { getAdminEmailsWithFallback } from '../utils/adminUtils.js';
 import { createTransactionInvoice } from '../services/transactionInvoiceService.js';
@@ -456,13 +457,22 @@ router.get('/verification-history', authenticateToken, authorizeRoles('company')
               q.id as quote_id, q.product_description, q.departure_country, q.arrival_country,
               qr.price, qr.transit_time,
               u.name as user_name, u.email as user_email,
-              verifier.name as verified_by_name
+              verifier.name as verified_by_name,
+              -- Coupon discount (company sees amount + percent, never the code)
+              CASE WHEN pp.coupon_code IS NOT NULL THEN 1 ELSE 0 END as has_coupon,
+              pp.original_amount as coupon_original_amount,
+              pp.coupon_discount as coupon_discount_amount,
+              pp.coupon_final_amount as coupon_final_amount,
+              cpn.discount_type as coupon_discount_type,
+              cpn.discount_value as coupon_discount_value
        FROM payment_verifications pv
        JOIN payment_proofs pp ON pv.payment_proof_id = pp.id
        JOIN quotes q ON pv.quote_id = q.id
        JOIN quote_responses qr ON pv.quote_response_id = qr.id
        JOIN users u ON pv.user_id = u.id
        LEFT JOIN users verifier ON pv.verified_by = verifier.id
+       LEFT JOIN user_coupons uc ON uc.code = pp.coupon_code
+       LEFT JOIN coupons cpn ON cpn.id = uc.coupon_id
        WHERE pv.company_id = ?
        ORDER BY pv.created_at DESC`,
       [companyId]
@@ -529,6 +539,13 @@ router.put('/verify-enhanced/:verificationId', authenticateToken, authorizeRoles
 
     const verification = verificationCheck[0];
 
+    // Look up the coupon (if any) attached to this payment so we can settle it
+    const [proofRows] = await db.execute(
+      'SELECT coupon_code, coupon_discount, coupon_final_amount, coupon_redemption_id, original_amount FROM payment_proofs WHERE id = ?',
+      [verification.payment_proof_id]
+    );
+    const proof = proofRows[0] || {};
+
     // Update payment verification status
     await db.execute(
       `UPDATE payment_verifications 
@@ -558,6 +575,24 @@ router.put('/verify-enhanced/:verificationId', authenticateToken, authorizeRoles
       );
 
       console.log(`✅ Quote #${verification.quote_id} automatically approved due to payment verification`);
+
+      // Settle the coupon now that the payment is verified
+      if (proof.coupon_code) {
+        try {
+          await couponService.consumeForOrder({
+            userId: verification.user_id,
+            identifier: proof.coupon_code,
+            orderType: 'quote',
+            orderRefId: String(verification.quote_response_id),
+            orderAmount: proof.original_amount,
+            discountAmount: proof.coupon_discount,
+            finalAmount: proof.coupon_final_amount,
+          });
+          console.log(`🎟️  Coupon ${proof.coupon_code} consumed for quote #${verification.quote_id}`);
+        } catch (couponError) {
+          console.error('❌ Error consuming coupon on payment verification:', couponError);
+        }
+      }
 
       // Create transaction invoice for verified payment
       try {
@@ -648,6 +683,19 @@ router.put('/verify-enhanced/:verificationId', authenticateToken, authorizeRoles
         'UPDATE quotes SET status = ? WHERE id = ?',
         ['rejected', verification.quote_id]
       );
+
+      // Release the coupon so the user can use it again
+      if (proof.coupon_redemption_id) {
+        try {
+          await couponService.releaseRedemption({
+            redemptionId: proof.coupon_redemption_id,
+            reason: 'Payment rejected by company'
+          });
+          console.log(`🎟️  Coupon released for quote #${verification.quote_id}`);
+        } catch (couponError) {
+          console.error('❌ Error releasing coupon on payment rejection:', couponError);
+        }
+      }
 
       // Create admin notification for quote status change due to payment rejection
       try {

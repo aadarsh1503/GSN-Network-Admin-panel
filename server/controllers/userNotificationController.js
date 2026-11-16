@@ -194,9 +194,13 @@ const getUnreadNotificationCount = async (req, res) => {
             AND (un.is_read IS NULL OR un.is_read = 0)
         `, [userId, ...targetAudiences, userId]);
 
-        const totalUnread = quoteResponseCount[0].count + regularNotificationCount[0].count;
-
-        res.status(200).json({ unreadCount: totalUnread });
+        // Regular (non quote-response) notifications drive the Notifications badge.
+        // Pending quote responses drive the "My Quotes" badge instead, so they are
+        // reported separately and only clear once the quote is accepted/rejected.
+        res.status(200).json({
+            unreadCount: regularNotificationCount[0].count,
+            quoteUnreadCount: quoteResponseCount[0].count
+        });
 
     } catch (error) {
         console.error('Error fetching unread notification count:', error);

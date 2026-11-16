@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
-import { FiX, FiUser, FiPackage, FiTruck, FiMapPin, FiCalendar, FiDollarSign, FiClock, FiCheck, FiXCircle, FiAlertCircle } from 'react-icons/fi';
+import { FiX, FiUser, FiPackage, FiTruck, FiMapPin, FiCalendar, FiCreditCard, FiClock, FiCheck, FiXCircle, FiAlertCircle } from 'react-icons/fi';
 import { FaShip, FaPlane, FaTruck } from 'react-icons/fa';
 import Flag from 'react-world-flags';
 import FuturisticLoader from '../Loaders/FuturisticLoader';
+
+// BHD is the platform base currency
+const fmtBhd = (v) => `BHD ${Number(v || 0).toFixed(3)}`;
 
 const FuturisticQuoteModal = ({ quote, isOpen, onClose, onUpdateStatus, isLoading = false }) => {
   const [selectedStatus, setSelectedStatus] = useState(quote?.status || 'pending');
@@ -189,7 +192,7 @@ const FuturisticQuoteModal = ({ quote, isOpen, onClose, onUpdateStatus, isLoadin
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
                     <div className="p-3 bg-[#bca142] rounded-full">
-                      <FiDollarSign className="w-6 h-6 text-white" />
+                      <FiCreditCard className="w-6 h-6 text-white" />
                     </div>
                     <h3 className="text-lg font-semibold text-gray-800 ml-3">Company Responses</h3>
                   </div>
@@ -208,7 +211,7 @@ const FuturisticQuoteModal = ({ quote, isOpen, onClose, onUpdateStatus, isLoadin
                             <p className="text-sm text-gray-600">{response.company_email}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-2xl font-bold text-[#bca142]">${response.price}</p>
+                            <p className="text-2xl font-bold text-[#bca142]">{fmtBhd(response.price)}</p>
                             <div className="flex items-center text-sm text-gray-600 mt-1">
                               <FiClock className="w-3 h-3 mr-1" />
                               <span>{response.transit_time}</span>

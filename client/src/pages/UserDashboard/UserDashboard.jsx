@@ -24,6 +24,9 @@ import { hasPendingQuote, submitPendingQuote, clearPendingQuote } from '../../ut
 import { api } from '../../utils/api';
 import ProfileCompletionModal from '../../components/Modal/ProfileCompletionModal';
 import { useProfileCompletion } from '../../hooks/useProfileCompletion';
+import { useProfileCompletionContext } from '../../contexts/ProfileCompletionContext';
+import ProfileCompletionCard from '../../components/ProfileCompletion/ProfileCompletionCard';
+import ProfileMandateModal from '../../components/ProfileCompletion/ProfileMandateModal';
 
 // Website color palette - consistent theme
 const COLORS = {
@@ -249,10 +252,12 @@ const UserDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [showPendingQuote, setShowPendingQuote] = useState(false);
   const [submittingPendingQuote, setSubmittingPendingQuote] = useState(false);
+  const [showMandateModal, setShowMandateModal] = useState(false);
 
   // Profile completion logic
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const { shouldShowPrompt, isModalOpen, closeModal, markProfileCompleted, dismissPermanently } = useProfileCompletion('user', user.id);
+  const { missingRequired } = useProfileCompletionContext();
 
   useEffect(() => {
     fetchDashboardData();
@@ -346,6 +351,9 @@ const UserDashboard = () => {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-8">
         
+        {/* Profile Completion */}
+        <ProfileCompletionCard />
+
         {/* Header */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-between mb-4">
@@ -494,6 +502,12 @@ const UserDashboard = () => {
             <div className="space-y-4">
               <Link
                 to="/quote"
+                onClick={(e) => {
+                  if (missingRequired.length > 0) {
+                    e.preventDefault();
+                    setShowMandateModal(true);
+                  }
+                }}
                 className="flex items-center p-4 bg-white hover:bg-gray-50 rounded-xl transition-all duration-200 border border-[#bca142] hover:border-black group"
               >
                 <div className="p-2 bg-[#bca142] rounded-lg mr-4 group-hover:bg-black transition-colors">
@@ -625,6 +639,13 @@ const UserDashboard = () => {
           userName={user.name || 'User'}
           onComplete={markProfileCompleted}
           onDismissPermanently={dismissPermanently}
+        />
+
+        {/* Profile Mandate Modal */}
+        <ProfileMandateModal
+          isOpen={showMandateModal}
+          onClose={() => setShowMandateModal(false)}
+          actionLabel="request a quote"
         />
       </div>
     </div>

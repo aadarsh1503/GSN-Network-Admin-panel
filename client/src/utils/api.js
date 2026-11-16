@@ -346,6 +346,79 @@ export const subscriptionAPI = {
   }),
 };
 
+// Company Wallet & Referral Reward System API methods
+export const walletAPI = {
+  // Public
+  getCurrencyRate: (refresh = false) => api.get(`/api/wallet/currency-rate${refresh ? '?refresh=1' : ''}`),
+
+  // Company
+  getWallet: () => api.get('/api/wallet'),
+  getTransactions: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return api.get(`/api/wallet/transactions${qs ? `?${qs}` : ''}`);
+  },
+  getMyTopups: () => api.get('/api/wallet/topups'),
+  createPaypalTopup: (data) => api.post('/api/wallet/topup/paypal', data),
+  createBankTopup: (formData) => api.post('/api/wallet/topup/bank', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  previewSubscription: (planId) => api.get(`/api/wallet/subscription-preview/${planId}`),
+  paySubscriptionWithWallet: (data) => api.post('/api/wallet/subscription/pay', data),
+
+  // Admin
+  admin: {
+    getOverview: () => api.get('/api/wallet/admin/overview'),
+    getSettings: () => api.get('/api/wallet/admin/settings'),
+    updateSettings: (data) => api.put('/api/wallet/admin/settings', data),
+    refreshRate: () => api.post('/api/wallet/admin/refresh-rate', {}),
+    listWallets: (params = {}) => {
+      const qs = new URLSearchParams(params).toString();
+      return api.get(`/api/wallet/admin/wallets${qs ? `?${qs}` : ''}`);
+    },
+    walletDetail: (userId) => api.get(`/api/wallet/admin/wallets/${userId}`),
+    adjust: (data) => api.post('/api/wallet/admin/adjust', data),
+    bulkAdjust: (data) => api.post('/api/wallet/admin/bulk-adjust', data),
+    listTransactions: (params = {}) => {
+      const qs = new URLSearchParams(params).toString();
+      return api.get(`/api/wallet/admin/transactions${qs ? `?${qs}` : ''}`);
+    },
+    listTopups: (params = {}) => {
+      const qs = new URLSearchParams(params).toString();
+      return api.get(`/api/wallet/admin/topups${qs ? `?${qs}` : ''}`);
+    },
+    approveTopup: (id) => api.post(`/api/wallet/admin/topups/${id}/approve`, {}),
+    rejectTopup: (id, reason) => api.post(`/api/wallet/admin/topups/${id}/reject`, { reason }),
+    listCompanyBankDetails: (params = {}) => {
+      const qs = new URLSearchParams(params).toString();
+      return api.get(`/api/bank-details/admin/companies${qs ? `?${qs}` : ''}`);
+    },
+  },
+};
+
+// Company bank account + PayPal API methods
+export const bankAccountAPI = {
+  getMyBankDetails: () => api.get('/api/bank-details'),
+  saveBankDetails: (data) => api.post('/api/bank-details', data),
+  updateBankDetails: (id, data) => api.put(`/api/bank-details/${id}`, data),
+  deleteBankDetails: (id) => api.delete(`/api/bank-details/${id}`),
+  getPaypal: () => api.get('/api/bank-details/paypal'),
+  updatePaypal: (paypal_email) => api.put('/api/bank-details/paypal', { paypal_email }),
+};
+
+// General settings API methods
+export const settingsAPI = {
+  getPaypalSettings: () => api.get('/api/general-settings/paypal'),
+  updatePaypalSettings: (data) => api.put('/api/general-settings/paypal', data),
+};
+
+// PayPal client id comes only from build env (VITE_PAYPAL_CLIENT_ID) — used to load the checkout SDK.
+export const getPaypalClientId = async () => import.meta.env.VITE_PAYPAL_CLIENT_ID || '';
+
+// Environment switch for hosted (non-SDK) PayPal checkout links. Set VITE_PAYPAL_SANDBOX=true
+// to route test payments through sandbox.paypal.com; anything else uses live.
+export const isPaypalSandbox = () =>
+  String(import.meta.env.VITE_PAYPAL_SANDBOX || '').toLowerCase() === 'true';
+
 // Quotes API methods
 export const quotesAPI = {
   getAvailableQuotes: () => {

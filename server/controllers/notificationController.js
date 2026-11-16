@@ -12,6 +12,25 @@ const sendNotification = async (req, res) => {
         return res.status(400).json({ message: 'Please fill in all required fields' });
     }
 
+    // Map the admin's "User Type" selection to the notifications.target_audience enum
+    // ('all' | 'companies' | 'businesses' | 'users' | 'admins'). Without this the column
+    // falls back to its default 'all', so every broadcast reached every role regardless
+    // of the selected audience.
+    const audienceMap = {
+        all: 'all',
+        users: 'users',
+        user: 'users',
+        business_owners: 'businesses',
+        businesses: 'businesses',
+        business: 'businesses',
+        company_owners: 'companies',
+        companies: 'companies',
+        company: 'companies',
+        admins: 'admins',
+        admin: 'admins',
+    };
+    const targetAudience = audienceMap[userType] || 'all';
+
     try {
         let imageUrl = null;
         
@@ -21,11 +40,11 @@ const sendNotification = async (req, res) => {
         }
 
         const sql = `
-            INSERT INTO notifications (target_role, title, message, image)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO notifications (target_role, title, message, image, target_audience)
+            VALUES (?, ?, ?, ?, ?)
         `;
 
-        await db.execute(sql, [userType, title, message, imageUrl]);
+        await db.execute(sql, [userType, title, message, imageUrl, targetAudience]);
 
         res.status(201).json({ message: 'Notification sent successfully', imageUrl });
 
@@ -134,7 +153,6 @@ const getUnreadCount = async (req, res) => {
         `;
 
         const [result] = await db.execute(sql, [userId, userId, userRole, userRole, userRole, userRole]);
-        console.log(`Unread count for user ${userId} (${userRole}): ${result[0].count}`);
 
         res.status(200).json({ count: result[0].count });
 

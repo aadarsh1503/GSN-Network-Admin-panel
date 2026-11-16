@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { FaUser, FaEnvelope, FaPhone, FaGlobe, FaEdit, FaSave, FaTimes, FaCamera, FaUpload } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { api } from '../../utils/api';
+import BankDetailsForm from '../../components/ProfileCompletion/BankDetailsForm';
 
 const UserProfile = () => {
   const [user, setUser] = useState(null);
@@ -432,6 +433,9 @@ const UserProfile = () => {
           </div>
         )}
       </div>
+
+      {/* Bank Details */}
+      <BankDetailsForm />
 
       {/* Account Information */}
       <div className="bg-white rounded-lg shadow p-6">

@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { FaPen, FaEye, FaTimes, FaGlobe, FaMapMarkerAlt, FaBuilding, FaUser, FaPhone, FaEnvelope, FaLink, FaSearch } from 'react-icons/fa';
+import { FaPen, FaEye, FaTimes, FaTrash, FaGlobe, FaMapMarkerAlt, FaBuilding, FaUser, FaPhone, FaEnvelope, FaLink, FaSearch } from 'react-icons/fa';
 import { FaArrowUp, FaArrowDown } from 'react-icons/fa6';
 import { api } from '../../utils/api';
 import { adminToast } from '../../utils/adminToast';
 import { fetchCountries, fetchStates } from '../../utils/locationData';
 import StatusConfirmationModal from '../../components/Modal/StatusConfirmationModal';
 import BlacklistReasonModal from '../../components/Modal/BlacklistReasonModal'; 
+import ConfirmationModal from '../../components/Modal/ConfirmationModal';
+import UserDetailModal from '../../components/Modal/UserDetailModal';
 
 // Custom Toggle Switch Component
 const ToggleSwitch = ({ checked, onChange }) => {
@@ -79,7 +81,9 @@ function CompanyOwners() {
   const [filters, setFilters] = useState({ status: '', blacklist: '' });
   const [editingUser, setEditingUser] = useState(null);
   const [editForm, setEditForm] = useState({});
-  const [viewingUser, setViewingUser] = useState(null);
+  const [detailTarget, setDetailTarget] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deletingUser, setDeletingUser] = useState(false);
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     type: '',
@@ -98,23 +102,22 @@ function CompanyOwners() {
   const [loadingStates, setLoadingStates] = useState(false);
   const [locationMethod, setLocationMethod] = useState('coordinates'); // New state for location method
 
-  // 1. Fetch Data from API on Component Mount
-  useEffect(() => {
-    const fetchCompanies = async () => {
-      try {
-        const response = await api.get('/api/user/companies');
-        setUsers(response);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching companies:", error);
-        setLoading(false);
-        // Optional: Add alert for unauthorized access
-        if(error.message?.includes('Authentication failed')) {
-            alert("Unauthorized. Please login as Admin.");
-        }
+  // 1. Fetch Data from API
+  const fetchUsers = async () => {
+    try {
+      const response = await api.get('/api/user/companies');
+      setUsers(response);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching companies:", error);
+      setLoading(false);
+      if (error.message?.includes('Authentication failed')) {
+        alert("Unauthorized. Please login as Admin.");
       }
-    };
+    }
+  };
 
+  useEffect(() => {
     const loadCountries = async () => {
       try {
         setLoadingCountries(true);
@@ -128,7 +131,7 @@ function CompanyOwners() {
       }
     };
 
-    fetchCompanies();
+    fetchUsers();
     loadCountries();
   }, []);
 
@@ -382,14 +385,24 @@ const handleEditUser = async (user) => {
   };
 
   // 7. Handle View User Details
-  const handleViewUser = async (user) => {
+  const handleViewUser = (user) => {
+    setDetailTarget({ id: user.id, name: user.name });
+  };
+
+  // 7b. Handle Delete User
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
     try {
-      // Use the comprehensive admin company API for full details
-      const userDetails = await api.get(`/api/user/company-profile/${user.id}`);
-      setViewingUser(userDetails);
-    } catch (error) {
-      console.error("Error fetching user details:", error);
-      adminToast.error("Failed to fetch user details");
+      setDeletingUser(true);
+      const res = await api.delete(`/api/user/admin-delete/${deleteTarget.id}`);
+      adminToast.success(res?.message || 'User deleted successfully');
+      setDeleteTarget(null);
+      setDetailTarget(null);
+      fetchUsers();
+    } catch (err) {
+      adminToast.error(err.response?.data?.message || err.message || 'Failed to delete user');
+    } finally {
+      setDeletingUser(false);
     }
   };
   
@@ -619,6 +632,13 @@ const handleEditUser = async (user) => {
                           >
                             <FaEye />
                           </button>
+                          <button 
+                            onClick={() => setDeleteTarget({ id: user.id, name: user.name })}
+                            className="p-2 bg-red-600 text-white rounded hover:bg-red-700"
+                            title="Delete User"
+                          >
+                            <FaTrash />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -662,456 +682,25 @@ const handleEditUser = async (user) => {
         </div>
       </div>
 
-      {/* Enhanced User Details Modal */}
-      {viewingUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-7xl max-h-[95vh] overflow-hidden shadow-2xl">
-            {/* Modal Header */}
-            <div className="bg-[#bca142] p-6 text-white">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center space-x-4">
-                  {viewingUser.logo && (
-                    <img 
-                      src={viewingUser.logo} 
-                      alt="Company Logo" 
-                      className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-lg"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                      }}
-                    />
-                  )}
-                  <div>
-                    <h3 className="text-2xl font-bold">{viewingUser.name}</h3>
-                    <p className="text-yellow-100">{formatCategoryName(viewingUser.category) || 'Company Profile'}</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => setViewingUser(null)}
-                  className="text-white hover:text-yellow-200 transition-colors p-2 rounded-full hover:bg-white hover:bg-opacity-20"
-                >
-                  <FaTimes size={24} />
-                </button>
-              </div>
-            </div>
+      {/* Enhanced User Details Modal (separate admin-details route) */}
+      <UserDetailModal
+        isOpen={!!detailTarget}
+        role="company"
+        userId={detailTarget?.id}
+        onClose={() => setDetailTarget(null)}
+        onDelete={(profile) => setDeleteTarget({ id: detailTarget?.id, name: profile?.name || detailTarget?.name })}
+      />
 
-            {/* Modal Content */}
-            <div className="overflow-y-auto max-h-[calc(95vh-120px)]">
-              <div className="p-6">
-                {/* Company Header Section */}
-                <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-6 mb-6 border border-gray-200 shadow-sm">
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-                    {/* Company Info */}
-                    <div className="lg:col-span-2">
-                      <div className="flex items-start space-x-4">
-                        {/* Country Flag */}
-                        {viewingUser.country && (
-                          <div className="flex-shrink-0">
-                            <div className="w-12 h-8 bg-gray-200 rounded border border-gray-300 flex items-center justify-center text-xs font-bold text-gray-600">
-                              {viewingUser.country.substring(0, 2).toUpperCase()}
-                            </div>
-                          </div>
-                        )}
-                        <div className="flex-1">
-                          <h2 className="text-2xl font-bold text-gray-800 mb-2">{viewingUser.name}</h2>
-                          {viewingUser.company_address && (
-                            <p className="text-gray-600 mb-3">{viewingUser.company_address}</p>
-                          )}
-                          <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                            {viewingUser.website && (
-                              <a href={viewingUser.website} target="_blank" rel="noopener noreferrer" className="flex items-center hover:text-[#bca142] transition-colors">
-                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9" />
-                                </svg>
-                                Website
-                              </a>
-                            )}
-                            {(viewingUser.country || viewingUser.state || viewingUser.city) && (
-                              <span className="flex items-center">
-                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                                {[viewingUser.city, viewingUser.state, viewingUser.country].filter(Boolean).join(', ')}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Status Badges */}
-                    <div className="flex flex-col items-start lg:items-end space-y-3">
-                      <div className={`px-4 py-2 rounded-full text-sm font-bold ${
-                        viewingUser.status ? 'bg-[#bca142] text-white' : 'bg-red-100 text-red-800'
-                      }`}>
-                        {viewingUser.status ? 'Active Account' : 'Inactive Account'}
-                      </div>
-                      {viewingUser.is_blacklisted && (
-                        <div className="px-4 py-2 rounded-full text-sm font-bold bg-red-100 text-red-800">
-                          Blacklisted
-                        </div>
-                      )}
-                      {viewingUser.created_at && (
-                        <div className="text-sm text-gray-500">
-                          Joined: {new Date(viewingUser.created_at).toLocaleDateString()}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Main Content Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* Left Column - Main Information */}
-                  <div className="lg:col-span-2 space-y-6">
-                    
-                    {/* Basic Information Card */}
-                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-                      <div className="p-6 border-b border-gray-200">
-                        <h4 className="text-lg font-semibold text-gray-800 flex items-center">
-                          <svg className="w-5 h-5 mr-2 text-[#bca142]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          Basic Information
-                        </h4>
-                      </div>
-                      <div className="p-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
-                            <p className="p-3 bg-gray-50 rounded-lg border text-gray-800">{viewingUser.name}</p>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                            <p className="p-3 bg-gray-50 rounded-lg border text-gray-800">{viewingUser.email}</p>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                            <p className="p-3 bg-gray-50 rounded-lg border text-gray-800">{viewingUser.phone || viewingUser.mobile || 'N/A'}</p>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                            <p className="p-3 bg-gray-50 rounded-lg border text-gray-800">{formatCategoryName(viewingUser.category)}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Contact Information Card */}
-                    {(viewingUser.owner_name || viewingUser.owner_phone || viewingUser.incharge_name || viewingUser.incharge_phone) && (
-                      <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-                        <div className="p-6 border-b border-gray-200">
-                          <h4 className="text-lg font-semibold text-gray-800 flex items-center">
-                            <svg className="w-5 h-5 mr-2 text-[#bca142]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                            Contact Information
-                          </h4>
-                        </div>
-                        <div className="p-6">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {viewingUser.owner_name && (
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Owner Name</label>
-                                <p className="p-3 bg-gray-50 rounded-lg border text-gray-800">{viewingUser.owner_name}</p>
-                              </div>
-                            )}
-                            {viewingUser.owner_phone && (
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Owner Phone</label>
-                                <p className="p-3 bg-gray-50 rounded-lg border text-gray-800">{viewingUser.owner_phone}</p>
-                              </div>
-                            )}
-                            {viewingUser.incharge_name && (
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Incharge Name</label>
-                                <p className="p-3 bg-gray-50 rounded-lg border text-gray-800">{viewingUser.incharge_name}</p>
-                              </div>
-                            )}
-                            {viewingUser.incharge_phone && (
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Incharge Phone</label>
-                                <p className="p-3 bg-gray-50 rounded-lg border text-gray-800">{viewingUser.incharge_phone}</p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Services Card */}
-                    {viewingUser.services && (
-                      <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-                        <div className="p-6 border-b border-gray-200">
-                          <h4 className="text-lg font-semibold text-gray-800 flex items-center">
-                            <svg className="w-5 h-5 mr-2 text-[#bca142]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
-                            Services
-                          </h4>
-                        </div>
-                        <div className="p-6">
-                          <div className="bg-gray-50 rounded-lg p-4">
-                            {typeof viewingUser.services === 'string' ? (
-                              (() => {
-                                try {
-                                  // Try to parse as JSON first
-                                  const parsedServices = JSON.parse(viewingUser.services);
-                                  if (Array.isArray(parsedServices)) {
-                                    return (
-                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                        {parsedServices.map((service, index) => (
-                                          <div key={index} className="flex items-center p-2 bg-white rounded border">
-                                            <svg className="w-4 h-4 mr-2 text-[#bca142]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                            <span className="text-sm text-gray-800">{service}</span>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    );
-                                  }
-                                } catch (e) {
-                                  // If JSON parsing fails, treat as plain text
-                                }
-                                // Display as plain text
-                                return <div className="text-gray-800 whitespace-pre-wrap">{viewingUser.services}</div>;
-                              })()
-                            ) : Array.isArray(viewingUser.services) ? (
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                {viewingUser.services.map((service, index) => (
-                                  <div key={index} className="flex items-center p-2 bg-white rounded border">
-                                    <svg className="w-4 h-4 mr-2 text-[#bca142]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    <span className="text-sm text-gray-800">{service}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="text-gray-800">No services information available</div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* About Company Card */}
-                    {viewingUser.about_company && (
-                      <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-                        <div className="p-6 border-b border-gray-200">
-                          <h4 className="text-lg font-semibold text-gray-800 flex items-center">
-                            <svg className="w-5 h-5 mr-2 text-[#bca142]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
-                            About Company
-                          </h4>
-                        </div>
-                        <div className="p-6">
-                          <div 
-                            className="text-gray-700 prose max-w-none bg-gray-50 rounded-lg p-4"
-                            dangerouslySetInnerHTML={{ __html: viewingUser.about_company }}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Location & Map Card */}
-                    {(viewingUser.latitude && viewingUser.longitude) && (
-                      <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-                        <div className="p-6 border-b border-gray-200">
-                          <h4 className="text-lg font-semibold text-gray-800 flex items-center">
-                            <svg className="w-5 h-5 mr-2 text-[#bca142]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            Location & Map
-                          </h4>
-                        </div>
-                        <div className="p-6">
-                            <div className="mb-4 p-3 bg-yellow-50 rounded-lg border border-[#bca142]">
-                            <div className="text-sm">
-                              <span className="font-medium text-[#bca142]">Coordinates:</span>
-                              <span className="ml-2 font-mono text-[#bca142]">
-                                {parseFloat(viewingUser.latitude).toFixed(6)}, {parseFloat(viewingUser.longitude).toFixed(6)}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="w-full h-64 rounded-lg overflow-hidden border border-gray-200">
-                            <iframe
-                              src={`https://maps.google.com/maps?q=${viewingUser.latitude},${viewingUser.longitude}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
-                              width="100%"
-                              height="100%"
-                              style={{ border: 0 }}
-                              allowFullScreen=""
-                              loading="lazy"
-                              referrerPolicy="no-referrer-when-downgrade"
-                              title="Company Location"
-                            ></iframe>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Right Column - Contact & Social */}
-                  <div className="space-y-6">
-                    
-                    {/* Contact Person Card */}
-                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm sticky top-4">
-                      <div className="p-6 text-center">
-                        <div className="mb-4">
-                          {viewingUser.incharge_image || viewingUser.logo ? (
-                            <img 
-                              src={viewingUser.incharge_image || viewingUser.logo} 
-                              alt="Contact Person" 
-                              className="w-20 h-20 rounded-full mx-auto object-cover border-4 border-gray-100 shadow-sm"
-                              onError={(e) => {
-                                e.target.src = 'https://i.imgur.com/sCEw22l.png';
-                              }}
-                            />
-                          ) : (
-                            <div className="w-20 h-20 rounded-full mx-auto bg-gray-200 flex items-center justify-center border-4 border-gray-100">
-                              <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                              </svg>
-                            </div>
-                          )}
-                        </div>
-                        <h3 className="text-xl font-bold text-gray-800">
-                          {viewingUser.incharge_name || viewingUser.owner_name || 'Contact Person'}
-                        </h3>
-                        <p className="text-gray-500 mb-3">
-                          {viewingUser.incharge_name ? 'Incharge' : 'Owner'}
-                        </p>
-                        <div className="text-gray-600 mb-4">
-                          <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                          </svg>
-                          {viewingUser.incharge_phone || viewingUser.owner_phone || 'Phone not available'}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Social Media & Online Presence */}
-                    {(viewingUser.website || viewingUser.facebook || viewingUser.twitter || viewingUser.linkedin || viewingUser.instagram || viewingUser.skype) && (
-                      <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-                        <div className="p-6 border-b border-gray-200">
-                          <h4 className="text-lg font-semibold text-gray-800 flex items-center">
-                            <svg className="w-5 h-5 mr-2 text-[#bca142]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9" />
-                            </svg>
-                            Online Presence
-                          </h4>
-                        </div>
-                        <div className="p-6 space-y-3">
-                          {viewingUser.website && (
-                            <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                              <svg className="w-5 h-5 mr-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9" />
-                              </svg>
-                              <a href={viewingUser.website} target="_blank" rel="noopener noreferrer" className="text-[#bca142] hover:underline text-sm">
-                                {viewingUser.website}
-                              </a>
-                            </div>
-                          )}
-                          {viewingUser.facebook && (
-                            <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                              <svg className="w-5 h-5 mr-3 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                              </svg>
-                              <a href={viewingUser.facebook} target="_blank" rel="noopener noreferrer" className="text-[#bca142] hover:underline text-sm">
-                                Facebook
-                              </a>
-                            </div>
-                          )}
-                          {viewingUser.linkedin && (
-                            <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                              <svg className="w-5 h-5 mr-3 text-blue-700" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                              </svg>
-                              <a href={viewingUser.linkedin} target="_blank" rel="noopener noreferrer" className="text-[#bca142] hover:underline text-sm">
-                                LinkedIn
-                              </a>
-                            </div>
-                          )}
-                          {viewingUser.skype && (
-                            <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                              <svg className="w-5 h-5 mr-3 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12.069 18.874c-4.023 0-5.82-1.979-5.82-3.464 0-.765.561-1.296 1.333-1.296 1.723 0 1.273 2.477 4.487 2.477 1.641 0 2.55-.895 2.55-1.811 0-.551-.269-1.16-1.354-1.429l-3.576-.895c-2.88-.724-3.403-2.286-3.403-3.751 0-3.047 2.861-4.191 5.549-4.191 2.471 0 5.393 1.373 5.393 3.199 0 .784-.688 1.24-1.453 1.24-1.469 0-1.198-2.037-4.164-2.037-1.469 0-2.292.664-2.292 1.617 0 .587.269 1.027 1.181 1.240l3.19.742c3.007.742 3.673 2.435 3.673 3.965 0 2.613-2.04 4.191-5.82 4.191l.526.002z"/>
-                              </svg>
-                              <span className="text-gray-700 text-sm">{viewingUser.skype}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Location Information */}
-                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-                      <div className="p-6 border-b border-gray-200">
-                        <h4 className="text-lg font-semibold text-gray-800 flex items-center">
-                          <svg className="w-5 h-5 mr-2 text-[#bca142]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                          Location Details
-                        </h4>
-                      </div>
-                      <div className="p-6 space-y-3">
-                        {viewingUser.country && (
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
-                            <p className="p-2 bg-gray-50 rounded text-gray-800">{viewingUser.country}</p>
-                          </div>
-                        )}
-                        {viewingUser.state && (
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
-                            <p className="p-2 bg-gray-50 rounded text-gray-800">{viewingUser.state}</p>
-                          </div>
-                        )}
-                        {viewingUser.city && (
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                            <p className="p-2 bg-gray-50 rounded text-gray-800">{viewingUser.city}</p>
-                          </div>
-                        )}
-                        {viewingUser.company_address && (
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Full Address</label>
-                            <p className="p-2 bg-gray-50 rounded text-gray-800 text-sm">{viewingUser.company_address}</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
-              <button 
-                onClick={() => setViewingUser(null)}
-                className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-              >
-                Close
-              </button>
-              <button 
-                onClick={() => {
-                  setViewingUser(null);
-                  handleEditUser(viewingUser);
-                }}
-                className="px-6 py-2 bg-[#bca142] text-white rounded-lg hover:bg-[#B8941F] transition-colors flex items-center"
-              >
-                <FaPen className="mr-2" />
-                Edit Profile
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={!!deleteTarget}
+        title="Delete Company Owner"
+        message={`Are you sure you want to permanently delete "${deleteTarget?.name || 'this company'}"? All their records (subscriptions, quote responses, wallet, bank details, team and transactions) will be removed.`}
+        confirmText="Delete User"
+        isLoading={deletingUser}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteConfirm}
+      />
 
       {/* Enhanced Edit User Modal */}
       {editingUser && (

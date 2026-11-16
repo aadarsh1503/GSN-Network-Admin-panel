@@ -151,6 +151,15 @@ const RegisterPage = () => {
         fetchUserCountry();
     }, []);
 
+    // Pre-fill referral code from ?ref= URL parameter
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const refCode = params.get('ref');
+        if (refCode) {
+            setFormData(prev => ({ ...prev, referralCode: refCode.toUpperCase() }));
+        }
+    }, []);
+
     useEffect(() => {
         const fetchCountries = async () => {
             try {
@@ -199,6 +208,8 @@ const RegisterPage = () => {
             const data = await api.post('/api/user/register', {
                 ...formData,
                 role: formData.role.toLowerCase(),
+                // Referral program is company-only
+                referralCode: formData.role === 'Company' ? (formData.referralCode || undefined) : undefined,
             });
 
             // --- SUCCESS FLOW: Handle different account statuses ---
@@ -453,9 +464,11 @@ const RegisterPage = () => {
                             togglePassword={() => setShowConfirmPassword(!showConfirmPassword)}
                         />
                         
-                        <div className="md:col-span-2">
-                             <InputWithIcon id="referralCode" name="referralCode" type="text" value={formData.referralCode} onChange={handleChange} placeholder="Enter Referral Code (Optional)" icon={<Building className="w-5 h-5 text-gray-400" />} />
-                        </div>
+                        {formData.role === 'Company' && (
+                            <div className="md:col-span-2">
+                                <InputWithIcon id="referralCode" name="referralCode" type="text" value={formData.referralCode} onChange={handleChange} placeholder="Enter Referral Code (Optional)" icon={<Building className="w-5 h-5 text-gray-400" />} />
+                            </div>
+                        )}
                         
                         <div className="md:col-span-2 flex items-center">
                             <input id="termsAccepted" name="termsAccepted" type="checkbox" checked={formData.termsAccepted} onChange={handleChange} className="h-4 w-4 rounded border-gray-300 accent-[#bca142] focus:ring-[#bca142]" />

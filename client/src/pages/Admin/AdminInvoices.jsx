@@ -6,6 +6,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { api } from '../../utils/api';
 import { adminToast } from '../../utils/adminToast';
+import { useCurrency } from '../../contexts/CurrencyContext';
 
 // --- Reusable Component for Sortable Table Headers ---
 const SortableHeader = ({ children, sortKey, sortConfig, onSort }) => {
@@ -27,6 +28,7 @@ const SortableHeader = ({ children, sortKey, sortConfig, onSort }) => {
 };
 
 const AdminInvoices = () => {
+  const { format, formatUsd } = useCurrency();
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
@@ -246,12 +248,7 @@ const AdminInvoices = () => {
     });
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
+  const formatCurrency = (amount) => format(amount);
 
   // Filter and sort data
   const filteredAndSortedData = useMemo(() => {
@@ -475,6 +472,7 @@ const AdminInvoices = () => {
                     )}
                     <td className="p-3 whitespace-nowrap">
                       <span className="font-semibold text-[#bca142]">{formatCurrency(invoice.total_amount)}</span>
+                      <div className="text-xs text-gray-400">≈ {formatUsd(invoice.total_amount)}</div>
                     </td>
                     <td className="p-3 whitespace-nowrap">
                       {getStatusBadge(invoice.status)}
@@ -760,6 +758,7 @@ const AdminInvoices = () => {
                         </td>
                         <td className="p-2 text-right font-semibold" style={{ border: '1px solid #D1D5DB', padding: '8px', textAlign: 'right', fontWeight: '600', fontSize: '12px', verticalAlign: 'top' }}>
                           {formatCurrency(selectedInvoice.amount)}
+                          <div className="text-xs text-gray-400 font-normal">≈ {formatUsd(selectedInvoice.amount)}</div>
                         </td>
                       </tr>
                     </tbody>
@@ -771,15 +770,24 @@ const AdminInvoices = () => {
                   <div className="w-48">
                     <div className="flex justify-between py-1" style={{ borderBottom: '1px solid #D1D5DB', paddingTop: '4px', paddingBottom: '4px', fontSize: '12px' }}>
                       <span>Subtotal:</span>
-                      <span>{formatCurrency(selectedInvoice.amount)}</span>
+                      <span className="text-right">
+                        {formatCurrency(selectedInvoice.amount)}
+                        <span className="block text-xs text-gray-400">≈ {formatUsd(selectedInvoice.amount)}</span>
+                      </span>
                     </div>
                     <div className="flex justify-between py-1" style={{ borderBottom: '1px solid #D1D5DB', paddingTop: '4px', paddingBottom: '4px', fontSize: '12px' }}>
                       <span>{activeTab === 'subscription' ? 'Tax:' : 'Service Fee:'}</span>
-                      <span>{formatCurrency(activeTab === 'subscription' ? (selectedInvoice.tax_amount || 0) : (selectedInvoice.service_fee || 0))}</span>
+                      <span className="text-right">
+                        {formatCurrency(activeTab === 'subscription' ? (selectedInvoice.tax_amount || 0) : (selectedInvoice.service_fee || 0))}
+                        <span className="block text-xs text-gray-400">≈ {formatUsd(activeTab === 'subscription' ? (selectedInvoice.tax_amount || 0) : (selectedInvoice.service_fee || 0))}</span>
+                      </span>
                     </div>
                     <div className="flex justify-between py-1 font-bold" style={{ borderBottom: '2px solid #1F2937', paddingTop: '4px', paddingBottom: '4px', fontWeight: 'bold', fontSize: '14px' }}>
                       <span>Total:</span>
-                      <span>{formatCurrency(selectedInvoice.total_amount)}</span>
+                      <span className="text-right">
+                        {formatCurrency(selectedInvoice.total_amount)}
+                        <span className="block text-xs text-gray-400 font-normal">≈ {formatUsd(selectedInvoice.total_amount)}</span>
+                      </span>
                     </div>
                   </div>
                 </div>

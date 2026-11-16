@@ -3,10 +3,26 @@ import { toast } from 'react-toastify';
 import { 
   FiDollarSign, FiEye, FiCheck, FiX, FiUser, FiMail, FiPhone,
   FiMapPin, FiTruck, FiCalendar, FiFileText, FiCreditCard,
-  FiImage, FiDownload, FiAlertCircle, FiCheckCircle, FiClock, FiGlobe
+  FiImage, FiDownload, FiAlertCircle, FiCheckCircle, FiClock, FiGlobe, FiTag
 } from 'react-icons/fi';
 import api from '../../utils/api';
 import './PaymentManagement.css';
+
+// Human-readable coupon label (percent off for percentage coupons, amount for fixed).
+// The company must never see the coupon code.
+const getCouponLabel = (item) => {
+  if (!item || !item.has_coupon) return '';
+  const value = Number(item.coupon_discount_value || 0);
+  return item.coupon_discount_type === 'percentage'
+    ? `${value}% off`
+    : `$${value.toFixed(2)} off`;
+};
+
+const getCouponOriginal = (item) =>
+  Number(item.coupon_original_amount ?? item.price ?? 0);
+const getCouponFinal = (item) =>
+  Number(item.coupon_final_amount ?? item.price ?? 0);
+const getCouponDiscount = (item) => Number(item.coupon_discount_amount || 0);
 
 const PaymentManagement = () => {
   const [pendingPayments, setPendingPayments] = useState([]);
@@ -189,7 +205,20 @@ const PaymentManagement = () => {
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-black">Quote #{payment.quote_id}</h3>
-                      <p className="text-gray-600">${payment.price}</p>
+                      {payment.has_coupon ? (
+                        <div className="mt-1">
+                          <p className="text-gray-600">
+                            <span className="line-through text-gray-400">${getCouponOriginal(payment).toFixed(2)}</span>
+                            <span className="ml-2 font-semibold text-black">${getCouponFinal(payment).toFixed(2)}</span>
+                          </p>
+                          <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-[#bca142]/15 text-[#8f7a2e] border border-[#bca142]/30">
+                            <FiTag className="text-xs" />
+                            {getCouponLabel(payment)} (−${getCouponDiscount(payment).toFixed(2)})
+                          </span>
+                        </div>
+                      ) : (
+                        <p className="text-gray-600">${payment.price}</p>
+                      )}
                     </div>
                   </div>
 
@@ -238,8 +267,8 @@ const PaymentManagement = () => {
                     )}
                   </div>
 
-                  {/* Payment Proof Thumbnail - Only show for bank transfers */}
-                  {payment.payment_proof_url && payment.payment_method !== 'paypal' && (
+                  {/* Payment Proof Thumbnail */}
+                  {payment.payment_proof_url && (
                     <div className="mb-6">
                       <p className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                         <FiImage className="text-[#bca142]" />
@@ -257,23 +286,6 @@ const PaymentManagement = () => {
                           onClick={() => handleImageClick(payment.payment_proof_url)}
                         >
                           <FiEye className="text-white opacity-0 group-hover:opacity-100 text-2xl transition-opacity" />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* PayPal Payment Badge */}
-                  {payment.payment_method === 'paypal' && (
-                    <div className="mb-6">
-                      <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                            <FiDollarSign className="text-white text-xl" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-blue-900">PayPal Payment</p>
-                            <p className="text-sm text-blue-700">Paid via PayPal - No proof image required</p>
-                          </div>
                         </div>
                       </div>
                     </div>
@@ -385,7 +397,19 @@ const PaymentManagement = () => {
                         <FiDollarSign className="text-[#bca142]" />
                         <div>
                           <p className="text-sm text-gray-600">Amount</p>
-                          <p className="font-bold text-black text-xl">${selectedPayment.price}</p>
+                          {selectedPayment.has_coupon ? (
+                            <div>
+                              <p className="font-bold text-black text-xl">${getCouponFinal(selectedPayment).toFixed(2)}</p>
+                              <p className="text-sm text-gray-500">
+                                <span className="line-through">${getCouponOriginal(selectedPayment).toFixed(2)}</span>
+                                {' · '}
+                                <span className="text-[#8f7a2e] font-semibold">{getCouponLabel(selectedPayment)}</span>
+                                {` (−$${getCouponDiscount(selectedPayment).toFixed(2)})`}
+                              </p>
+                            </div>
+                          ) : (
+                            <p className="font-bold text-black text-xl">${selectedPayment.price}</p>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
@@ -435,8 +459,8 @@ const PaymentManagement = () => {
 
                 {/* Right Column - Payment Proof & Bank Details */}
                 <div className="space-y-6">
-                  {/* Payment Proof - Only show for bank transfers */}
-                  {selectedPayment.payment_proof_url && selectedPayment.payment_method !== 'paypal' && (
+                  {/* Payment Proof */}
+                  {selectedPayment.payment_proof_url && (
                     <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
                       <h3 className="text-xl font-bold text-black mb-4 flex items-center gap-2">
                         <FiImage className="text-[#bca142]" />
@@ -462,7 +486,22 @@ const PaymentManagement = () => {
                     </div>
                   )}
 
-                  {/* Bank Details Used */}
+                  {/* Payment Details Used */}
+                  {selectedPayment.payment_method === 'paypal' ? (
+                    <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                      <h3 className="text-xl font-bold text-black mb-4 flex items-center gap-2">
+                        <FiDollarSign className="text-[#bca142]" />
+                        PayPal Details Used
+                      </h3>
+                      <div className="flex items-center gap-3">
+                        <FiDollarSign className="text-[#bca142]" />
+                        <div>
+                          <p className="text-sm text-gray-600">Company PayPal Email</p>
+                          <p className="font-medium text-black">{selectedPayment.company_paypal_email || '—'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
                   <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
                     <h3 className="text-xl font-bold text-black mb-4 flex items-center gap-2">
                       <FiCreditCard className="text-[#bca142]" />
@@ -519,6 +558,7 @@ const PaymentManagement = () => {
                       )}
                     </div>
                   </div>
+                  )}
                 </div>
               </div>
 
@@ -582,7 +622,15 @@ const PaymentManagement = () => {
               {/* Customer Info */}
               <div className="bg-gray-50 rounded-xl p-4 mb-6">
                 <h3 className="font-semibold text-black mb-2">Customer: {selectedPayment.user_name}</h3>
-                <p className="text-gray-600 text-sm">Amount: ${selectedPayment.price}</p>
+                {selectedPayment.has_coupon ? (
+                  <p className="text-gray-600 text-sm">
+                    Amount: ${getCouponFinal(selectedPayment).toFixed(2)}{' '}
+                    <span className="text-[#8f7a2e] font-semibold">{getCouponLabel(selectedPayment)}</span>
+                    {` applied (−$${getCouponDiscount(selectedPayment).toFixed(2)} off $${getCouponOriginal(selectedPayment).toFixed(2)})`}
+                  </p>
+                ) : (
+                  <p className="text-gray-600 text-sm">Amount: ${selectedPayment.price}</p>
+                )}
                 <p className="text-gray-600 text-sm">Email: {selectedPayment.user_email}</p>
               </div>
 

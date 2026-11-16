@@ -2,8 +2,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { FiEye, FiEdit, FiChevronUp, FiChevronDown, FiFilter, FiUpload } from 'react-icons/fi';
 import api from '../../utils/api';
 import PaymentUpload from '../../components/PaymentUpload/PaymentUpload';
+import { useCurrency } from '../../contexts/CurrencyContext';
 
 const QuotesList = () => {
+  const { format, formatUsd } = useCurrency();
+  const fmtBhd = (v) => format(v, 'USD');
   const [quotes, setQuotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -280,7 +283,12 @@ const QuotesList = () => {
                   <td className="py-3 px-4 capitalize">{quote.shipping_mode}</td>
                   <td className="py-3 px-4">{getStatusBadge(quote.status)}</td>
                   <td className="py-3 px-4">
-                    {quote.amount ? `$${parseFloat(quote.amount).toFixed(2)}` : 'N/A'}
+                    {quote.amount ? (
+                      <>
+                        {fmtBhd(quote.amount)}
+                        <div className="text-xs text-gray-400">{formatUsd(quote.amount, 'USD')}</div>
+                      </>
+                    ) : 'N/A'}
                   </td>
                   <td className="py-3 px-4">
                     {new Date(quote.created_at).toLocaleDateString()}

@@ -32,7 +32,9 @@ import {
     resetPassword,
     verifyResetTokenEndpoint,
     refreshToken,
-    keepAlive
+    keepAlive,
+    adminGetUserDetails,
+    adminDeleteUser
 } from '../controllers/userController.js';
 
 // Public Routes
@@ -81,6 +83,10 @@ router.put('/update-profile/:id', protect, authorize('admin'), updateUserProfile
 // Admin routes for company management (comprehensive)
 router.get('/company-profile/:id', protect, authorize('admin'), getCompanyProfileByIdAdmin);
 router.put('/company-profile/:id', protect, authorize('admin'), updateCompanyProfileByIdAdmin);
+
+// Admin routes for full user details + deletion (user / business / company)
+router.get('/admin-details/:role/:id', protect, authorize('admin'), adminGetUserDetails);
+router.delete('/admin-delete/:id', protect, authorize('admin'), adminDeleteUser);
 
 // Help & Support routes for users
 router.post('/help/ticket', protect, submitUserTicket);

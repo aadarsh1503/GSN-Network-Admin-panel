@@ -1,0 +1,525 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FaCheck, FaCrown, FaRocket, FaGem, FaPaperPlane } from 'react-icons/fa';
+import { FiX } from 'react-icons/fi';
+import { useLoading } from '../../contexts/LoadingContext';
+import { formatSubDate } from '../../utils/formatDate';
+import { subscriptionAPI, walletAPI, getToken } from '../../utils/api';
+import PageLoader from '../../components/Loader/PageLoader';
+import { useCurrency } from '../../contexts/CurrencyContext';
+import toast from 'react-hot-toast';
+
+/**
+ * Company subscriptions page -> /company/subscriptions
+ * This is an independent copy of the public subscriptions page
+ * (client/src/pages/SubscriptionPage.jsx).
+ * Editing this file does NOT affect the public page.
+ */
+const CompanySubscriptionPage = () => {
+  const navigate = useNavigate();
+  const [plans, setPlans] = useState([]);
+  const [currentSubscription, setCurrentSubscription] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [rate, setRate] = useState(2.6526);
+  const { withLoading } = useLoading();
+  const { format, formatUsd, ready } = useCurrency();
+
+  // BHD is the base currency; amounts are shown in the user's local currency
+  // with the USD equivalent as a live secondary line.
+  const fmtBhd = (v) => format(v);
+  const toUsd = (v) => (ready ? `≈ ${formatUsd(v)}` : `≈ $${(Number(v || 0) * rate).toFixed(2)}`);
+
+  useEffect(() => {
+    initializePage();
+    fetchRate();
+    const id = setInterval(fetchRate, 60000);
+    return () => clearInterval(id);
+  }, []);
+
+  const fetchRate = async () => {
+    try {
+      const r = await walletAPI.getCurrencyRate();
+      const live = Number(r?.bhdToUsd);
+      if (live > 0) setRate(live);
+    } catch (error) {
+      console.error('Error fetching currency rate:', error);
+    }
+  };
+
+  const initializePage = async () => {
+    await withLoading(async () => {
+      await Promise.all([fetchPlans(), fetchCurrentSubscription()]);
+    }, 'Loading subscription plans...');
+  };
+
+  const fetchPlans = async () => {
+    try {
+      const data = await subscriptionAPI.getPlans();
+      setPlans(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching plans:', error);
+      setPlans([]);
+    }
+  };
+
+  const fetchCurrentSubscription = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+      const data = await subscriptionAPI.getMySubscription();
+      setCurrentSubscription(data);
+    } catch (error) {
+      console.error('Error fetching subscription:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const calculateProration = (newPlan) => {
+    if (!currentSubscription || !newPlan || currentSubscription.is_guest) return null;
+
+    if (!currentSubscription.plan_price || !currentSubscription.end_date) return null;
+
+    const currentPlanPrice = parseFloat(currentSubscription.plan_price || 0);
+    const newPlanPrice = parseFloat(newPlan.price);
+
+    const now = new Date();
+    // Parse dates as LOCAL midnight (not UTC) to avoid timezone-off-by-one-day bugs
+    const parseLocalDate = (d) => (d ? new Date(String(d).slice(0, 10) + 'T00:00:00') : null);
+    const startDate = parseLocalDate(currentSubscription.start_date);
+    const endDate = parseLocalDate(currentSubscription.end_date);
+
+    if (isNaN(endDate.getTime()) || isNaN(startDate.getTime())) return null;
+
+    // Calculate total days in current subscription period
+    const totalDaysInPeriod = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+
+    // Calculate days remaining
+    const daysRemaining = Math.max(0, Math.ceil((endDate - now) / (1000 * 60 * 60 * 24)));
+
+    // Calculate unused value based on days remaining
+    const unusedValue = (currentPlanPrice / totalDaysInPeriod) * daysRemaining;
+
+    // Calculate amount to charge (new plan price minus unused value)
+    const amountToCharge = Math.max(0, newPlanPrice - unusedValue);
+
+    return {
+      currentPlanPrice: currentPlanPrice.toFixed(2),
+      currentPlanName: currentSubscription.plan_name,
+      newPlanPrice: newPlanPrice.toFixed(2),
+      newPlanDurationMonths: parseInt(newPlan.duration_months || 1),
+      daysRemaining,
+      totalDaysInPeriod,
+      unusedValue: unusedValue.toFixed(2),
+      amountToCharge: amountToCharge.toFixed(2),
+      savings: unusedValue.toFixed(2),
+    };
+  };
+
+  const getPlanRelation = (plan) => {
+    if (!currentSubscription || currentSubscription.is_guest) return 'new';
+
+    const currentPrice = parseFloat(currentSubscription.plan_price || 0);
+    const newPrice = parseFloat(plan.price);
+
+    if (currentSubscription.plan_name === plan.name) return 'current';
+    if (newPrice > currentPrice) return 'upgrade';
+    if (newPrice < currentPrice) return 'downgrade';
+    return 'same';
+  };
+
+  const activateSubscription = async (plan) => {
+    const token = getToken();
+    const userString = localStorage.getItem('user');
+    const user = userString ? JSON.parse(userString) : null;
+
+    if (!token || !user) {
+      setShowLoginModal(true);
+      return;
+    }
+
+    const relation = getPlanRelation(plan);
+
+    if (relation === 'downgrade') {
+      toast.error('Downgrading is not available. Please contact support for assistance.', {
+        duration: 5000,
+      });
+      return;
+    }
+
+    if (relation === 'current') {
+      toast.info('You are already on this plan');
+      return;
+    }
+
+    let proration = null;
+    if (relation === 'upgrade') {
+      proration = calculateProration(plan);
+    }
+
+    navigate('/payment', {
+      state: {
+        plan: plan,
+        prorationDetails: proration,
+      },
+    });
+  };
+
+  const handleLoginRedirect = () => navigate('/login');
+  const handleRegisterRedirect = () => navigate('/register');
+
+  const getPlanIcon = (planName) => {
+    switch (planName.toLowerCase()) {
+      case 'guest':
+        return <FaPaperPlane className="text-2xl text-[#bca142]" />;
+      case 'professional':
+        return <FaGem className="text-3xl text-[#bca142]" />;
+      case 'enterprise':
+        return <FaRocket className="text-2xl text-black" />;
+      default:
+        return <FaCrown className="text-2xl text-[#bca142]" />;
+    }
+  };
+
+  return (
+    <PageLoader loading={loading} loadingMessage="Loading subscription plans...">
+      <div className="pb-12">
+        <div className="max-w-7xl mx-auto">
+          {/* ---------- Hero ---------- */}
+          <div className="relative mb-8 overflow-hidden rounded-[2rem] border border-[#bca142]/20 bg-gradient-to-br from-white via-[#bca142]/5 to-white px-6 py-12 text-center sm:px-12 sm:py-16">
+            <div className="pointer-events-none absolute -top-24 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-[#bca142]/15 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-24 right-0 h-64 w-64 rounded-full bg-[#bca142]/10 blur-3xl" />
+            <div className="relative">
+              <span className="inline-flex items-center gap-2 rounded-full border border-[#bca142]/30 bg-white px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#bca142] shadow-sm">
+                <FaCrown /> Membership
+              </span>
+              <h1 className="mt-5 text-3xl font-bold tracking-tight text-black sm:text-4xl lg:text-5xl">
+                Choose Your{' '}
+                <span className="bg-gradient-to-r from-[#a8892f] to-[#bca142] bg-clip-text text-transparent">
+                  Membership
+                </span>{' '}
+                Plan
+              </h1>
+              <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-gray-600 sm:text-base">
+                Unlock the power of our freight forwarding network. Get access to quotes,
+                respond to opportunities, and grow your business.
+              </p>
+            </div>
+          </div>
+
+          {/* ---------- Current Subscription ---------- */}
+          {currentSubscription && !currentSubscription.is_guest && (() => {
+            const endDate = currentSubscription.end_date
+              ? new Date(String(currentSubscription.end_date).slice(0, 10) + 'T00:00:00')
+              : null;
+            const startDate = currentSubscription.start_date
+              ? new Date(String(currentSubscription.start_date).slice(0, 10) + 'T00:00:00')
+              : null;
+            const now = new Date();
+            const valid = endDate && !isNaN(endDate.getTime());
+            const daysLeft = valid ? Math.ceil((endDate - now) / (1000 * 60 * 60 * 24)) : 0;
+            const totalDays =
+              valid && startDate && !isNaN(startDate.getTime())
+                ? Math.max(1, Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)))
+                : 1;
+            const pct = Math.min(100, Math.max(0, Math.round((daysLeft / totalDays) * 100)));
+
+            return (
+              <div className="relative mb-10 overflow-hidden rounded-2xl border border-[#bca142]/25 bg-white p-5 pl-7 shadow-[0_16px_44px_-32px_rgba(188,161,66,0.8)] sm:p-6 sm:pl-8">
+                <div className="absolute inset-y-0 left-0 w-2 bg-gradient-to-b from-[#e2c66a] to-[#bca142]" />
+                <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#bca142] to-[#a8892f] text-white shadow-[0_12px_26px_-12px_rgba(188,161,66,0.95)]">
+                      <FaCrown className="text-lg" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#bca142]">
+                        Current Subscription
+                      </p>
+                      <h3 className="text-lg font-bold text-black">{currentSubscription.plan_name}</h3>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-6 sm:gap-8">
+                    <div>
+                      <div className="text-2xl font-extrabold leading-tight text-black">
+                        {fmtBhd(currentSubscription.plan_price)}
+                        <span className="text-sm font-normal text-gray-500">/mo</span>
+                      </div>
+                      <div className="text-xs text-gray-500">{toUsd(currentSubscription.plan_price)}</div>
+                    </div>
+                    <div className="sm:text-right">
+                      <p className="text-xs text-gray-500">
+                        Expires {currentSubscription.end_date && formatSubDate(currentSubscription.end_date)}
+                      </p>
+                      <span
+                        className={`mt-1 inline-block rounded-full px-3 py-1 text-[11px] font-bold ${
+                          daysLeft > 0 ? 'bg-[#bca142]/10 text-[#8a7628]' : 'bg-red-50 text-red-600'
+                        }`}
+                      >
+                        {daysLeft > 0 ? `${daysLeft} days left` : 'Expired'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-5">
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-[#e2c66a] to-[#bca142] transition-all duration-500"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                  <p className="mt-2 text-xs text-gray-500">
+                    <span className="font-semibold text-[#bca142]">💡 Upgrade anytime</span> — we credit
+                    your unused time towards the new plan. No money wasted!
+                  </p>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* ---------- Plans Grid ---------- */}
+          {plans && plans.length > 0 ? (
+            <div className="grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2 xl:grid-cols-4">
+              {plans.map((plan) => {
+                const isProfessional = plan.name.toLowerCase() === 'professional';
+                const isGuestPlan =
+                  plan.name.toLowerCase() === 'guest' || parseFloat(plan.price) === 0;
+                const planRelation = getPlanRelation(plan);
+
+                // Guest plan is always disabled and shows as current if user is on guest
+                const isDisabled =
+                  isGuestPlan || planRelation === 'current' || planRelation === 'downgrade';
+                const features = Array.isArray(plan.features) ? plan.features : [];
+                const isHighlighted = isProfessional && !isGuestPlan;
+
+                // Only one badge is shown per card so labels never overlap
+                const badge =
+                  planRelation === 'current' ||
+                  (isGuestPlan && currentSubscription?.is_guest)
+                    ? {
+                        text: 'Current Plan',
+                        cls: 'border border-[#bca142] bg-white text-[#bca142]',
+                      }
+                    : planRelation === 'upgrade' && !isGuestPlan
+                    ? { text: 'Upgrade', cls: 'bg-[#bca142] text-white' }
+                    : planRelation === 'downgrade' && !isGuestPlan
+                    ? { text: 'Not Available', cls: 'bg-gray-400 text-white' }
+                    : isProfessional && !isGuestPlan
+                    ? { text: 'Most Popular', cls: 'bg-gradient-to-r from-[#e2c66a] to-[#bca142] text-black' }
+                    : null;
+
+                const proration = planRelation === 'upgrade' ? calculateProration(plan) : null;
+                const dim = isGuestPlan || planRelation === 'downgrade';
+
+                return (
+                  <div
+                    key={plan.id}
+                    className={`relative flex h-full flex-col overflow-hidden rounded-2xl border bg-white p-6 transition-all duration-300
+                      ${
+                        isHighlighted
+                          ? 'border-[#bca142]/50 bg-gradient-to-b from-[#bca142]/10 via-white to-white shadow-[0_22px_55px_-36px_rgba(188,161,66,0.9)]'
+                          : 'border-gray-100 shadow-[0_10px_30px_-26px_rgba(0,0,0,0.5)] hover:border-[#bca142]/40 hover:shadow-[0_18px_40px_-28px_rgba(188,161,66,0.7)]'
+                      }
+                      ${dim ? 'opacity-70' : ''}`}
+                  >
+                    {/* Top accent */}
+                    <div
+                      className={`absolute inset-x-0 top-0 h-1.5 ${
+                        isHighlighted ? 'bg-gradient-to-r from-[#e2c66a] to-[#bca142]' : 'bg-gray-100'
+                      }`}
+                    />
+
+                    {/* Plan identity */}
+                    <div className="flex items-center gap-3">
+                      <div className={`flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl ring-1 ${
+                        isHighlighted ? 'bg-[#bca142]/15 ring-[#bca142]/30' : 'bg-[#bca142]/10 ring-[#bca142]/20'
+                      }`}>
+                        {getPlanIcon(plan.name)}
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className={`truncate text-lg font-bold uppercase tracking-wide ${isHighlighted ? 'text-[#bca142]' : 'text-black'}`}>
+                          {plan.name}
+                        </h3>
+                        {badge && (
+                          <span className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${badge.cls}`}>
+                            {badge.text}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <p className="mt-3 line-clamp-2 min-h-[2.5rem] text-sm leading-relaxed text-gray-500">
+                      {plan.description}
+                    </p>
+
+                    {/* Price */}
+                    <div className="mt-4 min-w-0">
+                      {planRelation === 'upgrade' && proration ? (
+                        <>
+                          <div className="text-sm text-gray-400 line-through break-words">
+                            {fmtBhd(proration.newPlanPrice)}
+                          </div>
+                          <div className="break-words text-2xl font-extrabold leading-tight text-[#bca142]">
+                            {fmtBhd(proration.amountToCharge)}
+                            <span className="text-sm font-normal text-gray-500">/mo</span>
+                          </div>
+                          <div className="text-xs text-gray-500">{toUsd(proration.amountToCharge)}</div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="break-words text-2xl font-extrabold leading-tight text-black">
+                            {fmtBhd(plan.price)}
+                            <span className="text-sm font-normal text-gray-500">/mo</span>
+                          </div>
+                          <div className="text-xs text-gray-500">{toUsd(plan.price)}</div>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Features */}
+                    <div className="mt-4 flex-1 border-t border-dashed border-gray-100 pt-4">
+                      <ul className="space-y-2.5">
+                        {features.map((feature, index) => (
+                          <li key={index} className="flex items-start gap-2.5">
+                            <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[#bca142]/10">
+                              <FaCheck className="text-[10px] text-[#bca142]" />
+                            </span>
+                            <span className="text-sm leading-snug text-gray-700">{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="mt-3 text-[11px] font-bold uppercase tracking-widest text-gray-400">
+                        Responses: {plan.max_responses === -1 ? 'Unlimited' : plan.max_responses} · Support:{' '}
+                        {plan.priority_support ? 'Priority' : 'Standard'}
+                      </p>
+                    </div>
+
+                    {/* Proration detail strip */}
+                    {proration && (
+                      <div className="mt-4 space-y-1.5 rounded-xl border border-green-200 bg-green-50 p-3.5">
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-green-700">
+                          💰 Proration Applied
+                        </p>
+                        <p className="text-xs text-green-600">Unused time is credited automatically.</p>
+                        <div className="flex items-center justify-between gap-2 text-xs">
+                          <span className="text-green-600">Credit ({proration.daysRemaining}d left)</span>
+                          <span className="break-words font-bold text-green-700">{fmtBhd(proration.unusedValue)}</span>
+                        </div>
+                        <div className="flex items-center justify-between gap-2 text-xs">
+                          <span className="text-green-600">You save</span>
+                          <span className="break-words font-bold text-green-700">{fmtBhd(proration.savings)}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* CTA */}
+                    <button
+                      onClick={() => activateSubscription(plan)}
+                      disabled={isDisabled}
+                      className={`mt-5 w-full rounded-xl px-3 py-3.5 text-sm font-bold tracking-wide transition-all duration-200
+                        ${
+                          isDisabled
+                            ? 'cursor-not-allowed bg-gray-100 text-gray-400'
+                            : isProfessional
+                            ? 'bg-gradient-to-r from-[#bca142] to-[#a8892f] text-white shadow-[0_10px_24px_-10px_rgba(188,161,66,0.9)] hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-10px_rgba(188,161,66,1)]'
+                            : 'bg-black text-white hover:-translate-y-0.5 hover:bg-[#bca142] hover:shadow-[0_10px_24px_-12px_rgba(0,0,0,0.6)]'
+                        }`}
+                    >
+                      {isGuestPlan
+                        ? currentSubscription?.is_guest
+                          ? 'Current Plan'
+                          : 'Free Plan'
+                        : planRelation === 'current'
+                        ? 'Current Plan'
+                        : planRelation === 'downgrade'
+                        ? 'Downgrade Not Available'
+                        : planRelation === 'upgrade'
+                        ? 'Upgrade Now'
+                        : 'Subscribe for Membership'}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-gray-200 bg-white py-16 text-center">
+              <p className="text-lg text-gray-500">No subscription plans available at the moment</p>
+            </div>
+          )}
+
+          {/* ---------- Steps ---------- */}
+          <div className="relative mt-20 mb-6 overflow-hidden rounded-[2rem] border border-gray-100 bg-white p-8 shadow-sm sm:p-12">
+            <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-[#bca142]/10 blur-3xl" />
+            <h2 className="relative mb-12 text-center text-2xl font-bold text-black sm:text-3xl">
+              Step-by-Step Activation
+            </h2>
+            <div className="relative grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="pointer-events-none absolute left-[12.5%] right-[12.5%] top-6 hidden border-t-2 border-dashed border-[#bca142]/30 lg:block" />
+              {[
+                { step: 1, title: 'Choose Plan', desc: 'Select the best plan for your team.' },
+                { step: 2, title: 'Bank Payment', desc: 'Securely transfer via bank details.' },
+                { step: 3, title: 'Upload Proof', desc: 'Submit receipt via your dashboard.' },
+                { step: 4, title: 'Instant Access', desc: 'Admin verifies and activates.' },
+              ].map((item) => (
+                <div key={item.step} className="relative text-center">
+                  <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#bca142] to-[#a8892f] text-lg font-bold text-white shadow-[0_10px_22px_-10px_rgba(188,161,66,0.95)] ring-4 ring-[#bca142]/10">
+                    {item.step}
+                  </div>
+                  <h3 className="mb-1.5 font-bold text-black">{item.title}</h3>
+                  <p className="text-sm text-gray-600">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {showLoginModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+            <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-3xl bg-white shadow-2xl">
+              <div className="p-6 sm:p-8">
+                <div className="mb-6 flex items-center justify-between">
+                  <h2 className="text-2xl font-bold text-[#bca142]">Login Required</h2>
+                  <button
+                    onClick={() => setShowLoginModal(false)}
+                    className="rounded-full p-2 transition-colors hover:bg-gray-100"
+                  >
+                    <FiX className="text-2xl text-gray-400" />
+                  </button>
+                </div>
+                <div className="text-center mb-8">
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#bca142]/10 ring-1 ring-[#bca142]/20">
+                    <FaCrown className="text-3xl text-[#bca142]" />
+                  </div>
+                  <p className="text-gray-600 font-medium">
+                    Please login to choose a membership plan and grow your business.
+                  </p>
+                </div>
+                <div className="space-y-4">
+                  <button
+                    onClick={handleLoginRedirect}
+                    className="w-full rounded-xl bg-gradient-to-r from-[#bca142] to-[#a8892f] py-4 font-bold text-white shadow-[0_10px_24px_-10px_rgba(188,161,66,0.9)] transition-all hover:-translate-y-0.5"
+                  >
+                    Login to Your Account
+                  </button>
+                  <button
+                    onClick={handleRegisterRedirect}
+                    className="w-full rounded-xl border-2 border-[#bca142] py-4 font-bold text-[#bca142] transition-all hover:bg-[#bca142] hover:text-white"
+                  >
+                    Create New Account
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </PageLoader>
+  );
+};
+
+export default CompanySubscriptionPage;

@@ -4,7 +4,7 @@ import {
   FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiCheck, 
   FiCreditCard, FiGlobe, FiMapPin, FiInfo, FiAlertCircle
 } from 'react-icons/fi';
-import { api } from '../../utils/api';
+import { api, settingsAPI } from '../../utils/api';
 import { adminToast } from '../../utils/adminToast';
 
 const AdminBankDetails = () => {
@@ -22,10 +22,36 @@ const AdminBankDetails = () => {
     payment_instructions: '',
     is_active: false
   });
+  const [adminPaypalId, setAdminPaypalId] = useState('');
+  const [paypalSaving, setPaypalSaving] = useState(false);
 
   useEffect(() => {
     fetchBankDetails();
+    fetchPaypalSettings();
   }, []);
+
+  const fetchPaypalSettings = async () => {
+    try {
+      const res = await settingsAPI.getPaypalSettings();
+      setAdminPaypalId(res?.data?.admin_paypal_id || '');
+    } catch (error) {
+      console.error('Error fetching PayPal settings:', error);
+    }
+  };
+
+  const handleSavePaypalSettings = async () => {
+    try {
+      setPaypalSaving(true);
+      const res = await settingsAPI.updatePaypalSettings({
+        admin_paypal_id: adminPaypalId.trim(),
+      });
+      adminToast.success(res?.message || 'PayPal settings saved successfully');
+    } catch (error) {
+      adminToast.error(error.response?.data?.message || error.message || 'Failed to save PayPal settings');
+    } finally {
+      setPaypalSaving(false);
+    }
+  };
 
   const fetchBankDetails = async () => {
     try {
@@ -161,6 +187,43 @@ const AdminBankDetails = () => {
                 </ul>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* PayPal Settings */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <div className="flex items-center gap-3 mb-2">
+            <FiGlobe className="text-[#bca142]" />
+            <h2 className="text-lg font-semibold text-gray-800">PayPal Settings</h2>
+          </div>
+          <p className="text-gray-500 text-sm mb-4">
+            Set the PayPal account that receives payments from companies. This reflects on the company panel
+            (wallet top-up and subscription payments).
+          </p>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                Admin PayPal ID (Receiving Account)
+              </label>
+              <input
+                type="text"
+                value={adminPaypalId}
+                onChange={(e) => setAdminPaypalId(e.target.value)}
+                placeholder="e.g. payments@gulfstarnetwork.com"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent text-sm"
+              />
+              <p className="text-xs text-gray-400 mt-1">PayPal email or PayPal.me link shown to companies as the payment receiver.</p>
+            </div>
+
+            <button
+              onClick={handleSavePaypalSettings}
+              disabled={paypalSaving}
+              className="px-5 py-2 bg-[#bca142] text-white rounded-lg hover:bg-[#B8941F] transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+            >
+              <FiSave />
+              {paypalSaving ? 'Saving…' : 'Save PayPal Settings'}
+            </button>
           </div>
         </div>
 

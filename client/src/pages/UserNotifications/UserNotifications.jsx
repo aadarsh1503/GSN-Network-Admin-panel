@@ -32,7 +32,7 @@ const UserNotifications = () => {
   } = useNotifications();
   const navigate = useNavigate();
 
-  const markAllNotificationsAsRead = async () => {
+  const markAllNotificationsAsRead = async (list = notifications) => {
     try {
       // FORCE the global unread count to 0 immediately
       forceResetUnreadCount();
@@ -48,10 +48,12 @@ const UserNotifications = () => {
       // Reset local unread count to 0
       setUnreadCount(0);
       
-      // Try to mark notifications as read on the server (but don't wait for it)
+      // Persist on the server: 'all' inserts the missing user_notifications rows,
+      // which is what the unread-count query reads. Quote responses are excluded
+      // here because they clear only when the user accepts/rejects them.
       Promise.all([
-        contextMarkAsRead('notifications').catch(e => console.error('Context mark as read failed:', e)),
-        ...notifications.filter(n => !n.is_read).map(notification => 
+        contextMarkAsRead('all').catch(e => console.error('Context mark as read failed:', e)),
+        ...list.filter(n => !n.is_read && String(n.id).startsWith('notification_')).map(notification => 
           api.put(`/api/user-notifications/${notification.id}/read`).catch(e => 
             console.error(`Failed to mark notification ${notification.id} as read:`, e)
           )
@@ -79,9 +81,9 @@ const UserNotifications = () => {
       forceResetUnreadCount();
       setUnreadCount(0);
       
-      await fetchNotifications();
+      const fetched = await fetchNotifications();
       // Automatically mark all notifications as read when page opens
-      await markAllNotificationsAsRead();
+      await markAllNotificationsAsRead(fetched);
       
       // Additional refresh after a short delay to ensure the sidebar updates
       setTimeout(() => {
@@ -103,6 +105,7 @@ const UserNotifications = () => {
     try {
       const data = await api.get('/api/user-notifications');
       setNotifications(data || []);
+      return data || [];
     } catch (error) {
       console.error('Error fetching notifications:', error);
       if (error.message?.includes('token') || error.message?.includes('authorized')) {
@@ -111,6 +114,7 @@ const UserNotifications = () => {
         toast.error('Failed to fetch notifications. Please try again.');
       }
       setNotifications([]);
+      return [];
     } finally {
       setLoading(false);
     }

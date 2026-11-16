@@ -3,6 +3,40 @@ import db from '../config/db.js';
 import { createInvoice } from './invoiceController.js';
 import { queueSubscriptionEmails } from '../services/emailQueue.js';
 import { sendSubscriptionPaymentProofNotificationToAdmin } from '../services/adminNotificationService.js';
+import { processReferralReward } from '../services/referralService.js';
+import { getSettings as getWalletSettings, getWallet, debit as walletDebit, credit as walletCredit, WalletError } from '../services/walletService.js';
+import couponService from '../services/couponService.js';
+
+/**
+ * Validates and normalises an optional wallet contribution for a subscription
+ * payment. Returns { amount, remaining, error }.
+ */
+const resolveWalletContribution = async (userId, totalAmount, rawWalletAmount) => {
+    const total = Number(totalAmount) || 0;
+    const requested = Math.max(0, parseFloat(rawWalletAmount) || 0);
+    if (!(requested > 0)) return { amount: 0, remaining: total };
+    try {
+        const settings = await getWalletSettings();
+        if (!settings.walletSubscriptionEnabled) {
+            return { amount: 0, remaining: total, error: 'Wallet payments are currently disabled' };
+        }
+        const wallet = await getWallet(userId);
+        const maxPct = Math.min(100, Math.max(0, Number(settings.walletMaxUsagePercent) || 100));
+        const maxUsable = Math.min(wallet.balance, (total * maxPct) / 100);
+        const minUsage = Number(settings.walletMinUsageBhd) || 0;
+        if (minUsage > 0 && requested < minUsage) {
+            return { amount: 0, remaining: total, error: `Minimum wallet usage is ${minUsage} BHD` };
+        }
+        if (requested > maxUsable + 0.001) {
+            return { amount: 0, remaining: total, error: `You can use at most ${maxUsable.toFixed(3)} BHD from your wallet for this plan` };
+        }
+        const amount = Number(Math.min(requested, total).toFixed(3));
+        return { amount, remaining: Number((total - amount).toFixed(3)) };
+    } catch (e) {
+        console.error('resolveWalletContribution error:', e);
+        return { amount: 0, remaining: total, error: 'Could not validate wallet balance' };
+    }
+};
 
 // @desc    Get all membership plans
 // @route   GET /api/subscriptions/plans
@@ -173,7 +207,12 @@ const activateSubscription = async (req, res) => {
         payerId,
         paymentDetails,
         prorationApplied,
-        prorationDetails
+        prorationDetails,
+        couponRedemptionId,
+        couponCode,
+        couponDiscount,
+        couponFinalAmount,
+        walletAmountApplied = 0
     } = req.body;
 
     if (!planId) {
@@ -244,17 +283,29 @@ const activateSubscription = async (req, res) => {
             }
         }
 
-        // Determine amount paid (with proration if applicable)
-        const amountPaid = prorationApplied && prorationDetails 
+        // Determine amount paid (with proration / coupon if applicable)
+        let amountPaid = prorationApplied && prorationDetails 
             ? parseFloat(prorationDetails.amountToCharge)
             : parseFloat(plan.price);
+        if (couponFinalAmount && !isNaN(parseFloat(couponFinalAmount))) {
+            amountPaid = parseFloat(couponFinalAmount);
+        }
+
+        // 💳 Optional wallet contribution (partial payment).
+        // The wallet is only debited at approval time, so a failed external
+        // payment never finalises the deduction.
+        const walletApplied = await resolveWalletContribution(userId, amountPaid, walletAmountApplied);
+        if (walletApplied.error) {
+            return res.status(400).json({ message: walletApplied.error });
+        }
+        const externalAmount = walletApplied.remaining;
 
         // FOR PAYPAL: Create a subscription REQUEST (pending admin approval)
         // Store the subscription request
         const requestSql = `
             INSERT INTO subscription_requests 
-            (user_id, plan_id, transaction_id, payment_method, payment_proof_url, status, company_name, user_name, user_email, user_phone, plan_name, plan_price, duration_months, paypal_order_id, paypal_payer_id, proration_applied, proration_details, is_upgrade, old_subscription_id)
-            VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (user_id, plan_id, transaction_id, payment_method, payment_proof_url, status, company_name, user_name, user_email, user_phone, plan_name, plan_price, duration_months, paypal_order_id, paypal_payer_id, proration_applied, proration_details, is_upgrade, old_subscription_id, amount_paid, coupon_code, coupon_discount_bhd, final_amount_bhd, coupon_redemption_id, wallet_amount_applied, external_amount_bhd)
+            VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         const paymentProofUrl = paymentMethod === 'paypal' ? 'PayPal Payment' : null;
@@ -271,15 +322,28 @@ const activateSubscription = async (req, res) => {
             user.email,
             user.phone || null,
             plan.name,
-            amountPaid,
+            plan.price,
             plan.duration_months,
             orderId || null,
             payerId || null,
             prorationApplied ? 1 : 0,
             prorationDetails ? JSON.stringify(prorationDetails) : null,
             isUpgrade ? 1 : 0,
-            oldSubscription ? oldSubscription.id : null
+            oldSubscription ? oldSubscription.id : null,
+            amountPaid,
+            couponCode || null,
+            couponDiscount || null,
+            amountPaid,
+            couponRedemptionId || null,
+            walletApplied.amount,
+            externalAmount
         ]);
+
+        // 🎟️ Confirm coupon redemption — PayPal payment was already captured
+        if (couponRedemptionId) {
+            try { await couponService.confirmRedemption(couponRedemptionId); }
+            catch (e) { console.error('❌ Coupon confirm error:', e); }
+        }
 
         // 🚀 QUEUE EMAIL WORKFLOW - Payment Proof Submitted (NON-BLOCKING)
         queueSubscriptionEmails.paymentProofSubmitted({
@@ -396,7 +460,7 @@ const deletePlan = async (req, res) => {
 // @access  Private
 const submitBankTransferRequest = async (req, res) => {
     const userId = req.user.id;
-    const { planId, transactionId, paymentMethod = 'bank_transfer', prorationApplied, prorationDetails } = req.body;
+    const { planId, transactionId, paymentMethod = 'bank_transfer', prorationApplied, prorationDetails, couponCode, couponFinalAmount, walletAmountApplied = 0 } = req.body;
 
     if (!planId || !transactionId) {
         return res.status(400).json({ message: 'Plan ID and transaction ID are required' });
@@ -476,15 +540,42 @@ const submitBankTransferRequest = async (req, res) => {
         }
 
         // Calculate amount paid with proration
-        const amountPaid = prorationApplied && parsedProrationDetails 
+        let amountPaid = prorationApplied && parsedProrationDetails 
             ? parseFloat(parsedProrationDetails.amountToCharge)
             : parseFloat(plan.price);
+
+        // 🎟️ Lock coupon (single-use enforcement) before creating the request
+        let couponRedemptionId = null;
+        let couponDiscount = null;
+        if (couponCode) {
+            try {
+                const lock = await couponService.lockForOrder({
+                    userId,
+                    identifier: couponCode,
+                    orderType: 'subscription',
+                    orderRefId: `bank-${Date.now()}`,
+                    orderAmount: amountPaid,
+                });
+                couponRedemptionId = lock.redemptionId;
+                couponDiscount = lock.discountAmount;
+                amountPaid = lock.finalAmount;
+            } catch (e) {
+                return res.status(400).json({ message: e.message || 'Could not apply coupon' });
+            }
+        }
+
+        // 💳 Optional wallet contribution (partial payment)
+        const walletApplied = await resolveWalletContribution(userId, amountPaid, walletAmountApplied);
+        if (walletApplied.error) {
+            return res.status(400).json({ message: walletApplied.error });
+        }
+        const externalAmount = walletApplied.remaining;
 
         // Store the subscription request with proration data
         const requestSql = `
             INSERT INTO subscription_requests 
-            (user_id, plan_id, transaction_id, payment_method, payment_proof_url, status, company_name, user_name, user_email, user_phone, plan_name, plan_price, duration_months, proration_applied, proration_details, is_upgrade, old_subscription_id, amount_paid)
-            VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (user_id, plan_id, transaction_id, payment_method, payment_proof_url, status, company_name, user_name, user_email, user_phone, plan_name, plan_price, duration_months, proration_applied, proration_details, is_upgrade, old_subscription_id, amount_paid, coupon_code, coupon_discount_bhd, final_amount_bhd, coupon_redemption_id, wallet_amount_applied, external_amount_bhd)
+            VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         const paymentProofUrl = req.file.path; // Cloudinary URL
@@ -506,7 +597,13 @@ const submitBankTransferRequest = async (req, res) => {
             parsedProrationDetails ? JSON.stringify(parsedProrationDetails) : null,
             isUpgrade ? 1 : 0,
             oldSubscription ? oldSubscription.id : null,
-            amountPaid
+            amountPaid,
+            couponCode || null,
+            couponDiscount,
+            amountPaid,
+            couponRedemptionId,
+            walletApplied.amount,
+            externalAmount
         ]);
 
         // 🚀 QUEUE EMAIL WORKFLOW - Payment Proof Submitted (NON-BLOCKING)
@@ -649,14 +746,46 @@ const approveSubscriptionRequest = async (req, res) => {
         const endDate = new Date();
         endDate.setMonth(endDate.getMonth() + request.duration_months);
 
-        // Determine amount paid (use prorated amount if available)
-        const amountPaid = request.amount_paid || request.plan_price || request.price;
+        // Determine amount paid (coupon / proration aware).
+        // amount_paid holds the final discounted amount; fall back to the
+        // coupon final amount, else the plan price.
+        const toNum = (v) => (v === null || v === undefined || v === '') ? null : parseFloat(v);
+        const amountPaid =
+            toNum(request.amount_paid) ??
+            toNum(request.final_amount_bhd) ??
+            toNum(request.plan_price) ??
+            toNum(request.price);
+
+        // 💳 Deduct the wallet contribution — the external payment is confirmed now,
+        // so this is the point where a wallet deduction is finalised.
+        const walletAppliedAmount = toNum(request.wallet_amount_applied) || 0;
+        if (walletAppliedAmount > 0) {
+            try {
+                await walletDebit({
+                    userId: request.user_id,
+                    amount: walletAppliedAmount,
+                    type: 'subscription_payment',
+                    description: `Subscription purchase — ${request.plan_name} (wallet portion)`,
+                    triggerEvent: 'subscription_wallet',
+                    triggerRefId: request.id,
+                    method: 'wallet',
+                    createdBy: req.user.id,
+                });
+            } catch (e) {
+                if (e instanceof WalletError) {
+                    return res.status(400).json({
+                        message: `Cannot approve: company wallet no longer has enough balance (${e.message})`,
+                    });
+                }
+                throw e;
+            }
+        }
 
         // Create NEW subscription
         const subscriptionSql = `
             INSERT INTO user_subscriptions 
-            (user_id, plan_id, start_date, end_date, status, payment_status, payment_method, amount_paid, transaction_id, proration_applied, proration_details)
-            VALUES (?, ?, ?, ?, 'active', 'paid', ?, ?, ?, ?, ?)
+            (user_id, plan_id, start_date, end_date, status, payment_status, payment_method, amount_paid, transaction_id, proration_applied, proration_details, coupon_code, coupon_discount_bhd, final_amount_bhd, wallet_amount_applied)
+            VALUES (?, ?, ?, ?, 'active', 'paid', ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         const [subscriptionResult] = await db.execute(subscriptionSql, [
@@ -668,7 +797,11 @@ const approveSubscriptionRequest = async (req, res) => {
             amountPaid,
             request.transaction_id,
             request.proration_applied || 0,
-            request.proration_details || null
+            request.proration_details || null,
+            request.coupon_code || null,
+            request.coupon_discount_bhd ?? null,
+            request.final_amount_bhd ?? null,
+            walletAppliedAmount
         ]);
 
         // Update request status
@@ -676,6 +809,26 @@ const approveSubscriptionRequest = async (req, res) => {
             `UPDATE subscription_requests SET status = 'approved', processed_at = NOW() WHERE id = ?`,
             [id]
         );
+
+        // 🎟️ Consume coupon (single-use) on successful approval.
+        // Falls back to the coupon code when no redemption was locked at
+        // payment time, so a used coupon is never left showing as available.
+        if (request.coupon_code) {
+            try {
+                await couponService.consumeForOrder({
+                    userId: request.user_id,
+                    identifier: request.coupon_code,
+                    orderType: 'subscription',
+                    orderRefId: request.transaction_id,
+                    orderAmount: toNum(request.plan_price) ?? toNum(request.price) ?? amountPaid,
+                    discountAmount: toNum(request.coupon_discount_bhd),
+                    finalAmount: toNum(request.final_amount_bhd) ?? amountPaid,
+                });
+            } catch (e) { console.error('❌ Coupon consume error:', e); }
+        } else if (request.coupon_redemption_id) {
+            try { await couponService.confirmRedemption(request.coupon_redemption_id); }
+            catch (e) { console.error('❌ Coupon confirm error:', e); }
+        }
 
         // Create invoice with actual amount paid
         const invoiceResult = await createInvoice(subscriptionResult.insertId, amountPaid, 0);
@@ -709,6 +862,13 @@ const approveSubscriptionRequest = async (req, res) => {
         // Send notification to user (you can implement this)
         // await sendNotification(request.user_id, 'subscription_approved', { planName: request.plan_name });
 
+        // 🎁 REFERRAL REWARD — fire for company role on first subscription approval
+        processReferralReward(request.user_id, 'subscription_approved', {
+            baseAmount: toNum(request.plan_price) ?? toNum(request.price) ?? amountPaid,
+        }).catch(err =>
+            console.error('❌ Referral reward (subscription_approved) error:', err)
+        );
+
         res.status(200).json({
             message: 'Subscription request approved successfully',
             subscriptionId: subscriptionResult.insertId,
@@ -741,14 +901,63 @@ const rejectSubscriptionRequest = async (req, res) => {
             return res.status(404).json({ message: 'Subscription request not found or already processed' });
         }
 
+        const request = requestRows[0];
+
         // Update request status
         await db.execute(
             `UPDATE subscription_requests SET status = 'rejected', rejection_reason = ?, processed_at = NOW() WHERE id = ?`,
             [reason, id]
         );
 
+        // 💳 Refund the wallet portion back to the company.
+        // The wallet is debited when the admin approves, so if a deduction for
+        // this request already exists (e.g. it was approved and later reversed)
+        // the exact same amount is credited back on rejection. Idempotent —
+        // a request is only ever refunded once.
+        const walletApplied = Number(request.wallet_amount_applied) || 0;
+        if (walletApplied > 0) {
+            try {
+                const [debits] = await db.execute(
+                    `SELECT id FROM referral_transactions
+                     WHERE user_id = ? AND trigger_event = 'subscription_wallet'
+                       AND trigger_ref_id = ? AND type = 'subscription_payment' AND status = 'completed'
+                     LIMIT 1`,
+                    [request.user_id, id]
+                );
+                const [refunds] = await db.execute(
+                    `SELECT id FROM referral_transactions
+                     WHERE user_id = ? AND trigger_event = 'subscription_refund' AND trigger_ref_id = ?
+                     LIMIT 1`,
+                    [request.user_id, id]
+                );
+
+                if (debits.length > 0 && refunds.length === 0) {
+                    await walletCredit({
+                        userId: request.user_id,
+                        amount: walletApplied,
+                        type: 'refund',
+                        description: `Wallet refund — subscription request rejected (${request.plan_name || 'plan'})`,
+                        triggerEvent: 'subscription_refund',
+                        triggerRefId: id,
+                        createdBy: req.user.id,
+                    });
+                    console.log(`✅ Wallet refunded ${walletApplied} BHD to company #${request.user_id} (request #${id})`);
+                }
+            } catch (e) {
+                console.error('❌ Wallet refund on rejection failed:', e);
+            }
+        }
+
+        // 🎟️ Release coupon redemption — payment was not completed
+        if (request.coupon_redemption_id) {
+            try { await couponService.releaseRedemption({ redemptionId: request.coupon_redemption_id, reason: 'Subscription request rejected' }); }
+            catch (e) { console.error('❌ Coupon release error:', e); }
+        } else if (request.coupon_code) {
+            try { await couponService.releaseByOrder({ orderType: 'subscription', orderRefId: request.transaction_id, reason: 'Subscription request rejected' }); }
+            catch (e) { console.error('❌ Coupon release error:', e); }
+        }
+
         // Get admin and company details for email
-        const request = requestRows[0];
         const adminId = req.user.id;
         const [adminRows] = await db.execute('SELECT name, email FROM users WHERE id = ?', [adminId]);
         const admin = adminRows[0] || { name: 'Admin', email: 'admin@system.com' };

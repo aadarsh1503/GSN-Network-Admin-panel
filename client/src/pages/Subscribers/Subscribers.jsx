@@ -1,9 +1,30 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { FiChevronUp, FiChevronDown } from 'react-icons/fi';
-import { FaEye, FaUser, FaCreditCard, FaCalendar, FaTrash, FaCheck, FaTimes, FaImage } from 'react-icons/fa';
+import { FaEye, FaUser, FaCreditCard, FaCalendar, FaTrash, FaCheck, FaTimes, FaImage, FaWallet, FaTag, FaMobileAlt, FaEnvelope } from 'react-icons/fa';
 import { api } from '../../utils/api';
 import { adminToast } from '../../utils/adminToast';
+import { useCurrency } from '../../contexts/CurrencyContext';
+
+// --- Reusable read-only field (label above value) ---
+const Field = ({ label, value, sub, mono }) => (
+  <div>
+    <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-0.5">{label}</p>
+    <div className={`text-sm text-gray-800 break-all ${mono ? 'font-mono text-xs' : 'font-semibold'}`}>
+      {value}
+    </div>
+    {sub && <div className="text-xs text-gray-400 font-normal mt-0.5">{sub}</div>}
+  </div>
+);
+
+// --- Reusable section heading (gold accent bar + title) ---
+const SectionTitle = ({ children, icon }) => (
+  <div className="flex items-center gap-2.5 mb-4">
+    <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-[#bca142] to-[#9d8635]" />
+    {icon && <span className="text-[#bca142] text-sm">{icon}</span>}
+    <h4 className="text-base font-bold text-gray-800 tracking-tight">{children}</h4>
+  </div>
+);
 
 // --- Reusable Component for Sortable Table Headers ---
 const SortableHeader = ({ children, sortKey, sortConfig, onSort }) => {
@@ -25,6 +46,7 @@ const SortableHeader = ({ children, sortKey, sortConfig, onSort }) => {
 };
 
 const Subscribers = () => {
+  const { format, formatUsd } = useCurrency();
   const location = useLocation();
   const [subscribers, setSubscribers] = useState([]);
   const [incomingRequests, setIncomingRequests] = useState([]);
@@ -163,7 +185,10 @@ const Subscribers = () => {
       await api.post(`/api/admin-panel/subscription-requests/${requestId}/approve`);
       
       adminToast.success('Subscription request approved successfully');
-      
+
+      // Close the details modal that triggered the approval
+      setViewingRequest(null);
+
       // Refresh data
       const [subscribersResponse, requestsResponse] = await Promise.all([
         api.get('/api/admin-panel/subscriptions'),
@@ -201,6 +226,8 @@ const Subscribers = () => {
       setShowRejectionModal(false);
       setRequestToReject(null);
       setRejectionReason('');
+      // Close the details modal if the rejection was started from it
+      setViewingRequest(null);
     } catch (error) {
       console.error('Error rejecting request:', error);
       adminToast.error('Failed to reject request');
@@ -271,11 +298,19 @@ const Subscribers = () => {
   };
 
   // Format currency
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
+  const formatCurrency = (amount) => format(amount);
+
+  // Total subscription value (plan price after coupon/proration, BEFORE wallet)
+  const subscriptionTotal = (r) =>
+    Number(r?.final_amount_bhd ?? r?.amount_paid ?? r?.plan_price ?? 0);
+
+  // Amount actually paid outside the wallet (PayPal / bank transfer).
+  // Prefers the stored external_amount_bhd, else derives it from total - wallet.
+  const payableExternal = (r) => {
+    const ext = r?.external_amount_bhd;
+    if (ext !== null && ext !== undefined && ext !== '') return Number(ext);
+    const wallet = Number(r?.wallet_amount_applied || 0);
+    return Math.max(0, Number((subscriptionTotal(r) - wallet).toFixed(3)));
   };
 
   // Get status badge color
@@ -457,7 +492,19 @@ const Subscribers = () => {
                       <div className="text-xs text-gray-500">{item.duration_months} months</div>
                     </td>
                     <td className="p-3 whitespace-nowrap">
-                      <div className="font-medium text-gray-900">{formatCurrency(item.amount_paid || item.plan_price)}</div>
+                      <div className="font-medium text-gray-900">
+                        {formatCurrency(payableExternal(item))}
+                        {item.coupon_code && (
+                          <span className="ml-1 text-xs text-green-600 font-semibold">🎟️ -{formatCurrency(item.coupon_discount_bhd)}</span>
+                        )}
+                        <div className="text-xs text-gray-400 font-normal">{formatUsd(payableExternal(item))}</div>
+                      </div>
+                      {Number(item.wallet_amount_applied) > 0 && (
+                        <div className="text-xs font-medium text-emerald-600">
+                          Wallet used: {formatCurrency(item.wallet_amount_applied)}
+                          <span className="block text-xs text-gray-400 font-normal">≈ {formatUsd(item.wallet_amount_applied)}</span>
+                        </div>
+                      )}
                       <div className="text-xs text-gray-500">
                         {activeTab === 'active' ? (
                           <>
@@ -497,7 +544,7 @@ const Subscribers = () => {
                             <span className="text-blue-600">
                               {item.payment_method === 'paypal' ? 'PayPal' : 'Bank Transfer'}
                             </span>
-                            {item.proration_applied && (
+                            {!!item.proration_applied && (
                               <div className="flex items-center gap-1 mt-0.5">
                                 <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">
                                   UPGRADE
@@ -634,80 +681,118 @@ const Subscribers = () => {
 
       {/* Request Details Modal */}
       {viewingRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-4xl w-full p-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4 border-b pb-2">
-              <h3 className="text-xl font-bold">Subscription Request Details</h3>
-              <button 
-                onClick={() => setViewingRequest(null)} 
-                className="text-gray-500 hover:text-black text-2xl"
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[92vh] shadow-2xl flex flex-col overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-[#bca142] to-[#9d8635] px-6 py-4 flex justify-between items-center flex-shrink-0">
+              <div>
+                <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">Subscription Request Details</h3>
+                <p className="text-white/80 text-xs mt-0.5">Review the request and take action</p>
+              </div>
+              <button
+                onClick={() => setViewingRequest(null)}
+                className="text-white/90 hover:text-white hover:bg-white/20 w-9 h-9 rounded-full flex items-center justify-center text-2xl leading-none transition"
+                aria-label="Close"
               >
                 ×
               </button>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            {/* Body */}
+            <div className="p-6 overflow-y-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
               {/* Company Information */}
-              <div className="md:col-span-2">
-                <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">Company Information</h4>
+              <div className="md:col-span-2 pt-1">
+                <SectionTitle icon={<FaUser />}>Company Information</SectionTitle>
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
-                <p className="p-2 bg-gray-50 rounded border">{viewingRequest.company_name}</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Member Name</label>
-                <p className="p-2 bg-gray-50 rounded border">{viewingRequest.user_name}</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <p className="p-2 bg-gray-50 rounded border">{viewingRequest.user_email}</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
-                <p className="p-2 bg-gray-50 rounded border">{viewingRequest.user_phone || 'N/A'}</p>
-              </div>
+
+              <Field label="Company Name" value={viewingRequest.company_name || 'N/A'} />
+              <Field label="Member Name" value={viewingRequest.user_name || 'N/A'} />
+              <Field label="Email" value={viewingRequest.user_email || 'N/A'} />
+              <Field label="Mobile Number" value={viewingRequest.user_phone || 'N/A'} />
 
               {/* Subscription Information */}
-              <div className="md:col-span-2 mt-4">
-                <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">Subscription Information</h4>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Selected Plan</label>
-                <p className="p-2 bg-gray-50 rounded border">{viewingRequest.plan_name}</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Subscription Price</label>
-                <p className="p-2 bg-gray-50 rounded border">{formatCurrency(viewingRequest.plan_price)}</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
-                <p className="p-2 bg-gray-50 rounded border">
-                  {viewingRequest.payment_method === 'paypal' ? 'PayPal' : 'Bank Transfer'}
-                </p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Transaction ID</label>
-                <p className="p-2 bg-gray-50 rounded border font-mono">{viewingRequest.transaction_id}</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Amount to Pay</label>
-                <p className="p-2 bg-gray-50 rounded border font-semibold text-lg">
-                  {formatCurrency(viewingRequest.amount_paid || viewingRequest.plan_price)}
-                </p>
+              <div className="md:col-span-2 pt-3">
+                <SectionTitle icon={<FaCreditCard />}>Subscription Information</SectionTitle>
               </div>
 
+              <Field label="Selected Plan" value={viewingRequest.plan_name || 'N/A'} />
+              <Field label="Subscription Price" value={formatCurrency(viewingRequest.plan_price)} sub={formatUsd(viewingRequest.plan_price)} />
+              <Field label="Payment Method" value={viewingRequest.payment_method === 'paypal' ? 'PayPal' : 'Bank Transfer'} />
+              <Field label="Transaction ID" value={viewingRequest.transaction_id || 'N/A'} mono />
+
+              <div>
+                <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-0.5">Amount to Pay</p>
+                <div className="text-lg font-bold text-[#bca142]">{formatCurrency(payableExternal(viewingRequest))}</div>
+                <div className="text-xs text-gray-400 font-normal">{formatUsd(payableExternal(viewingRequest))}</div>
+                {Number(viewingRequest.wallet_amount_applied) > 0 && (
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Paid via {viewingRequest.payment_method === 'paypal' ? 'PayPal' : 'Bank Transfer'} (after wallet)
+                  </p>
+                )}
+              </div>
+
+              {/* Payment breakdown — shows how much the company paid from wallet */}
+              {Number(viewingRequest.wallet_amount_applied) > 0 && (
+                <div className="md:col-span-2">
+                  <div className="rounded-xl border border-[#e6dcb8] bg-[#faf7ec] p-4">
+                    <p className="text-xs font-bold text-[#9d8635] uppercase tracking-wide mb-3 flex items-center gap-2">
+                      <FaWallet /> Payment Breakdown
+                    </p>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Subscription amount</span>
+                        <span className="font-semibold text-gray-800 text-right">
+                          {formatCurrency(subscriptionTotal(viewingRequest))}
+                          <span className="block text-xs text-gray-400 font-normal">{formatUsd(subscriptionTotal(viewingRequest))}</span>
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-[#9d8635]">
+                        <span>Paid from wallet</span>
+                        <span className="font-semibold text-right">
+                          - {formatCurrency(viewingRequest.wallet_amount_applied)}
+                          <span className="block text-xs text-gray-400 font-normal">≈ {formatUsd(viewingRequest.wallet_amount_applied)}</span>
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-t border-[#e6dcb8] pt-2">
+                        <span className="font-semibold text-gray-700">
+                          Paid via {viewingRequest.payment_method === 'paypal' ? 'PayPal' : 'Bank Transfer'}
+                        </span>
+                        <span className="font-bold text-[#bca142] text-right">
+                          {formatCurrency(payableExternal(viewingRequest))}
+                          <span className="block text-xs text-gray-400 font-normal">{formatUsd(payableExternal(viewingRequest))}</span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Coupon details */}
+              {viewingRequest.coupon_code && (
+                <div className="md:col-span-2">
+                  <div className="rounded-xl border border-[#e6dcb8] bg-[#faf7ec] p-4">
+                    <p className="text-xs font-bold text-[#9d8635] uppercase tracking-wide mb-2 flex items-center gap-2">
+                      <FaTag /> Coupon Applied
+                    </p>
+                    <span className="inline-block bg-[#bca142] text-white text-xs font-semibold px-2.5 py-1 rounded-full">
+                      {viewingRequest.coupon_code}
+                    </span>
+                    <p className="text-gray-600 text-xs mt-2">
+                      Discount: <strong className="text-[#9d8635]">-{formatCurrency(viewingRequest.coupon_discount_bhd)}</strong>
+                      &nbsp;|&nbsp; Original: {formatCurrency(viewingRequest.plan_price)}
+                      &nbsp;→&nbsp; Final: <strong className="text-gray-800">{formatCurrency(viewingRequest.final_amount_bhd)}</strong>
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      ≈ {formatUsd(viewingRequest.coupon_discount_bhd)} discount · {formatUsd(viewingRequest.plan_price)} original · {formatUsd(viewingRequest.final_amount_bhd)} final
+                    </p>
+                  </div>
+                </div>
+              )}
+
+
               {/* Proration Details Section */}
-              {viewingRequest.proration_applied && viewingRequest.proration_details && (() => {
+              {!!viewingRequest.proration_applied && viewingRequest.proration_details && (() => {
                 let prorationData;
                 try {
                   prorationData = typeof viewingRequest.proration_details === 'string' 
@@ -727,64 +812,56 @@ const Subscribers = () => {
                 }
 
                 return (
-                  <div className="md:col-span-2 mt-4">
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <h4 className="text-lg font-medium text-blue-900 mb-3 flex items-center gap-2">
-                        <span className="bg-blue-500 text-white px-2 py-1 rounded text-sm">UPGRADE</span>
-                        Proration Applied
-                      </h4>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-blue-800 mb-1">Old Plan</label>
-                          <p className="p-2 bg-white rounded border border-blue-200">
-                            {prorationData.currentPlanName || 'Previous Plan'}
-                          </p>
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-blue-800 mb-1">Days Remaining</label>
-                          <p className="p-2 bg-white rounded border border-blue-200">
-                            {prorationData.daysRemaining || 0} days
-                          </p>
-                        </div>
-                        
+                  <div className="md:col-span-2 pt-3">
+                    <div className="rounded-xl border border-[#e6dcb8] bg-[#faf7ec] p-4">
+                      <div className="flex items-center gap-2.5 mb-4">
+                        <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-[#bca142] to-[#9d8635]" />
+                        <span className="bg-[#bca142] text-white text-[10px] font-bold px-2 py-0.5 rounded-full tracking-wide">UPGRADE</span>
+                        <h4 className="text-base font-bold text-gray-800 tracking-tight">Proration Applied</h4>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                        <Field label="Old Plan" value={prorationData.currentPlanName || 'Previous Plan'} />
+                        <Field label="Days Remaining" value={`${prorationData.daysRemaining || 0} days`} />
+
                         <div className="md:col-span-2">
-                          <label className="block text-sm font-medium text-blue-800 mb-2">Calculation Breakdown</label>
-                          <div className="bg-white rounded border border-blue-200 p-3 space-y-2">
+                          <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-2">Calculation Breakdown</p>
+                          <div className="bg-white rounded-lg border border-[#e6dcb8] p-4 space-y-2">
                             <div className="flex justify-between text-sm">
                               <span className="text-gray-600">Old Plan Price:</span>
-                              <span className="font-medium">{formatCurrency(prorationData.currentPlanPrice || 0)}</span>
+                              <span className="font-semibold text-gray-800 text-right">{formatCurrency(prorationData.currentPlanPrice || 0)}<span className="block text-xs text-gray-400 font-normal">{formatUsd(prorationData.currentPlanPrice || 0)}</span></span>
                             </div>
                             <div className="flex justify-between text-sm">
                               <span className="text-gray-600">Days Used / Total Days:</span>
-                              <span className="font-medium">
+                              <span className="font-semibold text-gray-800">
                                 {prorationData.daysUsed || 0} / {prorationData.totalDaysInPeriod || 0}
                               </span>
                             </div>
-                            <div className="flex justify-between text-sm text-green-600">
+                            <div className="flex justify-between text-sm text-[#9d8635]">
                               <span className="font-medium">Credit from Old Plan:</span>
-                              <span className="font-semibold">+ {formatCurrency(prorationData.unusedValue || 0)}</span>
+                              <span className="font-semibold text-right">+ {formatCurrency(prorationData.unusedValue || 0)}<span className="block text-xs text-gray-400 font-normal">≈ {formatUsd(prorationData.unusedValue || 0)}</span></span>
                             </div>
-                            <div className="border-t border-blue-200 pt-2 mt-2"></div>
+                            <div className="border-t border-[#e6dcb8] pt-2 mt-2" />
                             <div className="flex justify-between text-sm">
                               <span className="text-gray-600">New Plan Price:</span>
-                              <span className="font-medium">{formatCurrency(prorationData.newPlanPrice || viewingRequest.plan_price)}</span>
+                              <span className="font-semibold text-gray-800 text-right">{formatCurrency(prorationData.newPlanPrice || viewingRequest.plan_price)}<span className="block text-xs text-gray-400 font-normal">{formatUsd(prorationData.newPlanPrice || viewingRequest.plan_price)}</span></span>
                             </div>
-                            <div className="flex justify-between text-sm text-red-600">
+                            <div className="flex justify-between text-sm text-gray-600">
                               <span className="font-medium">Credit Applied:</span>
-                              <span className="font-semibold">- {formatCurrency(prorationData.unusedValue || 0)}</span>
+                              <span className="font-semibold text-right">- {formatCurrency(prorationData.unusedValue || 0)}<span className="block text-xs text-gray-400 font-normal">≈ {formatUsd(prorationData.unusedValue || 0)}</span></span>
                             </div>
-                            <div className="border-t-2 border-blue-300 pt-2 mt-2"></div>
-                            <div className="flex justify-between text-base">
-                              <span className="font-bold text-blue-900">Final Amount to Pay:</span>
-                              <span className="font-bold text-blue-900 text-lg">
+                            <div className="border-t-2 border-[#bca142] pt-2 mt-2" />
+                            <div className="flex justify-between items-center">
+                              <span className="font-bold text-gray-800">Final Amount to Pay:</span>
+                              <span className="font-bold text-[#bca142] text-lg text-right">
                                 {formatCurrency(prorationData.amountToCharge || viewingRequest.amount_paid || viewingRequest.plan_price)}
+                                <span className="block text-xs text-gray-400 font-normal">{formatUsd(prorationData.amountToCharge || viewingRequest.amount_paid || viewingRequest.plan_price)}</span>
                               </span>
                             </div>
-                            <div className="bg-green-50 border border-green-200 rounded p-2 mt-2">
-                              <p className="text-xs text-green-800 text-center">
-                                💰 Customer saves {formatCurrency(prorationData.unusedValue || prorationData.savings || 0)} with proration
+                            <div className="rounded-lg bg-[#faf7ec] border border-[#e6dcb8] p-2 mt-2">
+                              <p className="text-xs text-[#9d8635] text-center font-medium">
+                                Customer saves {formatCurrency(prorationData.unusedValue || prorationData.savings || 0)} with proration
+                                <span className="block text-xs text-gray-400 font-normal">≈ {formatUsd(prorationData.unusedValue || prorationData.savings || 0)}</span>
                               </p>
                             </div>
                           </div>
@@ -794,92 +871,90 @@ const Subscribers = () => {
                   </div>
                 );
               })()}
-              
+
+              <Field label="Request Date" value={new Date(viewingRequest.created_at).toLocaleString()} />
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Request Date</label>
-                <p className="p-2 bg-gray-50 rounded border">{new Date(viewingRequest.created_at).toLocaleString()}</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <p className={`p-2 rounded border ${getStatusColor(viewingRequest.status)}`}>
+                <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Status</p>
+                <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold capitalize border ${getStatusColor(viewingRequest.status)}`}>
                   {viewingRequest.status}
-                </p>
+                </span>
               </div>
 
               {/* Payment Proof - Only show for Bank Transfer */}
               {viewingRequest.payment_proof_url && viewingRequest.payment_method !== 'paypal' && (
-                <div className="md:col-span-2 mt-4">
-                  <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">Payment Proof</h4>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <FaImage className="text-blue-500" />
-                      <span className="font-medium">Payment Receipt</span>
+                <div className="md:col-span-2 pt-3">
+                  <SectionTitle icon={<FaImage />}>Payment Proof</SectionTitle>
+                  <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                    <div className="flex items-center gap-2 mb-3 text-sm font-semibold text-gray-700">
+                      <FaImage className="text-[#bca142]" />
+                      <span>Payment Receipt</span>
                     </div>
-                    <img 
-                      src={viewingRequest.payment_proof_url} 
-                      alt="Payment Proof" 
-                      className="max-w-full h-auto rounded-lg border shadow-sm cursor-pointer"
+                    <img
+                      src={viewingRequest.payment_proof_url}
+                      alt="Payment Proof"
+                      className="max-w-full h-auto rounded-lg border border-gray-200 shadow-sm cursor-pointer hover:opacity-95 transition"
                       onClick={() => window.open(viewingRequest.payment_proof_url, '_blank')}
                     />
                     <p className="text-xs text-gray-500 mt-2">Click image to view full size</p>
                   </div>
                 </div>
               )}
-              
+
               {/* PayPal Transaction Info - Only show for PayPal */}
               {viewingRequest.payment_method === 'paypal' && viewingRequest.paypal_order_id && (
-                <div className="md:col-span-2 mt-4">
-                  <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">PayPal Transaction</h4>
-                  <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-sm font-medium text-blue-800 mb-1">PayPal Order ID</label>
-                        <p className="p-2 bg-white rounded border border-blue-200 font-mono text-sm">
-                          {viewingRequest.paypal_order_id}
-                        </p>
-                      </div>
+                <div className="md:col-span-2 pt-3">
+                  <SectionTitle icon={<FaCreditCard />}>PayPal Transaction</SectionTitle>
+                  <div className="rounded-xl border border-[#e6dcb8] bg-[#faf7ec] p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                      <Field label="PayPal Order ID" value={viewingRequest.paypal_order_id} mono />
                       {viewingRequest.paypal_payer_id && (
-                        <div>
-                          <label className="block text-sm font-medium text-blue-800 mb-1">Payer ID</label>
-                          <p className="p-2 bg-white rounded border border-blue-200 font-mono text-sm">
-                            {viewingRequest.paypal_payer_id}
-                          </p>
-                        </div>
+                        <Field label="Payer ID" value={viewingRequest.paypal_payer_id} mono />
                       )}
                     </div>
-                    <div className="mt-3 flex items-center gap-2 text-sm text-blue-700">
-                      <FaCheck className="text-green-500" />
+                    <div className="mt-4 flex items-center gap-2 text-sm text-[#9d8635] font-medium">
+                      <FaCheck className="text-[#bca142]" />
                       <span>Payment verified through PayPal</span>
                     </div>
                   </div>
                 </div>
               )}
             </div>
-            
-            <div className="mt-6 flex justify-between">
+            </div>
+
+            {/* Footer actions */}
+            <div className="border-t border-gray-100 bg-gray-50 px-6 py-4 flex flex-col sm:flex-row sm:justify-between gap-3 flex-shrink-0">
               <div className="flex gap-3">
-                <button 
+                <button
                   onClick={() => handleApproveRequest(viewingRequest.id)}
                   disabled={processingRequest === viewingRequest.id}
-                  className="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 flex items-center gap-2"
+                  className="px-6 py-2.5 rounded-lg font-semibold text-white shadow-sm transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2 bg-gradient-to-r from-[#bca142] to-[#9d8635] hover:opacity-90"
                 >
-                  <FaCheck /> Approve Request
+                  {processingRequest === viewingRequest.id ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Approving…
+                    </>
+                  ) : (
+                    <>
+                      <FaCheck /> Approve Request
+                    </>
+                  )}
                 </button>
-                <button 
+                <button
                   onClick={() => {
                     setRequestToReject(viewingRequest);
                     setShowRejectionModal(true);
                   }}
                   disabled={processingRequest === viewingRequest.id}
-                  className="px-6 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50 flex items-center gap-2"
+                  className="px-6 py-2.5 rounded-lg font-semibold text-red-600 bg-white border border-red-200 transition disabled:opacity-50 flex items-center gap-2 hover:bg-red-50"
                 >
                   <FaTimes /> Reject Request
                 </button>
               </div>
-              <button 
+              <button
                 onClick={() => setViewingRequest(null)}
-                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                className="px-5 py-2.5 rounded-lg font-semibold text-gray-600 bg-white border border-gray-300 hover:bg-gray-100 transition"
               >
                 Close
               </button>
@@ -918,234 +993,242 @@ const Subscribers = () => {
               <button
                 onClick={handleRejectRequest}
                 disabled={!rejectionReason.trim() || processingRequest === requestToReject.id}
-                className="flex-1 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
+                className="flex-1 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                Reject Request
+                {processingRequest === requestToReject.id ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Rejecting…
+                  </>
+                ) : (
+                  'Reject Request'
+                )}
               </button>
             </div>
           </div>
         </div>
       )}
       
-      {/* Delete Confirmation Modal */}
+      {/* Subscription Details Modal */}
       {viewingSubscriber && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4 border-b pb-2">
-              <h3 className="text-xl font-bold">Subscription Details</h3>
-              <button 
-                onClick={() => setViewingSubscriber(null)} 
-                className="text-gray-500 hover:text-black text-2xl"
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[92vh] shadow-2xl flex flex-col overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-[#bca142] to-[#9d8635] px-6 py-4 flex justify-between items-center flex-shrink-0">
+              <div>
+                <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">Subscription Details</h3>
+                <p className="text-white/80 text-xs mt-0.5">Active subscription information</p>
+              </div>
+              <button
+                onClick={() => setViewingSubscriber(null)}
+                className="text-white/90 hover:text-white hover:bg-white/20 w-9 h-9 rounded-full flex items-center justify-center text-2xl leading-none transition"
+                aria-label="Close"
               >
                 ×
               </button>
             </div>
-            
-            {/* Debug Console Logs */}
-            {(() => {
-              console.log('=== VIEWING SUBSCRIBER DEBUG ===');
-              console.log('Full subscriber object:', viewingSubscriber);
-              console.log('Proration applied:', viewingSubscriber.proration_applied);
-              console.log('Proration details exists:', !!viewingSubscriber.proration_details);
-              console.log('Proration details value:', viewingSubscriber.proration_details);
-              console.log('Proration details type:', typeof viewingSubscriber.proration_details);
-              return null;
-            })()}
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            {/* Body */}
+            <div className="p-6 overflow-y-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
               {/* Member Information */}
-              <div className="md:col-span-2">
-                <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">Member Information</h4>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                <p className="p-2 bg-gray-50 rounded border">{viewingSubscriber.user_name}</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <p className="p-2 bg-gray-50 rounded border">{viewingSubscriber.user_email}</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                <p className="p-2 bg-gray-50 rounded border">{viewingSubscriber.user_phone || 'N/A'}</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-                <p className="p-2 bg-gray-50 rounded border capitalize">{viewingSubscriber.user_role}</p>
+              <div className="md:col-span-2 pt-1">
+                <SectionTitle icon={<FaUser />}>Member Information</SectionTitle>
               </div>
 
+              <Field label="Name" value={viewingSubscriber.user_name || 'N/A'} />
+              <Field label="Email" value={viewingSubscriber.user_email || 'N/A'} />
+              <Field label="Phone" value={viewingSubscriber.user_phone || 'N/A'} />
+              <Field label="Role" value={<span className="capitalize">{viewingSubscriber.user_role}</span>} />
+
               {/* Subscription Information */}
-              <div className="md:col-span-2 mt-4">
-                <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">Subscription Information</h4>
+              <div className="md:col-span-2 pt-3">
+                <SectionTitle icon={<FaCreditCard />}>Subscription Information</SectionTitle>
               </div>
-              
+
+              <Field label="Plan Name" value={viewingSubscriber.plan_name || 'N/A'} />
+              <Field label="Plan Price" value={formatCurrency(viewingSubscriber.plan_price)} sub={formatUsd(viewingSubscriber.plan_price)} />
+              <Field label="Duration" value={`${viewingSubscriber.duration_months} months`} />
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Plan Name</label>
-                <p className="p-2 bg-gray-50 rounded border">{viewingSubscriber.plan_name}</p>
+                <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-0.5">Amount Paid</p>
+                <div className="text-lg font-bold text-[#bca142]">{formatCurrency(payableExternal(viewingSubscriber))}</div>
+                <div className="text-xs text-gray-400 font-normal">{formatUsd(payableExternal(viewingSubscriber))}</div>
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Plan Price</label>
-                <p className="p-2 bg-gray-50 rounded border">{formatCurrency(viewingSubscriber.plan_price)}</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Duration</label>
-                <p className="p-2 bg-gray-50 rounded border">{viewingSubscriber.duration_months} months</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Amount Paid</label>
-                <p className="p-2 bg-gray-50 rounded border">{formatCurrency(viewingSubscriber.amount_paid)}</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <p className={`p-2 rounded border ${getStatusColor(viewingSubscriber.status)}`}>
-                  {viewingSubscriber.status}
-                </p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Payment Status</label>
-                <p className={`p-2 rounded border ${
-                  (viewingSubscriber.payment_status === 'completed' || viewingSubscriber.payment_status === 'paid' || viewingSubscriber.payment_status === 'success') 
-                    ? 'bg-green-50 text-green-700' 
-                    : viewingSubscriber.payment_status === 'pending'
-                    ? 'bg-yellow-50 text-yellow-700'
-                    : 'bg-red-50 text-red-700'
-                }`}>
-                  {viewingSubscriber.payment_status || 'Unknown'}
-                </p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                <p className="p-2 bg-gray-50 rounded border">{formatDate(viewingSubscriber.start_date)}</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                <p className="p-2 bg-gray-50 rounded border">{formatDate(viewingSubscriber.end_date)}</p>
-              </div>
-              
-              {viewingSubscriber.transaction_id && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Transaction ID</label>
-                  <p className="p-2 bg-gray-50 rounded border font-mono text-sm">{viewingSubscriber.transaction_id}</p>
+
+              {/* Wallet contribution for active subscriber */}
+              {Number(viewingSubscriber.wallet_amount_applied) > 0 && (
+                <div className="md:col-span-2">
+                  <div className="rounded-xl border border-[#e6dcb8] bg-[#faf7ec] p-4">
+                    <p className="text-xs font-bold text-[#9d8635] uppercase tracking-wide mb-3 flex items-center gap-2">
+                      <FaWallet /> Payment Breakdown
+                    </p>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Subscription amount</span>
+                        <span className="font-semibold text-gray-800 text-right">
+                          {formatCurrency(subscriptionTotal(viewingSubscriber))}
+                          <span className="block text-xs text-gray-400 font-normal">{formatUsd(subscriptionTotal(viewingSubscriber))}</span>
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-[#9d8635]">
+                        <span>Paid from wallet</span>
+                        <span className="font-semibold text-right">
+                          - {formatCurrency(viewingSubscriber.wallet_amount_applied)}
+                          <span className="block text-xs text-gray-400 font-normal">≈ {formatUsd(viewingSubscriber.wallet_amount_applied)}</span>
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-t border-[#e6dcb8] pt-2">
+                        <span className="font-semibold text-gray-700">
+                          Paid via {viewingSubscriber.payment_method === 'paypal' ? 'PayPal' : 'Bank Transfer'}
+                        </span>
+                        <span className="font-bold text-[#bca142] text-right">
+                          {formatCurrency(payableExternal(viewingSubscriber))}
+                          <span className="block text-xs text-gray-400 font-normal">{formatUsd(payableExternal(viewingSubscriber))}</span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
-              
+
+              {/* Coupon details for active subscriber */}
+              {viewingSubscriber.coupon_code && (
+                <div className="md:col-span-2">
+                  <div className="rounded-xl border border-[#e6dcb8] bg-[#faf7ec] p-4">
+                    <p className="text-xs font-bold text-[#9d8635] uppercase tracking-wide mb-2 flex items-center gap-2">
+                      <FaTag /> Coupon Used
+                    </p>
+                    <span className="inline-block bg-[#bca142] text-white text-xs font-semibold px-2.5 py-1 rounded-full">
+                      {viewingSubscriber.coupon_code}
+                    </span>
+                    <p className="text-gray-600 text-xs mt-2">
+                      Discount: <strong className="text-[#9d8635]">-{formatCurrency(viewingSubscriber.coupon_discount_bhd)}</strong>
+                      &nbsp;|&nbsp; Original: {formatCurrency(viewingSubscriber.plan_price)}
+                      &nbsp;→&nbsp; Final paid: <strong className="text-gray-800">{formatCurrency(viewingSubscriber.final_amount_bhd || viewingSubscriber.amount_paid)}</strong>
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      ≈ {formatUsd(viewingSubscriber.coupon_discount_bhd)} discount · {formatUsd(viewingSubscriber.plan_price)} original · {formatUsd(viewingSubscriber.final_amount_bhd || viewingSubscriber.amount_paid)} final
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Subscription Date</label>
-                <p className="p-2 bg-gray-50 rounded border">{new Date(viewingSubscriber.created_at).toLocaleString()}</p>
+                <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Status</p>
+                <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold capitalize border ${getStatusColor(viewingSubscriber.status)}`}>
+                  {viewingSubscriber.status}
+                </span>
               </div>
+
+              <div>
+                <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Payment Status</p>
+                <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold capitalize border ${
+                  (viewingSubscriber.payment_status === 'completed' || viewingSubscriber.payment_status === 'paid' || viewingSubscriber.payment_status === 'success')
+                    ? 'bg-green-100 text-green-800 border-green-200'
+                    : viewingSubscriber.payment_status === 'pending'
+                    ? 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                    : 'bg-red-100 text-red-800 border-red-200'
+                }`}>
+                  {viewingSubscriber.payment_status || 'Unknown'}
+                </span>
+              </div>
+
+              <Field label="Start Date" value={formatDate(viewingSubscriber.start_date)} />
+              <Field label="End Date" value={formatDate(viewingSubscriber.end_date)} />
+
+              {viewingSubscriber.transaction_id && (
+                <Field label="Transaction ID" value={viewingSubscriber.transaction_id} mono />
+              )}
+
+              <Field label="Subscription Date" value={new Date(viewingSubscriber.created_at).toLocaleString()} />
 
               {/* Proration Details Section */}
               {viewingSubscriber.proration_details && (() => {
                 let prorationData;
                 try {
-                  console.log('Raw proration_details:', viewingSubscriber.proration_details);
-                  prorationData = typeof viewingSubscriber.proration_details === 'string' 
-                    ? JSON.parse(viewingSubscriber.proration_details) 
+                  prorationData = typeof viewingSubscriber.proration_details === 'string'
+                    ? JSON.parse(viewingSubscriber.proration_details)
                     : viewingSubscriber.proration_details;
-                  
-                  console.log('Parsed proration data:', prorationData);
-                  
+
                   // Calculate days used from total days and days remaining
                   const totalDays = parseInt(prorationData.totalDaysInPeriod || 0);
                   const daysRemaining = parseInt(prorationData.daysRemaining || 0);
-                  const daysUsed = totalDays - daysRemaining;
-                  
-                  // Add calculated field
-                  prorationData.daysUsed = daysUsed;
+                  prorationData.daysUsed = totalDays - daysRemaining;
                 } catch (e) {
                   console.error('Error parsing proration details:', e);
                   return null;
                 }
 
-                // Show proration section if data exists
-                if (prorationData && Object.keys(prorationData).length > 0) {
-                  return (
-                    <div className="md:col-span-2 mt-4">
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <h4 className="text-lg font-medium text-blue-900 mb-3 flex items-center gap-2">
-                          <span className="bg-blue-500 text-white px-2 py-1 rounded text-sm">UPGRADE</span>
-                          Proration Applied
-                        </h4>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-blue-800 mb-1">Old Plan</label>
-                            <p className="p-2 bg-white rounded border border-blue-200">
-                              {prorationData.currentPlanName || 'Previous Plan'}
-                            </p>
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-blue-800 mb-1">Days Remaining</label>
-                            <p className="p-2 bg-white rounded border border-blue-200">
-                              {prorationData.daysRemaining || 0} days
-                            </p>
-                          </div>
-                          
-                          <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-blue-800 mb-2">Calculation Breakdown</label>
-                            <div className="bg-white rounded border border-blue-200 p-3 space-y-2">
-                              <div className="flex justify-between text-sm">
-                                <span className="text-gray-600">Old Plan Price:</span>
-                                <span className="font-medium">{formatCurrency(prorationData.currentPlanPrice || 0)}</span>
-                              </div>
-                              <div className="flex justify-between text-sm">
-                                <span className="text-gray-600">Days Used / Total Days:</span>
-                                <span className="font-medium">
-                                  {prorationData.daysUsed || 0} / {prorationData.totalDaysInPeriod || 0}
-                                </span>
-                              </div>
-                              <div className="flex justify-between text-sm text-green-600">
-                                <span className="font-medium">Credit from Old Plan:</span>
-                                <span className="font-semibold">+ {formatCurrency(prorationData.unusedValue || 0)}</span>
-                              </div>
-                              <div className="border-t border-blue-200 pt-2 mt-2"></div>
-                              <div className="flex justify-between text-sm">
-                                <span className="text-gray-600">New Plan Price:</span>
-                                <span className="font-medium">{formatCurrency(prorationData.newPlanPrice || viewingSubscriber.plan_price)}</span>
-                              </div>
-                              <div className="flex justify-between text-sm text-red-600">
-                                <span className="font-medium">Credit Applied:</span>
-                                <span className="font-semibold">- {formatCurrency(prorationData.unusedValue || 0)}</span>
-                              </div>
-                              <div className="border-t-2 border-blue-300 pt-2 mt-2"></div>
-                              <div className="flex justify-between text-base">
-                                <span className="font-bold text-blue-900">Final Amount Paid:</span>
-                                <span className="font-bold text-blue-900 text-lg">
-                                  {formatCurrency(prorationData.amountToCharge || viewingSubscriber.amount_paid)}
-                                </span>
-                              </div>
-                              <div className="bg-green-50 border border-green-200 rounded p-2 mt-2">
-                                <p className="text-xs text-green-800 text-center">
-                                  💰 Customer saved {formatCurrency(prorationData.unusedValue || prorationData.savings || 0)} with proration
-                                </p>
-                              </div>
+                if (!(prorationData && Object.keys(prorationData).length > 0)) return null;
+
+                return (
+                  <div className="md:col-span-2 pt-3">
+                    <div className="rounded-xl border border-[#e6dcb8] bg-[#faf7ec] p-4">
+                      <div className="flex items-center gap-2.5 mb-4">
+                        <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-[#bca142] to-[#9d8635]" />
+                        <span className="bg-[#bca142] text-white text-[10px] font-bold px-2 py-0.5 rounded-full tracking-wide">UPGRADE</span>
+                        <h4 className="text-base font-bold text-gray-800 tracking-tight">Proration Applied</h4>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                        <Field label="Old Plan" value={prorationData.currentPlanName || 'Previous Plan'} />
+                        <Field label="Days Remaining" value={`${prorationData.daysRemaining || 0} days`} />
+
+                        <div className="md:col-span-2">
+                          <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-2">Calculation Breakdown</p>
+                          <div className="bg-white rounded-lg border border-[#e6dcb8] p-4 space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">Old Plan Price:</span>
+                              <span className="font-semibold text-gray-800 text-right">{formatCurrency(prorationData.currentPlanPrice || 0)}<span className="block text-xs text-gray-400 font-normal">{formatUsd(prorationData.currentPlanPrice || 0)}</span></span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">Days Used / Total Days:</span>
+                              <span className="font-semibold text-gray-800">
+                                {prorationData.daysUsed || 0} / {prorationData.totalDaysInPeriod || 0}
+                              </span>
+                            </div>
+                            <div className="flex justify-between text-sm text-[#9d8635]">
+                              <span className="font-medium">Credit from Old Plan:</span>
+                              <span className="font-semibold text-right">+ {formatCurrency(prorationData.unusedValue || 0)}<span className="block text-xs text-gray-400 font-normal">≈ {formatUsd(prorationData.unusedValue || 0)}</span></span>
+                            </div>
+                            <div className="border-t border-[#e6dcb8] pt-2 mt-2" />
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">New Plan Price:</span>
+                              <span className="font-semibold text-gray-800 text-right">{formatCurrency(prorationData.newPlanPrice || viewingSubscriber.plan_price)}<span className="block text-xs text-gray-400 font-normal">{formatUsd(prorationData.newPlanPrice || viewingSubscriber.plan_price)}</span></span>
+                            </div>
+                            <div className="flex justify-between text-sm text-gray-600">
+                              <span className="font-medium">Credit Applied:</span>
+                              <span className="font-semibold text-right">- {formatCurrency(prorationData.unusedValue || 0)}<span className="block text-xs text-gray-400 font-normal">≈ {formatUsd(prorationData.unusedValue || 0)}</span></span>
+                            </div>
+                            <div className="border-t-2 border-[#bca142] pt-2 mt-2" />
+                            <div className="flex justify-between items-center">
+                              <span className="font-bold text-gray-800">Final Amount Paid:</span>
+                              <span className="font-bold text-[#bca142] text-lg text-right">
+                                {formatCurrency(prorationData.amountToCharge || viewingSubscriber.amount_paid)}
+                                <span className="block text-xs text-gray-400 font-normal">{formatUsd(prorationData.amountToCharge || viewingSubscriber.amount_paid)}</span>
+                              </span>
+                            </div>
+                            <div className="rounded-lg bg-[#faf7ec] border border-[#e6dcb8] p-2 mt-2">
+                              <p className="text-xs text-[#9d8635] text-center font-medium">
+                                Customer saved {formatCurrency(prorationData.unusedValue || prorationData.savings || 0)} with proration
+                              </p>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  );
-                }
-                return null;
+                  </div>
+                );
               })()}
             </div>
-            
-            <div className="mt-6 flex justify-end">
-              <button 
+            </div>
+
+            {/* Footer */}
+            <div className="border-t border-gray-100 bg-gray-50 px-6 py-4 flex justify-end flex-shrink-0">
+              <button
                 onClick={() => setViewingSubscriber(null)}
-                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                className="px-5 py-2.5 rounded-lg font-semibold text-gray-600 bg-white border border-gray-300 hover:bg-gray-100 transition"
               >
                 Close
               </button>

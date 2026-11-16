@@ -370,6 +370,11 @@ export const GlobalNotificationProvider = ({ children }) => {
 
           // Show notification toast
           showNotificationToast(eventData);
+
+          // Trigger badge refresh for non-heartbeat events
+          if (eventData.type && eventData.type !== 'heartbeat' && eventData.type !== 'connection') {
+            window.dispatchEvent(new CustomEvent('notification:new'));
+          }
         } catch (error) {
           console.error('Error parsing SSE message:', error);
         }

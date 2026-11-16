@@ -9,6 +9,8 @@ import CompanyQuoteRestrictionModal from '../Modal/CompanyQuoteRestrictionModal'
 import LogoutConfirmationModal from '../Modal/LogoutConfirmationModal';
 import { useLogoutModal } from '../../hooks/useLogoutModal';
 import api from '../../utils/api';
+import ProfileRing from '../ProfileCompletion/ProfileRing';
+import { useProfileCompletionContext } from '../../contexts/ProfileCompletionContext';
 
 const CompanyHeader = ({ onMenuClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -17,6 +19,7 @@ const CompanyHeader = ({ onMenuClick }) => {
   const navigate = useNavigate();
   const { unreadCount, messageUnreadCount, markAsRead } = useNotifications();
   const { isLogoutModalOpen, openLogoutModal, closeLogoutModal } = useLogoutModal();
+  const { percentage, isTracked } = useProfileCompletionContext();
 
   // State for user and logo
   const [user, setUser] = useState(null);
@@ -160,13 +163,24 @@ const CompanyHeader = ({ onMenuClick }) => {
             aria-haspopup="true"
             aria-expanded={isDropdownOpen}
           >
-            <span className="text-2xl">👤</span>
+            <ProfileRing percentage={isTracked ? percentage : 0} size={40} stroke={3}>
+              <div className="w-full h-full rounded-full bg-[#bca142] flex items-center justify-center text-white text-sm font-bold">
+                {user?.name?.charAt(0)?.toUpperCase() || '👤'}
+              </div>
+            </ProfileRing>
 
-            <div className="hidden md:flex items-center gap-2">
-              <span className="font-medium text-gray-800">
-                {user ? user.name : 'User'}
-              </span>
-              <div className="w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+            <div className="hidden md:flex flex-col items-start">
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-gray-800">
+                  {user ? user.name : 'User'}
+                </span>
+                <div className="w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+              </div>
+              {isTracked && (percentage >= 100 ? (
+                <span className="text-[11px] font-semibold text-green-600">Profile complete</span>
+              ) : (
+                <span className="text-[11px] font-semibold text-[#bca142]">{percentage}% complete</span>
+              ))}
             </div>
           </button>
 

@@ -16,8 +16,7 @@ import {
     sendQuoteRejectionNotificationToAdmin
 } from '../services/adminNotificationService.js';
 import { queueSubscriptionEmails } from '../services/emailQueue.js';
-
-// @desc    Get user's quotes with responses
+import { issueOrderCompletionCoupons } from '../services/couponService.js';
 // @route   GET /api/user-quotes/my-quotes
 // @access  Private/User
 const getUserQuotes = async (req, res) => {
@@ -617,6 +616,20 @@ const updateQuoteStatus = async (req, res) => {
                 quoteId,
                 status
             );
+        }
+
+        // 🎟️ ORDER COMPLETION REWARD — look up company + issue coupons when closed
+        if (status === 'closed') {
+            // find which company fulfilled this quote (accepted response)
+            db.execute(
+                `SELECT qr.company_id FROM user_quote_status uqs
+                 JOIN quote_responses qr ON uqs.quote_response_id = qr.id
+                 WHERE uqs.quote_id = ? AND uqs.status = 'accepted' LIMIT 1`,
+                [quoteId]
+            ).then(([rows]) => {
+                const companyId = rows[0]?.company_id || null;
+                return issueOrderCompletionCoupons(quoteId, userId, companyId);
+            }).catch(err => console.error('❌ Order reward coupon error:', err));
         }
 
         res.status(200).json({ message: 'Quote status updated successfully' });

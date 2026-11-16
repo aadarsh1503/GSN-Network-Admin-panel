@@ -13,6 +13,24 @@ const ServiceItem = ({ icon, label }) => (
   </div>
 );
 
+// Turns a raw value into a readable label (e.g. "freight_forwarders" -> "Freight Forwarders")
+const formatLabel = (value) => {
+  if (!value) return '';
+  return String(value)
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
+// Read-only label/value row used by the Company Information card.
+const InfoItem = ({ label, value, full = false }) => (
+  <div className={full ? 'sm:col-span-2 lg:col-span-3' : ''}>
+    <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">{label}</p>
+    <p className="mt-1 text-sm font-medium text-gray-800 break-words">
+      {value !== null && value !== undefined && String(value).trim() !== '' ? value : '—'}
+    </p>
+  </div>
+);
+
 // Enhanced Country flag component with comprehensive country support
 const CountryFlag = ({ countryCode, className = "w-10 h-auto mr-4 mt-1" }) => {
   const [flagUrl, setFlagUrl] = useState('');
@@ -211,6 +229,7 @@ const CountryFlag = ({ countryCode, className = "w-10 h-auto mr-4 mt-1" }) => {
 // --- The Main Component ---
 const CompanyProfileDetail = () => {
   const [companyData, setCompanyData] = useState(null);
+  const [rawProfile, setRawProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -288,6 +307,7 @@ const CompanyProfileDetail = () => {
         };
 
         setCompanyData(transformedData);
+        setRawProfile(companyProfile);
         
         // Debug log the coordinates data
         console.log('Company coordinates data:', {
@@ -417,6 +437,31 @@ const CompanyProfileDetail = () => {
                 </a>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* --- Company Information Card (all saved profile fields) --- */}
+        <div className="bg-white rounded-lg shadow-md p-6 sm:p-8 mb-8">
+          <h3 className="text-2xl font-bold text-gray-800 mb-6">Company Information</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-5">
+            <InfoItem label="Company Name" value={rawProfile?.name} />
+            <InfoItem label="Category" value={formatLabel(rawProfile?.category)} />
+            <InfoItem label="Account Email" value={rawProfile?.email} />
+            <InfoItem label="Account Phone" value={rawProfile?.phone} />
+            <InfoItem label="Owner Name" value={rawProfile?.owner_name} />
+            <InfoItem label="Owner Phone" value={rawProfile?.owner_phone} />
+            <InfoItem label="Incharge Name" value={rawProfile?.incharge_name} />
+            <InfoItem label="Incharge Phone" value={rawProfile?.incharge_phone} />
+            <InfoItem label="Country" value={rawProfile?.country} />
+            <InfoItem label="State" value={rawProfile?.state} />
+            <InfoItem label="City" value={rawProfile?.city} />
+            <InfoItem label="Website" value={rawProfile?.website} />
+            <InfoItem label="Skype" value={rawProfile?.skype} />
+            <InfoItem label="Facebook" value={rawProfile?.facebook} />
+            <InfoItem label="Twitter" value={rawProfile?.twitter} />
+            <InfoItem label="Instagram" value={rawProfile?.instagram} />
+            <InfoItem label="LinkedIn" value={rawProfile?.linkedin} />
+            <InfoItem label="Company Address" value={rawProfile?.company_address} full />
           </div>
         </div>
 

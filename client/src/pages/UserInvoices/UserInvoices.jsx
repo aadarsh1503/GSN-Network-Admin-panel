@@ -5,8 +5,10 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { api } from '../../utils/api';
 import toast from 'react-hot-toast';
+import { useCurrency } from '../../contexts/CurrencyContext';
 
 const UserInvoices = () => {
+  const { format, formatUsd } = useCurrency();
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
@@ -155,12 +157,9 @@ const UserInvoices = () => {
     });
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
+  // Every amount on a transaction invoice is quote-derived and stored in USD;
+  // show it in the user's local currency (the USD equivalent is added at the call sites).
+  const formatCurrency = (amount) => format(amount, 'USD');
 
   // Filter and pagination
   const filteredInvoices = invoices.filter(invoice => {
@@ -270,6 +269,7 @@ const UserInvoices = () => {
                     </td>
                     <td className="p-3 text-sm text-gray-700">
                       <span className="font-semibold text-[#bca142]">{formatCurrency(invoice.total_amount)}</span>
+                      <div className="text-xs text-gray-400">≈ {formatUsd(invoice.total_amount, 'USD')}</div>
                     </td>
                     <td className="p-3 text-sm text-gray-700">
                       {getStatusBadge(invoice.status)}
@@ -477,6 +477,7 @@ const UserInvoices = () => {
                         </td>
                         <td className="p-2 text-right font-semibold" style={{ border: '1px solid #D1D5DB', padding: '8px', textAlign: 'right', fontWeight: '600', fontSize: '12px', verticalAlign: 'top' }}>
                           {formatCurrency(selectedInvoice.quote_price || selectedInvoice.amount)}
+                          <div className="text-[10px] font-normal text-gray-400">≈ {formatUsd(selectedInvoice.quote_price || selectedInvoice.amount, 'USD')}</div>
                         </td>
                       </tr>
                     </tbody>
@@ -488,7 +489,10 @@ const UserInvoices = () => {
                   <div className="w-48">
                     <div className="flex justify-between py-1 font-bold" style={{ borderBottom: '2px solid #1F2937', paddingTop: '4px', paddingBottom: '4px', fontWeight: 'bold', fontSize: '14px' }}>
                       <span>Total Amount:</span>
-                      <span>{formatCurrency(selectedInvoice.quote_price || selectedInvoice.amount)}</span>
+                      <span className="text-right">
+                        {formatCurrency(selectedInvoice.quote_price || selectedInvoice.amount)}
+                        <span className="block text-[10px] font-normal text-gray-400">≈ {formatUsd(selectedInvoice.quote_price || selectedInvoice.amount, 'USD')}</span>
+                      </span>
                     </div>
                   </div>
                 </div>

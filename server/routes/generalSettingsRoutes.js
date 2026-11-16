@@ -1,5 +1,6 @@
 import express from 'express';
 import db from '../config/db.js';
+import { protect, authorize } from '../middleware/authMiddleware.js';
 import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
@@ -59,6 +60,55 @@ router.get('/', async (req, res) => {
       success: false,
       message: 'Failed to fetch general settings'
     });
+  }
+});
+
+// Get PayPal settings (admin receiving id)
+// @route   GET /api/general-settings/paypal
+// @access  Public — consumed by company payment/wallet pages
+router.get('/paypal', async (req, res) => {
+  try {
+    const [rows] = await db.execute(
+      "SELECT setting_value FROM general_settings WHERE setting_key = 'admin_paypal_id'"
+    );
+
+    res.json({
+      success: true,
+      data: {
+        admin_paypal_id: rows[0]?.setting_value || ''
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching paypal settings:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch PayPal settings' });
+  }
+});
+
+// Update PayPal receiving id (Admin only). The PayPal client id is build-env only.
+// @route   PUT /api/general-settings/paypal
+// @access  Private/Admin
+router.put('/paypal', protect, authorize('admin'), async (req, res) => {
+  try {
+    const adminPaypalId = String(req.body?.admin_paypal_id ?? '').trim();
+
+    if (adminPaypalId && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminPaypalId) && !/^https?:\/\/.+/i.test(adminPaypalId)) {
+      return res.status(400).json({ success: false, message: 'Please provide a valid PayPal email or PayPal.me link' });
+    }
+
+    await db.execute(
+      `INSERT INTO general_settings (setting_key, setting_value, setting_type) VALUES ('admin_paypal_id', ?, 'text')
+       ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_at = CURRENT_TIMESTAMP`,
+      [adminPaypalId]
+    );
+
+    res.json({
+      success: true,
+      message: 'PayPal settings saved successfully',
+      data: { admin_paypal_id: adminPaypalId }
+    });
+  } catch (error) {
+    console.error('Error saving paypal settings:', error);
+    res.status(500).json({ success: false, message: 'Failed to save PayPal settings' });
   }
 });
 

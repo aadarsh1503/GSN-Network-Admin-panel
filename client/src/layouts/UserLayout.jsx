@@ -22,14 +22,17 @@ import { api, startAccountStatusMonitoring, stopAccountStatusMonitoring } from '
 import { useAccountStatusWebSocket } from '../hooks/useAccountStatusWebSocket';
 import AccountStatusModal from '../components/Modal/AccountStatusModal';
 import { checkAndShowAccountStatus, forceLogout } from '../utils/accountStatusChecker';
+import { useProfileCompletionContext } from '../contexts/ProfileCompletionContext';
+import ProfileRing from '../components/ProfileCompletion/ProfileRing';
 
 const UserLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const { unreadCount, messageUnreadCount, forceResetUnreadCount } = useNotifications();
+  const { unreadCount, messageUnreadCount, quoteUnreadCount, forceResetUnreadCount } = useNotifications();
   const { isLogoutModalOpen, openLogoutModal, closeLogoutModal } = useLogoutModal();
+  const { percentage, isTracked } = useProfileCompletionContext();
   
   // WebSocket connection for real-time account status
   const { isConnected, accountStatus, clearAccountStatus, handleLogout: wsHandleLogout } = useAccountStatusWebSocket();
@@ -227,22 +230,24 @@ const UserLayout = () => {
         {/* User Info */}
         <div className="p-6 border-b">
           <div className="flex items-center">
-            <div className="w-10 h-10 bg-[#bca142] rounded-full flex items-center justify-center text-white font-semibold overflow-hidden">
-              {user?.logo ? (
-                <img 
-                  src={user.logo} 
-                  alt="User Logo" 
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'flex';
-                  }}
-                />
-              ) : null}
-              <div className={`w-full h-full bg-[#bca142] flex items-center justify-center text-white font-semibold ${user?.logo ? 'hidden' : ''}`}>
-                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+            <ProfileRing percentage={isTracked ? percentage : 0} size={48} stroke={3}>
+              <div className="w-full h-full bg-[#bca142] rounded-full flex items-center justify-center text-white font-semibold overflow-hidden">
+                {user?.logo ? (
+                  <img 
+                    src={user.logo} 
+                    alt="User Logo" 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                <div className={`w-full h-full bg-[#bca142] flex items-center justify-center text-white font-semibold ${user?.logo ? 'hidden' : ''}`}>
+                  {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                </div>
               </div>
-            </div>
+            </ProfileRing>
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-900">{user?.name || 'User'}</p>
               <p className="text-xs text-gray-500">{user?.email}</p>
@@ -272,6 +277,16 @@ const UserLayout = () => {
                 {item.label === 'Messages' && messageUnreadCount > 0 && (
                   <span className="bg-[#bca142] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
                     {messageUnreadCount > 99 ? '99+' : messageUnreadCount}
+                  </span>
+                )}
+                {item.label === 'My Quotes' && quoteUnreadCount > 0 && (
+                  <span className="bg-[#bca142] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+                    {quoteUnreadCount > 99 ? '99+' : quoteUnreadCount}
+                  </span>
+                )}
+                {item.label === 'Notifications' && unreadCount > 0 && (
+                  <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+                    {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 )}
               </Link>
@@ -305,6 +320,18 @@ const UserLayout = () => {
             
             <div className="flex items-center space-x-4">
               <span className="text-gray-600">Welcome back, {user?.name}!</span>
+              <div className="flex items-center space-x-2">
+                <ProfileRing percentage={isTracked ? percentage : 0} size={36} stroke={3}>
+                  <div className="w-full h-full bg-[#bca142] rounded-full flex items-center justify-center text-white text-xs font-bold">
+                    {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                  </div>
+                </ProfileRing>
+                {isTracked && (percentage >= 100 ? (
+                  <span className="text-sm font-semibold text-green-600">Profile complete</span>
+                ) : (
+                  <span className="text-sm font-medium text-gray-500">{percentage}%</span>
+                ))}
+              </div>
             </div>
           </div>
         </header>

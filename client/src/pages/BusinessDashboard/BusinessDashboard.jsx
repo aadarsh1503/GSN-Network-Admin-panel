@@ -44,6 +44,9 @@ import toast from 'react-hot-toast';
 import { api } from '../../utils/api';
 import ProfileCompletionModal from '../../components/Modal/ProfileCompletionModal';
 import { useProfileCompletion } from '../../hooks/useProfileCompletion';
+import ProfileCompletionCard from '../../components/ProfileCompletion/ProfileCompletionCard';
+import ProfileMandateModal from '../../components/ProfileCompletion/ProfileMandateModal';
+import { useProfileCompletionContext } from '../../contexts/ProfileCompletionContext';
 
 // Website color palette
 const COLORS = {
@@ -294,10 +297,12 @@ const BusinessDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [showPendingQuote, setShowPendingQuote] = useState(false);
   const [submittingPendingQuote, setSubmittingPendingQuote] = useState(false);
+  const [showMandateModal, setShowMandateModal] = useState(false);
 
   // Profile completion logic
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const { shouldShowPrompt, isModalOpen, closeModal, markProfileCompleted, dismissPermanently } = useProfileCompletion('business', user.id);
+  const { missingRequired } = useProfileCompletionContext();
 
   // Sample data for charts
   const chartData = [
@@ -421,6 +426,13 @@ const BusinessDashboard = () => {
     }
   };
 
+  const handleRequestQuoteClick = (event) => {
+    if (missingRequired.length > 0) {
+      event.preventDefault();
+      setShowMandateModal(true);
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'pending': return 'text-[#bca142] bg-gray-50';
@@ -457,6 +469,9 @@ const BusinessDashboard = () => {
   return (
     <div className="min-h-screen space-y-8">
       
+      {/* Profile Completion Card */}
+      <ProfileCompletionCard />
+
       {/* Futuristic Header */}
       <div className="text-center mb-12">
         <div className="flex items-center justify-between mb-6">
@@ -611,6 +626,7 @@ const BusinessDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Link
           to="/quote"
+          onClick={handleRequestQuoteClick}
           className="group bg-white hover:bg-gray-50 rounded-2xl p-6 border border-gray-200 transition-all duration-300 hover:shadow-xl transform hover:scale-105"
         >
           <div className="flex items-center justify-between mb-4">
@@ -737,6 +753,13 @@ const BusinessDashboard = () => {
         userName={user.name || 'Business User'}
         onComplete={markProfileCompleted}
         onDismissPermanently={dismissPermanently}
+      />
+
+      {/* Profile Mandate Modal */}
+      <ProfileMandateModal
+        isOpen={showMandateModal}
+        onClose={() => setShowMandateModal(false)}
+        actionLabel="request a quote"
       />
     </div>
   );

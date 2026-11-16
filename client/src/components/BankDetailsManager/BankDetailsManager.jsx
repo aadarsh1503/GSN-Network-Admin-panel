@@ -4,13 +4,17 @@ import {
   FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiCheck, 
   FiCreditCard, FiGlobe, FiMapPin, FiInfo, FiAlertCircle
 } from 'react-icons/fi';
-import { api } from '../../utils/api';
+import { FaPaypal } from 'react-icons/fa';
+import { api, bankAccountAPI } from '../../utils/api';
 
 const BankDetailsManager = () => {
   const [bankDetails, setBankDetails] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [paypalEmail, setPaypalEmail] = useState('');
+  const [savedPaypal, setSavedPaypal] = useState('');
+  const [savingPaypal, setSavingPaypal] = useState(false);
   const [formData, setFormData] = useState({
     bank_name: '',
     branch_name: '',
@@ -24,7 +28,38 @@ const BankDetailsManager = () => {
 
   useEffect(() => {
     fetchBankDetails();
+    fetchPaypal();
   }, []);
+
+  const fetchPaypal = async () => {
+    try {
+      const data = await bankAccountAPI.getPaypal();
+      setPaypalEmail(data?.paypal_email || '');
+      setSavedPaypal(data?.paypal_email || '');
+    } catch (error) {
+      console.error('Error fetching PayPal account:', error);
+    }
+  };
+
+  const handleSavePaypal = async (e) => {
+    e.preventDefault();
+    const value = paypalEmail.trim();
+    if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      toast.error('Please enter a valid PayPal email address');
+      return;
+    }
+    try {
+      setSavingPaypal(true);
+      await bankAccountAPI.updatePaypal(value);
+      setSavedPaypal(value);
+      toast.success('PayPal account saved successfully');
+    } catch (error) {
+      console.error('Error saving PayPal account:', error);
+      toast.error(error.response?.data?.message || 'Failed to save PayPal account');
+    } finally {
+      setSavingPaypal(false);
+    }
+  };
 
   const fetchBankDetails = async () => {
     try {
@@ -161,6 +196,39 @@ const BankDetailsManager = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* PayPal (Optional) */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <div className="flex items-center gap-3 mb-4">
+            <FaPaypal className="text-[#bca142] text-2xl" />
+            <div>
+              <h2 className="text-lg font-semibold text-gray-800">PayPal Account <span className="text-sm font-normal text-gray-400">(optional)</span></h2>
+              <p className="text-gray-600 text-sm">Add a PayPal email to receive payments via PayPal</p>
+            </div>
+          </div>
+          <form onSubmit={handleSavePaypal} className="flex flex-col sm:flex-row gap-3">
+            <input
+              type="email"
+              value={paypalEmail}
+              onChange={(e) => setPaypalEmail(e.target.value)}
+              placeholder="e.g., payments@yourcompany.com"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#bca142]"
+            />
+            <button
+              type="submit"
+              disabled={savingPaypal}
+              className="px-4 py-2 bg-[#bca142] text-white rounded-md hover:bg-[#B8941F] transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <FiSave />
+              {savingPaypal ? 'Saving...' : 'Save PayPal'}
+            </button>
+          </form>
+          {savedPaypal && (
+            <p className="mt-2 text-xs text-green-600 flex items-center gap-1">
+              <FiCheck /> Saved: {savedPaypal}
+            </p>
+          )}
         </div>
 
         {/* Bank Details List */}

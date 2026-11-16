@@ -23,14 +23,17 @@ import { api, startAccountStatusMonitoring, stopAccountStatusMonitoring } from '
 import { useAccountStatusWebSocket } from '../hooks/useAccountStatusWebSocket';
 import AccountStatusModal from '../components/Modal/AccountStatusModal';
 import { checkAndShowAccountStatus, forceLogout } from '../utils/accountStatusChecker';
+import ProfileRing from '../components/ProfileCompletion/ProfileRing';
+import { useProfileCompletionContext } from '../contexts/ProfileCompletionContext';
 
 const BusinessLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [businessProfile, setBusinessProfile] = useState(null);
   const location = useLocation();
-  const { unreadCount, messageUnreadCount, forceResetUnreadCount } = useNotifications();
+  const { unreadCount, messageUnreadCount, quoteUnreadCount, forceResetUnreadCount } = useNotifications();
   const { isLogoutModalOpen, openLogoutModal, closeLogoutModal } = useLogoutModal();
+  const { percentage, isTracked } = useProfileCompletionContext();
   
   // WebSocket connection for real-time account status
   const { isConnected, accountStatus, clearAccountStatus, handleLogout: wsHandleLogout } = useAccountStatusWebSocket();
@@ -254,27 +257,29 @@ const BusinessLayout = () => {
         <div className="p-6 border-b border-gray-200 bg-white">
           <div className="flex items-center">
             <div className="relative">
-              {businessProfile?.logo ? (
-                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#bca142] shadow-lg">
-                  <img 
-                    src={businessProfile.logo} 
-                    alt="Business Logo" 
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      // Fallback to initials if image fails to load
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'flex';
-                    }}
-                  />
-                  <div className="w-12 h-12 bg-[#bca142] rounded-full flex items-center justify-center text-white font-semibold shadow-lg" style={{display: 'none'}}>
+              <ProfileRing percentage={isTracked ? percentage : 0} size={56} stroke={3}>
+                {businessProfile?.logo ? (
+                  <div className="w-full h-full rounded-full overflow-hidden border-2 border-[#bca142] shadow-lg">
+                    <img 
+                      src={businessProfile.logo} 
+                      alt="Business Logo" 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Fallback to initials if image fails to load
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                    <div className="w-full h-full bg-[#bca142] rounded-full flex items-center justify-center text-white font-semibold shadow-lg" style={{display: 'none'}}>
+                      {businessProfile?.name?.charAt(0)?.toUpperCase() || user?.name?.charAt(0)?.toUpperCase() || 'B'}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-full h-full bg-[#bca142] rounded-full flex items-center justify-center text-white font-semibold shadow-lg">
                     {businessProfile?.name?.charAt(0)?.toUpperCase() || user?.name?.charAt(0)?.toUpperCase() || 'B'}
                   </div>
-                </div>
-              ) : (
-                <div className="w-12 h-12 bg-[#bca142] rounded-full flex items-center justify-center text-white font-semibold shadow-lg">
-                  {businessProfile?.name?.charAt(0)?.toUpperCase() || user?.name?.charAt(0)?.toUpperCase() || 'B'}
-                </div>
-              )}
+                )}
+              </ProfileRing>
               <div className="absolute -top-1 -right-1 w-4 h-4 bg-black rounded-full border-2 border-white animate-pulse"></div>
             </div>
             <div className="ml-4 flex-1 min-w-0">
@@ -326,6 +331,16 @@ const BusinessLayout = () => {
                     {messageUnreadCount > 99 ? '99+' : messageUnreadCount}
                   </span>
                 )}
+                {item.label === 'My Quotes' && quoteUnreadCount > 0 && (
+                  <span className="bg-[#bca142] text-white text-xs rounded-full h-6 w-6 flex items-center justify-center animate-bounce shadow-lg relative z-10">
+                    {quoteUnreadCount > 99 ? '99+' : quoteUnreadCount}
+                  </span>
+                )}
+                {item.label === 'Notifications' && unreadCount > 0 && (
+                  <span className="bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center animate-pulse shadow-lg relative z-10">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -362,6 +377,16 @@ const BusinessLayout = () => {
               <div className="hidden md:flex items-center space-x-2 text-slate-600">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                 <span className="text-sm">Welcome back, <span className="font-semibold text-[#bca142]">{businessProfile?.name || user?.name}</span>!</span>
+                <ProfileRing percentage={isTracked ? percentage : 0} size={36} stroke={3}>
+                  <div className="w-full h-full rounded-full flex items-center justify-center bg-white/80">
+                    <span className="text-[10px] font-extrabold text-[#bca142]">{percentage}%</span>
+                  </div>
+                </ProfileRing>
+                {isTracked && (percentage >= 100 ? (
+                  <span className="text-xs font-semibold text-green-600">Profile complete</span>
+                ) : (
+                  <span className="text-xs font-semibold text-[#bca142]">{percentage}%</span>
+                ))}
               </div>
               
               {/* Quick Stats */}

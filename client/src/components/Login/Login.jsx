@@ -6,6 +6,7 @@ import { api, isTokenExpired } from '../../utils/api';
 import activityTracker from '../../utils/activityTracker';
 import keepAliveService from '../../services/keepAliveService';
 import { Eye, EyeOff } from 'lucide-react';
+import TruckLoader from '../Loader/TruckLoader';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
@@ -13,6 +14,7 @@ const LoginPage = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState(''); // State for error messages
     const [isCheckingAuth, setIsCheckingAuth] = useState(true); // Loading state for auth check
+    const [isSubmitting, setIsSubmitting] = useState(false); // Loading state while signing in
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -103,11 +105,8 @@ const LoginPage = () => {
     // Show loading spinner while checking authentication
     if (isCheckingAuth) {
         return (
-            <div className="bg-stone-100 min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#bca142] mx-auto mb-4"></div>
-                    <p className="text-xl text-gray-600">Checking authentication...</p>
-                </div>
+            <div className="bg-stone-100 min-h-screen flex items-center justify-center px-4">
+                <TruckLoader message="Checking authentication" />
             </div>
         );
     }
@@ -115,6 +114,7 @@ const LoginPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(''); // Clear previous errors
+        setIsSubmitting(true);
 
         try {
             const data = await api.post('/api/user/login', { email, password });
@@ -207,11 +207,18 @@ const LoginPage = () => {
         } catch (err) {
             // Display error message to the user
             setError(err.message);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     return (
         <div className="bg-stone-100 min-h-screen mt-20 font-sans">
+            {isSubmitting && (
+                <div className="fixed inset-0 z-[70] flex items-center justify-center bg-white/80 backdrop-blur-sm">
+                    <TruckLoader message="Signing you in" />
+                </div>
+            )}
             <header
                 className="h-60 bg-cover bg-center relative"
                 style={{ backgroundImage: `url('/Login.jpg')` }}
@@ -289,7 +296,8 @@ const LoginPage = () => {
                         <div>
                             <button
                                 type="submit"
-                                className="w-full flex justify-center cursor-pointer py-3 px-4 rounded-md shadow-sm text-base font-medium text-white bg-[#bca142] hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#bca142] transition-colors"
+                                disabled={isSubmitting}
+                                className="w-full flex justify-center cursor-pointer py-3 px-4 rounded-md shadow-sm text-base font-medium text-white bg-[#bca142] hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#bca142] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
                             >
                                 Submit
                             </button>

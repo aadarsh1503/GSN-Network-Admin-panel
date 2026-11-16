@@ -1,261 +1,261 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { 
-  FaArrowLeft, 
-  FaCheck, 
-  FaTimes, 
-  FaEnvelope, 
-  FaPhone,
-  FaBuilding,
-  FaClock,
-  FaDollarSign,
-  FaShippingFast,
-  FaStar,
-  FaAward,
-  FaShieldAlt,
-  FaRocket,
-  FaGlobe,
-  FaUniversity,
-  FaCreditCard,
-  FaUpload,
-  FaExclamationTriangle,
-  FaEye,
-  FaComments
-} from 'react-icons/fa';
-import { 
-  Zap, 
-  Clock, 
-  Shield, 
-  Award, 
-  Truck, 
-  MapPin, 
-  Calendar,
-  Package,
-  CheckCircle,
-  XCircle,
-  Star,
-  Sparkles,
-  ArrowRight,
-  TrendingUp,
-  Users,
-  Globe,
-  CreditCard,
-  Upload
-} from 'lucide-react';
+import {
+  AiOutlineArrowLeft,
+  AiOutlineArrowRight,
+  AiOutlineApartment,
+  AiOutlineBank,
+  AiOutlineCalendar,
+  AiOutlineCar,
+  AiOutlineCheckCircle,
+  AiOutlineClockCircle,
+  AiOutlineCloseCircle,
+  AiOutlineCloudUpload,
+  AiOutlineContainer,
+  AiOutlineCreditCard,
+  AiOutlineDollar,
+  AiOutlineEnvironment,
+  AiOutlineEye,
+  AiOutlineFileText,
+  AiOutlineGlobal,
+  AiOutlineInbox,
+  AiOutlineMessage,
+  AiOutlinePhone,
+  AiOutlineSafetyCertificate,
+  AiOutlineStar,
+  AiOutlineSync,
+  AiOutlineTeam,
+  AiOutlineTrophy,
+  AiOutlineWarning
+} from 'react-icons/ai';
 import toast from 'react-hot-toast';
 import { api } from '../../utils/api';
 import QuotePaymentModal from '../../components/QuotePayment/QuotePaymentModal';
 import CompanyProfileModal from '../../components/CompanyProfileModal/CompanyProfileModal';
+import { useCurrency } from '../../contexts/CurrencyContext';
+
+// Shared glass surface style
+const GLASS = 'bg-white/60 backdrop-blur-xl border border-white/60 rounded-2xl shadow-[0_12px_32px_-16px_rgba(15,23,42,0.22)]';
 
 // Compact Response Row Component
-const CompactResponseRow = ({ 
-  response, 
-  quote, 
-  onAccept, 
-  onReject, 
-  onViewCompany, 
-  onUploadPayment, 
+const CompactResponseRow = ({
+  response,
+  quote,
+  onAccept,
+  onReject,
+  onViewCompany,
+  onUploadPayment,
   onMessageCompany,
-  actionLoading, 
-  hasAcceptedResponse, 
-  hasUploadedPaymentToAnyCompany, 
-  formatDate 
+  actionLoading,
+  hasAcceptedResponse,
+  hasUploadedPaymentToAnyCompany,
+  formatDate
 }) => {
   const [showDetails, setShowDetails] = useState(false);
 
+  // Quote prices are stored in USD; display them in the buyer's local currency
+  // with the USD equivalent underneath.
+  const { format, formatUsd } = useCurrency();
+  const amount = response.has_coupon ? Number(response.coupon_final_amount) : response.price;
+
+  const isAccepted = response.user_response_status === 'accepted';
+  const isRejected = response.user_response_status === 'rejected';
+
   const getStatusBadge = () => {
-    if (response.user_response_status === 'accepted') {
-      if (response.payment_status === 'verified') {
-        return <span className="px-2 py-1 bg-green-500 text-white text-xs rounded-full">✅ Approved</span>;
-      }
-      if (response.payment_status === 'rejected') {
-        return <span className="px-2 py-1 bg-red-500 text-white text-xs rounded-full">❌ Rejected</span>;
-      }
-      if (response.payment_status === 'pending') {
-        return <span className="px-2 py-1 bg-orange-500 text-white text-xs rounded-full">⏳ Pending</span>;
-      }
-      return <span className="px-2 py-1 bg-blue-500 text-white text-xs rounded-full">✅ Accepted</span>;
+    const base = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border';
+    if (isAccepted) {
+      if (response.payment_status === 'verified') return <span className={`${base} bg-emerald-50 text-emerald-700 border-emerald-200`}><AiOutlineCheckCircle /> Approved</span>;
+      if (response.payment_status === 'rejected') return <span className={`${base} bg-rose-50 text-rose-700 border-rose-200`}><AiOutlineCloseCircle /> Rejected</span>;
+      if (response.payment_status === 'pending') return <span className={`${base} bg-amber-50 text-amber-700 border-amber-200`}><AiOutlineClockCircle /> Pending</span>;
+      return <span className={`${base} bg-[#bca142]/15 text-[#8f7a2e] border-[#bca142]/30`}><AiOutlineCheckCircle /> Accepted</span>;
     }
-    if (response.user_response_status === 'rejected') {
-      return <span className="px-2 py-1 bg-gray-500 text-white text-xs rounded-full">❌ Rejected</span>;
-    }
-    return <span className="px-2 py-1 bg-gray-300 text-gray-700 text-xs rounded-full">⏳ Pending</span>;
+    if (isRejected) return <span className={`${base} bg-slate-100 text-slate-600 border-slate-200`}><AiOutlineCloseCircle /> Rejected</span>;
+    return <span className={`${base} bg-slate-100 text-slate-600 border-slate-200`}><AiOutlineClockCircle /> Pending</span>;
   };
 
   return (
-    <div className={`border rounded-xl p-4 transition-all duration-300 ${
-      response.user_response_status === 'accepted' 
-        ? 'border-[#bca142] bg-gradient-to-r from-green-50 to-yellow-50 shadow-lg ring-2 ring-[#bca142] ring-opacity-50' 
-        : response.user_response_status === 'rejected'
-        ? 'border-red-300 bg-red-50'
-        : 'border-gray-200 bg-white hover:border-[#bca142]'
+    <div className={`rounded-2xl p-5 backdrop-blur-md border transition-all duration-300 ${
+      isAccepted
+        ? 'border-[#bca142]/50 bg-gradient-to-r from-emerald-50/70 to-[#fdf6e8]/80 ring-1 ring-[#bca142]/30 shadow-[0_10px_26px_-14px_rgba(188,161,66,0.45)]'
+        : isRejected
+        ? 'border-rose-200 bg-rose-50/50'
+        : 'border-white/60 bg-white/70 hover:border-[#bca142]/50 hover:shadow-[0_10px_26px_-16px_rgba(15,23,42,0.25)]'
     }`}>
-      {/* Compact Row */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4 flex-1">
-          {/* Company Info */}
-          <div className="flex items-center space-x-3">
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center relative ${
-              response.user_response_status === 'accepted' 
-                ? 'bg-gradient-to-br from-[#bca142] to-yellow-500 shadow-lg' 
-                : 'bg-[#bca142]'
-            }`}>
-              <FaBuilding className="text-white h-5 w-5" />
-              {response.user_response_status === 'accepted' && (
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                  <CheckCircle className="h-2.5 w-2.5 text-white" />
-                </div>
-              )}
-            </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <h4 className="font-semibold text-gray-900">{response.company_name}</h4>
-                {response.user_response_status === 'accepted' && (
-                  <span className="px-2 py-1 bg-[#bca142] text-white text-xs font-bold rounded-full animate-pulse">
-                    🏆 APPROVED COMPANY
-                  </span>
-                )}
-              </div>
-              <p className="text-sm text-gray-600">{response.company_email}</p>
-            </div>
-          </div>
-
-          {/* Key Metrics in Row */}
-          <div className="flex items-center space-x-6 text-sm">
-            <div className="flex items-center space-x-1">
-              <FaDollarSign className="h-4 w-4 text-[#bca142]" />
-              <span className="font-semibold">${response.price}</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <Clock className="h-4 w-4 text-[#bca142]" />
-              <span>{response.transit_time}</span>
-            </div>
-            {response.valid_until && (
-              <div className="flex items-center space-x-1">
-                <Calendar className="h-4 w-4 text-[#bca142]" />
-                <span>Valid: {formatDate(response.valid_until)}</span>
+      {/* Top Row */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4 flex-1 min-w-[220px]">
+          {/* Company mark */}
+          <div className="relative w-11 h-11 rounded-xl flex items-center justify-center shadow-md shrink-0"
+            style={{ background: 'linear-gradient(135deg, #d4b55e, #bca142)' }}>
+            <AiOutlineApartment className="text-white text-lg" />
+            {isAccepted && (
+              <div className="absolute -top-1 -right-1 w-4.5 h-4.5 p-0.5 bg-emerald-500 rounded-full flex items-center justify-center">
+                <AiOutlineCheckCircle className="text-white text-[10px]" />
               </div>
             )}
           </div>
-
-          {/* Status Badge */}
-          <div className="flex items-center space-x-2">
-            {getStatusBadge()}
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h4 className="font-semibold text-slate-900 truncate">{response.company_name}</h4>
+              {isAccepted && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#bca142] text-white text-[11px] font-bold rounded-full">
+                  <AiOutlineTrophy /> APPROVED
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-slate-500 truncate">{response.company_email}</p>
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => setShowDetails(!showDetails)}
-            className="flex items-center space-x-1 px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm"
-          >
-            <FaEye className="h-3 w-3" />
-            <span>{showDetails ? 'Hide' : 'View'} Details</span>
-          </button>
-          
-          <button
-            onClick={onViewCompany}
-            className="flex items-center space-x-1 px-3 py-1 bg-[#bca142] hover:bg-black text-white rounded-lg transition-colors text-sm"
-          >
-            <FaBuilding className="h-3 w-3" />
-            <span>Company</span>
-          </button>
-
-          <button
-            onClick={onMessageCompany}
-            className="flex items-center space-x-1 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm"
-          >
-            <FaComments className="h-3 w-3" />
-            <span>Message</span>
-          </button>
-
-          {/* Quick Action Buttons */}
-          {response.user_response_status === 'accepted' ? (
-            <div className="flex items-center space-x-2">
-              <span className="px-3 py-1 bg-green-500 text-white text-sm font-bold rounded-lg flex items-center space-x-1">
-                <CheckCircle className="h-3 w-3" />
-                <span>SELECTED</span>
+        {/* Key metrics */}
+        <div className="flex items-center gap-5 text-sm">
+          <div className="flex items-center gap-1.5">
+            <AiOutlineDollar className="text-[#bca142] text-base" />
+            <span className="font-bold text-slate-900">
+              {format(amount, 'USD')}
+              <span className="block text-[10px] font-normal text-gray-400">≈ {formatUsd(amount, 'USD')}</span>
+            </span>
+            {response.has_coupon && (
+              <span className="text-xs text-slate-400 line-through">{format(Number(response.coupon_original_amount), 'USD')}</span>
+            )}
+          </div>
+          {response.has_coupon && (
+            <div className="flex items-center gap-1.5 text-[#8f7a2e]">
+              <AiOutlineSafetyCertificate className="text-[#bca142] text-base" />
+              <span className="font-semibold text-xs">
+                {response.coupon_discount_type === 'percentage'
+                  ? `${Number(response.coupon_discount_value)}% off`
+                  : `${format(Number(response.coupon_discount_value), 'USD')} off`}
               </span>
             </div>
-          ) : !hasAcceptedResponse && !response.user_response_status && (
-            <>
-              {(Boolean(response.payment_proof_uploaded) || (!response.bank_name && !response.account_number)) ? (
-                <>
-                  <button
-                    onClick={onAccept}
-                    disabled={actionLoading === response.id}
-                    className="flex items-center space-x-1 px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors text-sm disabled:opacity-50"
-                  >
-                    <CheckCircle className="h-3 w-3" />
-                    <span>Accept</span>
-                  </button>
-                  <button
-                    onClick={onReject}
-                    disabled={actionLoading === response.id}
-                    className="flex items-center space-x-1 px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors text-sm disabled:opacity-50"
-                  >
-                    <XCircle className="h-3 w-3" />
-                    <span>Reject</span>
-                  </button>
-                </>
-              ) : (response.bank_name || response.account_number) && !hasUploadedPaymentToAnyCompany && (
-                <button
-                  onClick={onUploadPayment}
-                  className="flex items-center space-x-1 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm"
-                >
-                  <Upload className="h-3 w-3" />
-                  <span>Pay</span>
-                </button>
-              )}
-            </>
+          )}
+          <div className="flex items-center gap-1.5 text-slate-700">
+            <AiOutlineClockCircle className="text-[#bca142] text-base" />
+            <span className="font-medium">{response.transit_time}</span>
+          </div>
+          {response.valid_until && (
+            <div className="flex items-center gap-1.5 text-slate-700">
+              <AiOutlineCalendar className="text-[#bca142] text-base" />
+              <span className="font-medium">Valid: {formatDate(response.valid_until)}</span>
+            </div>
           )}
         </div>
+
+        <div className="flex items-center gap-2">{getStatusBadge()}</div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-slate-200/70">
+        <button
+          onClick={() => setShowDetails(!showDetails)}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/80 border border-slate-200 text-slate-700 hover:border-[#bca142]/50 hover:text-[#8f7a2e] transition-colors text-sm font-medium"
+        >
+          <AiOutlineEye />
+          <span>{showDetails ? 'Hide' : 'View'} Details</span>
+        </button>
+
+        <button
+          onClick={onViewCompany}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/80 border border-slate-200 text-slate-700 hover:border-[#bca142]/50 hover:text-[#8f7a2e] transition-colors text-sm font-medium"
+        >
+          <AiOutlineApartment />
+          <span>Company</span>
+        </button>
+
+        <button
+          onClick={onMessageCompany}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/80 border border-slate-200 text-slate-700 hover:border-[#bca142]/50 hover:text-[#8f7a2e] transition-colors text-sm font-medium"
+        >
+          <AiOutlineMessage />
+          <span>Message</span>
+        </button>
+
+        <div className="flex-1" />
+
+        {/* Quick actions */}
+        {isAccepted ? (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 text-white text-sm font-bold rounded-lg">
+            <AiOutlineCheckCircle />
+            <span>SELECTED</span>
+          </span>
+        ) : !hasAcceptedResponse && !response.user_response_status && (
+          <>
+            {(Boolean(response.payment_proof_uploaded) || (!response.bank_name && !response.account_number)) ? (
+              <>
+                <button
+                  onClick={onAccept}
+                  disabled={actionLoading === response.id}
+                  className="inline-flex items-center gap-1.5 px-4 py-1.5 text-white rounded-lg text-sm font-semibold transition-all disabled:opacity-50 shadow-sm"
+                  style={{ background: 'linear-gradient(135deg, #34a853, #1e8e3e)' }}
+                >
+                  <AiOutlineCheckCircle />
+                  <span>Accept</span>
+                </button>
+                <button
+                  onClick={onReject}
+                  disabled={actionLoading === response.id}
+                  className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-white/80 border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+                >
+                  <AiOutlineCloseCircle />
+                  <span>Reject</span>
+                </button>
+              </>
+            ) : (response.bank_name || response.account_number) && !hasUploadedPaymentToAnyCompany && (
+              <button
+                onClick={onUploadPayment}
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 text-white rounded-lg text-sm font-semibold transition-all shadow-sm"
+                style={{ background: 'linear-gradient(135deg, #d4b55e, #bca142)' }}
+              >
+                <AiOutlineCloudUpload />
+                <span>Pay</span>
+              </button>
+            )}
+          </>
+        )}
       </div>
 
       {/* Expandable Details */}
       {showDetails && (
-        <div className="mt-4 pt-4 border-t border-gray-200 space-y-4">
-          {/* Detailed Information */}
+        <div className="mt-4 pt-4 border-t border-slate-200/70 space-y-4">
           {(response.inclusions || response.value_added_services || response.terms || response.notes) && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {response.inclusions && (
-                <div className="bg-white rounded-lg p-3 border border-gray-200">
-                  <h5 className="font-semibold text-gray-800 mb-2 flex items-center space-x-1">
-                    <CheckCircle className="h-4 w-4 text-[#bca142]" />
+                <div className="bg-white/70 rounded-xl p-4 border border-slate-200/80">
+                  <h5 className="font-semibold text-slate-800 mb-2 flex items-center gap-2 text-sm">
+                    <AiOutlineCheckCircle className="text-[#bca142]" />
                     <span>Inclusions</span>
                   </h5>
-                  <p className="text-gray-700 text-sm">{response.inclusions}</p>
+                  <p className="text-slate-600 text-sm leading-relaxed">{response.inclusions}</p>
                 </div>
               )}
-              
+
               {response.value_added_services && (
-                <div className="bg-white rounded-lg p-3 border border-gray-200">
-                  <h5 className="font-semibold text-gray-800 mb-2 flex items-center space-x-1">
-                    <Star className="h-4 w-4 text-[#bca142]" />
+                <div className="bg-white/70 rounded-xl p-4 border border-slate-200/80">
+                  <h5 className="font-semibold text-slate-800 mb-2 flex items-center gap-2 text-sm">
+                    <AiOutlineStar className="text-[#bca142]" />
                     <span>Value Added Services</span>
                   </h5>
-                  <p className="text-gray-700 text-sm">{response.value_added_services}</p>
+                  <p className="text-slate-600 text-sm leading-relaxed">{response.value_added_services}</p>
                 </div>
               )}
-              
+
               {response.terms && (
-                <div className="bg-white rounded-lg p-3 border border-gray-200">
-                  <h5 className="font-semibold text-gray-800 mb-2 flex items-center space-x-1">
-                    <Shield className="h-4 w-4 text-[#bca142]" />
-                    <span>Terms & Conditions</span>
+                <div className="bg-white/70 rounded-xl p-4 border border-slate-200/80">
+                  <h5 className="font-semibold text-slate-800 mb-2 flex items-center gap-2 text-sm">
+                    <AiOutlineSafetyCertificate className="text-[#bca142]" />
+                    <span>Terms &amp; Conditions</span>
                   </h5>
-                  <p className="text-gray-700 text-sm">{response.terms}</p>
+                  <p className="text-slate-600 text-sm leading-relaxed">{response.terms}</p>
                 </div>
               )}
-              
+
               {response.notes && (
-                <div className="bg-white rounded-lg p-3 border border-gray-200">
-                  <h5 className="font-semibold text-gray-800 mb-2 flex items-center space-x-1">
-                    <Award className="h-4 w-4 text-[#bca142]" />
+                <div className="bg-white/70 rounded-xl p-4 border border-slate-200/80">
+                  <h5 className="font-semibold text-slate-800 mb-2 flex items-center gap-2 text-sm">
+                    <AiOutlineTrophy className="text-[#bca142]" />
                     <span>Additional Notes</span>
                   </h5>
-                  <p className="text-gray-700 text-sm">{response.notes}</p>
+                  <p className="text-slate-600 text-sm leading-relaxed">{response.notes}</p>
                 </div>
               )}
             </div>
@@ -263,131 +263,110 @@ const CompactResponseRow = ({
 
           {/* Bank Details */}
           {(response.bank_name || response.account_number) && (
-            <div className="bg-white rounded-lg p-4 border border-[#bca142]">
-              <h5 className="font-semibold text-gray-800 mb-3 flex items-center space-x-1">
-                <FaUniversity className="h-4 w-4 text-[#bca142]" />
+            <div className="bg-white/70 rounded-xl p-5 border border-[#bca142]/30">
+              <h5 className="font-semibold text-slate-800 mb-4 flex items-center gap-2 text-sm">
+                <AiOutlineBank className="text-[#bca142]" />
                 <span>Payment Bank Details</span>
               </h5>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                {response.bank_name && (
-                  <div>
-                    <span className="text-gray-600 text-xs">Bank Name:</span>
-                    <p className="text-gray-800 font-semibold text-sm">{response.bank_name}</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[
+                  ['Bank Name', response.bank_name],
+                  ['Account Holder', response.account_holder_name],
+                  ['Account Number', response.account_number],
+                  ['SWIFT Code', response.swift_code],
+                  ['IFSC Code', response.ifsc_code],
+                  ['Branch', response.branch_name]
+                ].filter(([, v]) => v).map(([label, value]) => (
+                  <div key={label}>
+                    <span className="block text-[11px] font-semibold uppercase tracking-wide text-slate-400 mb-1">{label}</span>
+                    <p className="text-slate-800 font-semibold text-sm">{value}</p>
                   </div>
-                )}
-                {response.account_holder_name && (
-                  <div>
-                    <span className="text-gray-600 text-xs">Account Holder:</span>
-                    <p className="text-gray-800 font-semibold text-sm">{response.account_holder_name}</p>
-                  </div>
-                )}
-                {response.account_number && (
-                  <div>
-                    <span className="text-gray-600 text-xs">Account Number:</span>
-                    <p className="text-gray-800 font-semibold text-sm">{response.account_number}</p>
-                  </div>
-                )}
-                {response.swift_code && (
-                  <div>
-                    <span className="text-gray-600 text-xs">SWIFT Code:</span>
-                    <p className="text-gray-800 font-semibold text-sm">{response.swift_code}</p>
-                  </div>
-                )}
-                {response.ifsc_code && (
-                  <div>
-                    <span className="text-gray-600 text-xs">IFSC Code:</span>
-                    <p className="text-gray-800 font-semibold text-sm">{response.ifsc_code}</p>
-                  </div>
-                )}
-                {response.branch_name && (
-                  <div>
-                    <span className="text-gray-600 text-xs">Branch:</span>
-                    <p className="text-gray-800 font-semibold text-sm">{response.branch_name}</p>
-                  </div>
-                )}
+                ))}
               </div>
               {response.bank_instructions && (
-                <div className="mt-3 p-2 bg-gray-50 rounded border">
-                  <span className="text-gray-600 text-xs">Instructions:</span>
-                  <p className="text-gray-800 text-sm mt-1">{response.bank_instructions}</p>
+                <div className="mt-4 p-3 bg-[#bca142]/10 rounded-lg border border-[#bca142]/20">
+                  <span className="block text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-1">Instructions</span>
+                  <p className="text-slate-700 text-sm">{response.bank_instructions}</p>
                 </div>
               )}
             </div>
           )}
 
-          {/* Payment Status Details */}
-          {response.user_response_status === 'accepted' && (
+          {/* Payment Status */}
+          {isAccepted && (
             <div className="space-y-3">
               {response.payment_status === 'pending' && (
-                <div className="bg-orange-100 border border-orange-300 rounded-lg p-3">
-                  <div className="flex items-center space-x-2">
-                    <FaCreditCard className="h-4 w-4 text-orange-600" />
-                    <span className="font-semibold text-orange-800">Payment Verification Pending</span>
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                  <div className="flex items-center gap-2">
+                    <AiOutlineCreditCard className="text-amber-600" />
+                    <span className="font-semibold text-amber-800 text-sm">Payment Verification Pending</span>
                   </div>
-                  <p className="text-orange-700 text-sm mt-1">Your payment proof is being verified by the company.</p>
+                  <p className="text-amber-700 text-sm mt-1">Your payment proof is being verified by the company.</p>
                 </div>
               )}
-              
+
               {response.payment_status === 'verified' && (
-                <div className="bg-green-100 border border-green-300 rounded-lg p-3">
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="font-semibold text-green-800">Payment Verified ✓</span>
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                  <div className="flex items-center gap-2">
+                    <AiOutlineCheckCircle className="text-emerald-600" />
+                    <span className="font-semibold text-emerald-800 text-sm">Payment Verified</span>
                   </div>
-                  <p className="text-green-700 text-sm mt-1">Your payment has been verified. The service will begin as scheduled.</p>
+                  <p className="text-emerald-700 text-sm mt-1">Your payment has been verified. The service will begin as scheduled.</p>
                 </div>
               )}
-              
+
               {response.payment_status === 'rejected' && (
-                <div className="bg-red-100 border border-red-300 rounded-lg p-3">
-                  <div className="flex items-center space-x-2">
-                    <XCircle className="h-4 w-4 text-red-600" />
-                    <span className="font-semibold text-red-800">Payment Verification Failed</span>
+                <div className="bg-rose-50 border border-rose-200 rounded-xl p-4">
+                  <div className="flex items-center gap-2">
+                    <AiOutlineCloseCircle className="text-rose-600" />
+                    <span className="font-semibold text-rose-800 text-sm">Payment Verification Failed</span>
                   </div>
-                  <p className="text-red-700 text-sm mt-1">Please contact the company or upload a clearer payment proof.</p>
+                  <p className="text-rose-700 text-sm mt-1">Please contact the company or upload a clearer payment proof.</p>
                   {response.payment_company_notes && (
-                    <p className="text-red-600 text-xs mt-1">Note: {response.payment_company_notes}</p>
+                    <p className="text-rose-600 text-xs mt-1">Note: {response.payment_company_notes}</p>
                   )}
                 </div>
               )}
             </div>
           )}
 
-          {/* Action Buttons in Details */}
+          {/* Action Buttons inside Details */}
           {!hasAcceptedResponse && !response.user_response_status && (
-            <div className="flex flex-col sm:flex-row gap-3 pt-3 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row gap-3 pt-3 border-t border-slate-200/70">
               {!Boolean(response.payment_proof_uploaded) && (response.bank_name || response.account_number) && !hasUploadedPaymentToAnyCompany && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between">
+                <div className="bg-[#bca142]/10 border border-[#bca142]/30 rounded-xl p-4 flex items-center justify-between gap-3 flex-1">
                   <div>
-                    <h6 className="font-semibold text-blue-800 text-sm">Payment Required First</h6>
-                    <p className="text-blue-700 text-xs">Make payment and upload proof before accepting.</p>
+                    <h6 className="font-semibold text-[#8f7a2e] text-sm">Payment Required First</h6>
+                    <p className="text-slate-600 text-xs">Make payment and upload proof before accepting.</p>
                   </div>
                   <button
                     onClick={onUploadPayment}
-                    className="flex items-center space-x-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                    className="inline-flex items-center gap-1.5 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm"
+                    style={{ background: 'linear-gradient(135deg, #d4b55e, #bca142)' }}
                   >
-                    <Upload className="h-3 w-3" />
+                    <AiOutlineCloudUpload />
                     <span>Upload Payment</span>
                   </button>
                 </div>
               )}
 
               {Boolean(response.payment_proof_uploaded) && (
-                <div className="flex space-x-3">
+                <div className="flex gap-3 flex-1">
                   <button
                     onClick={onAccept}
                     disabled={actionLoading === response.id}
-                    className="flex-1 flex items-center justify-center space-x-2 bg-[#bca142] hover:bg-black text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
+                    className="flex-1 inline-flex items-center justify-center gap-2 text-white font-semibold py-2.5 px-4 rounded-xl transition-all disabled:opacity-50 shadow-sm"
+                    style={{ background: 'linear-gradient(135deg, #34a853, #1e8e3e)' }}
                   >
-                    <CheckCircle className="h-4 w-4" />
+                    <AiOutlineCheckCircle />
                     <span>Accept Quote</span>
                   </button>
                   <button
                     onClick={onReject}
                     disabled={actionLoading === response.id}
-                    className="flex-1 flex items-center justify-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
+                    className="flex-1 inline-flex items-center justify-center gap-2 bg-white/80 border border-rose-200 text-rose-600 hover:bg-rose-50 font-semibold py-2.5 px-4 rounded-xl transition-colors disabled:opacity-50"
                   >
-                    <XCircle className="h-4 w-4" />
+                    <AiOutlineCloseCircle />
                     <span>Reject Quote</span>
                   </button>
                 </div>
@@ -491,15 +470,6 @@ const QuoteDetails = () => {
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'pending': return 'text-yellow-600 bg-yellow-100';
-      case 'accepted': return 'text-green-600 bg-green-100';
-      case 'rejected': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
-  };
-
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -515,27 +485,38 @@ const QuoteDetails = () => {
 
   // Function to navigate to messages with specific company
   const handleMessageCompany = (companyId, companyName) => {
-    // Navigate to user messages page with company info
-    navigate('/user/messages', { 
-      state: { 
+    navigate('/user/messages', {
+      state: {
         selectedCompanyId: companyId,
-        selectedCompanyName: companyName 
-      } 
+        selectedCompanyName: companyName
+      }
     });
   };
 
   const hasAcceptedResponse = Array.isArray(responses) ? responses.some(response => response.user_response_status === 'accepted') : false;
 
+  // Resolve the approved/winning company (same fallback strategy used elsewhere)
+  const findApprovedResponse = () => {
+    if (!Array.isArray(responses) || responses.length === 0) return null;
+    return (
+      responses.find(r => r.user_response_status === 'accepted' && r.payment_status === 'verified') ||
+      responses.find(r => r.user_response_status === 'accepted') ||
+      responses.find(r => r.payment_status === 'verified') ||
+      responses.find(r => r.payment_proof_uploaded) ||
+      (quote && quote.status === 'approved' ? responses.find(r => r.company_name && r.company_email) : null)
+    );
+  };
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="flex flex-col items-center gap-3">
-          <div className="relative">
-            <div className="h-12 w-12 border-4 border-gray-200 rounded-full animate-spin">
-              <div className="h-12 w-12 border-4 border-transparent border-t-[#bca142] rounded-full animate-spin"></div>
-            </div>
+      <div className="min-h-screen flex items-center justify-center"
+        style={{ background: 'linear-gradient(145deg, #faf8f0 0%, #fdf6e8 50%, #f7f3e7 100%)' }}>
+        <div className={`${GLASS} flex flex-col items-center gap-4 px-12 py-9`}>
+          <div className="relative h-12 w-12">
+            <div className="absolute inset-0 rounded-full border-4 border-[#bca142]/20" />
+            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[#bca142] animate-spin" />
           </div>
-          <p className="text-gray-600 font-medium">Loading quote details...</p>
+          <p className="text-slate-600 font-medium text-sm">Loading quote details…</p>
         </div>
       </div>
     );
@@ -543,197 +524,163 @@ const QuoteDetails = () => {
 
   if (!quote) {
     return (
-      <div className="text-center py-12">
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Quote not found</h3>
-        <Link to="/user/quotes" className="text-[#bca142] hover:text-black">
-          Back to Quotes
-        </Link>
+      <div className="min-h-screen flex items-center justify-center px-4"
+        style={{ background: 'linear-gradient(145deg, #faf8f0 0%, #fdf6e8 50%, #f7f3e7 100%)' }}>
+        <div className={`${GLASS} max-w-sm text-center px-10 py-10`}>
+          <div className="mx-auto w-14 h-14 rounded-2xl bg-[#bca142]/15 text-[#bca142] flex items-center justify-center mb-4 text-2xl">
+            <AiOutlineFileText />
+          </div>
+          <h3 className="text-lg font-semibold text-slate-800 mb-1">Quote not found</h3>
+          <p className="text-sm text-slate-500 mb-5">This quote may have been removed or the link is incorrect.</p>
+          <Link
+            to="/user/quotes"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-semibold text-sm shadow-md"
+            style={{ background: 'linear-gradient(135deg, #d4b55e, #bca142)' }}
+          >
+            <AiOutlineArrowLeft /> Back to Quotes
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        
-        {/* Quote Status Banner - Show when approved */}
-        {quote && quote.status === 'approved' && (
-          <div className="bg-white border-2 border-[#bca142] rounded-2xl p-6 shadow-lg">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-[#bca142] rounded-full shadow-md">
-                <CheckCircle className="h-6 w-6 text-white" />
+    <div className="min-h-screen relative overflow-hidden"
+      style={{ background: 'linear-gradient(145deg, #faf8f0 0%, #fdf6e8 50%, #f7f3e7 100%)' }}>
+
+      {/* Soft gold orbs */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-40 -left-40 w-[520px] h-[520px] rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(188,161,66,0.18) 0%, transparent 70%)', filter: 'blur(50px)' }} />
+        <div className="absolute -bottom-40 -right-40 w-[440px] h-[440px] rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(188,161,66,0.14) 0%, transparent 70%)', filter: 'blur(50px)' }} />
+      </div>
+
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+        {/* Approved Banner */}
+        {quote.status === 'approved' && (
+          <div className={`${GLASS} p-6 border-[#bca142]/40`}>
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-2xl shadow-md shrink-0"
+                style={{ background: 'linear-gradient(135deg, #d4b55e, #bca142)' }}>
+                <AiOutlineCheckCircle className="text-white text-xl" />
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-bold text-black mb-2">🎉 Quote Approved!</h3>
-                <p className="text-gray-700 leading-relaxed mb-3">
-                  Great news! Your payment has been verified and your quote has been approved. 
-                  The company will begin working on your shipment as scheduled.
+                <h3 className="text-xl font-bold text-slate-900 mb-2">Quote Approved</h3>
+                <p className="text-slate-600 leading-relaxed mb-4">
+                  Your payment has been verified and your quote has been approved. The company will begin
+                  working on your shipment as scheduled.
                 </p>
                 {(() => {
-                  // Try multiple fallback strategies to find the approved company
-                  let acceptedResponse = null;
-                  
-                  // Strategy 1: Look for accepted response with verified payment (most accurate)
-                  acceptedResponse = responses.find(r => r.user_response_status === 'accepted' && r.payment_status === 'verified');
-                  
-                  // Strategy 2: Look for any accepted response (for older data)
-                  if (!acceptedResponse) {
-                    acceptedResponse = responses.find(r => r.user_response_status === 'accepted');
-                  }
-                  
-                  // Strategy 3: Look for any response with verified payment
-                  if (!acceptedResponse) {
-                    acceptedResponse = responses.find(r => r.payment_status === 'verified');
-                  }
-                  
-                  // Strategy 4: Look for any response with payment proof uploaded (fallback for old data)
-                  if (!acceptedResponse) {
-                    acceptedResponse = responses.find(r => r.payment_proof_uploaded);
-                  }
-                  
-                  // Strategy 5: If quote is approved but no specific response found, show first response with company info
-                  if (!acceptedResponse && responses.length > 0) {
-                    acceptedResponse = responses.find(r => r.company_name && r.company_email);
-                  }
-                  
+                  const acceptedResponse = findApprovedResponse();
                   return acceptedResponse ? (
-                    <div className="bg-gray-50 rounded-lg p-4 border border-[#bca142]">
-                      <div className="flex items-center space-x-3">
-                        <FaBuilding className="h-5 w-5 text-[#bca142]" />
+                    <div className="bg-white/70 rounded-xl p-4 border border-[#bca142]/25">
+                      <div className="flex items-center gap-3">
+                        <AiOutlineApartment className="text-[#bca142] text-lg" />
                         <div>
-                          <p className="text-black font-semibold text-lg">{acceptedResponse.company_name}</p>
-                          <p className="text-gray-600 text-sm">{acceptedResponse.company_email}</p>
+                          <p className="text-slate-900 font-semibold">{acceptedResponse.company_name}</p>
+                          <p className="text-slate-500 text-sm">{acceptedResponse.company_email}</p>
                           {acceptedResponse.company_phone && (
-                            <p className="text-gray-600 text-sm flex items-center space-x-1 mt-1">
-                              <FaPhone className="h-3 w-3" />
-                              <span>{acceptedResponse.company_phone}</span>
+                            <p className="text-slate-500 text-sm flex items-center gap-1.5 mt-1">
+                              <AiOutlinePhone /> <span>{acceptedResponse.company_phone}</span>
                             </p>
                           )}
                         </div>
                       </div>
-                      <div className="mt-3 text-sm text-gray-700">
+                      <div className="mt-3 text-sm text-slate-600">
                         {acceptedResponse.payment_status === 'verified' ? (
-                          <p className="font-medium">✅ Payment verified and approved by this company</p>
+                          <p className="font-medium flex items-center gap-1.5"><AiOutlineCheckCircle className="text-emerald-600" /> Payment verified and approved by this company</p>
                         ) : acceptedResponse.user_response_status === 'accepted' ? (
-                          <p className="font-medium">✅ Quote accepted by this company</p>
+                          <p className="font-medium flex items-center gap-1.5"><AiOutlineCheckCircle className="text-emerald-600" /> Quote accepted by this company</p>
                         ) : (
-                          <p className="font-medium">✅ This company is handling your approved quote</p>
+                          <p className="font-medium flex items-center gap-1.5"><AiOutlineCheckCircle className="text-emerald-600" /> This company is handling your approved quote</p>
                         )}
                         {acceptedResponse.verification_date && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            Verified on: {new Date(acceptedResponse.verification_date).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })}
+                          <p className="text-xs text-slate-400 mt-1">
+                            Verified on: {formatDate(acceptedResponse.verification_date)}
                           </p>
                         )}
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-gray-50 rounded-lg p-4 border border-[#bca142]">
-                      <div className="flex items-center space-x-3">
-                        <FaBuilding className="h-5 w-5 text-[#bca142]" />
+                    <div className="bg-white/70 rounded-xl p-4 border border-[#bca142]/25">
+                      <div className="flex items-center gap-3">
+                        <AiOutlineApartment className="text-[#bca142] text-lg" />
                         <div>
-                          <p className="text-black font-semibold text-lg">Approved Company</p>
-                          <p className="text-gray-600 text-sm">Your quote has been approved and is being processed</p>
+                          <p className="text-slate-900 font-semibold">Approved Company</p>
+                          <p className="text-slate-500 text-sm">Your quote has been approved and is being processed</p>
                         </div>
                       </div>
                     </div>
                   );
                 })()}
               </div>
-              <div className="text-[#bca142] text-sm font-medium bg-white px-3 py-1 rounded-lg border border-[#bca142]">
-                Status: Approved ✓
-              </div>
             </div>
           </div>
         )}
 
-        {/* Payment Rejection Banner - Show prominently at top */}
+        {/* Payment Rejection Banner */}
         {(() => {
           const rejectedResponse = getRejectedResponse();
-          
           return rejectedResponse && (
-            <div className="bg-white border-2 border-black rounded-3xl p-8 shadow-xl mb-6">
-              <div className="flex items-start space-x-6">
-                <div className="p-4 bg-black rounded-2xl flex-shrink-0 shadow-lg">
-                  <XCircle className="h-8 w-8 text-white" />
+            <div className={`${GLASS} p-6 sm:p-8 border-rose-200/80`}>
+              <div className="flex items-start gap-5">
+                <div className="p-4 bg-rose-500 rounded-2xl shrink-0 shadow-md">
+                  <AiOutlineCloseCircle className="text-white text-2xl" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-black mb-4">❌ Payment Verification Failed</h3>
-                  <p className="text-gray-700 text-lg leading-relaxed mb-6">
-                    Unfortunately, your payment proof was not accepted by the company. Please review the reason below and take appropriate action.
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3">Payment Verification Failed</h3>
+                  <p className="text-slate-600 leading-relaxed mb-6">
+                    Unfortunately, your payment proof was not accepted by the company. Please review the reason
+                    below and take appropriate action.
                   </p>
 
-                  {/* Company Info */}
-                  <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200 shadow-sm mb-6">
-                    <div className="flex items-center space-x-3">
-                      <FaBuilding className="h-5 w-5 text-black" />
+                  <div className="bg-white/70 rounded-xl p-4 border border-slate-200/80 mb-6">
+                    <div className="flex items-center gap-3">
+                      <AiOutlineApartment className="text-slate-700 text-lg" />
                       <div>
-                        <p className="text-black font-bold text-lg">{rejectedResponse.company_name}</p>
-                        <p className="text-gray-600">{rejectedResponse.company_email}</p>
+                        <p className="text-slate-900 font-semibold">{rejectedResponse.company_name}</p>
+                        <p className="text-slate-500 text-sm">{rejectedResponse.company_email}</p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Rejection Reason */}
                   {rejectedResponse.payment_company_notes && (
-                    <div className="bg-gray-50 rounded-2xl p-6 border-2 border-gray-200 shadow-sm mb-6">
-                      <div className="flex items-start space-x-4">
-                        <div className="p-3 bg-black rounded-xl flex-shrink-0">
-                          <FaBuilding className="h-5 w-5 text-white" />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-bold text-black text-lg mb-3">📝 Reason for Rejection:</h4>
-                          <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                            <p className="text-black font-medium text-lg leading-relaxed">
-                              "{rejectedResponse.payment_company_notes}"
-                            </p>
-                          </div>
-                        </div>
+                    <div className="bg-white/70 rounded-xl p-5 border border-slate-200/80 mb-6">
+                      <h4 className="font-bold text-slate-900 mb-3 flex items-center gap-2">
+                        <AiOutlineWarning className="text-rose-500" /> Reason for Rejection
+                      </h4>
+                      <div className="bg-white rounded-lg p-4 border border-slate-200/80">
+                        <p className="text-slate-700 leading-relaxed">"{rejectedResponse.payment_company_notes}"</p>
                       </div>
                     </div>
                   )}
 
-                  {/* Rejection Date */}
                   {rejectedResponse.rejection_date && (
-                    <div className="flex items-center space-x-3 text-gray-600 mb-6">
-                      <Calendar className="h-5 w-5" />
-                      <p className="font-medium">
-                        <strong>Rejected on:</strong> {formatDate(rejectedResponse.rejection_date)}
-                      </p>
+                    <div className="flex items-center gap-3 text-slate-500 mb-6">
+                      <AiOutlineCalendar />
+                      <p className="font-medium text-sm"><strong className="text-slate-700">Rejected on:</strong> {formatDate(rejectedResponse.rejection_date)}</p>
                     </div>
                   )}
 
-                  {/* Next Steps */}
-                  <div className="bg-white rounded-2xl p-6 border-2 border-[#bca142] shadow-sm">
-                    <div className="flex items-start space-x-4">
-                      <div className="p-3 bg-[#bca142] rounded-xl flex-shrink-0">
-                        <FaExclamationTriangle className="h-5 w-5 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-bold text-black text-lg mb-3">🔄 Next Steps:</h4>
-                        <ul className="text-gray-700 space-y-2 font-medium">
-                          <li className="flex items-start space-x-2">
-                            <span className="text-[#bca142] font-bold">1.</span>
-                            <span>Review the rejection reason above carefully</span>
-                          </li>
-                          <li className="flex items-start space-x-2">
-                            <span className="text-[#bca142] font-bold">2.</span>
-                            <span>Contact the company directly for clarification if needed</span>
-                          </li>
-                          <li className="flex items-start space-x-2">
-                            <span className="text-[#bca142] font-bold">3.</span>
-                            <span>Upload a new, clearer payment proof if possible</span>
-                          </li>
-                          <li className="flex items-start space-x-2">
-                            <span className="text-[#bca142] font-bold">4.</span>
-                            <span>Consider accepting quotes from other companies</span>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
+                  <div className="bg-white/70 rounded-xl p-5 border border-[#bca142]/25">
+                    <h4 className="font-bold text-slate-900 mb-3 flex items-center gap-2">
+                      <AiOutlineWarning className="text-[#bca142]" /> Next Steps
+                    </h4>
+                    <ul className="text-slate-600 space-y-2 text-sm">
+                      {[
+                        'Review the rejection reason above carefully',
+                        'Contact the company directly for clarification if needed',
+                        'Upload a new, clearer payment proof if possible',
+                        'Consider accepting quotes from other companies'
+                      ].map((step, i) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <span className="text-[#bca142] font-bold">{i + 1}.</span>
+                          <span>{step}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
               </div>
@@ -741,159 +688,123 @@ const QuoteDetails = () => {
           );
         })()}
 
-        {/* Modern Header */}
-        <div className="relative overflow-hidden bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
-          <div className="relative z-10">
-            <div className="flex items-center justify-between mb-4">
-              <Link
-                to="/user/quotes"
-                className="group flex items-center space-x-2 text-slate-600 hover:text-[#bca142] transition-all duration-300"
-              >
-                <div className="p-2 bg-white rounded-xl group-hover:bg-gray-50 transition-all duration-300 shadow-md border border-gray-200">
-                  <FaArrowLeft className="h-4 w-4" />
-                </div>
-                <span className="font-semibold">Back to My Quotes</span>
-              </Link>
-              
-              <div className="flex items-center space-x-3">
-                <div className={`px-4 py-2 rounded-xl border font-semibold shadow-md ${
-                  quote.status === 'pending' ? 'bg-white text-[#bca142] border-[#bca142]' :
-                  quote.status === 'approved' ? 'bg-[#bca142] text-white border-[#bca142] ring-2 ring-[#bca142] ring-offset-2' :
-                  quote.status === 'running' ? 'bg-[#bca142] text-white border-[#bca142]' :
-                  quote.status === 'closed' ? 'bg-[#bca142] text-white border-[#bca142]' :
-                  'bg-black text-white border-black'
-                }`}>
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-2 h-2 rounded-full ${
-                      quote.status === 'pending' ? 'bg-[#bca142] animate-pulse' :
-                      quote.status === 'approved' ? 'bg-white animate-bounce' :
-                      quote.status === 'running' ? 'bg-white animate-pulse' :
-                      quote.status === 'closed' ? 'bg-white' :
-                      'bg-white animate-pulse'
-                    }`}></div>
-                    <span className="capitalize">
-                      {quote.status}
-                      {quote.status === 'approved' && ' ✓'}
-                    </span>
-                  </div>
-                </div>
-                
-                {/* Refresh Button */}
-                <button
-                  onClick={async () => {
-                    setLoading(true);
-                    await fetchQuoteDetails();
-                    await fetchQuoteResponses();
-                    setLoading(false);
-                    toast.success('Status updated!');
-                  }}
-                  className="flex items-center space-x-2 bg-[#bca142] hover:bg-black text-white px-3 py-2 rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
-                  title="Refresh status"
-                >
-                  <div className="w-4 h-4">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                  </div>
-                  <span className="text-sm font-semibold">Refresh</span>
-                </button>
-                
-                <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-md">
-                  <Sparkles className="h-4 w-4 text-[#bca142]" />
-                  <span className="text-slate-700 font-semibold">{responses.length} Responses</span>
+        {/* Header */}
+        <div className={`${GLASS} p-6`}>
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+            <Link
+              to="/user/quotes"
+              className="group flex items-center gap-2 text-slate-600 hover:text-[#bca142] transition-colors"
+            >
+              <span className="p-2 bg-white/80 rounded-xl border border-slate-200 shadow-sm group-hover:border-[#bca142]/50 transition-colors">
+                <AiOutlineArrowLeft className="text-sm" />
+              </span>
+              <span className="font-semibold text-sm">Back to My Quotes</span>
+            </Link>
+
+            <div className="flex items-center gap-3">
+              {/* Status pill */}
+              <div className={`px-4 py-2 rounded-xl border font-semibold text-sm shadow-sm ${
+                quote.status === 'pending' ? 'bg-white/80 text-[#8f7a2e] border-[#bca142]/40' :
+                quote.status === 'approved' ? 'bg-[#bca142] text-white border-[#bca142]' :
+                quote.status === 'running' ? 'bg-[#bca142] text-white border-[#bca142]' :
+                quote.status === 'closed' ? 'bg-slate-700 text-white border-slate-700' :
+                'bg-slate-800 text-white border-slate-800'
+              }`}>
+                <div className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${
+                    quote.status === 'pending' ? 'bg-[#bca142] animate-pulse' : 'bg-white'
+                  }`} />
+                  <span className="capitalize">
+                    {quote.status}
+                    {quote.status === 'approved' && ' ✓'}
+                  </span>
                 </div>
               </div>
+
+              {/* Refresh */}
+              <button
+                onClick={async () => {
+                  setLoading(true);
+                  await fetchQuoteDetails();
+                  await fetchQuoteResponses();
+                  setLoading(false);
+                  toast.success('Status updated!');
+                }}
+                className="flex items-center gap-2 text-white px-4 py-2 rounded-xl shadow-md transition-all hover:scale-[1.02]"
+                style={{ background: 'linear-gradient(135deg, #d4b55e, #bca142)' }}
+                title="Refresh status"
+              >
+                <AiOutlineSync />
+                <span className="text-sm font-semibold">Refresh</span>
+              </button>
+
+              <div className="flex items-center gap-2 bg-white/80 px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
+                <AiOutlineTeam className="text-[#bca142]" />
+                <span className="text-slate-700 font-semibold text-sm">{responses.length} Responses</span>
+              </div>
             </div>
-            
-            <div className="space-y-3">
-              <h1 className="text-3xl font-bold text-black">
-                Quote #{quote.id}
-              </h1>
-              
-              <div className="flex items-center space-x-6 text-slate-600">
-                <div className="flex items-center space-x-2 bg-gray-50 px-3 py-1 rounded-lg border border-gray-200">
-                  <MapPin className="h-4 w-4 text-[#bca142]" />
-                  <span className="font-semibold">
-                    {quote.departure_city}
-                    {quote.departure_state && `, ${quote.departure_state}`}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <ArrowRight className="h-4 w-4 text-[#bca142]" />
-                </div>
-                <div className="flex items-center space-x-2 bg-gray-50 px-3 py-1 rounded-lg border border-gray-200">
-                  <MapPin className="h-4 w-4 text-[#bca142]" />
-                  <span className="font-semibold">
-                    {quote.arrival_city}
-                    {quote.arrival_state && `, ${quote.arrival_state}`}
-                  </span>
-                </div>
-                <div className="h-4 w-px bg-slate-300"></div>
-                <div className="flex items-center space-x-2 bg-gray-50 px-3 py-1 rounded-lg border border-gray-200">
-                  <Truck className="h-4 w-4 text-[#bca142]" />
-                  <span className="font-semibold">{quote.shipping_mode}</span>
-                </div>
+          </div>
+
+          <div className="space-y-3">
+            <h1 className="text-3xl font-bold text-slate-900">Quote #{quote.id}</h1>
+
+            <div className="flex flex-wrap items-center gap-3 text-slate-600">
+              <div className="flex items-center gap-2 bg-white/80 px-3 py-1.5 rounded-lg border border-slate-200">
+                <AiOutlineEnvironment className="text-[#bca142]" />
+                <span className="font-semibold text-sm">
+                  {quote.departure_city}
+                  {quote.departure_state && `, ${quote.departure_state}`}
+                </span>
+              </div>
+              <AiOutlineArrowRight className="text-[#bca142]" />
+              <div className="flex items-center gap-2 bg-white/80 px-3 py-1.5 rounded-lg border border-slate-200">
+                <AiOutlineEnvironment className="text-[#bca142]" />
+                <span className="font-semibold text-sm">
+                  {quote.arrival_city}
+                  {quote.arrival_state && `, ${quote.arrival_state}`}
+                </span>
+              </div>
+              <div className="h-4 w-px bg-slate-300" />
+              <div className="flex items-center gap-2 bg-white/80 px-3 py-1.5 rounded-lg border border-slate-200">
+                <AiOutlineCar className="text-[#bca142]" />
+                <span className="font-semibold text-sm">{quote.shipping_mode}</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Company Responses - Compact Row Format */}
+        {/* Company Responses */}
         {Array.isArray(responses) && responses.length > 0 ? (
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
+          <div className={`${GLASS} p-6`}>
             <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-3">
-                <div className="p-3 bg-[#bca142] rounded-xl shadow-md">
-                  <Users className="h-5 w-5 text-white" />
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-xl shadow-md"
+                  style={{ background: 'linear-gradient(135deg, #d4b55e, #bca142)' }}>
+                  <AiOutlineTeam className="text-white text-lg" />
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-slate-800">Company Responses</h2>
                   {(() => {
-                    // Use the same fallback logic to find approved company
-                    let approvedCompany = null;
-                    
-                    // Strategy 1: Look for accepted response with verified payment (most accurate)
-                    approvedCompany = responses.find(r => r.user_response_status === 'accepted' && r.payment_status === 'verified');
-                    
-                    // Strategy 2: Look for any accepted response (for older data)
-                    if (!approvedCompany) {
-                      approvedCompany = responses.find(r => r.user_response_status === 'accepted');
-                    }
-                    
-                    // Strategy 3: Look for any response with verified payment
-                    if (!approvedCompany) {
-                      approvedCompany = responses.find(r => r.payment_status === 'verified');
-                    }
-                    
-                    // Strategy 4: Look for any response with payment proof uploaded (fallback for old data)
-                    if (!approvedCompany) {
-                      approvedCompany = responses.find(r => r.payment_proof_uploaded);
-                    }
-                    
-                    // Strategy 5: If quote is approved but no specific response found, show first response with company info
-                    if (!approvedCompany && responses.length > 0 && quote && quote.status === 'approved') {
-                      approvedCompany = responses.find(r => r.company_name && r.company_email);
-                    }
-                    
+                    const approvedCompany = (quote && quote.status === 'approved') ? findApprovedResponse() : null;
                     return approvedCompany && (
-                      <p className="text-sm text-[#bca142] font-semibold flex items-center space-x-1">
-                        <span>🏆</span>
+                      <p className="text-sm text-[#8f7a2e] font-semibold flex items-center gap-1.5 mt-0.5">
+                        <AiOutlineTrophy />
                         <span>Approved: {approvedCompany.company_name}</span>
                       </p>
                     );
                   })()}
                 </div>
               </div>
-              <div className="text-sm text-slate-600 font-medium">
+              <div className="text-sm text-slate-500 font-medium">
                 {responses.length} Response{responses.length !== 1 ? 's' : ''}
               </div>
             </div>
-            
+
             <div className="space-y-4">
               {(() => {
                 // Filter responses based on quote status
                 let filteredResponses = Array.isArray(responses) ? responses : [];
-                
+
                 // If quote is approved, show only the company that accepted the payment
                 if (quote && quote.status === 'approved') {
                   filteredResponses = responses.filter(response => {
@@ -901,28 +812,28 @@ const QuoteDetails = () => {
                     const hasVerifiedPayment = response.payment_status === 'verified';
                     const hasVerifiedPaymentStatus = response.payment_verification_status === 'verified';
                     const hasPaymentProof = Boolean(response.payment_proof_uploaded);
-                    
+
                     return isAccepted || hasVerifiedPayment || hasVerifiedPaymentStatus || hasPaymentProof;
                   });
-                  
+
                   if (filteredResponses.length === 0) {
-                    filteredResponses = responses.filter(response => 
+                    filteredResponses = responses.filter(response =>
                       Boolean(response.payment_proof_uploaded) || response.user_response_status
                     );
                   }
                 }
-                
+
                 // Sort responses to put approved company first
                 const sortedResponses = filteredResponses.sort((a, b) => {
                   if (a.user_response_status === 'accepted' && b.user_response_status !== 'accepted') return -1;
                   if (b.user_response_status === 'accepted' && a.user_response_status !== 'accepted') return 1;
                   return 0;
                 });
-                
-                return sortedResponses.map((response, index) => (
-                  <CompactResponseRow 
-                    key={response.id} 
-                    response={response} 
+
+                return sortedResponses.map((response) => (
+                  <CompactResponseRow
+                    key={response.id}
+                    response={response}
                     quote={quote}
                     onAccept={() => handleAcceptResponse(response.id, response.company_id)}
                     onReject={() => handleRejectResponse(response.id, response.company_id)}
@@ -961,117 +872,103 @@ const QuoteDetails = () => {
             </div>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="p-3 bg-[#bca142] rounded-xl shadow-md">
-                <Users className="h-5 w-5 text-white" />
+          <div className={`${GLASS} p-6`}>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 rounded-xl shadow-md"
+                style={{ background: 'linear-gradient(135deg, #d4b55e, #bca142)' }}>
+                <AiOutlineTeam className="text-white text-lg" />
               </div>
               <h2 className="text-xl font-bold text-slate-800">Company Responses</h2>
             </div>
-            <div className="text-center py-8">
-              <div className="bg-gray-100 rounded-full p-6 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                <FaShippingFast className="text-gray-400 h-8 w-8" />
+            <div className="text-center py-10">
+              <div className="bg-[#bca142]/12 rounded-2xl p-6 w-16 h-16 mx-auto mb-4 flex items-center justify-center text-[#bca142]">
+                <AiOutlineInbox className="text-3xl" />
               </div>
               <h3 className="text-lg font-semibold text-slate-800 mb-2">Awaiting Company Responses</h3>
-              <p className="text-slate-600 text-sm">
+              <p className="text-slate-500 text-sm max-w-md mx-auto">
                 Freight companies are reviewing your quote request. You'll receive notifications as responses arrive.
               </p>
             </div>
           </div>
         )}
 
-        {/* Quote Details Card */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="p-3 bg-[#bca142] rounded-xl shadow-md">
-              <Package className="h-5 w-5 text-white" />
+        {/* Shipment Details */}
+        <div className={`${GLASS} p-6`}>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-3 rounded-xl shadow-md"
+              style={{ background: 'linear-gradient(135deg, #d4b55e, #bca142)' }}>
+              <AiOutlineContainer className="text-white text-lg" />
             </div>
             <h2 className="text-xl font-bold text-slate-800">Shipment Details</h2>
           </div>
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 shadow-sm">
-                <h3 className="font-semibold text-slate-800 mb-4 flex items-center space-x-2">
-                  <Package className="h-4 w-4 text-[#bca142]" />
-                  <span>Product Information</span>
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-start">
-                    <span className="text-slate-600 font-medium">Product:</span>
-                    <span className="text-slate-800 font-semibold text-right max-w-xs text-sm">{quote.product_description}</span>
+            <div className="bg-white/70 rounded-xl p-5 border border-slate-200/80">
+              <h3 className="font-semibold text-slate-800 mb-4 flex items-center gap-2 text-sm">
+                <AiOutlineContainer className="text-[#bca142]" />
+                <span>Product Information</span>
+              </h3>
+              <div className="space-y-3">
+                {[
+                  ['Product', quote.product_description],
+                  ['Shipping Mode', quote.shipping_mode],
+                  ['Arrival Date', formatDate(quote.arrival_date)],
+                  ['Quantity', quote.quantity],
+                  ['Weight', quote.weight]
+                ].filter(([, v]) => v).map(([label, value]) => (
+                  <div key={label} className="flex justify-between items-start gap-4">
+                    <span className="text-slate-500 font-medium text-sm shrink-0">{label}:</span>
+                    <span className="text-slate-800 font-semibold text-sm text-right">{value}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600 font-medium">Shipping Mode:</span>
-                    <span className="text-slate-800 font-semibold text-sm">{quote.shipping_mode}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600 font-medium">Arrival Date:</span>
-                    <span className="text-slate-800 font-semibold text-sm">{formatDate(quote.arrival_date)}</span>
-                  </div>
-                  {quote.quantity && (
-                    <div className="flex justify-between">
-                      <span className="text-slate-600 font-medium">Quantity:</span>
-                      <span className="text-slate-800 font-semibold text-sm">{quote.quantity}</span>
-                    </div>
-                  )}
-                  {quote.weight && (
-                    <div className="flex justify-between">
-                      <span className="text-slate-600 font-medium">Weight:</span>
-                      <span className="text-slate-800 font-semibold text-sm">{quote.weight}</span>
-                    </div>
-                  )}
-                </div>
+                ))}
               </div>
             </div>
-            
-            <div className="space-y-4">
-              <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 shadow-sm">
-                <h3 className="font-semibold text-slate-800 mb-4 flex items-center space-x-2">
-                  <Globe className="h-4 w-4 text-[#bca142]" />
-                  <span>Route Information</span>
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-slate-600 font-medium">From:</span>
-                    <span className="text-slate-800 font-semibold text-sm">
-                      {quote.departure_city}
-                      {quote.departure_state && `, ${quote.departure_state}`}
-                      , {quote.departure_country}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600 font-medium">To:</span>
-                    <span className="text-slate-800 font-semibold text-sm">
-                      {quote.arrival_city}
-                      {quote.arrival_state && `, ${quote.arrival_state}`}
-                      , {quote.arrival_country}
-                    </span>
-                  </div>
-                  {quote.incoterms && (
-                    <div className="flex justify-between">
-                      <span className="text-slate-600 font-medium">Incoterms:</span>
-                      <span className="text-slate-800 font-semibold text-sm">{quote.incoterms}</span>
-                    </div>
-                  )}
-                  {quote.packing && (
-                    <div className="flex justify-between">
-                      <span className="text-slate-600 font-medium">Packing:</span>
-                      <span className="text-slate-800 font-semibold text-sm">{quote.packing}</span>
-                    </div>
-                  )}
+
+            <div className="bg-white/70 rounded-xl p-5 border border-slate-200/80">
+              <h3 className="font-semibold text-slate-800 mb-4 flex items-center gap-2 text-sm">
+                <AiOutlineGlobal className="text-[#bca142]" />
+                <span>Route Information</span>
+              </h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-start gap-4">
+                  <span className="text-slate-500 font-medium text-sm shrink-0">From:</span>
+                  <span className="text-slate-800 font-semibold text-sm text-right">
+                    {quote.departure_city}
+                    {quote.departure_state && `, ${quote.departure_state}`}
+                    {quote.departure_country && `, ${quote.departure_country}`}
+                  </span>
                 </div>
+                <div className="flex justify-between items-start gap-4">
+                  <span className="text-slate-500 font-medium text-sm shrink-0">To:</span>
+                  <span className="text-slate-800 font-semibold text-sm text-right">
+                    {quote.arrival_city}
+                    {quote.arrival_state && `, ${quote.arrival_state}`}
+                    {quote.arrival_country && `, ${quote.arrival_country}`}
+                  </span>
+                </div>
+                {quote.incoterms && (
+                  <div className="flex justify-between items-start gap-4">
+                    <span className="text-slate-500 font-medium text-sm shrink-0">Incoterms:</span>
+                    <span className="text-slate-800 font-semibold text-sm text-right">{quote.incoterms}</span>
+                  </div>
+                )}
+                {quote.packing && (
+                  <div className="flex justify-between items-start gap-4">
+                    <span className="text-slate-500 font-medium text-sm shrink-0">Packing:</span>
+                    <span className="text-slate-800 font-semibold text-sm text-right">{quote.packing}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
-          
+
           {quote.notes && (
-            <div className="mt-6 bg-gray-50 rounded-xl p-4 border border-gray-200 shadow-sm">
-              <h3 className="font-semibold text-slate-800 mb-3 flex items-center space-x-2">
-                <Calendar className="h-4 w-4 text-[#bca142]" />
+            <div className="mt-6 bg-white/70 rounded-xl p-5 border border-slate-200/80">
+              <h3 className="font-semibold text-slate-800 mb-3 flex items-center gap-2 text-sm">
+                <AiOutlineCalendar className="text-[#bca142]" />
                 <span>Additional Notes</span>
               </h3>
-              <p className="text-slate-700 leading-relaxed">{quote.notes}</p>
+              <p className="text-slate-600 leading-relaxed text-sm">{quote.notes}</p>
             </div>
           )}
         </div>
@@ -1079,7 +976,7 @@ const QuoteDetails = () => {
 
       {/* Payment Modal */}
       {showPaymentModal && selectedResponseForPayment && (
-        <QuotePaymentModal 
+        <QuotePaymentModal
           quote={selectedResponseForPayment}
           onClose={() => {
             setShowPaymentModal(false);

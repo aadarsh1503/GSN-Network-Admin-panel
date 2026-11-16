@@ -8,7 +8,7 @@ import { submitPendingQuote, hasPendingQuote, checkAndClearInvalidPendingQuote }
 import { api, publicAPI } from '../../utils/api';
 
 // Importing icons for a better UI
-import { User, Phone, Mail, Lock, Globe, ChevronDown, Check, Loader2, Eye, EyeOff } from 'lucide-react';
+import { User, Phone, Mail, Lock, ChevronDown, Check, Loader2, Eye, EyeOff } from 'lucide-react';
 
 const UserRegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -18,7 +18,7 @@ const UserRegisterPage = () => {
     password: '',
     confirmPassword: '',
     country: '',
-    termsAccepted: false
+    termsAccepted: false,
   });
   const [countries, setCountries] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -158,7 +158,7 @@ const UserRegisterPage = () => {
           phone: formData.phone,
           password: formData.password,
           country: formData.country,
-          role: 'user'
+          role: 'user',
         }),
       });
 

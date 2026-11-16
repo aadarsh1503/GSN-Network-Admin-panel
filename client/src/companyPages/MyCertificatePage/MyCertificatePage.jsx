@@ -29,7 +29,7 @@ const MyCertificatePage = () => {
         const referralCode = companyProfile?.referral_code || `GSN${userData?.id || '0000'}`;
         let planName = subscriptionData && !subscriptionData.is_guest ? `${subscriptionData.plan_name} Plan` : 'Free Plan';
         let validUntil = subscriptionData && !subscriptionData.is_guest 
-          ? new Date(subscriptionData.end_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+          ? new Date(String(subscriptionData.end_date).slice(0,10) + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
           : 'Lifetime Membership';
 
         setCompanyData({

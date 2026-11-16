@@ -80,6 +80,12 @@ const testConnection = async (retryCount = 0) => {
 // Enhanced error handling for the pool
 pool.on('connection', (connection) => {
   console.log(`🔗 [DB] New database connection established (ID: ${connection.threadId})`);
+
+  // Force every session to UTC so DB-generated timestamps (NOW(), CURRENT_TIMESTAMP
+  // defaults and ON UPDATE columns) are written in UTC, matching the 'timezone' option
+  // below. Without this, the MySQL server's own timezone (e.g. +03:00) leaks into
+  // stored timestamps and shifts displayed dates/times.
+  connection.query("SET time_zone = '+00:00'");
 });
 
 pool.on('error', (err) => {

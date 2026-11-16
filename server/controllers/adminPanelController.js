@@ -1,5 +1,7 @@
 // controllers/adminPanelController.js
 import db from '../config/db.js';
+import { processReferralReward } from '../services/referralService.js';
+import { issueOrderCompletionCoupons } from '../services/couponService.js';
 
 // ==================== SUBSCRIPTION MANAGEMENT ====================
 
@@ -30,6 +32,10 @@ export const getAllSubscriptionsAdmin = async (req, res) => {
                 us.payment_status,
                 us.transaction_id,
                 us.amount_paid,
+                us.wallet_amount_applied,
+                us.coupon_code,
+                us.coupon_discount_bhd,
+                us.final_amount_bhd,
                 us.proration_applied,
                 us.proration_details,
                 us.payment_method,
@@ -477,7 +483,23 @@ export const updateQuoteStatusAdmin = async (req, res) => {
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Quote not found' });
         }
-        
+
+        // 🎟️ ORDER COMPLETION REWARD
+        if (status === 'closed') {
+            db.execute(
+                `SELECT q.user_id, uqs.quote_response_id,
+                        qr.company_id
+                 FROM quotes q
+                 LEFT JOIN user_quote_status uqs ON uqs.quote_id = q.id AND uqs.status = 'accepted'
+                 LEFT JOIN quote_responses qr ON qr.id = uqs.quote_response_id
+                 WHERE q.id = ? LIMIT 1`,
+                [id]
+            ).then(([rows]) => {
+                if (!rows.length) return;
+                return issueOrderCompletionCoupons(id, rows[0].user_id, rows[0].company_id);
+            }).catch(err => console.error('❌ Order reward coupon error:', err));
+        }
+
         res.status(200).json({ message: 'Quote status updated successfully' });
     } catch (error) {
         console.error('Error updating quote status:', error);
@@ -1384,6 +1406,13 @@ export const activateUser = async (req, res) => {
             console.log(`ℹ️ User role is ${user.role}, not queuing company approval email`);
         }
         
+        // 🎁 REFERRAL REWARD — fire for business AND company roles on activation
+        if (user.role === 'business' || user.role === 'company') {
+            processReferralReward(user.id, 'account_activation').catch(err =>
+                console.error('❌ Referral reward (' + user.role + ' activation) error:', err)
+            );
+        }
+
         res.status(200).json({ 
             message: `User ${user.role === 'company' ? 'company' : 'account'} activated successfully`,
             user: {

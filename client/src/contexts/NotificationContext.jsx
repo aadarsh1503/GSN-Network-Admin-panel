@@ -15,6 +15,7 @@ export const useNotifications = () => {
 export const NotificationProvider = ({ children }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [messageUnreadCount, setMessageUnreadCount] = useState(0);
+  const [quoteUnreadCount, setQuoteUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
   const [lastChecked, setLastChecked] = useState(Date.now());
 
@@ -26,8 +27,9 @@ export const NotificationProvider = ({ children }) => {
 
       // Get user role to determine correct endpoint
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-      
-      const endpoint = user.role === 'business' || user.role === 'user' 
+      const isUserPanel = user.role === 'business' || user.role === 'user';
+
+      const endpoint = isUserPanel
         ? '/api/user-notifications/unread-count' 
         : '/api/notifications/unread-count';
 
@@ -35,6 +37,8 @@ export const NotificationProvider = ({ children }) => {
       
       const newCount = data.unreadCount || data.count || 0;
       setUnreadCount(newCount);
+      // Pending quote responses are surfaced on the "My Quotes" badge instead
+      setQuoteUnreadCount(isUserPanel ? (data.quoteUnreadCount || 0) : 0);
     } catch (error) {
       console.error('Error fetching unread count:', error);
     }
@@ -47,7 +51,7 @@ export const NotificationProvider = ({ children }) => {
       if (!token) return;
 
       const data = await api.get('/api/messages/unread-count');
-      setMessageUnreadCount(data.count || 0);
+      setMessageUnreadCount(data.unreadCount || data.count || 0);
     } catch (error) {
       console.error('Error fetching message unread count:', error);
     }
@@ -179,9 +183,17 @@ export const NotificationProvider = ({ children }) => {
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
+    // Refresh badge immediately on real-time SSE event
+    const handleNewNotification = () => {
+      fetchUnreadCount();
+      fetchMessageUnreadCount();
+    };
+    window.addEventListener('notification:new', handleNewNotification);
+
     return () => {
       clearInterval(interval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('notification:new', handleNewNotification);
     };
   }, []);
 
@@ -217,6 +229,7 @@ export const NotificationProvider = ({ children }) => {
   const value = {
     unreadCount,
     messageUnreadCount,
+    quoteUnreadCount,
     notifications,
     fetchUnreadCount,
     fetchNotifications,

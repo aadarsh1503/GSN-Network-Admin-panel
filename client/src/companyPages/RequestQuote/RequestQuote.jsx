@@ -1,18 +1,37 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiPhone } from 'react-icons/fi';
+import {
+  FiPhone,
+  FiSearch,
+  FiChevronDown,
+  FiTruck,
+  FiPackage,
+  FiLayers,
+  FiSliders,
+  FiCheck,
+  FiSend,
+  FiCheckCircle,
+} from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
 import api from '../../utils/api';
 import { fetchCountries, fetchStates, fetchCities } from '../../utils/locationData';
 import CompanyQuoteRestrictionModal from '../../components/Modal/CompanyQuoteRestrictionModal';
 import AccountTypeSelectionModal from '../../components/Modal/AccountTypeSelectionModal';
 
+// Shared input styling so every field looks consistent.
+const fieldBase =
+  'w-full rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 transition-all duration-200 hover:border-slate-300 focus:border-[#bca142] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#bca142]/10';
+
+const FieldLabel = ({ htmlFor, label, required = false }) => (
+  <label htmlFor={htmlFor} className="mb-2 block text-sm font-medium text-slate-700">
+    {label} {required && <span className="text-rose-500">*</span>}
+  </label>
+);
+
 // --- Reusable Form Field Components ---
-const InputField = ({ label, name, placeholder, required = false, value, onChange, type = "text", min, max }) => (
+const InputField = ({ label, name, placeholder, required = false, value, onChange, type = 'text', min, max, hint }) => (
   <div>
-    <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-2">
-      {label} {required && <span className="text-red-500">*</span>}
-    </label>
+    <FieldLabel htmlFor={name} label={label} required={required} />
     <input
       type={type}
       id={name}
@@ -22,64 +41,211 @@ const InputField = ({ label, name, placeholder, required = false, value, onChang
       placeholder={placeholder}
       min={min}
       max={max}
-      className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:border-[#bca142] focus:ring-2 focus:ring-[#bca142]/20 focus:bg-white transition-all duration-200 hover:border-gray-300"
+      className={fieldBase}
     />
+    {hint && <p className="mt-1.5 text-xs text-slate-400">{hint}</p>}
   </div>
 );
 
 const SelectField = ({ label, name, required = false, value, onChange, children, loading = false, disabled = false }) => (
-  <div className="relative">
-    <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-2">
-      {label} {required && <span className="text-red-500">*</span>}
-    </label>
-    <select
-      id={name}
-      name={name}
-      value={value}
-      onChange={onChange}
-      disabled={disabled || loading}
-      className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:border-[#bca142] focus:ring-2 focus:ring-[#bca142]/20 focus:bg-white transition-all duration-200 hover:border-gray-300 disabled:bg-gray-100 disabled:cursor-not-allowed appearance-none"
-    >
-      {children}
-    </select>
-    {loading && (
-      <div className="absolute right-10 top-11">
-        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#bca142]"></div>
+  <div>
+    <FieldLabel htmlFor={name} label={label} required={required} />
+    <div className="relative">
+      <select
+        id={name}
+        name={name}
+        value={value}
+        onChange={onChange}
+        disabled={disabled || loading}
+        className={`${fieldBase} cursor-pointer appearance-none pr-10 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400`}
+      >
+        {children}
+      </select>
+      <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+        {loading ? (
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#bca142] border-t-transparent" />
+        ) : (
+          <FiChevronDown className="h-4 w-4" />
+        )}
       </div>
-    )}
-    {!loading && (
-      <div className="absolute right-3 top-11 pointer-events-none">
-        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </div>
-    )}
+    </div>
   </div>
 );
 
-const CheckboxField = ({ label, name, checked, onChange }) => (
-    <div className="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
-        <input 
-          id={name} 
-          name={name} 
-          type="checkbox" 
-          checked={checked}
-          onChange={onChange}
-          className="h-4 w-4 text-[#bca142] border-gray-300 rounded focus:ring-[#bca142] focus:ring-2"
+// Type-to-search combobox used for Country / State / City fields.
+const SearchableSelect = ({
+  label,
+  name,
+  value,
+  onChange,
+  options = [],
+  placeholder = 'Type to search...',
+  required = false,
+  loading = false,
+  disabled = false,
+  emptyText = 'No matches found',
+}) => {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [highlight, setHighlight] = useState(0);
+  const containerRef = useRef(null);
+
+  const isDisabled = disabled || loading;
+
+  // Filter the list by whatever the user has typed.
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return options;
+    return options.filter((opt) => String(opt.label).toLowerCase().includes(q));
+  }, [options, query]);
+
+  // Close the dropdown when clicking anywhere outside.
+  useEffect(() => {
+    const handleOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setOpen(false);
+        setQuery('');
+      }
+    };
+    document.addEventListener('mousedown', handleOutside);
+    return () => document.removeEventListener('mousedown', handleOutside);
+  }, []);
+
+  useEffect(() => {
+    setHighlight(0);
+  }, [query, open]);
+
+  // Emit the same synthetic-event shape the existing handleInputChange expects.
+  const commit = (opt) => {
+    onChange({ target: { name, value: opt.value, type: 'text' } });
+    setOpen(false);
+    setQuery('');
+  };
+
+  const handleKeyDown = (e) => {
+    if (isDisabled) return;
+    if (!open && (e.key === 'ArrowDown' || e.key === 'Enter')) {
+      e.preventDefault();
+      setOpen(true);
+      return;
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlight((h) => Math.min(h + 1, Math.max(filtered.length - 1, 0)));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlight((h) => Math.max(h - 1, 0));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (filtered[highlight]) commit(filtered[highlight]);
+    } else if (e.key === 'Escape') {
+      setOpen(false);
+      setQuery('');
+    }
+  };
+
+  const displayValue = open ? query : value || '';
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <FieldLabel htmlFor={name} label={label} required={required} />
+      <div className="relative">
+        <input
+          id={name}
+          name={name}
+          type="text"
+          autoComplete="off"
+          disabled={isDisabled}
+          value={displayValue}
+          placeholder={isDisabled ? 'Select previous field first' : placeholder}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            if (!open) setOpen(true);
+          }}
+          onFocus={() => {
+            if (isDisabled) return;
+            setOpen(true);
+            setQuery('');
+          }}
+          onKeyDown={handleKeyDown}
+          className={`${fieldBase} pr-10 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400`}
         />
-        <label htmlFor={name} className="ml-3 block text-sm font-medium text-gray-700">{label}</label>
+        <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+          {loading ? (
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#bca142] border-t-transparent" />
+          ) : (
+            <FiSearch className="h-4 w-4" />
+          )}
+        </div>
+      </div>
+
+      {open && !isDisabled && (
+        <div className="absolute z-30 mt-2 max-h-60 w-full overflow-auto rounded-xl border border-slate-100 bg-white py-1 shadow-2xl shadow-slate-900/10">
+          {loading ? (
+            <div className="px-4 py-3 text-sm text-slate-400">Loading...</div>
+          ) : filtered.length === 0 ? (
+            <div className="px-4 py-3 text-sm text-slate-400">{emptyText}</div>
+          ) : (
+            filtered.map((opt, index) => {
+              const isActive = index === highlight;
+              const isSelected = value === opt.value;
+              return (
+                <button
+                  type="button"
+                  key={`${opt.value}-${index}`}
+                  onMouseEnter={() => setHighlight(index)}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    commit(opt);
+                  }}
+                  className={`flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition-colors ${
+                    isActive ? 'bg-[#bca142]/10 text-[#8a7628]' : 'text-slate-700'
+                  } ${isSelected ? 'font-semibold' : ''}`}
+                >
+                  <span className="truncate">{opt.label}</span>
+                  {isSelected && <FiCheck className="ml-2 h-4 w-4 shrink-0 text-[#bca142]" />}
+                </button>
+              );
+            })
+          )}
+        </div>
+      )}
     </div>
+  );
+};
+
+const CheckboxField = ({ label, name, checked, onChange }) => (
+  <label
+    htmlFor={name}
+    className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition-all duration-200 ${
+      checked ? 'border-[#bca142] bg-[#bca142]/5 shadow-sm' : 'border-slate-200 bg-slate-50/70 hover:border-slate-300'
+    }`}
+  >
+    <input
+      id={name}
+      name={name}
+      type="checkbox"
+      checked={checked}
+      onChange={onChange}
+      className="h-4 w-4 shrink-0 rounded border-slate-300 text-[#bca142] focus:ring-2 focus:ring-[#bca142]/40"
+    />
+    <span className="text-sm font-medium text-slate-700">{label}</span>
+  </label>
 );
 
 // --- Section Heading Component ---
-const SectionHeader = ({ title, subtitle }) => (
-    <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">{title}</h2>
-        {subtitle && <p className="text-gray-600 text-sm">{subtitle}</p>}
-        <div className="h-1 bg-gradient-to-r from-[#bca142] to-transparent w-20 mt-3 rounded-full"></div>
+const SectionHeader = ({ step, icon, title, subtitle }) => (
+  <div className="mb-6 flex items-start gap-4">
+    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#bca142] to-[#B8941F] text-lg text-white shadow-lg shadow-[#bca142]/30">
+      {icon}
     </div>
+    <div>
+      <span className="text-xs font-semibold uppercase tracking-wider text-[#bca142]">Step {step}</span>
+      <h2 className="text-xl font-bold text-slate-800">{title}</h2>
+      {subtitle && <p className="mt-0.5 text-sm text-slate-500">{subtitle}</p>}
+    </div>
+  </div>
 );
-
 
 // --- The Main RequestQuote Component ---
 const RequestQuote = () => {
@@ -95,7 +261,7 @@ const RequestQuote = () => {
   const [departureCities, setDepartureCities] = useState([]);
   const [arrivalStates, setArrivalStates] = useState([]);
   const [arrivalCities, setArrivalCities] = useState([]);
-  
+
   // Loading states for location data
   const [loadingCountries, setLoadingCountries] = useState(false);
   const [loadingDepartureStates, setLoadingDepartureStates] = useState(false);
@@ -106,7 +272,7 @@ const RequestQuote = () => {
   // Check if agent is trying to access quote request
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
-    
+
     if (user.id && user.role === 'company') {
       setShowRestrictionModal(true);
     }
@@ -125,7 +291,7 @@ const RequestQuote = () => {
         setLoadingCountries(false);
       }
     };
-    
+
     loadCountries();
   }, []);
   const [formData, setFormData] = useState({
@@ -164,8 +330,8 @@ const RequestQuote = () => {
 
     // Handle departure location cascading
     if (name === 'departureCountry') {
-      setFormData(prev => ({ 
-        ...prev, 
+      setFormData(prev => ({
+        ...prev,
         departureCountry: value,
         departureState: '',
         departureCity: ''
@@ -176,8 +342,8 @@ const RequestQuote = () => {
         loadDepartureStates(value);
       }
     } else if (name === 'departureState') {
-      setFormData(prev => ({ 
-        ...prev, 
+      setFormData(prev => ({
+        ...prev,
         departureState: value,
         departureCity: ''
       }));
@@ -189,8 +355,8 @@ const RequestQuote = () => {
 
     // Handle arrival location cascading
     if (name === 'arrivalCountry') {
-      setFormData(prev => ({ 
-        ...prev, 
+      setFormData(prev => ({
+        ...prev,
         arrivalCountry: value,
         arrivalState: '',
         arrivalCity: ''
@@ -201,8 +367,8 @@ const RequestQuote = () => {
         loadArrivalStates(value);
       }
     } else if (name === 'arrivalState') {
-      setFormData(prev => ({ 
-        ...prev, 
+      setFormData(prev => ({
+        ...prev,
         arrivalState: value,
         arrivalCity: ''
       }));
@@ -264,10 +430,10 @@ const RequestQuote = () => {
       setLoadingArrivalCities(false);
     }
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Comprehensive validation for all required fields
     const requiredFields = [
       { field: 'shippingMode', label: 'Shipping mode' },
@@ -292,7 +458,7 @@ const RequestQuote = () => {
 
     // Check for missing required fields
     const missingFields = requiredFields.filter(({ field }) => !formData[field] || formData[field].trim() === '');
-    
+
     if (missingFields.length > 0) {
       toast.error('Please fill all required fields');
       return;
@@ -322,7 +488,7 @@ const RequestQuote = () => {
       await api.post('/api/quotes/submit', formData);
 
       toast.success('Quote request submitted successfully!');
-      
+
       // Redirect to appropriate dashboard based on user role
       if (user.role === 'business') {
         navigate('/business/dashboard');
@@ -333,7 +499,7 @@ const RequestQuote = () => {
       } else {
         navigate('/'); // Default fallback
       }
-      
+
       // Reset form
       setFormData({
         shippingMode: '',
@@ -381,8 +547,8 @@ const RequestQuote = () => {
 
   const handleSelectUserAccount = () => {
     setShowAccountTypeModal(false);
-    navigate('/user-register', { 
-      state: { 
+    navigate('/user-register', {
+      state: {
         from: '/user/dashboard',
         hasPendingQuote: true,
         preSelectedRole: 'User',
@@ -393,8 +559,8 @@ const RequestQuote = () => {
 
   const handleSelectBusinessAccount = () => {
     setShowAccountTypeModal(false);
-    navigate('/register', { 
-      state: { 
+    navigate('/register', {
+      state: {
         from: '/business/dashboard',
         hasPendingQuote: true,
         preSelectedRole: 'Business',
@@ -403,423 +569,420 @@ const RequestQuote = () => {
     });
   };
 
+  // Option lists for the searchable dropdowns
+  const countryOptions = useMemo(() => countries.map((c) => ({ value: c.name, label: c.name })), [countries]);
+  const departureStateOptions = useMemo(() => departureStates.map((s) => ({ value: s, label: s })), [departureStates]);
+  const departureCityOptions = useMemo(() => departureCities.map((c) => ({ value: c, label: c })), [departureCities]);
+  const arrivalStateOptions = useMemo(() => arrivalStates.map((s) => ({ value: s, label: s })), [arrivalStates]);
+  const arrivalCityOptions = useMemo(() => arrivalCities.map((c) => ({ value: c, label: c })), [arrivalCities]);
+
   return (
-    <div className="bg-gray-100">
+    <div className="min-h-screen bg-slate-50">
       {/* --- Hero Banner --- */}
-      <div className="relative h-64 mt-20 bg-cover bg-center" style={{ backgroundImage: `url('/Login.jpg')` }}>
-        <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white">
-          <h1 className="text-4xl md:text-5xl font-bold">Request a FREE shipping quote</h1>
-          <p className="mt-2 text-sm">
-            <a href="#" className="hover:underline">Home</a> &gt; <span>Request a FREE shipping quote</span>
+      <div className="relative h-72 mt-20 bg-cover bg-center" style={{ backgroundImage: `url('/Login.jpg')` }}>
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/85 via-slate-900/70 to-[#bca142]/40"></div>
+        <div className="relative mx-auto flex h-full max-w-7xl flex-col items-center justify-center px-4 text-center text-white">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-medium uppercase tracking-wide backdrop-blur-md">
+            <FiSend /> Free Shipping Quote
+          </span>
+          <h1 className="mt-4 text-4xl font-bold md:text-5xl">Request a FREE shipping quote</h1>
+          <p className="mt-3 text-sm text-white/80">
+            <a href="#" className="transition-colors hover:text-[#e6d08f]">Home</a> &gt; <span>Request a FREE shipping quote</span>
           </p>
         </div>
       </div>
-      
+
       {/* --- Main Content --- */}
-      <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+
           {/* Left Column (Main Form) */}
-          <div className="lg:col-span-2 bg-white p-8 rounded-xl shadow-lg border border-gray-100">
-            <form onSubmit={handleSubmit} className="space-y-10">
-              {/* Quote Information Section */}
-              <section className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-100">
-                <SectionHeader 
-                  title="Quote Information" 
-                  subtitle="Tell us about your shipping requirements"
-                />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                  <SelectField 
-                    label="Shipping mode" 
-                    name="shippingMode" 
-                    value={formData.shippingMode}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="">Select shipping method</option>
-                    <option value="air">✈️ Air Freight</option>
-                    <option value="sea">🚢 Sea Freight</option>
-                    <option value="road">🚛 Road Transport</option>
-                    <option value="rail">🚂 Rail Transport</option>
-                  </SelectField>
-                  <div className="relative">
-                    <label htmlFor="arrivalDate" className="block text-sm font-medium text-gray-700 mb-1">
-                      Select arrival date <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <input 
-                        type="date" 
-                        id="arrivalDate" 
-                        name="arrivalDate" 
+          <div className="lg:col-span-2">
+            <div className="rounded-3xl border border-white/70 bg-white/80 p-6 shadow-xl shadow-slate-900/5 backdrop-blur-xl sm:p-8">
+              <form onSubmit={handleSubmit} className="space-y-8">
+                {/* Step 1 — Shipment & Route */}
+                <section className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+                  <SectionHeader
+                    step={1}
+                    icon={<FiTruck />}
+                    title="Shipment & Route"
+                    subtitle="Tell us where the cargo is moving from and to"
+                  />
+
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    <SelectField
+                      label="Shipping mode"
+                      name="shippingMode"
+                      value={formData.shippingMode}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Select shipping method</option>
+                      <option value="air">✈️ Air Freight</option>
+                      <option value="sea">🚢 Sea Freight</option>
+                      <option value="road">🚛 Road Transport</option>
+                      <option value="rail">🚂 Rail Transport</option>
+                    </SelectField>
+                    <div>
+                      <FieldLabel htmlFor="arrivalDate" label="Select arrival date" required />
+                      <input
+                        type="date"
+                        id="arrivalDate"
+                        name="arrivalDate"
                         value={formData.arrivalDate}
                         onChange={handleInputChange}
                         min={new Date().toISOString().split('T')[0]} // Prevent selecting past dates
-                        className="w-full p-3 bg-gray-100 border-transparent rounded-md focus:border-[#bca142] focus:ring-[#bca142] focus:bg-white transition-colors" 
+                        className={`${fieldBase} cursor-pointer`}
                       />
-                      {/* <FiCalendar className="absolute right-3 top-3 text-gray-400 pointer-events-none"/> */}
+                      <p className="mt-1.5 text-xs text-slate-400">Select a future date for cargo arrival</p>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">Select a future date for cargo arrival</p>
                   </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-6">
-                  <SelectField 
-                    label="Departure country" 
-                    name="departureCountry" 
-                    value={formData.departureCountry}
-                    onChange={handleInputChange}
-                    loading={loadingCountries}
-                    required
-                  >
-                    <option value="">Select Country</option>
-                    {countries.map(country => (
-                      <option key={country.code} value={country.name}>
-                        {country.name}
-                      </option>
-                    ))}
-                  </SelectField>
-                  <SelectField 
-                    label="Departure State" 
-                    name="departureState" 
-                    value={formData.departureState}
-                    onChange={handleInputChange}
-                    loading={loadingDepartureStates}
-                    disabled={!formData.departureCountry}
-                    required
-                  >
-                    <option value="">Select State</option>
-                    {departureStates.map(state => (
-                      <option key={state} value={state}>
-                        {state}
-                      </option>
-                    ))}
-                  </SelectField>
-                  <SelectField 
-                    label="Departure City" 
-                    name="departureCity" 
-                    value={formData.departureCity}
-                    onChange={handleInputChange}
-                    loading={loadingDepartureCities}
-                    disabled={!formData.departureState}
-                    required
-                  >
-                    <option value="">Select City</option>
-                    {departureCities.map(city => (
-                      <option key={city} value={city}>
-                        {city}
-                      </option>
-                    ))}
-                  </SelectField>
-                  <SelectField 
-                    label="Departure type" 
-                    name="departureType" 
-                    value={formData.departureType}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="">Select Type</option>
-                    <option value="port">Port</option>
-                    <option value="airport">Airport</option>
-                    <option value="warehouse">Warehouse</option>
-                    <option value="factory">Factory</option>
-                  </SelectField>
-                </div>
-                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-6">
-                  <SelectField 
-                    label="Arrival country" 
-                    name="arrivalCountry" 
-                    value={formData.arrivalCountry}
-                    onChange={handleInputChange}
-                    loading={loadingCountries}
-                    required
-                  >
-                    <option value="">Select Country</option>
-                    {countries.map(country => (
-                      <option key={country.code} value={country.name}>
-                        {country.name}
-                      </option>
-                    ))}
-                  </SelectField>
-                  <SelectField 
-                    label="Arrival State" 
-                    name="arrivalState" 
-                    value={formData.arrivalState}
-                    onChange={handleInputChange}
-                    loading={loadingArrivalStates}
-                    disabled={!formData.arrivalCountry}
-                    required
-                  >
-                    <option value="">Select State</option>
-                    {arrivalStates.map(state => (
-                      <option key={state} value={state}>
-                        {state}
-                      </option>
-                    ))}
-                  </SelectField>
-                  <SelectField 
-                    label="Arrival City" 
-                    name="arrivalCity" 
-                    value={formData.arrivalCity}
-                    onChange={handleInputChange}
-                    loading={loadingArrivalCities}
-                    disabled={!formData.arrivalState}
-                    required
-                  >
-                    <option value="">Select City</option>
-                    {arrivalCities.map(city => (
-                      <option key={city} value={city}>
-                        {city}
-                      </option>
-                    ))}
-                  </SelectField>
-                  <SelectField 
-                    label="Arrival type" 
-                    name="arrivalType" 
-                    value={formData.arrivalType}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="">Select Type</option>
-                    <option value="port">Port</option>
-                    <option value="airport">Airport</option>
-                    <option value="warehouse">Warehouse</option>
-                    <option value="factory">Factory</option>
-                  </SelectField>
-                </div>
-                <div className="mb-6">
-                    <InputField 
-                      label="What is the cargo / product?" 
-                      name="productDescription" 
+
+                  {/* Departure group */}
+                  <div className="mt-6 rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
+                    <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                      <span className="h-2 w-2 rounded-full bg-[#bca142]" /> Departure
+                    </p>
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                      <SearchableSelect
+                        label="Country"
+                        name="departureCountry"
+                        value={formData.departureCountry}
+                        onChange={handleInputChange}
+                        options={countryOptions}
+                        loading={loadingCountries}
+                        placeholder="Search country..."
+                        required
+                      />
+                      <SearchableSelect
+                        label="State"
+                        name="departureState"
+                        value={formData.departureState}
+                        onChange={handleInputChange}
+                        options={departureStateOptions}
+                        loading={loadingDepartureStates}
+                        disabled={!formData.departureCountry}
+                        placeholder="Search state..."
+                        required
+                      />
+                      <SearchableSelect
+                        label="City"
+                        name="departureCity"
+                        value={formData.departureCity}
+                        onChange={handleInputChange}
+                        options={departureCityOptions}
+                        loading={loadingDepartureCities}
+                        disabled={!formData.departureState}
+                        placeholder="Search city..."
+                        required
+                      />
+                      <SelectField
+                        label="Departure type"
+                        name="departureType"
+                        value={formData.departureType}
+                        onChange={handleInputChange}
+                        required
+                      >
+                        <option value="">Select Type</option>
+                        <option value="port">Port</option>
+                        <option value="airport">Airport</option>
+                        <option value="warehouse">Warehouse</option>
+                        <option value="factory">Factory</option>
+                      </SelectField>
+                    </div>
+                  </div>
+
+                  {/* Arrival group */}
+                  <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
+                    <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                      <span className="h-2 w-2 rounded-full bg-[#bca142]" /> Arrival
+                    </p>
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                      <SearchableSelect
+                        label="Country"
+                        name="arrivalCountry"
+                        value={formData.arrivalCountry}
+                        onChange={handleInputChange}
+                        options={countryOptions}
+                        loading={loadingCountries}
+                        placeholder="Search country..."
+                        required
+                      />
+                      <SearchableSelect
+                        label="State"
+                        name="arrivalState"
+                        value={formData.arrivalState}
+                        onChange={handleInputChange}
+                        options={arrivalStateOptions}
+                        loading={loadingArrivalStates}
+                        disabled={!formData.arrivalCountry}
+                        placeholder="Search state..."
+                        required
+                      />
+                      <SearchableSelect
+                        label="City"
+                        name="arrivalCity"
+                        value={formData.arrivalCity}
+                        onChange={handleInputChange}
+                        options={arrivalCityOptions}
+                        loading={loadingArrivalCities}
+                        disabled={!formData.arrivalState}
+                        placeholder="Search city..."
+                        required
+                      />
+                      <SelectField
+                        label="Arrival type"
+                        name="arrivalType"
+                        value={formData.arrivalType}
+                        onChange={handleInputChange}
+                        required
+                      >
+                        <option value="">Select Type</option>
+                        <option value="port">Port</option>
+                        <option value="airport">Airport</option>
+                        <option value="warehouse">Warehouse</option>
+                        <option value="factory">Factory</option>
+                      </SelectField>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Step 2 — Cargo Details */}
+                <section className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+                  <SectionHeader
+                    step={2}
+                    icon={<FiPackage />}
+                    title="Cargo Details"
+                    subtitle="Tell us what you are shipping"
+                  />
+                  <div className="mb-6">
+                    <InputField
+                      label="What is the cargo / product?"
+                      name="productDescription"
                       value={formData.productDescription}
                       onChange={handleInputChange}
-                      placeholder="Describe The Product" 
-                      required 
+                      placeholder="Describe The Product"
+                      required
                     />
-                </div>
-                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
-                  <SelectField 
-                    label="How is your cargo packed" 
-                    name="packing" 
-                    value={formData.packing}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="">Please select</option>
-                    <option value="pallets">Pallets</option>
-                    <option value="boxes">Boxes</option>
-                    <option value="crates">Crates</option>
-                    <option value="loose">Loose</option>
-                    <option value="containers">Containers</option>
-                  </SelectField>
-                  <SelectField 
-                    label="Incoterms" 
-                    name="incoterms"
-                    value={formData.incoterms}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="">Please select</option>
-                    <option value="EXW">EXW - Ex Works</option>
-                    <option value="FOB">FOB - Free on Board</option>
-                    <option value="CIF">CIF - Cost, Insurance & Freight</option>
-                    <option value="DDP">DDP - Delivered Duty Paid</option>
-                  </SelectField>
-                  <InputField 
-                    label="Quantity" 
-                    name="quantity" 
-                    value={formData.quantity}
-                    onChange={handleInputChange}
-                    placeholder="Quantity" 
-                    required 
-                  />
-                </div>
-                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <InputField 
-                    label="Weight" 
-                    name="weight" 
-                    value={formData.weight}
-                    onChange={handleInputChange}
-                    placeholder="Weight (kg)" 
-                    required 
-                  />
-                  <SelectField 
-                    label="Type" 
-                    name="type"
-                    value={formData.type}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="">Select one</option>
-                    <option value="general">General Cargo</option>
-                    <option value="hazardous">Hazardous</option>
-                    <option value="perishable">Perishable</option>
-                    <option value="fragile">Fragile</option>
-                  </SelectField>
-                </div>
-              </section>
+                  </div>
+                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                    <SelectField
+                      label="How is your cargo packed"
+                      name="packing"
+                      value={formData.packing}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Please select</option>
+                      <option value="pallets">Pallets</option>
+                      <option value="boxes">Boxes</option>
+                      <option value="crates">Crates</option>
+                      <option value="loose">Loose</option>
+                      <option value="containers">Containers</option>
+                    </SelectField>
+                    <SelectField
+                      label="Incoterms"
+                      name="incoterms"
+                      value={formData.incoterms}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Please select</option>
+                      <option value="EXW">EXW - Ex Works</option>
+                      <option value="FOB">FOB - Free on Board</option>
+                      <option value="CIF">CIF - Cost, Insurance & Freight</option>
+                      <option value="DDP">DDP - Delivered Duty Paid</option>
+                    </SelectField>
+                    <InputField
+                      label="Quantity"
+                      name="quantity"
+                      value={formData.quantity}
+                      onChange={handleInputChange}
+                      placeholder="Quantity"
+                      required
+                    />
+                  </div>
+                  <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <InputField
+                      label="Weight"
+                      name="weight"
+                      value={formData.weight}
+                      onChange={handleInputChange}
+                      placeholder="Weight (kg)"
+                      required
+                    />
+                    <SelectField
+                      label="Type"
+                      name="type"
+                      value={formData.type}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Select one</option>
+                      <option value="general">General Cargo</option>
+                      <option value="hazardous">Hazardous</option>
+                      <option value="perishable">Perishable</option>
+                      <option value="fragile">Fragile</option>
+                    </SelectField>
+                  </div>
+                </section>
 
-              {/* Dimensions Section */}
-              <section className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-xl border border-green-100">
-                <SectionHeader 
-                  title="Dimensions L x W x H" 
-                  subtitle="Specify cargo dimensions for accurate pricing"
-                />
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
-                  <InputField 
-                    label="Length" 
-                    name="length" 
-                    value={formData.length}
-                    onChange={handleInputChange}
-                    placeholder="Length" 
-                    required
+                {/* Step 3 — Dimensions */}
+                <section className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+                  <SectionHeader
+                    step={3}
+                    icon={<FiLayers />}
+                    title="Dimensions (L x W x H)"
+                    subtitle="Specify cargo dimensions for accurate pricing"
                   />
-                  <InputField 
-                    label="Width" 
-                    name="width" 
-                    value={formData.width}
-                    onChange={handleInputChange}
-                    placeholder="Width" 
-                    required
-                  />
-                  <InputField 
-                    label="Height" 
-                    name="height" 
-                    value={formData.height}
-                    onChange={handleInputChange}
-                    placeholder="Height" 
-                    required
-                  />
-                  <SelectField 
-                    label="Unit" 
-                    name="dimensionUnit"
-                    value={formData.dimensionUnit}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="">Select unit</option>
-                    <option value="cm">📏 Centimeters</option>
-                    <option value="m">📐 Meters</option>
-                    <option value="in">📏 Inches</option>
-                    <option value="ft">📐 Feet</option>
-                  </SelectField>
-                </div>
-              </section>
+                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-4">
+                    <InputField
+                      label="Length"
+                      name="length"
+                      value={formData.length}
+                      onChange={handleInputChange}
+                      placeholder="Length"
+                      required
+                    />
+                    <InputField
+                      label="Width"
+                      name="width"
+                      value={formData.width}
+                      onChange={handleInputChange}
+                      placeholder="Width"
+                      required
+                    />
+                    <InputField
+                      label="Height"
+                      name="height"
+                      value={formData.height}
+                      onChange={handleInputChange}
+                      placeholder="Height"
+                      required
+                    />
+                    <SelectField
+                      label="Unit"
+                      name="dimensionUnit"
+                      value={formData.dimensionUnit}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Select unit</option>
+                      <option value="cm">📏 Centimeters</option>
+                      <option value="m">📐 Meters</option>
+                      <option value="in">📏 Inches</option>
+                      <option value="ft">📐 Feet</option>
+                    </SelectField>
+                  </div>
+                </section>
 
-              {/* Additional Items Section */}
-              <section className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-100">
-                <SectionHeader 
-                  title="Additional Items" 
-                  subtitle="Special requirements and cargo insurance options"
-                />
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <CheckboxField 
-                      label="📦 Stackable cargo" 
-                      name="isStackable" 
+                {/* Step 4 — Additional Options */}
+                <section className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+                  <SectionHeader
+                    step={4}
+                    icon={<FiSliders />}
+                    title="Additional Options"
+                    subtitle="Special requirements and cargo insurance options"
+                  />
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                    <CheckboxField
+                      label="📦 Stackable cargo"
+                      name="isStackable"
                       checked={formData.isStackable}
                       onChange={handleInputChange}
                     />
-                    <CheckboxField 
-                      label="⚠️ Hazardous materials" 
-                      name="isHazardous" 
+                    <CheckboxField
+                      label="⚠️ Hazardous materials"
+                      name="isHazardous"
                       checked={formData.isHazardous}
                       onChange={handleInputChange}
                     />
-                    <CheckboxField 
-                      label="🛡️ Cargo insurance required" 
-                      name="hasInsurance" 
+                    <CheckboxField
+                      label="🛡️ Cargo insurance required"
+                      name="hasInsurance"
                       checked={formData.hasInsurance}
                       onChange={handleInputChange}
                     />
-                </div>
-                <div>
-                    <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
+                  </div>
+                  <div className="mt-6">
+                    <label htmlFor="notes" className="mb-2 block text-sm font-medium text-slate-700">
                       Additional Notes & Special Instructions
                     </label>
-                    <textarea 
-                      id="notes" 
-                      name="notes" 
+                    <textarea
+                      id="notes"
+                      name="notes"
                       value={formData.notes}
                       onChange={handleInputChange}
-                      rows="4" 
-                      placeholder="Any special handling requirements, delivery instructions, or additional information..." 
-                      className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:border-[#bca142] focus:ring-2 focus:ring-[#bca142]/20 focus:bg-white transition-all duration-200 hover:border-gray-300 resize-none"
+                      rows="4"
+                      placeholder="Any special handling requirements, delivery instructions, or additional information..."
+                      className={`${fieldBase} resize-none`}
                     ></textarea>
+                  </div>
+                </section>
+
+                {/* Submit Button */}
+                <div className="rounded-2xl bg-gradient-to-r from-[#bca142] to-[#B8941F] p-6 shadow-lg shadow-[#bca142]/30">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full transform rounded-xl bg-white px-8 py-4 text-lg font-bold text-[#bca142] shadow-md transition-all duration-200 hover:scale-[1.02] hover:bg-gray-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {loading ? (
+                      <div className="flex items-center justify-center">
+                        <div className="mr-3 h-5 w-5 animate-spin rounded-full border-b-2 border-[#bca142]"></div>
+                        Submitting Quote Request...
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center gap-2">
+                        <FiSend /> Submit Quote Request
+                      </div>
+                    )}
+                  </button>
+                  <p className="mt-3 text-center text-sm text-white/90">
+                    Get competitive quotes from verified shipping companies
+                  </p>
                 </div>
-              </section>
-              
-              {/* Submit Button */}
-              <div className="bg-gradient-to-r from-[#bca142] to-[#B8941F] p-6 rounded-xl shadow-lg">
-                <button 
-                  type="submit" 
-                  disabled={loading}
-                  className="w-full bg-white text-[#bca142] font-bold py-4 px-8 rounded-lg shadow-md hover:bg-gray-50 transition-all duration-200 text-lg disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]"
-                >
-                  {loading ? (
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#bca142] mr-3"></div>
-                      Submitting Quote Request...
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center">
-                      <span className="mr-2">🚀</span>
-                      Submit Quote Request
-                    </div>
-                  )}
-                </button>
-                <p className="text-center text-white text-sm mt-3 opacity-90">
-                  Get competitive quotes from verified shipping companies
-                </p>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
-          
+
           {/* Right Column (Sidebar) */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Quick Quote Button */}
-            <div className="bg-gradient-to-br from-[#bca142] to-[#B8941F] p-6 rounded-xl shadow-lg text-center">
-              <button className="w-full bg-white text-[#bca142] font-bold py-3 px-6 rounded-lg shadow-md hover:bg-gray-50 transition-all duration-200 transform hover:scale-105">
-                🚀 Request a Quote
+          <div className="space-y-6 lg:col-span-1">
+            {/* Quick Quote CTA */}
+            <div className="rounded-3xl bg-gradient-to-br from-[#bca142] to-[#B8941F] p-6 text-center shadow-xl shadow-[#bca142]/25">
+              <p className="text-sm font-medium text-white/90">Ready to ship?</p>
+              <p className="mt-1 text-lg font-bold text-white">Get your free quote now</p>
+              <button
+                type="button"
+                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white py-3 font-bold text-[#bca142] shadow-md transition-transform hover:scale-[1.02]"
+              >
+                <FiSend /> Request a Quote
               </button>
             </div>
 
             {/* Contact Information Card */}
-            <div className="bg-gradient-to-br from-[#C9A959] to-[#B8941F] p-6 rounded-xl shadow-lg text-center text-white">
-                <div className="mb-4">
-                  <h4 className="text-xl font-bold mb-2">Need Any Information?</h4>
-                  <p className="text-sm opacity-90">Please Contact Our Experts</p>
+            <div className="rounded-3xl bg-gradient-to-br from-slate-900 to-slate-800 p-6 text-center text-white shadow-xl">
+              <h4 className="text-lg font-bold">Need any information?</h4>
+              <p className="mt-1 text-sm text-white/70">Our shipping experts are here to help</p>
+              <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="flex items-center justify-center gap-3">
+                  <FiPhone className="h-7 w-7 text-[#bca142]" />
+                  <span className="text-2xl font-bold">+973 17491222</span>
                 </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                  <div className="flex items-center justify-center mb-3">
-                      <FiPhone className="h-8 w-8 mr-3 opacity-90" />
-                      <p className="text-2xl font-bold">+973 17491222</p>
-                  </div>
-                  <p className="text-sm opacity-80">Available 24/7 for assistance</p>
-                </div>
+                <p className="mt-2 text-xs text-white/60">Available 24/7 for assistance</p>
+              </div>
             </div>
 
             {/* Features List */}
-            <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
-              <h4 className="text-lg font-bold text-gray-800 mb-4">Why Choose Us?</h4>
-              <ul className="space-y-3 text-sm text-gray-600">
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Free quote comparison
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Verified shipping companies
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Real-time tracking
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  24/7 customer support
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Secure payment options
-                </li>
+            <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+              <h4 className="text-lg font-bold text-slate-800">Why Choose Us?</h4>
+              <ul className="mt-4 space-y-3 text-sm text-slate-600">
+                {['Free quote comparison', 'Verified shipping companies', 'Real-time tracking', '24/7 customer support', 'Secure payment options'].map((item) => (
+                  <li key={item} className="flex items-center gap-3">
+                    <FiCheckCircle className="h-4 w-4 shrink-0 text-[#bca142]" />
+                    {item}
+                  </li>
+                ))}
               </ul>
             </div>
           </div>

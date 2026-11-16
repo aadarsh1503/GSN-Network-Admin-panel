@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import { subscriptionAPI } from '../../utils/api';
+import { formatSubDate } from '../../utils/formatDate';
+import ProfileRing from '../ProfileCompletion/ProfileRing';
+import { useProfileCompletionContext } from '../../contexts/ProfileCompletionContext';
 
 const UserCard = () => {
   const [user, setUser] = useState(null);
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { percentage, isTracked } = useProfileCompletionContext();
 
   useEffect(() => {
     fetchUserData();
@@ -98,9 +102,11 @@ const UserCard = () => {
       <div className="flex items-center space-x-3 relative z-10">
         {/* User Avatar - Smaller */}
         <div className="relative flex-shrink-0">
-          <div className="w-12 h-12 bg-[#bca142] rounded-full flex items-center justify-center text-white text-lg font-bold shadow-md">
-            {user?.name?.charAt(0)?.toUpperCase() || 'U'}
-          </div>
+          <ProfileRing percentage={isTracked ? percentage : 0} size={56} stroke={3}>
+            <div className="w-full h-full bg-[#bca142] rounded-full flex items-center justify-center text-white text-lg font-bold shadow-md">
+              {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+            </div>
+          </ProfileRing>
           <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-black rounded-full border-2 border-white shadow-sm flex items-center justify-center">
             <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
           </div>
@@ -131,7 +137,7 @@ const UserCard = () => {
           <div className="text-center">
             <span>Valid until: </span>
             <span className="font-semibold text-black">
-              {new Date(subscription.end_date).toLocaleDateString()}
+              {formatSubDate(subscription.end_date)}
             </span>
           </div>
         </div>

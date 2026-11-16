@@ -5,6 +5,7 @@ import {
     sendQuoteAcceptanceNotificationToAdmin,
     sendQuoteRejectionNotificationToAdmin 
 } from '../services/adminNotificationService.js';
+import { issueOrderCompletionCoupons } from '../services/couponService.js';
 
 // @desc    Get company's quote responses
 // @route   GET /api/company-quotes/my-responses
@@ -369,6 +370,13 @@ We will contact you shortly for further details.`;
                 console.error('❌ Error creating admin notification:', notificationError);
                 // Don't fail the whole operation if notification fails
             }
+        }
+
+        // 🎟️ ORDER COMPLETION REWARD — issue coupons to user + company when quote is closed
+        if (status === 'closed') {
+            issueOrderCompletionCoupons(quoteId, quoteInfo.user_id, companyId).catch(err =>
+                console.error('❌ Order reward coupon error:', err)
+            );
         }
 
         res.status(200).json({ message: 'Quote status updated successfully' });

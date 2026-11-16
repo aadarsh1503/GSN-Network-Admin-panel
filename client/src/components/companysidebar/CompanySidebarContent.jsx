@@ -3,8 +3,10 @@ import { NavLink, useLocation } from 'react-router-dom';
 import {
   FiGrid, FiUsers, FiFileText, FiUser, FiEdit, FiGitBranch,
   FiUserPlus, FiAward, FiRepeat, FiFile,
-  FiHeart, FiMail, FiBell, FiChevronDown, FiCreditCard, FiSearch, FiShield, FiHelpCircle, FiDollarSign
+  FiHeart, FiMail, FiBell, FiChevronDown, FiCreditCard, FiSearch, FiShield, FiHelpCircle, FiDollarSign,
+  FiGift
 } from 'react-icons/fi';
+import { FaWallet } from 'react-icons/fa';
 import UserCard from './UserCard';
 import { useNotifications } from '../../contexts/NotificationContext';
 import CompanyQuoteRestrictionModal from '../Modal/CompanyQuoteRestrictionModal';
@@ -26,18 +28,19 @@ const menuSections = [
     title: 'Financial Management',
     priority: 2,
     items: [
-      { name: 'Subscriptions', icon: <FiCreditCard />, path: '/company/subscriptions', priority: 1 },
+      { name: 'Wallet', icon: <FaWallet />, path: '/company/wallet', priority: 1 },
+      { name: 'Subscriptions', icon: <FiCreditCard />, path: '/company/subscriptions', priority: 2 },
       {
         name: 'Payment Management',
         icon: <FiDollarSign />,
-        priority: 2,
+        priority: 3,
         subItems: [
           { name: 'Bank Details', path: '/company/bank-details' },
           { name: 'Payment Verification', path: '/company/payment-management' },
         ],
       },
-      { name: 'Invoices', icon: <FiFile />, path: '/company/invoices', priority: 3 },
-      { name: 'Transaction History', icon: <FiRepeat />, path: '/company/transaction-History-Company', priority: 4 },
+      { name: 'Invoices', icon: <FiFile />, path: '/company/invoices', priority: 4 },
+      { name: 'Transaction History', icon: <FiRepeat />, path: '/company/transaction-History-Company', priority: 5 },
     ]
   },
   {
@@ -72,6 +75,7 @@ const menuSections = [
       { name: 'My Profile', icon: <FiUser />, path: '/company/my-profile', priority: 1 },
       { name: 'Edit Company Details', icon: <FiEdit />, path: '/company/edit-Profile', priority: 2 },
       { name: 'My Certificate', icon: <FiAward />, path: '/company/profile-certificate', priority: 3 },
+      { name: 'Referral Program', icon: <FiGift />, path: '/company/referrals', priority: 4 },
     ]
   },
   {
@@ -193,11 +197,11 @@ const CompanySidebarContent = () => {
               </span>
               <span className="font-medium">{item.name}</span>
             </div>
-            {/* {item.name === 'Notifications' && unreadCount > 0 && (
-              <span className="bg-black text-white text-xs rounded-full h-6 w-6 flex items-center justify-center animate-bounce shadow-lg font-bold">
+            {item.name === 'Notifications' && unreadCount > 0 && (
+              <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse shadow-sm font-bold">
                 {unreadCount > 99 ? '99+' : unreadCount}
               </span>
-            )} */}
+            )}
             {item.name === 'Messages' && messageUnreadCount > 0 && (
               <span className="bg-[#bca142] text-white text-xs rounded-full h-6 w-6 flex items-center justify-center animate-bounce shadow-lg font-bold">
                 {messageUnreadCount > 99 ? '99+' : messageUnreadCount}

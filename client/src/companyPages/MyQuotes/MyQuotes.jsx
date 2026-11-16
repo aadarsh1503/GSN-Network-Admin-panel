@@ -1006,7 +1006,7 @@ const MyQuotes = () => {
                     {selectedQuote.payment_proof_url && !selectedQuote.payment_status && (
                       <p className="text-sm text-yellow-600 flex items-center gap-2">
                         <FiClock className="text-yellow-500" />
-                        <strong>Payment {selectedQuote.payment_method === 'paypal' ? 'received' : 'proof uploaded'}, awaiting your verification</strong>
+                        <strong>Payment proof uploaded, awaiting your verification</strong>
                       </p>
                     )}
                     
@@ -1042,7 +1042,7 @@ const MyQuotes = () => {
                         </div>
                         <div className="flex-1">
                           <p className="font-semibold text-blue-900 mb-1">PayPal Payment</p>
-                          <p className="text-sm text-blue-700 mb-2">Paid via PayPal - No proof image required</p>
+                          <p className="text-sm text-blue-700 mb-2">Paid via PayPal</p>
                           <div className="bg-white rounded-lg p-2 border border-blue-200">
                             <p className="text-xs text-gray-500 mb-1">PayPal Order ID:</p>
                             <p className="text-sm font-mono font-semibold text-gray-900 break-all">
@@ -1054,8 +1054,8 @@ const MyQuotes = () => {
                     </div>
                   )}
                   
-                  {/* Show View Payment Proof button only for bank transfers */}
-                  {selectedQuote.payment_proof_url && selectedQuote.payment_method !== 'paypal' && (
+                  {/* Show View Payment Proof button */}
+                  {selectedQuote.payment_proof_url && (
                     <button
                       onClick={() => window.open(selectedQuote.payment_proof_url, '_blank')}
                       className="w-full px-4 py-3 border-2 border-[#bca142] text-[#bca142] font-semibold rounded-xl hover:bg-[#bca142] hover:text-white transition-all duration-200 flex items-center justify-center gap-2"

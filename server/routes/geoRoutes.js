@@ -395,25 +395,35 @@ router.get('/countries-full', (req, res) => {
   res.json({ success: true, countries: COUNTRIES_LIST });
 });
 
+// countriesnow.space uses different names for a few countries than our UI list
+const COUNTRY_ALIASES = {
+  "Côte d'Ivoire": 'Ivory Coast',
+  'North Macedonia': 'Macedonia',
+  'Eswatini': 'Swaziland',
+};
+
 // @desc    Get states for a country (proxy to avoid CORS)
 // @route   POST /api/geo/states
 // @access  Public
 router.post('/states', async (req, res) => {
+  const country = req.body?.country;
   try {
-    const { country } = req.body;
     const response = await fetch('https://countriesnow.space/api/v0.1/countries/states', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ country }),
+      body: JSON.stringify({ country: COUNTRY_ALIASES[country] || country }),
       timeout: 10000
     });
 
-    if (!response.ok) throw new Error(`countriesnow error: ${response.status}`);
-    const data = await response.json();
-    res.json(data);
+    // Unknown country -> upstream 404. Return an empty list instead of a server error.
+    if (!response.ok) {
+      console.warn(`⚠️ States unavailable for "${country}" (upstream ${response.status})`);
+      return res.json({ error: false, msg: 'No states found', data: { name: country, states: [] } });
+    }
+    res.json(await response.json());
   } catch (error) {
     console.error('❌ States proxy failed:', error.message);
-    res.status(500).json({ success: false, error: error.message });
+    res.json({ error: false, msg: 'No states found', data: { name: country, states: [] } });
   }
 });
 
@@ -421,21 +431,24 @@ router.post('/states', async (req, res) => {
 // @route   POST /api/geo/cities
 // @access  Public
 router.post('/cities', async (req, res) => {
+  const { country, state } = req.body || {};
   try {
-    const { country, state } = req.body;
     const response = await fetch('https://countriesnow.space/api/v0.1/countries/state/cities', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ country, state }),
+      body: JSON.stringify({ country: COUNTRY_ALIASES[country] || country, state }),
       timeout: 10000
     });
 
-    if (!response.ok) throw new Error(`countriesnow error: ${response.status}`);
-    const data = await response.json();
-    res.json(data);
+    // Unknown country/state -> upstream 404. Return an empty list instead of a server error.
+    if (!response.ok) {
+      console.warn(`⚠️ Cities unavailable for "${country} / ${state}" (upstream ${response.status})`);
+      return res.json({ error: false, msg: 'No cities found', data: [] });
+    }
+    res.json(await response.json());
   } catch (error) {
     console.error('❌ Cities proxy failed:', error.message);
-    res.status(500).json({ success: false, error: error.message });
+    res.json({ error: false, msg: 'No cities found', data: [] });
   }
 });
 

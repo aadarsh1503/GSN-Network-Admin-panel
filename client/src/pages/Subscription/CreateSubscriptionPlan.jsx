@@ -116,7 +116,7 @@ const CreateSubscriptionPlan = () => {
             />
 
             <InputField 
-              label="Price (USD)" 
+              label="Price (BHD)" 
               name="price" 
               value={formData.price} 
               onChange={handleChange} 

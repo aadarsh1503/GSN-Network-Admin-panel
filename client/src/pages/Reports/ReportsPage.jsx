@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { FiUsers, FiDollarSign, FiFileText, FiLogIn, FiDownload, FiCalendar } from 'react-icons/fi';
 import api from '../../utils/api';
 
+// BHD is the platform base currency
+const fmtBhd = (v) => `BHD ${Number(v || 0).toFixed(3)}`;
+
 const ReportsPage = () => {
   const [activeTab, setActiveTab] = useState('membership');
   const [reportData, setReportData] = useState(null);
@@ -108,11 +111,11 @@ const ReportsPage = () => {
         </div>
         <div className="bg-green-50 p-4 rounded-lg">
           <p className="text-sm text-green-600">Total Amount</p>
-          <p className="text-2xl font-bold text-green-800">${reportData?.summary?.total_amount || 0}</p>
+          <p className="text-2xl font-bold text-green-800">{fmtBhd(reportData?.summary?.total_amount)}</p>
         </div>
         <div className="bg-purple-50 p-4 rounded-lg">
           <p className="text-sm text-purple-600">Completed</p>
-          <p className="text-2xl font-bold text-purple-800">${reportData?.summary?.total_completed || 0}</p>
+          <p className="text-2xl font-bold text-purple-800">{reportData?.summary?.total_completed || 0}</p>
         </div>
       </div>
 
@@ -136,8 +139,8 @@ const ReportsPage = () => {
                 <tr key={idx} className="border-b hover:bg-gray-50">
                   <td className="p-3">{new Date(row.date).toLocaleDateString()}</td>
                   <td className="p-3">{row.total_transactions}</td>
-                  <td className="p-3">${row.total_amount || 0}</td>
-                  <td className="p-3">${row.completed_amount || 0}</td>
+                  <td className="p-3">{fmtBhd(row.total_amount)}</td>
+                  <td className="p-3">{fmtBhd(row.completed_amount)}</td>
                   <td className="p-3">{row.pending_count}</td>
                   <td className="p-3">{row.failed_count}</td>
                 </tr>

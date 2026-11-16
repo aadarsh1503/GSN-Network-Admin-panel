@@ -43,6 +43,7 @@ import { api } from '../../utils/api';
 import QuotePaymentModal from '../../components/QuotePayment/QuotePaymentModal';
 import CompanyProfileModal from '../../components/CompanyProfileModal/CompanyProfileModal';
 import { useQuoteStatusSync } from '../../hooks/useQuoteStatusSync';
+import { useCurrency } from '../../contexts/CurrencyContext';
 
 // Business Compact Response Row Component
 const BusinessCompactResponseRow = ({ 
@@ -59,6 +60,11 @@ const BusinessCompactResponseRow = ({
   getPaymentStatusBadge
 }) => {
   const [showDetails, setShowDetails] = useState(false);
+
+  // Quote prices are stored in USD; display them in the buyer's local currency
+  // with the USD equivalent underneath.
+  const { format, formatUsd } = useCurrency();
+  const amount = response.has_coupon ? Number(response.coupon_final_amount) : response.price;
 
   const getStatusBadge = () => {
     if (response.user_response_status === 'accepted') {
@@ -121,8 +127,23 @@ const BusinessCompactResponseRow = ({
           <div className="flex items-center space-x-6 text-sm">
             <div className="flex items-center space-x-1">
               <FaDollarSign className="h-4 w-4 text-[#bca142]" />
-              <span className="font-semibold">${response.price}</span>
+              <span className="font-semibold">
+                {format(amount, 'USD')}
+                <span className="block text-[10px] font-normal text-gray-400">≈ {formatUsd(amount, 'USD')}</span>
+              </span>
+              {response.has_coupon && (
+                <span className="text-xs text-slate-400 line-through">{format(Number(response.coupon_original_amount), 'USD')}</span>
+              )}
             </div>
+            {response.has_coupon && (
+              <div className="flex items-center space-x-1 text-[#8f7a2e]">
+                <span className="font-semibold text-xs">
+                  {response.coupon_discount_type === 'percentage'
+                    ? `${Number(response.coupon_discount_value)}% off`
+                    : `${format(Number(response.coupon_discount_value), 'USD')} off`}
+                </span>
+              </div>
+            )}
             <div className="flex items-center space-x-1">
               <Clock className="h-4 w-4 text-[#bca142]" />
               <span>{response.transit_time}</span>

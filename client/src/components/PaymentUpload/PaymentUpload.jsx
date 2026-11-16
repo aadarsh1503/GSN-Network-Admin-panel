@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { api } from '../../utils/api';
+import { useCurrency } from '../../contexts/CurrencyContext';
 import './PaymentUpload.css';
 
+// Quote amounts are stored in USD.
 const PaymentUpload = ({ quote, onClose, onSuccess }) => {
+  const { format, formatUsd } = useCurrency();
   const [paymentFile, setPaymentFile] = useState(null);
   const [paymentDate, setPaymentDate] = useState('');
   const [paymentNotes, setPaymentNotes] = useState('');
@@ -143,7 +146,7 @@ const PaymentUpload = ({ quote, onClose, onSuccess }) => {
         <h4>Quote Summary</h4>
         <div className="quote-details">
           <p><strong>Quote ID:</strong> #{quote.quote_id}</p>
-          <p><strong>Amount:</strong> ${quote.amount}</p>
+          <p><strong>Amount:</strong> {format(quote.amount, 'USD')} <span className="text-xs text-gray-400">≈ {formatUsd(quote.amount, 'USD')}</span></p>
           <p><strong>Company:</strong> {quote.company_name}</p>
           <p><strong>Transit Time:</strong> {quote.transit_time}</p>
         </div>

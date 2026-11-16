@@ -111,6 +111,7 @@ const getQuoteResponsesWithBankDetails = async (req, res) => {
                    u.email as company_email,
                    u.phone as company_phone,
                    u.logo as company_logo,
+                   u.paypal_email as company_paypal_email,
                    cbd.bank_name,
                    cbd.branch_name,
                    cbd.branch_address,
@@ -129,6 +130,13 @@ const getQuoteResponsesWithBankDetails = async (req, res) => {
                    pp.upload_date as payment_proof_date,
                    pp.file_path as payment_proof_url,
                    CASE WHEN pp.id IS NOT NULL THEN 1 ELSE 0 END as payment_proof_uploaded,
+                   -- Coupon discount applied by the customer on this payment
+                   CASE WHEN pp.coupon_code IS NOT NULL THEN 1 ELSE 0 END as has_coupon,
+                   pp.original_amount as coupon_original_amount,
+                   pp.coupon_discount as coupon_discount_amount,
+                   pp.coupon_final_amount as coupon_final_amount,
+                   cpn.discount_type as coupon_discount_type,
+                   cpn.discount_value as coupon_discount_value,
                    pv.verification_status as payment_status,
                    pv.verification_date,
                    pv.company_notes as payment_company_notes,
@@ -140,6 +148,8 @@ const getQuoteResponsesWithBankDetails = async (req, res) => {
             LEFT JOIN user_quote_status uqs ON (qr.id = uqs.quote_response_id AND uqs.user_id = ?)
             LEFT JOIN payment_proofs pp ON uqs.payment_proof_id = pp.id
             LEFT JOIN payment_verifications pv ON pp.id = pv.payment_proof_id
+            LEFT JOIN user_coupons uc ON uc.code = pp.coupon_code
+            LEFT JOIN coupons cpn ON cpn.id = uc.coupon_id
             WHERE qr.quote_id = ?
             ORDER BY qr.created_at DESC
         `, [userId, quoteId]);
@@ -252,7 +262,15 @@ const getCompanyResponsesWithPayments = async (req, res) => {
                 cbd.swift_code,
                 cbd.iban_number,
                 cbd.branch_name,
-                cbd.payment_instructions
+                cbd.payment_instructions,
+                
+                -- Coupon discount (company sees amount + percent, never the code)
+                CASE WHEN pp.coupon_code IS NOT NULL THEN 1 ELSE 0 END as has_coupon,
+                pp.original_amount as coupon_original_amount,
+                pp.coupon_discount as coupon_discount_amount,
+                pp.coupon_final_amount as coupon_final_amount,
+                cpn.discount_type as coupon_discount_type,
+                cpn.discount_value as coupon_discount_value
                 
             FROM quote_responses qr
             JOIN quotes q ON qr.quote_id = q.id
@@ -263,6 +281,8 @@ const getCompanyResponsesWithPayments = async (req, res) => {
             LEFT JOIN payment_verifications pv ON pp.id = pv.payment_proof_id
             LEFT JOIN quote_response_bank_details qrbd ON qr.id = qrbd.quote_response_id
             LEFT JOIN company_bank_details cbd ON qrbd.company_bank_details_id = cbd.id
+            LEFT JOIN user_coupons uc ON uc.code = pp.coupon_code
+            LEFT JOIN coupons cpn ON cpn.id = uc.coupon_id
             WHERE qr.company_id = ?
             ORDER BY qr.created_at DESC
         `, [companyId]);
@@ -359,6 +379,7 @@ const getAllCompanyResponsesWithPayments = async (req, res) => {
                    c.email as company_email,
                    
                    -- Bank details
+                   c.paypal_email as company_paypal_email,
                    cbd.bank_name,
                    cbd.account_holder_name,
                    cbd.account_number,
@@ -377,7 +398,16 @@ const getAllCompanyResponsesWithPayments = async (req, res) => {
                    -- User response status
                    uqs.status as user_response_status,
                    uqs.accepted_at,
-                   uqs.rejected_at
+                   uqs.rejected_at,
+                   
+                   -- Coupon (admin sees the code + percent off)
+                   CASE WHEN pp.coupon_code IS NOT NULL THEN 1 ELSE 0 END as has_coupon,
+                   pp.coupon_code,
+                   pp.original_amount as coupon_original_amount,
+                   pp.coupon_discount as coupon_discount_amount,
+                   pp.coupon_final_amount as coupon_final_amount,
+                   cpn.discount_type as coupon_discount_type,
+                   cpn.discount_value as coupon_discount_value
                    
             FROM quote_responses qr
             JOIN quotes q ON qr.quote_id = q.id
@@ -388,6 +418,8 @@ const getAllCompanyResponsesWithPayments = async (req, res) => {
             LEFT JOIN payment_proofs pp ON qr.id = pp.quote_response_id
             LEFT JOIN payment_verifications pv ON pp.id = pv.payment_proof_id
             LEFT JOIN user_quote_status uqs ON qr.id = uqs.quote_response_id
+            LEFT JOIN user_coupons uc ON uc.code = pp.coupon_code
+            LEFT JOIN coupons cpn ON cpn.id = uc.coupon_id
             ORDER BY qr.created_at DESC
         `);
 
@@ -413,6 +445,7 @@ const getQuoteResponsesWithBankDetailsAdmin = async (req, res) => {
                    u.email as company_email,
                    u.phone as company_phone,
                    u.logo as company_logo,
+                   u.paypal_email as company_paypal_email,
                    cbd.bank_name,
                    cbd.branch_name,
                    cbd.branch_address,

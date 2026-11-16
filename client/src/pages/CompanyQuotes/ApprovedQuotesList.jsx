@@ -6,8 +6,11 @@ import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import FuturisticLoader from '../../components/Loaders/FuturisticLoader';
 import FuturisticQuoteModal from '../../components/Modals/FuturisticQuoteModal';
+import { useCurrency } from '../../contexts/CurrencyContext';
 
 const ApprovedCompanyQuotesList = () => {
+  const { format, formatUsd } = useCurrency();
+  const fmtBhd = (v) => format(v, 'USD');
   const [quotesWithResponses, setQuotesWithResponses] = useState([]);
   const [viewingQuote, setViewingQuote] = useState(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
@@ -360,7 +363,8 @@ const ApprovedCompanyQuotesList = () => {
                       <td className="px-2 py-2">
                         {quote.accepted_price && quote.accepted_price !== 'null' ? (
                           <div className="min-w-[120px]">
-                            <div className="font-bold text-xs text-[#bca142]">${quote.accepted_price}</div>
+                            <div className="font-bold text-xs text-[#bca142]">{fmtBhd(quote.accepted_price)}</div>
+                            <div className="text-xs text-gray-400">{formatUsd(quote.accepted_price, 'USD')}</div>
                             <div className="text-xs text-gray-500 truncate">{quote.accepted_transit_time || 'N/A'}</div>
                           </div>
                         ) : (

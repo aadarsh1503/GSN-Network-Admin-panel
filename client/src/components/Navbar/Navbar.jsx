@@ -6,6 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import GSN from "./GSN.jpg"
 import LogoutConfirmationModal from '../Modal/LogoutConfirmationModal';
 import { useLogoutModal } from '../../hooks/useLogoutModal';
+import ProfileRing from '../ProfileCompletion/ProfileRing';
+import { useProfileCompletionContext } from '../../contexts/ProfileCompletionContext';
 const Navbar = () => {
   // State for the mobile menu
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -21,6 +23,7 @@ const Navbar = () => {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const { isLogoutModalOpen, openLogoutModal, closeLogoutModal } = useLogoutModal();
+  const { percentage, isTracked } = useProfileCompletionContext();
 
   // Effect to check user authentication
   useEffect(() => {
@@ -236,11 +239,29 @@ const Navbar = () => {
                 className="flex items-center space-x-2 font-medium hover:text-[#bca142] transition-colors focus:outline-none"
               >
                 <div className="flex items-center space-x-2">
-                  <div className={`w-8 h-8 rounded-full ${getRoleStyle(user.role).bgColor} flex items-center justify-center text-white text-sm font-bold`}>
-                    {user.name?.charAt(0)?.toUpperCase() || 'U'}
-                  </div>
+                  {isTracked ? (
+                    <ProfileRing percentage={percentage} size={34} stroke={3}>
+                      <div className={`w-full h-full rounded-full ${getRoleStyle(user.role).bgColor} flex items-center justify-center text-white text-sm font-bold`}>
+                        {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                      </div>
+                    </ProfileRing>
+                  ) : (
+                    <div className={`w-8 h-8 rounded-full ${getRoleStyle(user.role).bgColor} flex items-center justify-center text-white text-sm font-bold`}>
+                      {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                    </div>
+                  )}
                   <div className="flex flex-col items-start">
-                    <span className="text-sm font-semibold">{user.name}</span>
+                    <span className="text-sm font-semibold flex items-center">
+                      {user.name}
+                      {isTracked && (
+                        <span
+                          className="ml-2 rounded-full px-1.5 py-0.5 text-[10px] font-bold"
+                          style={{ background: 'rgba(188,161,66,0.15)', color: '#bca142' }}
+                        >
+                          {percentage}%
+                        </span>
+                      )}
+                    </span>
                     <span className={`text-xs ${getRoleStyle(user.role).textColor} font-medium`}>
                       ({getRoleStyle(user.role).label})
                     </span>
@@ -306,13 +327,22 @@ const Navbar = () => {
             {/* User Info (Mobile) */}
             {user && (
               <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg mb-4">
-                <div className={`w-10 h-10 rounded-full ${getRoleStyle(user.role).bgColor} flex items-center justify-center text-white font-bold`}>
-                  {user.name?.charAt(0)?.toUpperCase() || 'U'}
-                </div>
+                {isTracked ? (
+                  <ProfileRing percentage={percentage} size={44} stroke={3}>
+                    <div className={`w-full h-full rounded-full ${getRoleStyle(user.role).bgColor} flex items-center justify-center text-white font-bold`}>
+                      {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                    </div>
+                  </ProfileRing>
+                ) : (
+                  <div className={`w-10 h-10 rounded-full ${getRoleStyle(user.role).bgColor} flex items-center justify-center text-white font-bold`}>
+                    {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                  </div>
+                )}
                 <div className="flex flex-col">
                   <span className="font-semibold text-gray-900">{user.name}</span>
                   <span className={`text-sm ${getRoleStyle(user.role).textColor} font-medium`}>
                     {getRoleStyle(user.role).label}
+                    {isTracked && ` • ${percentage}% complete`}
                   </span>
                 </div>
               </div>

@@ -38,6 +38,9 @@ import enhancedQuoteRoutes from './routes/enhancedQuoteRoutes.js';
 import emailQueueRoutes from './routes/emailQueueRoutes.js';
 import geoRoutes from './routes/geoRoutes.js';
 import adminAccountRoutes from './routes/adminAccountRoutes.js';
+import referralRoutes from './routes/referralRoutes.js';
+import walletRoutes from './routes/walletRoutes.js';
+import couponRoutes from './routes/couponRoutes.js';
 // ==========================================================
 // CONFIGURE DOTENV AT THE VERY TOP
 dotenv.config();
@@ -61,6 +64,8 @@ const server = createServer(app);
 realTimeAccountService.initialize(server);
 
 // Middlewares
+import cors from 'cors';
+app.use(cors({ origin: true, credentials: true })); // Allow all origins for dev
 app.use(express.json()); // Middleware to parse JSON bodies
 app.use('/uploads', express.static('uploads')); // Serve uploaded files
 
@@ -115,6 +120,9 @@ app.use('/api/business-quotes', businessQuoteRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/enhanced-quotes', enhancedQuoteRoutes);
+app.use('/api/referrals', referralRoutes); // Mount BEFORE the /api catch-all businessRoutes
+app.use('/api/wallet', walletRoutes); // Company Wallet & Referral Reward System
+app.use('/api/coupons', couponRoutes); // Coupon system (user-facing + admin)
 app.use('/api', businessRoutes); // Mount business directory routes at /api level for public access
 app.use('/api/email-queue', emailQueueRoutes);
 

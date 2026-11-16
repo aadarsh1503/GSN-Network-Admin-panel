@@ -24,6 +24,7 @@ import {
 import toast from 'react-hot-toast';
 import { api } from '../../utils/api';
 import { fetchCountries, fetchStates, fetchCities } from '../../utils/locationData';
+import BankDetailsForm from '../../components/ProfileCompletion/BankDetailsForm';
 
 const BusinessProfile = () => {
   const [profile, setProfile] = useState({
@@ -1132,6 +1133,9 @@ const BusinessProfile = () => {
               </div>
             </div>
           </div>
+
+          {/* Bank Details */}
+          <BankDetailsForm />
 
           <div className="bg-white rounded-2xl p-6 border">
             <h3 className="text-lg font-bold text-[#bca142] mb-3 flex items-center">

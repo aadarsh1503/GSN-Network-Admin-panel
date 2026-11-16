@@ -6,8 +6,26 @@ import {
 import { FaSort, FaTrash } from 'react-icons/fa';
 import { api } from '../../utils/api';
 import toast from 'react-hot-toast';
+import { useCurrency } from '../../contexts/CurrencyContext';
+
+// Admin sees the coupon code along with the percent/amount off.
+const getCouponLabel = (txn) => {
+  if (!txn || !txn.has_coupon) return '';
+  const value = Number(txn.coupon_discount_value || 0);
+  return txn.coupon_discount_type === 'percentage'
+    ? `${value}% off`
+    : `BHD ${value.toFixed(3)} off`;
+};
+const getCouponShortLabel = (txn) => {
+  const value = Number(txn.coupon_discount_value || 0);
+  return txn.coupon_discount_type === 'percentage'
+    ? `${value}%`
+    : `BHD ${value.toFixed(3)}`;
+};
 
 const AdminTransactions = () => {
+  const { format, formatUsd } = useCurrency();
+  const fmtBhd = (v) => format(v);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filteredTransactions, setFilteredTransactions] = useState([]);
@@ -56,7 +74,13 @@ const AdminTransactions = () => {
               company_email: item.company_email,
               quote_id: item.quote_id,
               product_description: item.product_description,
-              amount: item.price,
+              amount: item.coupon_final_amount || item.price,
+              original_amount: item.coupon_original_amount || item.price,
+              has_coupon: item.has_coupon,
+              coupon_code: item.coupon_code || null,
+              coupon_discount_amount: item.coupon_discount_amount,
+              coupon_discount_type: item.coupon_discount_type,
+              coupon_discount_value: item.coupon_discount_value,
               transaction_reference: `VERIFIED-${item.quote_id}-${item.quote_response_id}`,
               status: 'verified',
               created_at: item.verification_date || item.created_at,
@@ -191,7 +215,7 @@ const AdminTransactions = () => {
     return filteredTransactions
       .filter(txn => ['completed', 'verified', 'paid'].includes(txn.status))
       .reduce((sum, txn) => sum + parseFloat(txn.amount || txn.amount_paid || 0), 0)
-      .toFixed(2);
+      .toFixed(3);
   };
 
   const getTransactionStats = () => {
@@ -212,7 +236,7 @@ const AdminTransactions = () => {
   };
 
   const exportToCSV = () => {
-    const headers = ['ID', 'Type', 'User', 'Email', 'Company', 'Quote/Plan', 'Product/Description', 'Amount', 'Reference', 'Status', 'Date'];
+    const headers = ['ID', 'Type', 'User', 'Email', 'Company', 'Quote/Plan', 'Product/Description', 'Amount (BHD)', 'Coupon', 'Reference', 'Status', 'Date'];
     const rows = filteredTransactions.map(txn => [
       txn.id,
       getTransactionTypeName(txn.transaction_type),
@@ -222,6 +246,7 @@ const AdminTransactions = () => {
       txn.quote_id || txn.plan_name || 'N/A',
       txn.product_description || txn.plan_description || 'N/A',
       txn.amount || txn.amount_paid,
+      txn.has_coupon ? `${txn.coupon_code} (${getCouponLabel(txn)})` : 'N/A',
       txn.transaction_reference || 'N/A',
       txn.status,
       new Date(txn.created_at).toLocaleDateString()
@@ -281,7 +306,8 @@ const AdminTransactions = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-500">Revenue</p>
-                <p className="text-lg font-bold text-[#bca142]">${calculateTotalRevenue()}</p>
+                <p className="text-lg font-bold text-[#bca142]">{fmtBhd(calculateTotalRevenue())}</p>
+                <p className="text-[10px] text-gray-400">≈ {formatUsd(calculateTotalRevenue())}</p>
               </div>
               <FiTrendingUp className="text-[#bca142]" />
             </div>
@@ -420,6 +446,9 @@ const AdminTransactions = () => {
                       <FaSort className="ml-1 h-2 w-2 text-white" />
                     </div>
                   </th>
+                  <th scope="col" className="px-2 py-2 font-semibold min-w-[110px]">
+                    Coupon
+                  </th>
                   <th scope="col" className="px-2 py-2 font-semibold min-w-[120px]">
                     Reference
                   </th>
@@ -443,7 +472,7 @@ const AdminTransactions = () => {
               <tbody>
                 {currentItems.length === 0 ? (
                   <tr>
-                    <td colSpan="10" className="px-2 py-6 text-center text-gray-500 text-sm">
+                    <td colSpan="11" className="px-2 py-6 text-center text-gray-500 text-sm">
                       {transactions.length === 0 ? 'No transactions found.' : 'No transactions match your current filters.'}
                     </td>
                   </tr>
@@ -485,8 +514,34 @@ const AdminTransactions = () => {
                       </td>
                       <td className="px-2 py-2">
                         <div className="font-bold text-xs text-[#bca142]">
-                          ${transaction.amount || transaction.amount_paid || '0.00'}
+                          {fmtBhd(transaction.amount || transaction.amount_paid || 0)}
                         </div>
+                        <div className="text-[10px] text-gray-400">≈ {formatUsd(transaction.amount || transaction.amount_paid || 0)}</div>
+                        {transaction.has_coupon && (
+                          <div className="text-[10px] text-gray-400 line-through">
+                            {fmtBhd(transaction.original_amount)}
+                          </div>
+                        )}
+                        {transaction.has_coupon && (
+                          <div className="text-[10px] text-gray-400">≈ {formatUsd(transaction.original_amount)}</div>
+                        )}
+                      </td>
+                      <td className="px-2 py-2">
+                        {transaction.has_coupon ? (
+                          <div className="min-w-[110px]">
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#bca142]/15 text-[#8f7a2e] border border-[#bca142]/30">
+                              {transaction.coupon_code}
+                            </span>
+                            <div className="text-[10px] text-gray-500 mt-0.5">
+                              {getCouponShortLabel(transaction)} off
+                            </div>
+                            {transaction.coupon_discount_type !== 'percentage' && (
+                              <div className="text-[10px] text-gray-400">≈ {formatUsd(transaction.coupon_discount_value)}</div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-xs">—</span>
+                        )}
                       </td>
                       <td className="px-2 py-2">
                         <div className="text-xs truncate min-w-[120px]" title={transaction.transaction_reference}>
@@ -599,7 +654,10 @@ const AdminTransactions = () => {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-500">Amount:</span>
-                        <span className="font-bold text-[#bca142]">${deleteConfirm.transactionDetails.amount || deleteConfirm.transactionDetails.amount_paid}</span>
+                        <span className="font-bold text-[#bca142] text-right">
+                          {fmtBhd(deleteConfirm.transactionDetails.amount || deleteConfirm.transactionDetails.amount_paid)}
+                          <span className="block text-[10px] text-gray-400 font-normal">≈ {formatUsd(deleteConfirm.transactionDetails.amount || deleteConfirm.transactionDetails.amount_paid)}</span>
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-500">Status:</span>

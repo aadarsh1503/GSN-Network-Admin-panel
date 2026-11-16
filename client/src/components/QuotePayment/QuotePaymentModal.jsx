@@ -1,144 +1,87 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { FaPaypal, FaUniversity, FaTimes } from 'react-icons/fa';
 import { FiAlertCircle, FiUpload } from 'react-icons/fi';
 import toast from 'react-hot-toast';
-import { api } from '../../utils/api';
+import { api, isPaypalSandbox } from '../../utils/api';
+import { useCurrency } from '../../contexts/CurrencyContext';
 import './QuotePaymentModal.css';
 
 const QuotePaymentModal = ({ quote, onClose, onSuccess }) => {
-  const [paymentMethod, setPaymentMethod] = useState('paypal');
-  const [paypalLoaded, setPaypalLoaded] = useState(false);
-  
-  // Bank Transfer State
+  const [paymentMethod, setPaymentMethod] = useState(quote.company_paypal_email ? 'paypal' : 'bank');
+
+  // Payment proof state (shared by PayPal and Bank Transfer)
   const [paymentFile, setPaymentFile] = useState(null);
   const [paymentDate, setPaymentDate] = useState('');
   const [paymentNotes, setPaymentNotes] = useState('');
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
-  
-  const paypalRef = useRef(null);
 
-  const PAYPAL_CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID;
+  // Quote amounts are stored in USD; show them in the buyer's local currency with
+  // the USD equivalent underneath. (The PayPal charge itself stays in USD below.)
+  const { format, formatUsd } = useCurrency();
 
-  useEffect(() => {
-    loadPayPalScript();
-  }, []);
+  const finalAmount = Number(quote.amount || quote.price) || 0;
 
-  useEffect(() => {
-    if (paypalLoaded && paymentMethod === 'paypal' && quote) {
-      const timer = setTimeout(() => {
-        renderPayPalButtons();
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [paypalLoaded, paymentMethod, quote]);
+  // PayPal cannot send funds to a third party from an embedded checkout, so hand off to
+  // PayPal's hosted payment page with the company's email as the receiver. The money goes
+  // straight to the company; there is no server-side confirmation, hence the receipt upload.
+  const buildPaypalPayLink = () => {
+    const params = new URLSearchParams({
+      cmd: '_xclick',
+      business: quote.company_paypal_email,
+      item_name: `Quote #${quote.quote_id} - ${quote.company_name}`,
+      amount: finalAmount.toFixed(2),
+      currency_code: 'USD',
+      no_shipping: '1',
+    });
+    const host = isPaypalSandbox()
+      ? 'https://www.sandbox.paypal.com'
+      : 'https://www.paypal.com';
+    return `${host}/cgi-bin/webscr?${params.toString()}`;
+  };
 
-  const loadPayPalScript = () => {
-    if (window.paypal) {
-      setPaypalLoaded(true);
+  // Opens the checkout in a centred, modal-sized popup instead of a full new tab so it
+  // feels on-site. The window is named, so repeat clicks reuse it instead of stacking up.
+  const handleOpenPaypal = () => {
+    const width = 500;
+    const height = 720;
+    const screenLeft = window.screenLeft ?? window.screenX ?? 0;
+    const screenTop = window.screenTop ?? window.screenY ?? 0;
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth || screen.width;
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || screen.height;
+    const left = Math.max(0, screenLeft + (viewportWidth - width) / 2);
+    const top = Math.max(0, screenTop + (viewportHeight - height) / 2);
+
+    const popup = window.open(
+      buildPaypalPayLink(),
+      'gsnPaypalCheckout',
+      `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`
+    );
+
+    if (!popup) {
+      // Popup blocked — fall back to a normal tab so the payment can still go through
+      window.open(buildPaypalPayLink(), '_blank', 'noopener,noreferrer');
+      toast.error('Popup was blocked. PayPal opened in a new tab instead.', { duration: 6000 });
       return;
     }
 
-    const script = document.createElement('script');
-    script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=USD`;
-    script.async = true;
-    script.onload = () => setPaypalLoaded(true);
-    script.onerror = () => {
-      console.error('Failed to load PayPal SDK');
-      toast.error('Failed to load PayPal. Please try bank transfer.');
-    };
-    document.body.appendChild(script);
-  };
-
-  const renderPayPalButtons = () => {
-    if (!paypalRef.current || !window.paypal) return;
-
-    paypalRef.current.innerHTML = '';
-
-    const amount = quote.amount || quote.price;
-
-    window.paypal.Buttons({
-      createOrder: (data, actions) => {
-        return actions.order.create({
-          purchase_units: [{
-            description: `Quote #${quote.quote_id} - ${quote.company_name}`,
-            amount: {
-              currency_code: 'USD',
-              value: amount
-            }
-          }]
-        });
-      },
-      onApprove: async (data, actions) => {
-        try {
-          const order = await actions.order.capture();
-          await handlePayPalSuccess(order);
-        } catch (error) {
-          console.error('PayPal capture error:', error);
-          toast.error('Payment capture failed. Please contact support.', {
-            duration: 10000
-          });
-        }
-      },
-      onError: (err) => {
-        console.error('PayPal error:', err);
-        toast.error('Payment failed. Please try again or use bank transfer.', {
-          duration: 10000
-        });
-      },
-      onCancel: () => {
-        toast.info('Payment cancelled');
-      },
-      style: {
-        layout: 'vertical',
-        color: 'gold',
-        shape: 'rect',
-        label: 'paypal'
-      }
-    }).render(paypalRef.current);
-  };
-
-  const handlePayPalSuccess = async (order) => {
     try {
-      const loadingToast = toast.loading('Processing your payment...');
-      
-      const formData = new FormData();
-      formData.append('quote_id', quote.quote_id);
-      formData.append('quote_response_id', quote.id);
-      formData.append('payment_method', 'paypal');
-      formData.append('paypal_order_id', order.id);
-      formData.append('paypal_payer_id', order.payer.payer_id);
-      formData.append('payment_details', JSON.stringify(order));
-      formData.append('payment_date', new Date().toISOString().split('T')[0]);
-
-      console.log('📤 Submitting PayPal payment:', {
-        quote_id: quote.quote_id,
-        quote_response_id: quote.id,
-        order_id: order.id
-      });
-
-      const response = await api.post('/api/enhanced-quotes/upload-payment-proof', formData);
-
-      toast.dismiss(loadingToast);
-      toast.success('✅ Payment successful! The company will verify and begin work.', {
-        duration: 5000
-      });
-      
-      onSuccess && onSuccess();
-      onClose && onClose();
-      
-    } catch (error) {
-      console.error('Payment submission error:', error);
-      toast.error(error.response?.data?.message || 'Failed to process payment');
+      popup.opener = null;
+    } catch {
+      // Cross-origin windows can refuse this; harmless
     }
+    popup.focus();
+    toast.success('Complete the payment in the PayPal window, then upload the receipt below.', {
+      duration: 6000,
+    });
   };
 
-  // Bank Transfer Functions
+  // File selection (JPG/JPEG/PNG only, max 5MB)
   const handleFileSelect = (file) => {
     if (file) {
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
       const allowedExtensions = ['.jpg', '.jpeg', '.png'];
-      
+
       if (!allowedTypes.includes(file.type.toLowerCase())) {
         toast.error('Please upload only JPG, JPEG, or PNG image files');
         return;
@@ -178,15 +121,19 @@ const QuotePaymentModal = ({ quote, onClose, onSuccess }) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileSelect(e.dataTransfer.files[0]);
     }
   };
 
-  const handleBankTransferSubmit = async (e) => {
+  const removeFile = () => {
+    setPaymentFile(null);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!paymentFile) {
       toast.error('Please upload payment proof');
       return;
@@ -204,13 +151,14 @@ const QuotePaymentModal = ({ quote, onClose, onSuccess }) => {
       formData.append('payment_proof', paymentFile);
       formData.append('quote_id', quote.quote_id);
       formData.append('quote_response_id', quote.id);
-      formData.append('payment_method', 'bank_transfer');
+      formData.append('payment_method', paymentMethod === 'bank' ? 'bank_transfer' : 'paypal');
       formData.append('payment_date', paymentDate);
       formData.append('payment_notes', paymentNotes);
 
-      console.log('📤 Uploading bank transfer proof:', {
+      console.log('📤 Uploading payment proof:', {
         quote_id: quote.quote_id,
         quote_response_id: quote.id,
+        payment_method: paymentMethod,
         payment_date: paymentDate,
         file_name: paymentFile.name
       });
@@ -228,7 +176,7 @@ const QuotePaymentModal = ({ quote, onClose, onSuccess }) => {
       } else {
         toast.success('Payment proof uploaded successfully! The company will verify your payment.');
       }
-      
+
       onSuccess && onSuccess();
       onClose && onClose();
     } catch (error) {
@@ -239,9 +187,97 @@ const QuotePaymentModal = ({ quote, onClose, onSuccess }) => {
     }
   };
 
-  const removeFile = () => {
-    setPaymentFile(null);
-  };
+  // Shared upload form (used by both PayPal and Bank Transfer tabs)
+  const renderUploadForm = () => (
+    <form onSubmit={handleSubmit} className="upload-form">
+      <div className="form-group">
+        <label>Payment Date *</label>
+        <input
+          type="date"
+          value={paymentDate}
+          onChange={(e) => setPaymentDate(e.target.value)}
+          max={new Date().toISOString().split('T')[0]}
+          required
+          className="date-input"
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Payment Receipt * (JPG, JPEG, PNG only)</label>
+        <div
+          className={`file-upload-area ${dragActive ? 'drag-active' : ''}`}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+        >
+          {!paymentFile ? (
+            <>
+              <FiUpload className="upload-icon" />
+              <p>Drag and drop your payment receipt here, or</p>
+              <label className="file-input-label">
+                <input
+                  type="file"
+                  accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                  onChange={handleFileChange}
+                  hidden
+                />
+                Choose File
+              </label>
+              <p className="file-info">JPG, JPEG, PNG only (Max 5MB)</p>
+            </>
+          ) : (
+            <div className="file-preview">
+              <div className="file-info-display">
+                <span className="file-name">{paymentFile.name}</span>
+                <span className="file-size">
+                  ({(paymentFile.size / 1024 / 1024).toFixed(2)} MB)
+                </span>
+              </div>
+              <button
+                type="button"
+                className="remove-file-btn"
+                onClick={removeFile}
+              >
+                Remove
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label>Additional Notes (Optional)</label>
+        <textarea
+          value={paymentNotes}
+          onChange={(e) => setPaymentNotes(e.target.value)}
+          rows="3"
+          placeholder="Any additional information about the payment..."
+          className="notes-textarea"
+        />
+      </div>
+
+      <div className="form-actions">
+        <button type="button" className="btn-cancel" onClick={onClose}>
+          Cancel
+        </button>
+        <button
+          type="submit"
+          className="btn-submit"
+          disabled={uploading || !paymentFile}
+        >
+          {uploading ? (
+            <>
+              <div className="spinner-small"></div>
+              <span>Uploading...</span>
+            </>
+          ) : (
+            'Upload Payment Proof'
+          )}
+        </button>
+      </div>
+    </form>
+  );
 
   return (
     <div className="quote-payment-modal-overlay">
@@ -250,7 +286,8 @@ const QuotePaymentModal = ({ quote, onClose, onSuccess }) => {
         <div className="modal-header">
           <div>
             <h2>Complete Payment</h2>
-            <p className="text-sm text-gray-600">Quote #{quote.quote_id} - ${quote.amount || quote.price}</p>
+            <p className="text-sm text-gray-600">Quote #{quote.quote_id} - {format(finalAmount, 'USD')}</p>
+            <p className="text-xs text-gray-400">≈ {formatUsd(finalAmount, 'USD')}</p>
           </div>
           <button onClick={onClose} className="close-button">
             <FaTimes />
@@ -265,7 +302,10 @@ const QuotePaymentModal = ({ quote, onClose, onSuccess }) => {
           </div>
           <div className="summary-row">
             <span className="label">Amount:</span>
-            <span className="value amount">${quote.amount || quote.price}</span>
+            <span className="value amount">
+              {format(finalAmount, 'USD')}
+              <span className="block text-xs font-normal text-gray-400">≈ {formatUsd(finalAmount, 'USD')}</span>
+            </span>
           </div>
           <div className="summary-row">
             <span className="label">Transit Time:</span>
@@ -295,16 +335,52 @@ const QuotePaymentModal = ({ quote, onClose, onSuccess }) => {
         <div className="payment-content">
           {paymentMethod === 'paypal' ? (
             <div className="paypal-section">
-              <div className="info-box">
-                <FiAlertCircle className="info-icon" />
-                <p>Secure payment via PayPal. The company will verify and begin work.</p>
-              </div>
-              {paypalLoaded ? (
-                <div ref={paypalRef} className="paypal-buttons"></div>
+              {quote.company_paypal_email ? (
+                <>
+                  <div className="info-box">
+                    <FiAlertCircle className="info-icon" />
+                    <p>
+                      Pay <strong>{format(finalAmount, 'USD')}</strong> to the company's PayPal account
+                      below, then upload the payment receipt. The company will verify and begin work.
+                      <span className="block text-xs text-gray-400">≈ {formatUsd(finalAmount, 'USD')}</span>
+                    </p>
+                  </div>
+
+                  <div className="bank-details-card">
+                    <h4>
+                      <FaPaypal style={{ color: '#bca142' }} />
+                      Company PayPal Account
+                    </h4>
+                    <div className="bank-info-grid">
+                      <div className="info-item">
+                        <span className="info-label">PayPal Email</span>
+                        <span className="info-value">{quote.company_paypal_email}</span>
+                      </div>
+                    </div>
+                    <div className="instructions-box">
+                      <strong>How to pay:</strong>
+                      <p>1. Click <strong>Pay with PayPal</strong> below to open PayPal's secure page and send {format(finalAmount, 'USD')} (<strong>≈ {formatUsd(finalAmount, 'USD')} USD</strong> charged in USD).</p>
+                      <p>2. Attach the payment receipt/screenshot (and date) below.</p>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn-paypal-pay"
+                      onClick={handleOpenPaypal}
+                    >
+                      <FaPaypal />
+                      <span className="flex flex-col items-center leading-tight">
+                        <span>Pay {format(finalAmount, 'USD')} with PayPal</span>
+                        <span className="text-[10px] font-normal opacity-80">≈ {formatUsd(finalAmount, 'USD')} USD</span>
+                      </span>
+                    </button>
+                  </div>
+
+                  {renderUploadForm()}
+                </>
               ) : (
-                <div className="loading-state">
-                  <div className="spinner"></div>
-                  <p>Loading PayPal...</p>
+                <div className="info-box">
+                  <FiAlertCircle className="info-icon" />
+                  <p>This company has not added a PayPal account yet. Please use Bank Transfer.</p>
                 </div>
               )}
             </div>
@@ -367,95 +443,7 @@ const QuotePaymentModal = ({ quote, onClose, onSuccess }) => {
                 </div>
               )}
 
-              {/* Upload Form */}
-              <form onSubmit={handleBankTransferSubmit} className="upload-form">
-                <div className="form-group">
-                  <label>Payment Date *</label>
-                  <input
-                    type="date"
-                    value={paymentDate}
-                    onChange={(e) => setPaymentDate(e.target.value)}
-                    max={new Date().toISOString().split('T')[0]}
-                    required
-                    className="date-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Payment Proof * (JPG, JPEG, PNG only)</label>
-                  <div 
-                    className={`file-upload-area ${dragActive ? 'drag-active' : ''}`}
-                    onDragEnter={handleDrag}
-                    onDragLeave={handleDrag}
-                    onDragOver={handleDrag}
-                    onDrop={handleDrop}
-                  >
-                    {!paymentFile ? (
-                      <>
-                        <FiUpload className="upload-icon" />
-                        <p>Drag and drop your payment proof here, or</p>
-                        <label className="file-input-label">
-                          <input
-                            type="file"
-                            accept=".jpg,.jpeg,.png,image/jpeg,image/png"
-                            onChange={handleFileChange}
-                            hidden
-                          />
-                          Choose File
-                        </label>
-                        <p className="file-info">JPG, JPEG, PNG only (Max 5MB)</p>
-                      </>
-                    ) : (
-                      <div className="file-preview">
-                        <div className="file-info-display">
-                          <span className="file-name">{paymentFile.name}</span>
-                          <span className="file-size">
-                            ({(paymentFile.size / 1024 / 1024).toFixed(2)} MB)
-                          </span>
-                        </div>
-                        <button 
-                          type="button" 
-                          className="remove-file-btn"
-                          onClick={removeFile}
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label>Additional Notes (Optional)</label>
-                  <textarea
-                    value={paymentNotes}
-                    onChange={(e) => setPaymentNotes(e.target.value)}
-                    rows="3"
-                    placeholder="Any additional information about the payment..."
-                    className="notes-textarea"
-                  />
-                </div>
-
-                <div className="form-actions">
-                  <button type="button" className="btn-cancel" onClick={onClose}>
-                    Cancel
-                  </button>
-                  <button 
-                    type="submit" 
-                    className="btn-submit" 
-                    disabled={uploading || !paymentFile}
-                  >
-                    {uploading ? (
-                      <>
-                        <div className="spinner-small"></div>
-                        <span>Uploading...</span>
-                      </>
-                    ) : (
-                      'Upload Payment Proof'
-                    )}
-                  </button>
-                </div>
-              </form>
+              {renderUploadForm()}
             </div>
           )}
         </div>

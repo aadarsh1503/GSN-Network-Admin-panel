@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { FaEye, FaTrash, FaSearch, FaEdit, FaDollarSign, FaFileDownload } from 'react-icons/fa';
+import { FaEye, FaTrash, FaSearch, FaEdit, FaWallet, FaFileDownload } from 'react-icons/fa';
 import { api } from '../../utils/api';
 import { adminToast } from '../../utils/adminToast';
+import { useCurrency } from '../../contexts/CurrencyContext';
 
 const AdminQuotes = () => {
   console.log('🚀 [FRONTEND DEBUG] AdminQuotes component initialized!');
+  const { format, formatUsd } = useCurrency();
+  // Quote amounts (accepted_price / response.price) are stored in USD.
+  const fmtBhd = (v) => format(v, 'USD');
   
   const [quotes, setQuotes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -257,11 +261,11 @@ const AdminQuotes = () => {
     return quotes
       .filter(quote => quote.payment_status === 'verified')
       .reduce((sum, quote) => sum + parseFloat(quote.accepted_price || 0), 0)
-      .toFixed(2);
+      .toFixed(3);
   };
 
   const exportToCSV = () => {
-    const headers = ['Quote ID', 'User', 'Email', 'Route', 'Product', 'Company', 'Company Email', 'Responses', 'Accepted', 'Revenue', 'Payment Status', 'Status', 'Created'];
+    const headers = ['Quote ID', 'User', 'Email', 'Route', 'Product', 'Company', 'Company Email', 'Responses', 'Accepted', 'Revenue (BHD)', 'Payment Status', 'Status', 'Created'];
     const rows = filteredQuotes.map(quote => {
       const revenue = quote.payment_status === 'verified' ? parseFloat(quote.accepted_price || 0) : 0;
       
@@ -275,7 +279,7 @@ const AdminQuotes = () => {
         quote.company_email || '',
         quote.response_count || 0,
         quote.accepted_count || 0,
-        `$${revenue.toFixed(2)}`,
+        `BHD ${revenue.toFixed(3)}`,
         getPaymentStatus(quote),
         quote.status,
         new Date(quote.created_at).toLocaleDateString()
@@ -338,7 +342,8 @@ const AdminQuotes = () => {
           </div>
           <div className="bg-white p-4 rounded-lg shadow">
             <p className="text-gray-600 text-sm">Total Revenue</p>
-            <p className="text-2xl font-bold text-green-600">${calculateTotalRevenue()}</p>
+            <p className="text-2xl font-bold text-green-600">{fmtBhd(calculateTotalRevenue())}</p>
+            <p className="text-xs text-gray-400">≈ {formatUsd(calculateTotalRevenue(), 'USD')}</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow">
             <p className="text-gray-600 text-sm">Verified Payments</p>
@@ -373,7 +378,7 @@ const AdminQuotes = () => {
               </div>
               {quotes.length > 0 && quotes[0].company_name && (
                 <div className="text-xs text-gray-600 mt-1">
-                  Sample: Quote #{quotes[0].id} → {quotes[0].company_name} ({quotes[0].company_email}) - ${quotes[0].accepted_price}
+                  Sample: Quote #{quotes[0].id} → {quotes[0].company_name} ({quotes[0].company_email}) - {fmtBhd(quotes[0].accepted_price)} (≈ {formatUsd(quotes[0].accepted_price, 'USD')})
                 </div>
               )}
             </div>
@@ -569,11 +574,12 @@ const AdminQuotes = () => {
                         </td>
                         <td className="p-3">
                           <div className="flex items-center">
-                            <FaDollarSign className="text-green-500 mr-1" />
+                            <FaWallet className="text-green-500 mr-1" />
                             <span className="font-bold text-green-600">
-                              ${quote.accepted_price ? parseFloat(quote.accepted_price).toFixed(2) : '0.00'}
+                              {fmtBhd(quote.accepted_price || 0)}
                             </span>
                           </div>
+                          <div className="text-xs text-gray-400">≈ {formatUsd(quote.accepted_price || 0, 'USD')}</div>
                           {quote.accepted_price && quote.accepted_transit_time && (
                             <div className="text-xs text-gray-500 mt-1">
                               Transit: {quote.accepted_transit_time}
@@ -716,7 +722,8 @@ const AdminQuotes = () => {
                           )}
                         </div>
                         <div className="text-right">
-                          <p className="text-lg font-bold text-green-600">${response.price}</p>
+                          <p className="text-lg font-bold text-green-600">{fmtBhd(response.price)}</p>
+                          <p className="text-xs text-gray-400">≈ {formatUsd(response.price, 'USD')}</p>
                           <p className="text-sm text-gray-600">{response.transit_time}</p>
                         </div>
                       </div>
@@ -753,8 +760,8 @@ const AdminQuotes = () => {
                         {/* Revenue for verified payments */}
                         {response.user_response_status === 'accepted' && response.payment_status === 'verified' && (
                           <div className="flex items-center text-green-600">
-                            <FaDollarSign className="mr-1" />
-                            <span className="font-bold">Revenue: ${response.price}</span>
+                            <FaWallet className="mr-1" />
+                            <span className="font-bold">Revenue: {fmtBhd(response.price)} <span className="text-xs text-gray-400 font-normal">(≈ {formatUsd(response.price, 'USD')})</span></span>
                           </div>
                         )}
                       </div>
@@ -786,7 +793,7 @@ const AdminQuotes = () => {
                       }
                     </span>
                     <span className="text-xl font-bold text-green-600">
-                      ${(selectedResponseIndex !== null 
+                      {fmtBhd((selectedResponseIndex !== null 
                         ? (viewingQuote.responses[selectedResponseIndex]?.user_response_status === 'accepted' && 
                            viewingQuote.responses[selectedResponseIndex]?.payment_status === 'verified'
                            ? parseFloat(viewingQuote.responses[selectedResponseIndex]?.price || 0)
@@ -794,7 +801,18 @@ const AdminQuotes = () => {
                         : viewingQuote.responses
                             .filter(r => r.user_response_status === 'accepted' && r.payment_status === 'verified')
                             .reduce((sum, r) => sum + parseFloat(r.price || 0), 0)
-                      ).toFixed(2)}
+                      ))}
+                      <span className="block text-xs text-gray-400 font-normal">
+                        ≈ {formatUsd((selectedResponseIndex !== null 
+                          ? (viewingQuote.responses[selectedResponseIndex]?.user_response_status === 'accepted' && 
+                             viewingQuote.responses[selectedResponseIndex]?.payment_status === 'verified'
+                             ? parseFloat(viewingQuote.responses[selectedResponseIndex]?.price || 0)
+                             : 0)
+                          : viewingQuote.responses
+                              .filter(r => r.user_response_status === 'accepted' && r.payment_status === 'verified')
+                              .reduce((sum, r) => sum + parseFloat(r.price || 0), 0)
+                        ), 'USD')}
+                      </span>
                     </span>
                   </div>
                 </div>

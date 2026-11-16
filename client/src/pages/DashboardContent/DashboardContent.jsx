@@ -4,12 +4,22 @@ import {
   LineChart, Line, PieChart, Pie, Cell, AreaChart, Area, RadialBarChart, RadialBar
 } from 'recharts';
 import { 
-  Users, TrendingUp, DollarSign, FileText, ShoppingCart, 
+  Users, TrendingUp, Wallet, FileText, ShoppingCart, 
   Activity, Calendar, ArrowUpRight, ArrowDownRight, Eye,
   Zap, Target, Globe, Clock, Award, Briefcase, Star,
   UserCheck, UserPlus, CreditCard, Package, AlertTriangle
 } from 'lucide-react';
 import { api } from '../../utils/api';
+import { formatSubDate } from '../../utils/formatDate';
+import { useCurrency } from '../../contexts/CurrencyContext';
+
+// Amount actually paid outside the wallet (PayPal / bank transfer).
+const payableExternal = (r) => {
+  const ext = r?.external_amount_bhd;
+  if (ext !== null && ext !== undefined && ext !== '') return Number(ext);
+  const total = Number(r?.final_amount_bhd ?? r?.amount_paid ?? r?.plan_price ?? 0);
+  return Math.max(0, Number((total - Number(r?.wallet_amount_applied || 0)).toFixed(3)));
+};
 
 // Website color palette matching the existing design
 const COLORS = {
@@ -31,6 +41,7 @@ const MetricCard = ({
   color = 'yellow',
   prefix = '',
   suffix = '',
+  subtitle = '',
   animate = true,
   onClick = null
 }) => {
@@ -146,6 +157,9 @@ const MetricCard = ({
             {displayValue.toLocaleString()}
             {suffix}
           </p>
+          {subtitle && (
+            <p className="text-xs text-gray-400">{subtitle}</p>
+          )}
           {trend && (
             <p className="text-xs text-black">
               {trend.isPositive ? 'Increased' : 'Decreased'} from last period
@@ -626,6 +640,8 @@ const PerformanceMetrics = ({ stats, realTimeData }) => {
 
 // Detailed Data Modal Component
 const DetailedDataModal = ({ modalData, onClose }) => {
+  const { format, formatUsd } = useCurrency();
+  const fmtBhd = (v) => format(v);
   const { isOpen, type, title, data, loading } = modalData;
 
   if (!isOpen) return null;
@@ -767,7 +783,13 @@ const DetailedDataModal = ({ modalData, onClose }) => {
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{sub.id}</td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{sub.user_name}</td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{sub.plan_name}</td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-[#bca142]">${sub.amount_paid}</td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-[#bca142]">
+                      {fmtBhd(payableExternal(sub))}
+                      <div className="text-xs text-gray-400">≈ {formatUsd(payableExternal(sub))}</div>
+                      {Number(sub.wallet_amount_applied) > 0 && (
+                        <div className="text-xs font-medium text-emerald-600">Wallet used: {fmtBhd(sub.wallet_amount_applied)} <span className="text-gray-400 font-normal">(≈ {formatUsd(sub.wallet_amount_applied)})</span></div>
+                      )}
+                    </td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         sub.status === 'active' ? 'bg-[#bca142] text-white' :
@@ -781,7 +803,7 @@ const DetailedDataModal = ({ modalData, onClose }) => {
                       {new Date(sub.start_date).toLocaleDateString()}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(sub.end_date).toLocaleDateString()}
+                      {formatSubDate(sub.end_date)}
                     </td>
                   </tr>
                 ))}
@@ -805,13 +827,15 @@ const DetailedDataModal = ({ modalData, onClose }) => {
                   <div>
                     <span className="text-gray-500">Total Amount:</span>
                     <div className="font-semibold text-[#bca142]">
-                      ${data.reduce((sum, txn) => sum + parseFloat(txn.amount), 0).toFixed(2)}
+                      {fmtBhd(data.reduce((sum, txn) => sum + parseFloat(txn.amount), 0))}
+                      <div className="text-xs text-gray-400">≈ {formatUsd(data.reduce((sum, txn) => sum + parseFloat(txn.amount), 0))}</div>
                     </div>
                   </div>
                   <div>
                     <span className="text-gray-500">Average Amount:</span>
                     <div className="font-semibold text-[#bca142]">
-                      ${(data.reduce((sum, txn) => sum + parseFloat(txn.amount), 0) / data.length).toFixed(2)}
+                      {fmtBhd(data.reduce((sum, txn) => sum + parseFloat(txn.amount), 0) / data.length)}
+                      <div className="text-xs text-gray-400">≈ {formatUsd(data.reduce((sum, txn) => sum + parseFloat(txn.amount), 0) / data.length)}</div>
                     </div>
                   </div>
                   <div>
@@ -842,7 +866,10 @@ const DetailedDataModal = ({ modalData, onClose }) => {
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{txn.id}</td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{txn.user_name}</td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{txn.company_name || 'N/A'}</td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-[#bca142]">${txn.amount}</td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-[#bca142]">
+                        {fmtBhd(txn.amount)}
+                        <div className="text-xs text-gray-400">≈ {formatUsd(txn.amount)}</div>
+                      </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{txn.payment_method || 'N/A'}</td>
                       <td className="px-4 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -968,6 +995,8 @@ const DetailedDataModal = ({ modalData, onClose }) => {
 };
 
 const Dashboard = () => {
+  const { format, formatUsd } = useCurrency();
+  const fmtBhd = (v) => format(v);
   const [stats, setStats] = useState({
     users: [],
     quotes: [],
@@ -1358,9 +1387,10 @@ const Dashboard = () => {
             title="Platform Revenue"
             value={Math.round(realTimeData.totalRevenue)}
             previousValue={Math.round(realTimeData.totalRevenue * 0.85)}
-            icon={DollarSign}
+            icon={Wallet}
             color="green"
-            prefix="$"
+            prefix="BHD "
+            subtitle={`≈ ${formatUsd(realTimeData.totalRevenue)}`}
             onClick={() => handleCardClick('subscriptions')}
           />
           <MetricCard
@@ -1389,7 +1419,8 @@ const Dashboard = () => {
               <p className="text-black">Your earnings vs transaction volume handled</p>
             </div>
             <div className="text-right">
-              <p className="text-3xl font-bold text-[#bca142]">${Math.round(realTimeData.totalRevenue).toLocaleString()}</p>
+              <p className="text-3xl font-bold text-[#bca142]">{fmtBhd(realTimeData.totalRevenue)}</p>
+              <p className="text-xs text-gray-400">≈ {formatUsd(realTimeData.totalRevenue)}</p>
               <p className="text-sm text-black">Platform Revenue</p>
               {/* Temporary debug info */}
               {/* <p className="text-xs text-red-500 mt-1">
@@ -1409,7 +1440,8 @@ const Dashboard = () => {
                 <UserPlus className="h-5 w-5 text-white" />
               </div>
               <div className="space-y-2">
-                <p className="text-2xl font-bold text-white">${Math.round(realTimeData.subscriptionRevenue).toLocaleString()}</p>
+                <p className="text-2xl font-bold text-white">{fmtBhd(realTimeData.subscriptionRevenue)}</p>
+                <p className="text-xs text-white/80">≈ {formatUsd(realTimeData.subscriptionRevenue)}</p>
                 <p className="text-sm text-white">From {realTimeData.totalSubscriptions} subscription plans</p>
                 <div className="w-full bg-white bg-opacity-30 rounded-full h-2">
                   <div className="bg-white h-2 rounded-full w-full"></div>
@@ -1428,7 +1460,8 @@ const Dashboard = () => {
                 <ShoppingCart className="h-5 w-5 text-white" />
               </div>
               <div className="space-y-2">
-                <p className="text-2xl font-bold text-white">${Math.round(realTimeData.transactionVolume).toLocaleString()}</p>
+                <p className="text-2xl font-bold text-white">{fmtBhd(realTimeData.transactionVolume)}</p>
+                <p className="text-xs text-white/80">≈ {formatUsd(realTimeData.transactionVolume)}</p>
                 <p className="text-sm text-white">From {realTimeData.totalTransactions} transactions</p>
                 <div className="w-full bg-white bg-opacity-30 rounded-full h-2">
                   <div className="bg-white h-2 rounded-full w-full"></div>
@@ -1473,7 +1506,7 @@ const Dashboard = () => {
             previousValue={Math.round(realTimeData.avgTransactionValue * 0.9)}
             icon={CreditCard}
             color="blue"
-            prefix="$"
+            prefix="BHD "
             onClick={() => handleCardClick('avgTransaction')}
           /> */}
           <MetricCard

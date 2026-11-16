@@ -393,6 +393,32 @@
   margin-top: 1rem;
 }
 
+.btn-paypal-pay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.875rem 1.5rem;
+  background: #0070ba;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.btn-paypal-pay:hover {
+  background: #005ea6;
+}
+
+.btn-paypal-pay:active {
+  transform: translateY(1px);
+}
+
 .btn-cancel,
 .btn-submit {
   flex: 1;

@@ -1,12 +1,28 @@
 import { useState, useEffect } from 'react';
 import { 
   FaEye, FaSearch, FaFilter, FaCreditCard, FaUsers, FaCalendarAlt, 
-  FaChartPie, FaDollarSign, FaClock, FaCheckCircle, FaTimes 
+  FaChartPie, FaWallet, FaClock, FaCheckCircle, FaTimes 
 } from 'react-icons/fa';
 import { api } from '../../utils/api';
 import { adminToast } from '../../utils/adminToast';
+import { formatSubDate } from '../../utils/formatDate';
+import { useCurrency } from '../../contexts/CurrencyContext';
+
+// Total subscription value (plan price after coupon/proration, BEFORE wallet)
+const subscriptionTotal = (r) => Number(r?.final_amount_bhd ?? r?.amount_paid ?? r?.plan_price ?? 0);
+
+// Amount actually paid outside the wallet (PayPal / bank transfer).
+const payableExternal = (r) => {
+  const ext = r?.external_amount_bhd;
+  if (ext !== null && ext !== undefined && ext !== '') return Number(ext);
+  const wallet = Number(r?.wallet_amount_applied || 0);
+  return Math.max(0, Number((subscriptionTotal(r) - wallet).toFixed(3)));
+};
 
 const AdminSubscriptions = () => {
+  const { format, formatUsd } = useCurrency();
+  // BHD is the platform base currency; format() keeps the admin's BHD primary look.
+  const fmtBhd = (v) => format(v);
   const [subscriptions, setSubscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -156,10 +172,11 @@ const AdminSubscriptions = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-500 text-sm font-medium">Total Revenue</p>
-                <p className="text-3xl font-bold text-[#bca142] mt-1">${stats.totalRevenue.toFixed(2)}</p>
+                <p className="text-3xl font-bold text-[#bca142] mt-1">{fmtBhd(stats.totalRevenue)}</p>
+                <p className="text-xs text-gray-400 mt-0.5">≈ {formatUsd(stats.totalRevenue)}</p>
               </div>
               <div className="w-10 h-10 bg-[#bca142] rounded-lg flex items-center justify-center">
-                <FaDollarSign className="text-white" />
+                <FaWallet className="text-white" />
               </div>
             </div>
           </div>
@@ -303,7 +320,13 @@ const AdminSubscriptions = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-lg font-bold text-[#bca142]">${sub.amount_paid}</span>
+                        <span className="text-lg font-bold text-[#bca142]">{fmtBhd(payableExternal(sub))}</span>
+                        <div className="text-xs text-gray-400">≈ {formatUsd(payableExternal(sub))}</div>
+                        {Number(sub.wallet_amount_applied) > 0 && (
+                          <div className="text-xs font-medium text-emerald-600 mt-1">
+                            Wallet used: {fmtBhd(sub.wallet_amount_applied)} <span className="text-gray-400 font-normal">(≈ {formatUsd(sub.wallet_amount_applied)})</span>
+                          </div>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-2 text-sm text-gray-600">
@@ -314,7 +337,7 @@ const AdminSubscriptions = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-2 text-sm text-gray-600">
                           <FaCalendarAlt className="text-gray-400" />
-                          <span>{new Date(sub.end_date).toLocaleDateString()}</span>
+                          <span>{formatSubDate(sub.end_date)}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -365,7 +388,7 @@ const AdminSubscriptions = () => {
               <div className="flex items-center space-x-4">
                 <span>Active: {stats.active}</span>
                 <span>•</span>
-                <span>Revenue: ${stats.totalRevenue.toFixed(2)}</span>
+                <span>Revenue: {fmtBhd(stats.totalRevenue)} <span className="text-gray-400">(≈ {formatUsd(stats.totalRevenue)})</span></span>
               </div>
             </div>
           </div>
@@ -411,7 +434,8 @@ const AdminSubscriptions = () => {
                         <label className="block text-sm font-medium text-slate-600">Plan Details</label>
                         <p className="mt-1 font-semibold text-slate-800">{viewingSubscription.plan_name}</p>
                         <p className="text-sm text-slate-500">Duration: {viewingSubscription.duration_months} months</p>
-                        <p className="text-sm text-slate-500">Price: ${viewingSubscription.plan_price}</p>
+                        <p className="text-sm text-slate-500">Price: {fmtBhd(viewingSubscription.plan_price)}</p>
+                        <p className="text-xs text-gray-400">≈ {formatUsd(viewingSubscription.plan_price)}</p>
                       </div>
                     </div>
                   </div>
@@ -441,13 +465,35 @@ const AdminSubscriptions = () => {
                   {/* Financial Info */}
                   <div className="bg-slate-50 rounded-xl p-6">
                     <h4 className="text-lg font-semibold text-slate-800 mb-4 flex items-center space-x-2">
-                      <FaDollarSign className="text-emerald-600" />
+                      <FaWallet className="text-emerald-600" />
                       <span>Financial Details</span>
                     </h4>
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-slate-600">Amount Paid</label>
-                        <p className="mt-1 text-2xl font-bold text-emerald-600">${viewingSubscription.amount_paid}</p>
+                        <p className="mt-1 text-2xl font-bold text-emerald-600">{fmtBhd(payableExternal(viewingSubscription))}</p>
+                        <p className="text-xs text-gray-400">≈ {formatUsd(payableExternal(viewingSubscription))}</p>
+                        {Number(viewingSubscription.wallet_amount_applied) > 0 && (
+                          <p className="text-xs text-slate-500 mt-1">
+                            Paid via {viewingSubscription.payment_method === 'paypal' ? 'PayPal' : 'Bank Transfer'} (after wallet)
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-600">Total Subscription Value</label>
+                        <p className="mt-1 font-semibold text-slate-800">{fmtBhd(subscriptionTotal(viewingSubscription))}</p>
+                        <p className="text-xs text-gray-400">≈ {formatUsd(subscriptionTotal(viewingSubscription))}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-600">Wallet Balance Used</label>
+                        <p className="mt-1 font-semibold text-slate-800">
+                          {Number(viewingSubscription.wallet_amount_applied) > 0
+                            ? fmtBhd(viewingSubscription.wallet_amount_applied)
+                            : 'No wallet balance used'}
+                        </p>
+                        {Number(viewingSubscription.wallet_amount_applied) > 0 && (
+                          <p className="text-xs text-gray-400">≈ {formatUsd(viewingSubscription.wallet_amount_applied)}</p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-600">Payment Status</label>
@@ -477,7 +523,7 @@ const AdminSubscriptions = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-600">End Date</label>
-                        <p className="mt-1 text-slate-800">{new Date(viewingSubscription.end_date).toLocaleDateString()}</p>
+                        <p className="mt-1 text-slate-800">{formatSubDate(viewingSubscription.end_date)}</p>
                       </div>
                     </div>
                   </div>

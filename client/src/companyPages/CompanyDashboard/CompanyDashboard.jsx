@@ -21,6 +21,8 @@ import { useNotifications } from '../../contexts/NotificationContext';
 import TransactionSummary from '../TransactionSummary/TransactionSummary';
 import ProfileCompletionModal from '../../components/Modal/ProfileCompletionModal';
 import { useProfileCompletion } from '../../hooks/useProfileCompletion';
+import SharedReferralCard from '../../components/Referral/ReferralCard';
+import ProfileCompletionCard from '../../components/ProfileCompletion/ProfileCompletionCard';
 
 // Persistent logging function for company dashboard
 const persistentLog = (message, type = 'info') => {
@@ -789,6 +791,9 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-8">
         
+        {/* Profile Completion */}
+        <ProfileCompletionCard />
+
         {/* Header */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-between mb-4">
@@ -918,7 +923,7 @@ const Dashboard = () => {
 
           <div className="xl:col-span-1 space-y-8">
             <TransactionSummary />
-            <ReferralCard subscription={subscription} userProfile={userProfile} />
+            <SharedReferralCard />
           </div>
         </div>
       </div>

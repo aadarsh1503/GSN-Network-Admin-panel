@@ -2,11 +2,20 @@
 
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  FiHome, FiBox, FiBriefcase, FiUsers, 
-  FiMail, FiShield, FiChevronDown, FiSettings, FiTag, FiDollarSign,
-  FiTrendingUp, FiBarChart, FiCreditCard, FiHeadphones
-} from 'react-icons/fi';
+import {
+  LayoutDashboard,
+  Users, User, UserPlus, Building2, Factory,
+  ClipboardList, CheckCircle2, RotateCw, XCircle, Lock,
+  DollarSign, CreditCard, FileText, Landmark, Wallet, Coins, Ticket,
+  ClipboardCheck,
+  MessageSquare, Bell, Send, Mail,
+  Headphones, Clock,
+  Package, Truck, LayoutGrid,
+  PlusCircle, SlidersHorizontal, Settings,
+  Scale,
+  BarChart3,
+  Cloud, Tag, TrendingUp,
+} from 'lucide-react';
 
 const SidebarContent = () => {
   const location = useLocation();
@@ -15,144 +24,156 @@ const SidebarContent = () => {
   // Reorganized menu items by priority with futuristic grouping
   const menuItems = [
     // Core Management (Highest Priority)
-    { 
-      name: 'Dashboard', 
-      icon: <FiHome />, 
+    {
+      name: 'Dashboard',
+      icon: LayoutDashboard,
       path: '',
       priority: 'high',
       description: 'Overview & Analytics'
     },
-    
+
     // User Management (High Priority)
-    { 
-      name: 'Users Management', 
-      icon: <FiUsers />,
+    {
+      name: 'Users Management',
+      icon: Users,
       priority: 'high',
       description: 'Manage all users',
       subItems: [
-        { name: 'Users', path: 'users', icon: '👤' },
-        { name: 'Business Owners', path: 'business-Owners', icon: '🏢' },
-        { name: 'Company Owners', path: 'company-Owners', icon: '🏭' },
+        { name: 'Users', path: 'users', icon: User },
+        { name: 'Regular Users', path: 'regular-users', icon: UserPlus },
+        { name: 'Business Owners', path: 'business-Owners', icon: Building2 },
+        { name: 'Company Owners', path: 'company-Owners', icon: Factory },
       ]
     },
 
     // Business Operations (High Priority)
-    { 
-      name: 'Quote Management', 
-      icon: <FiBriefcase />,
+    {
+      name: 'Quote Management',
+      icon: ClipboardList,
       priority: 'high',
       description: 'Company quotes & deals',
       subItems: [
-        { name: 'All Quotes', path: 'all-company-Quotes', icon: '📋' },
-        { name: 'Approved Quotes', path: 'all-approved-Quotes', icon: '✅' },
-        { name: 'Running Quotes', path: 'all-running-Quotes', icon: '🔄' },
-        { name: 'Rejected Quotes', path: 'all-rejected-Quotes', icon: '❌' },
-        { name: 'Closed Quotes', path: 'all-closed-Quotes', icon: '🔒' },
+        { name: 'All Quotes', path: 'all-company-Quotes', icon: ClipboardList },
+        { name: 'Approved Quotes', path: 'all-approved-Quotes', icon: CheckCircle2 },
+        { name: 'Running Quotes', path: 'all-running-Quotes', icon: RotateCw },
+        { name: 'Rejected Quotes', path: 'all-rejected-Quotes', icon: XCircle },
+        { name: 'Closed Quotes', path: 'all-closed-Quotes', icon: Lock },
       ]
     },
 
     // Financial Management (High Priority)
-    { 
-      name: 'Financial Hub', 
-      icon: <FiDollarSign />,
+    {
+      name: 'Financial Hub',
+      icon: DollarSign,
       priority: 'high',
       description: 'Money & transactions',
       subItems: [
-        { name: 'Transactions with Users', path: 'transactions-management', icon: '💳' },
-        { name: 'All Invoices', path: 'invoices-management', icon: '🧾' },
-        { name: 'Bank Details', path: 'bank-details', icon: '🏦' },
-        // { name: 'Subscriptions', path: 'subscriptions-management', icon: '📊' },
+        { name: 'Transactions with Users', path: 'transactions-management', icon: CreditCard },
+        { name: 'All Invoices', path: 'invoices-management', icon: FileText },
+        { name: 'Bank Details', path: 'bank-details', icon: Landmark },
+        { name: 'Company Bank Accounts', path: 'company-bank-details', icon: Building2 },
+        { name: 'Wallet & Referral', path: 'wallet-referral', icon: Wallet },
+        { name: 'Give Money', path: 'give-money', icon: Coins },
+        { name: 'Coupons', path: 'coupons', icon: Ticket },
       ]
     },
- { 
-      name: 'Subscriber Payment Review', 
-      icon: <FiBarChart />, 
+
+    {
+      name: 'Subscriber Payment Review',
+      icon: ClipboardCheck,
       path: 'subscribers',
       priority: 'low',
-      description: 'Data insights'
+      description: 'Approve subscriber payments'
     },
+
     // Communication (Medium Priority)
-    { 
-      name: 'Communications', 
-      icon: <FiMail />,
+    {
+      name: 'Communications',
+      icon: MessageSquare,
       priority: 'medium',
       description: 'Messages & notifications',
       subItems: [
-        { name: 'Messages', path: 'messages', icon: '💬' },
-        { name: 'View Notifications', path: 'notifications', icon: '🔔' },
-        { name: 'Send Notifications', path: 'send-notifications', icon: '📤' },
-        { name: 'Send Emails', path: 'send-emails', icon: '📧' },
+        { name: 'Messages', path: 'messages', icon: MessageSquare },
+        { name: 'View Notifications', path: 'notifications', icon: Bell },
+        { name: 'Send Notifications', path: 'send-notifications', icon: Send },
+        { name: 'Send Emails', path: 'send-emails', icon: Mail },
       ]
     },
 
     // Support System (Medium Priority)
-    { 
-      name: 'Support Center', 
-      icon: <FiHeadphones />,
+    {
+      name: 'Support Center',
+      icon: Headphones,
       priority: 'medium',
       description: 'Customer support',
       subItems: [
-        { name: 'All Tickets', path: 'all-Ticket', icon: '🎫' },
-        { name: 'Pending Tickets', path: 'pending-Ticket', icon: '⏳' },
-        { name: 'Answered Tickets', path: 'answered-Ticket', icon: '✅' },
-        { name: 'Closed Tickets', path: 'closed-Ticket', icon: '🔒' },
+        { name: 'All Tickets', path: 'all-Ticket', icon: Ticket },
+        { name: 'Pending Tickets', path: 'pending-Ticket', icon: Clock },
+        { name: 'Answered Tickets', path: 'answered-Ticket', icon: CheckCircle2 },
+        { name: 'Closed Tickets', path: 'closed-Ticket', icon: Lock },
       ]
     },
 
     // Business Configuration (Medium Priority)
-    { 
-      name: 'Business Config', 
-      icon: <FiBox />,
+    {
+      name: 'Business Config',
+      icon: Package,
       priority: 'medium',
       description: 'Categories & setup',
       subItems: [
-        { name: 'Logistics Category', path: 'logistics-categories', icon: '📦' },
-        { name: 'Business Category', path: 'business-categories', icon: '🏢' },
+        { name: 'Logistics Category', path: 'logistics-categories', icon: Truck },
+        { name: 'Business Category', path: 'business-categories', icon: LayoutGrid },
       ]
     },
 
     // Subscription Management (Medium Priority)
-    { 
-      name: 'Subscriptions', 
-      icon: <FiCreditCard />,
+    {
+      name: 'Subscriptions',
+      icon: CreditCard,
       priority: 'medium',
       description: 'Plans & billing',
       subItems: [
-        { name: 'Create Subscription', path: 'create-Subscription', icon: '➕' },
-        { name: 'Manage Subscription', path: 'manage-subscription', icon: '⚙️' },
+        { name: 'Create Subscription', path: 'create-Subscription', icon: PlusCircle },
+        { name: 'Manage Subscription', path: 'manage-Subscription', icon: SlidersHorizontal },
       ]
     },
 
     // Dispute Resolution (Medium Priority)
-    { 
-      name: 'Dispute Center', 
-      icon: <FiShield />,
+    {
+      name: 'Dispute Center',
+      icon: Scale,
       priority: 'medium',
       description: 'Resolve conflicts',
       subItems: [
-        { name: 'Dispute Reason', path: 'dispute-Reason', icon: '📝' },
-        { name: 'Active Disputes', path: 'disputes', icon: '⚖️' },
+        { name: 'Dispute Reason', path: 'dispute-Reason', icon: FileText },
+        { name: 'Active Disputes', path: 'disputes', icon: Scale },
       ]
     },
 
     // Analytics & Reports (Lower Priority)
-   
+    {
+      name: 'Reports',
+      icon: BarChart3,
+      path: 'reports',
+      priority: 'low',
+      description: 'Analytics & insights'
+    },
 
     // System Settings (Lower Priority)
-    { 
-      name: 'System Settings', 
-      icon: <FiSettings />,
+    {
+      name: 'System Settings',
+      icon: Settings,
       priority: 'low',
       description: 'App configuration',
       subItems: [
-        { name: 'General Settings', path: 'general-settings', icon: '⚙️' },
-        { name: 'AWS Settings', path: 'aws-settings', icon: '☁️' },
+        { name: 'General Settings', path: 'general-settings', icon: SlidersHorizontal },
+        { name: 'AWS Settings', path: 'aws-settings', icon: Cloud },
       ]
     },
-    
-    { 
-      name: 'Version Control', 
-      icon: <FiTag />, 
+
+    {
+      name: 'Version Control',
+      icon: Tag,
       path: 'version-management',
       priority: 'low',
       description: 'App versions'
@@ -192,6 +213,7 @@ const SidebarContent = () => {
         {menuItems.map((item, index) => {
           const isParentActive = item.subItems?.some(sub => currentPathSegment === sub.path);
           const isActive = currentPathSegment === item.path || isParentActive;
+          const ParentIcon = item.icon;
 
           if (item.subItems) {
             return (
@@ -205,7 +227,7 @@ const SidebarContent = () => {
                   <div className="flex items-center justify-between p-4">
                     <div className="flex items-center space-x-3">
                       <div className={`w-8 h-8 rounded-lg ${getPriorityColor(item.priority)} flex items-center justify-center text-white shadow-sm`}>
-                        <span className="text-sm">{item.icon}</span>
+                        <ParentIcon className="w-4 h-4" />
                       </div>
                       <div className="text-left">
                         <span className={`font-semibold text-sm ${isActive ? 'text-black' : 'text-black'}`}>
@@ -218,35 +240,47 @@ const SidebarContent = () => {
                       {item.priority === 'high' && (
                         <div className="w-2 h-2 bg-[#bca142] rounded-full animate-pulse"></div>
                       )}
-                      <FiChevronDown 
-                        className={`text-sm text-gray-600 transition-transform duration-300 ${
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className={`w-4 h-4 text-gray-600 transition-transform duration-300 ${
                           openDropdown === item.name ? 'rotate-180' : ''
-                        }`} 
-                      />
+                        }`}
+                      >
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
                     </div>
                   </div>
                 </button>
-                
-                <div 
+
+                <div
                   className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                    openDropdown === item.name ? 'max-h-96 mt-2' : 'max-h-0'
+                    openDropdown === item.name ? 'max-h-[32rem] mt-2' : 'max-h-0'
                   }`}
                 >
                   <div className="bg-white rounded-lg border border-gray-200 p-2 ml-4">
-                    {item.subItems.map((subItem, subIndex) => (
-                      <Link
-                        key={subIndex}
-                        to={subItem.path}
-                        className={`flex items-center space-x-3 p-3 rounded-lg text-sm transition-all duration-200 mb-1 ${
-                          currentPathSegment === subItem.path 
-                            ? 'bg-[#bca142] text-white font-medium shadow-sm' 
-                            : 'text-black hover:bg-gray-100 hover:text-black'
-                        }`}
-                      >
-                        <span className="text-base">{subItem.icon}</span>
-                        <span>{subItem.name}</span>
-                      </Link>
-                    ))}
+                    {item.subItems.map((subItem, subIndex) => {
+                      const SubIcon = subItem.icon;
+                      const subActive = currentPathSegment === subItem.path;
+                      return (
+                        <Link
+                          key={subIndex}
+                          to={subItem.path}
+                          className={`flex items-center space-x-3 p-3 rounded-lg text-sm transition-all duration-200 mb-1 ${
+                            subActive
+                              ? 'bg-[#bca142] text-white font-medium shadow-sm'
+                              : 'text-black hover:bg-gray-100 hover:text-black'
+                          }`}
+                        >
+                          <SubIcon className={`w-[18px] h-[18px] shrink-0 ${subActive ? 'text-white' : 'text-[#bca142]'}`} />
+                          <span>{subItem.name}</span>
+                        </Link>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -264,7 +298,7 @@ const SidebarContent = () => {
               <div className="flex items-center justify-between p-4">
                 <div className="flex items-center space-x-3">
                   <div className={`w-8 h-8 rounded-lg ${getPriorityColor(item.priority)} flex items-center justify-center text-white shadow-sm`}>
-                    <span className="text-sm">{item.icon}</span>
+                    <ParentIcon className="w-4 h-4" />
                   </div>
                   <div className="text-left">
                     <span className={`font-semibold text-sm ${isActive ? 'text-black' : 'text-black'}`}>
@@ -286,7 +320,7 @@ const SidebarContent = () => {
       <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
         <div className="text-center">
           <div className="w-8 h-8 bg-[#bca142] rounded-lg mx-auto mb-2 flex items-center justify-center">
-            <FiTrendingUp className="text-white text-sm" />
+            <TrendingUp className="text-white text-sm w-4 h-4" />
           </div>
           <p className="text-xs text-black font-medium">Admin Dashboard</p>
           {/* <p className="text-xs text-gray-400">v2.1.0</p> */}

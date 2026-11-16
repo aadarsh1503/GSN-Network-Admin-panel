@@ -5,6 +5,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs/promises';
 import { protect as authenticateToken, authorize as authorizeRoles } from '../middleware/authMiddleware.js';
 import db from '../config/db.js';
+import couponService from '../services/couponService.js';
 import { sendQuoteEmail } from '../services/quoteEmailService.js';
 import {
     submitQuoteResponseWithBankDetails,
@@ -149,7 +150,8 @@ router.put('/update-response-bank-details', authenticateToken, authorizeRoles('c
 // @access  Private/User,Business
 router.post('/upload-payment-proof', authenticateToken, authorizeRoles('user', 'business'), upload.single('payment_proof'), async (req, res) => {
     try {
-        const { quote_id, quote_response_id, payment_date, payment_notes, payment_method, paypal_order_id, paypal_payer_id, payment_details } = req.body;
+        const { quote_id, quote_response_id, payment_date, payment_notes, payment_method,
+                coupon_code, coupon_discount, coupon_final_amount, coupon_redemption_id } = req.body;
         const userId = req.user.id;
 
         console.log('📥 Payment proof upload request:', {
@@ -157,16 +159,15 @@ router.post('/upload-payment-proof', authenticateToken, authorizeRoles('user', '
             quote_id,
             quote_response_id,
             has_file: !!req.file,
-            paypal_order_id,
             user_id: userId
         });
 
         // Default to bank_transfer if not specified
         const finalPaymentMethod = payment_method || 'bank_transfer';
 
-        // PayPal payments don't require a file, bank transfers do
-        if (finalPaymentMethod === 'bank_transfer' && !req.file) {
-            return res.status(400).json({ message: 'Payment proof file is required for bank transfers' });
+        // Both bank transfers and manual PayPal payments require a payment receipt
+        if (!req.file) {
+            return res.status(400).json({ message: 'Payment proof file is required' });
         }
 
         if (!quote_id || !quote_response_id) {
@@ -195,6 +196,31 @@ router.post('/upload-payment-proof', authenticateToken, authorizeRoles('user', '
 
         const { company_id, price } = responseCheck[0];
 
+        // Coupon handling: resolve the discounted amounts and lock the coupon
+        const originalAmount = Number(price) || 0;
+        const hasCoupon = !!coupon_code;
+        const couponDiscount = (coupon_discount !== undefined && coupon_discount !== '') ? Number(coupon_discount) : 0;
+        const couponFinalAmount = (coupon_final_amount !== undefined && coupon_final_amount !== '')
+            ? Number(coupon_final_amount)
+            : Math.max(originalAmount - couponDiscount, 0);
+        let couponRedemptionId = coupon_redemption_id ? Number(coupon_redemption_id) : null;
+
+        if (hasCoupon && !couponRedemptionId) {
+            try {
+                const lock = await couponService.lockForOrder({
+                    userId,
+                    identifier: coupon_code,
+                    orderType: 'quote',
+                    orderRefId: String(quote_response_id),
+                    orderAmount: originalAmount
+                });
+                couponRedemptionId = lock.redemptionId;
+            } catch (lockErr) {
+                // Payment already captured — never block the proof upload, just log.
+                console.warn('⚠️ Coupon lock failed during payment proof upload:', lockErr.message);
+            }
+        }
+
         // Check if user has already uploaded payment proof to a DIFFERENT company for this quote
         const [anyExistingPayment] = await db.execute(
             'SELECT pp.id, c.name as company_name FROM payment_proofs pp JOIN users c ON pp.company_id = c.id WHERE pp.quote_id = ? AND pp.user_id = ? AND pp.company_id != ?',
@@ -218,8 +244,8 @@ router.post('/upload-payment-proof', authenticateToken, authorizeRoles('user', '
         let uploadResult = null;
         let paymentProofId;
 
-        // Only upload file for bank transfers
-        if (finalPaymentMethod === 'bank_transfer' && req.file) {
+        // Upload the payment receipt (both bank transfer and manual PayPal)
+        if (req.file) {
             // Upload file to Cloudinary
             uploadResult = await cloudinary.uploader.upload(req.file.path, {
                 folder: 'payment_proofs',
@@ -229,7 +255,7 @@ router.post('/upload-payment-proof', authenticateToken, authorizeRoles('user', '
 
         if (shouldUpdate) {
             // Update existing payment proof
-            if (finalPaymentMethod === 'bank_transfer' && uploadResult) {
+            if (uploadResult) {
                 await db.execute(
                     `UPDATE payment_proofs 
                      SET file_name = ?, file_path = ?, file_size = ?, file_type = ?, notes = ?, upload_date = ?
@@ -237,20 +263,18 @@ router.post('/upload-payment-proof', authenticateToken, authorizeRoles('user', '
                     [req.file.originalname, uploadResult.secure_url, req.file.size, req.file.mimetype, 
                      payment_notes, payment_date, quote_id, quote_response_id, userId]
                 );
-            } else if (finalPaymentMethod === 'paypal') {
-                // For PayPal, just update notes and date
+            } else {
                 await db.execute(
                     `UPDATE payment_proofs 
                      SET notes = ?, upload_date = ?
                      WHERE quote_id = ? AND quote_response_id = ? AND user_id = ?`,
-                    [payment_notes || `PayPal Order: ${paypal_order_id}`, payment_date,
-                     quote_id, quote_response_id, userId]
+                    [payment_notes, payment_date, quote_id, quote_response_id, userId]
                 );
             }
             paymentProofId = existingPayment[0].id;
         } else {
             // Insert new payment proof
-            if (finalPaymentMethod === 'bank_transfer' && uploadResult) {
+            if (uploadResult) {
                 const [result] = await db.execute(
                     `INSERT INTO payment_proofs 
                      (quote_id, quote_response_id, user_id, company_id, file_name, file_path, file_size, file_type, notes, upload_date)
@@ -259,19 +283,8 @@ router.post('/upload-payment-proof', authenticateToken, authorizeRoles('user', '
                      uploadResult.secure_url, req.file.size, req.file.mimetype, payment_notes, payment_date]
                 );
                 paymentProofId = result.insertId;
-            } else if (finalPaymentMethod === 'paypal') {
-                // For PayPal, create record without file
-                const [result] = await db.execute(
-                    `INSERT INTO payment_proofs 
-                     (quote_id, quote_response_id, user_id, company_id, notes, upload_date)
-                     VALUES (?, ?, ?, ?, ?, ?)`,
-                    [quote_id, quote_response_id, userId, company_id, 
-                     payment_notes || `PayPal Order: ${paypal_order_id}`, payment_date]
-                );
-                paymentProofId = result.insertId;
             } else {
-                // Fallback - should not reach here
-                return res.status(400).json({ message: 'Invalid payment method or missing data' });
+                return res.status(400).json({ message: 'Payment proof file is required' });
             }
         }
 
@@ -279,6 +292,16 @@ router.post('/upload-payment-proof', authenticateToken, authorizeRoles('user', '
         if (!paymentProofId) {
             throw new Error('Failed to create or update payment proof record');
         }
+
+        // Persist the coupon breakdown on the payment proof (all payment methods)
+        await db.execute(
+            `UPDATE payment_proofs
+                SET original_amount = ?, coupon_code = ?, coupon_discount = ?, coupon_final_amount = ?, coupon_redemption_id = ?
+              WHERE id = ?`,
+            [originalAmount, hasCoupon ? coupon_code : null,
+             hasCoupon ? couponDiscount : null, hasCoupon ? couponFinalAmount : null,
+             couponRedemptionId, paymentProofId]
+        );
 
         console.log('✅ Payment proof created/updated:', paymentProofId);
 

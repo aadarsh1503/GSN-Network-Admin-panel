@@ -22,8 +22,10 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api } from '../../utils/api';
+import { useCurrency } from '../../contexts/CurrencyContext';
 
 const BusinessQuotes = () => {
+  const { format, formatUsd } = useCurrency();
   const [quotes, setQuotes] = useState([]);
   const [filteredQuotes, setFilteredQuotes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -390,7 +392,8 @@ const BusinessQuotes = () => {
                           </div>
                           {quote.lowest_price && (
                             <div className="text-sm text-[#bca142] font-medium">
-                              From ${quote.lowest_price}
+                              From {format(quote.lowest_price, 'USD')}
+                              <span className="block text-[10px] font-normal text-gray-400">≈ {formatUsd(quote.lowest_price, 'USD')}</span>
                             </div>
                           )}
                         </div>

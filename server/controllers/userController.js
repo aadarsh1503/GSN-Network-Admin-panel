@@ -15,6 +15,10 @@ import {
   verifyResetToken, 
   markTokenAsUsed 
 } from '../services/passwordResetService.js';
+import { generateReferralCode } from '../utils/referralCodeUtils.js';
+import { recordReferral, processReferralReward } from '../services/referralService.js';
+import { creditWelcomeBonus } from '../services/walletService.js';
+import couponService from '../services/couponService.js';
 
 // Keep-alive function to prevent token expiration
 const keepAlive = async (req, res) => {
@@ -109,6 +113,8 @@ const loginUser = async (req, res) => {
                         name: user.name, 
                         email: user.email,
                         role: user.role,
+                        // Needed so prices can be shown in the user's local currency.
+                        country: user.country,
                     },
                 });
             }
@@ -147,13 +153,9 @@ const registerUser = async (req, res) => {
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
-      // 4. Generate permanent referral code if not provided
-      let finalReferralCode = referralCode;
-      if (!finalReferralCode) {
-          // Generate a unique referral code: GSN + user ID (will be available after insert) + random 4 digits
-          // We'll update this after the user is created
-          finalReferralCode = null; // Will be set after user creation
-      }
+      // 4. Referral codes are generated for company accounts only (see step 6).
+      //    The referral program is available in the company panel only.
+      let finalReferralCode = null;
 
       // 5. Determine initial status based on role
       // Regular users are automatically activated
@@ -183,16 +185,46 @@ const registerUser = async (req, res) => {
 
       const newUserId = result.insertId;
 
-      // 6. Generate and update referral code if it wasn't provided
-      if (!referralCode) {
-          const generatedReferralCode = `GSN${newUserId}${String(newUserId).padStart(4, '0')}`;
-          await db.execute('UPDATE users SET referral_code = ? WHERE id = ?', [generatedReferralCode, newUserId]);
-          finalReferralCode = generatedReferralCode;
+      // 6. Generate a unique new-format referral code (company accounts only)
+      if (role === 'company') {
+        let newCode;
+        let collision;
+        do {
+          newCode = generateReferralCode(role);
+          const [check] = await db.execute('SELECT id FROM users WHERE referral_code = ?', [newCode]);
+          collision = check.length > 0;
+        } while (collision);
+        await db.execute('UPDATE users SET referral_code = ? WHERE id = ?', [newCode, newUserId]);
+        finalReferralCode = newCode;
+      }
+
+      // 7. Record referral + fire reward (sequential — reward needs the referral row to exist)
+      if (referralCode) {
+        try {
+          await recordReferral(referralCode, newUserId, role);
+        } catch (err) {
+          console.error('❌ recordReferral error:', err);
+        }
+        processReferralReward(newUserId, 'registration').catch(err =>
+          console.error('❌ processReferralReward error:', err)
+        );
+      }
+
+      // 7b. Welcome bonus — credited to every new company (referred or not)
+      if (role === 'company') {
+        creditWelcomeBonus(newUserId).catch(err =>
+          console.error('❌ creditWelcomeBonus error:', err)
+        );
       }
 
       // 🎯 SEND WELCOME MESSAGE TO NEW USER
       // Send welcome message for all user types (but not visible to admin)
       await sendWelcomeMessage(newUserId, role);
+
+      // 🎟️ ISSUE WELCOME COUPON (if admin has configured one)
+      couponService.issueWelcomeCoupon(newUserId, role).catch(err =>
+        console.error('❌ issueWelcomeCoupon error:', err)
+      );
 
       // 🚀 QUEUE REGISTRATION EMAILS (NON-BLOCKING)
       // Send welcome email to user
@@ -588,7 +620,8 @@ const getCompanies = async (req, res) => {
                 phone AS mobile, 
                 role, 
                 is_blacklisted AS onBlacklist, 
-                status 
+                status,
+                created_at
             FROM users 
             WHERE role = 'company'
         `;
@@ -1582,7 +1615,340 @@ const refreshToken = async (req, res) => {
     }
 };
 
+// @desc    Admin — full details + past records for a user / business / company
+// @route   GET /api/user/admin-details/:role/:id
+// @access  Admin
+const adminGetUserDetails = async (req, res) => {
+    const { role, id } = req.params;
+    const allowedRoles = ['user', 'business', 'company'];
+
+    if (!allowedRoles.includes(role)) {
+        return res.status(400).json({ message: 'Invalid role. Must be user, business or company.' });
+    }
+
+    try {
+        const [rows] = await db.execute('SELECT * FROM users WHERE id = ?', [id]);
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const profile = rows[0];
+        if (profile.role !== role) {
+            return res.status(409).json({ message: `User #${id} is not a ${role}.` });
+        }
+
+        delete profile.password;
+        profile.status = Boolean(profile.status);
+        profile.is_blacklisted = Boolean(profile.is_blacklisted);
+        profile.email_verified = Boolean(profile.email_verified);
+
+        const response = { profile };
+
+        // ─── Wallet (company only) ────────────────────────────────────────
+        if (role === 'company') {
+            const [walletRows] = await db.execute(
+                'SELECT balance_bhd, lifetime_earned, lifetime_used FROM referral_wallet WHERE user_id = ?',
+                [id]
+            );
+            response.wallet = walletRows[0]
+                ? {
+                    balance: Number(walletRows[0].balance_bhd),
+                    lifetimeEarned: Number(walletRows[0].lifetime_earned),
+                    lifetimeUsed: Number(walletRows[0].lifetime_used)
+                }
+                : { balance: 0, lifetimeEarned: 0, lifetimeUsed: 0 };
+
+            const [walletTxns] = await db.execute(
+                `SELECT id, type, amount_bhd, balance_after, description, status, created_at
+                 FROM referral_transactions WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
+                [id]
+            );
+            response.walletTransactions = walletTxns;
+
+            const [topups] = await db.execute(
+                `SELECT id, amount_bhd, method, status, created_at
+                 FROM wallet_topup_requests WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
+                [id]
+            );
+            response.topupRequests = topups;
+        }
+
+        // ─── Referrals ────────────────────────────────────────────────────
+        const [madeRows] = await db.execute(
+            `SELECT r.id, r.status, r.created_at,
+                    u.name AS referred_name, u.email AS referred_email, u.role AS referred_role
+             FROM referrals r LEFT JOIN users u ON r.referred_id = u.id
+             WHERE r.referrer_id = ? ORDER BY r.created_at DESC LIMIT 50`,
+            [id]
+        );
+        response.referralsMade = madeRows;
+
+        const [receivedRows] = await db.execute(
+            `SELECT r.id, r.status, r.created_at,
+                    u.name AS referrer_name, u.role AS referrer_role
+             FROM referrals r LEFT JOIN users u ON r.referrer_id = u.id
+             WHERE r.referred_id = ? LIMIT 5`,
+            [id]
+        );
+        response.referredBy = receivedRows;
+
+        // ─── Login history ────────────────────────────────────────────────
+        const [logins] = await db.execute(
+            'SELECT login_time, ip_address, status FROM login_history WHERE user_id = ? ORDER BY login_time DESC LIMIT 10',
+            [id]
+        );
+        response.loginHistory = logins;
+
+        // ─── Role-specific records ────────────────────────────────────────
+        if (role === 'company') {
+            const [subs] = await db.execute(
+                `SELECT us.id, us.plan_id, mp.name AS plan_name, mp.price AS plan_price,
+                        us.start_date, us.end_date, us.status, us.payment_status,
+                        us.amount_paid, us.final_amount_bhd, us.wallet_amount_applied,
+                        us.payment_method, us.created_at
+                 FROM user_subscriptions us
+                 LEFT JOIN membership_plans mp ON us.plan_id = mp.id
+                 WHERE us.user_id = ? ORDER BY us.created_at DESC`,
+                [id]
+            );
+            response.subscriptions = subs;
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const active = subs.find(
+                (s) => s.status === 'active' && new Date(s.end_date) >= today
+            );
+            response.activeSubscription = active || null;
+            response.hasActiveSubscription = Boolean(active);
+
+            const [respRows] = await db.execute(
+                `SELECT qr.id, qr.quote_id, qr.price, qr.status, qr.transit_time, qr.created_at,
+                        q.departure_city, q.arrival_city, q.shipping_mode
+                 FROM quote_responses qr LEFT JOIN quotes q ON qr.quote_id = q.id
+                 WHERE qr.company_id = ? ORDER BY qr.created_at DESC LIMIT 50`,
+                [id]
+            );
+            response.quoteResponses = respRows;
+
+            const [txns] = await db.execute(
+                `SELECT id, amount, status, payment_method, transaction_reference, created_at
+                 FROM transactions WHERE company_id = ? ORDER BY created_at DESC LIMIT 50`,
+                [id]
+            );
+            response.transactions = txns;
+
+            const [banks] = await db.execute(
+                `SELECT id, bank_name, account_holder_name, account_number, swift_code,
+                        iban_number, branch_name, is_active, is_default
+                 FROM company_bank_details WHERE company_id = ?`,
+                [id]
+            );
+            response.bankDetails = banks;
+            response.paypalEmail = profile.paypal_email || '';
+
+            const [members] = await db.execute(
+                'SELECT id, member_name, member_email, member_phone, member_role FROM company_members WHERE company_id = ?',
+                [id]
+            );
+            response.members = members;
+
+            const [branches] = await db.execute(
+                'SELECT id, branch_name, country, state, city, branch_email, branch_phone FROM company_branches WHERE company_id = ?',
+                [id]
+            );
+            response.branches = branches;
+
+            const [revs] = await db.execute(
+                `SELECT r.id, r.rating, r.review_text, r.status, r.created_at, u.name AS reviewer_name
+                 FROM reviews r LEFT JOIN users u ON r.user_id = u.id
+                 WHERE r.company_id = ? ORDER BY r.created_at DESC LIMIT 20`,
+                [id]
+            );
+            response.reviews = revs;
+
+            const [disp] = await db.execute(
+                'SELECT id, title, status, priority, created_at FROM disputes WHERE company_id = ? ORDER BY created_at DESC LIMIT 20',
+                [id]
+            );
+            response.disputes = disp;
+
+            const [blh] = await db.execute(
+                'SELECT id, action, reason, created_at FROM blacklist_history WHERE company_id = ? ORDER BY created_at DESC LIMIT 20',
+                [id]
+            );
+            response.blacklistHistory = blh;
+        } else {
+            const [quotes] = await db.execute(
+                `SELECT id, departure_city, arrival_city, departure_country, arrival_country,
+                        shipping_mode, status, created_at
+                 FROM quotes WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
+                [id]
+            );
+            response.quotes = quotes;
+
+            const [txns] = await db.execute(
+                `SELECT id, amount, status, payment_method, transaction_reference, created_at
+                 FROM transactions WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
+                [id]
+            );
+            response.transactions = txns;
+
+            const [invs] = await db.execute(
+                'SELECT id, invoice_number, total_amount, status, created_at FROM invoices WHERE user_id = ? ORDER BY created_at DESC LIMIT 50',
+                [id]
+            );
+            response.invoices = invs;
+
+            const [revs] = await db.execute(
+                'SELECT id, rating, review_text, status, created_at FROM reviews WHERE user_id = ? ORDER BY created_at DESC LIMIT 20',
+                [id]
+            );
+            response.reviews = revs;
+
+            const [disp] = await db.execute(
+                'SELECT id, title, status, priority, created_at FROM disputes WHERE user_id = ? ORDER BY created_at DESC LIMIT 20',
+                [id]
+            );
+            response.disputes = disp;
+
+            const [tix] = await db.execute(
+                'SELECT id, ticket_number, subject, status, priority, created_at FROM support_tickets WHERE user_id = ? ORDER BY created_at DESC LIMIT 20',
+                [id]
+            );
+            response.tickets = tix;
+
+            const [wish] = await db.execute(
+                `SELECT w.id, w.created_at, c.name AS company_name
+                 FROM wishlist w LEFT JOIN users c ON w.company_id = c.id
+                 WHERE w.user_id = ? ORDER BY w.created_at DESC LIMIT 20`,
+                [id]
+            );
+            response.wishlist = wish;
+        }
+
+        response.counts = {
+            walletTransactions: (response.walletTransactions || []).length,
+            topups: (response.topupRequests || []).length,
+            referralsMade: (response.referralsMade || []).length,
+            quotes: (response.quotes || []).length,
+            quoteResponses: (response.quoteResponses || []).length,
+            subscriptions: (response.subscriptions || []).length,
+            transactions: (response.transactions || []).length,
+            invoices: (response.invoices || []).length,
+            reviews: (response.reviews || []).length,
+            disputes: (response.disputes || []).length,
+            tickets: (response.tickets || []).length
+        };
+
+        res.status(200).json(response);
+    } catch (error) {
+        console.error('Error fetching admin user details:', error);
+        res.status(500).json({ message: 'Server error fetching user details' });
+    }
+};
+
+// @desc    Admin — permanently delete a user and all their related records
+// @route   DELETE /api/user/admin-delete/:id
+// @access  Admin
+const adminDeleteUser = async (req, res) => {
+    const { id } = req.params;
+    const conn = await db.getConnection();
+
+    try {
+        const [rows] = await conn.execute('SELECT id, role, name FROM users WHERE id = ?', [id]);
+        if (rows.length === 0) {
+            conn.release();
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const user = rows[0];
+        if (user.role === 'admin') {
+            conn.release();
+            return res.status(403).json({ message: 'Admin accounts cannot be deleted.' });
+        }
+
+        await conn.beginTransaction();
+
+        const [quoteRows] = await conn.query('SELECT id FROM quotes WHERE user_id = ?', [id]);
+        const quoteIds = quoteRows.map((r) => r.id);
+        const quoteIn = quoteIds.length ? quoteIds : [0];
+
+        const [respRows] = await conn.query(
+            'SELECT id FROM quote_responses WHERE company_id = ? OR quote_id IN (?)',
+            [id, quoteIn]
+        );
+        const respIds = respRows.map((r) => r.id);
+        const respIn = respIds.length ? respIds : [0];
+
+        // Quote-response children
+        await conn.query('DELETE FROM quote_response_bank_details WHERE quote_response_id IN (?)', [respIn]);
+
+        // Payment records tied to the user / their quotes
+        await conn.query(
+            'DELETE FROM payment_proofs WHERE user_id = ? OR company_id = ? OR quote_id IN (?) OR quote_response_id IN (?)',
+            [id, id, quoteIn, respIn]
+        );
+        await conn.query(
+            'DELETE FROM payment_verifications WHERE user_id = ? OR company_id = ? OR quote_id IN (?) OR quote_response_id IN (?)',
+            [id, id, quoteIn, respIn]
+        );
+
+        await conn.query('DELETE FROM user_quote_status WHERE user_id = ? OR company_id = ? OR quote_id IN (?)', [id, id, quoteIn]);
+        await conn.query('DELETE FROM transaction_invoices WHERE user_id = ? OR company_id = ? OR quote_id IN (?)', [id, id, quoteIn]);
+        await conn.query('DELETE FROM quote_responses WHERE id IN (?)', [respIn]);
+        await conn.query('DELETE FROM quotes WHERE user_id = ?', [id]);
+        await conn.query('DELETE FROM invoices WHERE user_id = ?', [id]);
+        await conn.query('DELETE FROM transactions WHERE user_id = ? OR company_id = ?', [id, id]);
+
+        // Subscriptions
+        await conn.query('DELETE FROM subscription_requests WHERE user_id = ?', [id]);
+        await conn.query('DELETE FROM user_subscriptions WHERE user_id = ?', [id]);
+        await conn.query('DELETE FROM subscription_audit WHERE user_id = ?', [id]);
+
+        // Company-owned data
+        await conn.query('DELETE FROM company_bank_details WHERE company_id = ?', [id]);
+        await conn.query('DELETE FROM company_members WHERE company_id = ?', [id]);
+        await conn.query('DELETE FROM company_branches WHERE company_id = ?', [id]);
+        await conn.query('DELETE FROM blacklist_history WHERE company_id = ?', [id]);
+
+        // Engagement
+        await conn.query('DELETE FROM reviews WHERE user_id = ? OR company_id = ?', [id, id]);
+        await conn.query('DELETE FROM disputes WHERE user_id = ? OR company_id = ?', [id, id]);
+        await conn.query('DELETE FROM support_tickets WHERE user_id = ?', [id]);
+        await conn.query('DELETE FROM messages WHERE sender_id = ? OR receiver_id = ?', [id, id]);
+        await conn.query('DELETE FROM wishlist WHERE user_id = ? OR company_id = ?', [id, id]);
+        await conn.query('DELETE FROM profile_views WHERE company_id = ? OR viewer_id = ?', [id, id]);
+        await conn.query('DELETE FROM login_history WHERE user_id = ?', [id]);
+        await conn.query('DELETE FROM user_notifications WHERE user_id = ?', [id]);
+        await conn.query('DELETE FROM suggestions WHERE user_id = ?', [id]);
+
+        // Coupons
+        await conn.query('DELETE FROM coupon_redemptions WHERE user_id = ?', [id]);
+        await conn.query('DELETE FROM user_coupons WHERE user_id = ?', [id]);
+
+        // Wallet & referrals
+        await conn.query('DELETE FROM referral_transactions WHERE user_id = ?', [id]);
+        await conn.query('DELETE FROM referral_wallet WHERE user_id = ?', [id]);
+        await conn.query('DELETE FROM referrals WHERE referrer_id = ? OR referred_id = ?', [id, id]);
+        await conn.query('DELETE FROM wallet_topup_requests WHERE user_id = ?', [id]);
+
+        // Finally the user
+        await conn.query('DELETE FROM users WHERE id = ?', [id]);
+
+        await conn.commit();
+        res.status(200).json({ message: `User "${user.name}" deleted successfully`, id: Number(id) });
+    } catch (error) {
+        try { await conn.rollback(); } catch (e) { /* ignore */ }
+        console.error('Error deleting user:', error);
+        res.status(500).json({ message: 'Server error deleting user' });
+    } finally {
+        conn.release();
+    }
+};
+
 export {
+    adminGetUserDetails,
+    adminDeleteUser,
     loginUser,
     getAdminData,
     registerUser,

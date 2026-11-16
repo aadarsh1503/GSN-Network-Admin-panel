@@ -2,6 +2,7 @@
 import db from '../config/db.js';
 import realTimeNotificationService from '../services/realTimeNotificationService.js';
 import { queueSubscriptionEmails } from '../services/emailQueue.js';
+import { issueOrderCompletionCoupons } from '../services/couponService.js';
 
 // Helper function to calculate distance between two coordinates using Haversine formula
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -598,6 +599,22 @@ const updateQuoteStatus = async (req, res) => {
 
     try {
         await db.execute('UPDATE quotes SET status = ? WHERE id = ?', [status, id]);
+
+        // 🎟️ ORDER COMPLETION REWARD
+        if (status === 'closed') {
+            db.execute(
+                `SELECT q.user_id, qr.company_id
+                 FROM quotes q
+                 LEFT JOIN user_quote_status uqs ON uqs.quote_id = q.id AND uqs.status = 'accepted'
+                 LEFT JOIN quote_responses qr ON qr.id = uqs.quote_response_id
+                 WHERE q.id = ? LIMIT 1`,
+                [id]
+            ).then(([rows]) => {
+                if (!rows.length) return;
+                return issueOrderCompletionCoupons(id, rows[0].user_id, rows[0].company_id);
+            }).catch(err => console.error('❌ Order reward coupon error:', err));
+        }
+
         res.status(200).json({ message: 'Quote status updated successfully' });
     } catch (error) {
         console.error('Error updating quote status:', error);

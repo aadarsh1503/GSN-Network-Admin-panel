@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   FaBell, 
-  FaCheck, 
   FaTimes,
   FaQuoteLeft,
   FaUser,
@@ -467,8 +466,8 @@ const AdminNotifications = () => {
                       key={notification.id}
                       className={`transition-colors cursor-pointer ${
                         !notification.is_read 
-                          ? 'bg-[#bca142] hover:bg-[#a89138]' // Darker gold on hover for unread
-                          : 'bg-white hover:bg-gray-50' // Light gray on hover for read
+                          ? 'bg-[#a89138]' // Unread stays dark (like hovered) until clicked/read
+                          : 'bg-white hover:bg-gray-50' // Read is white with light gray hover
                       }`}
                       onClick={() => handleNotificationClick(notification)}
                     >
@@ -556,18 +555,6 @@ const AdminNotifications = () => {
                           >
                             <FiEye size={14} />
                           </button>
-                          {!notification.is_read && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                markAsRead(notification.id);
-                              }}
-                              className="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors"
-                              title="Mark as read"
-                            >
-                              <FaCheck size={12} />
-                            </button>
-                          )}
                         </div>
                       </td>
                     </tr>

@@ -1,11 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
 import { FaShip, FaPlane,FaTimes , FaTruck, FaTrain, FaEye, FaReply, FaClock, FaMapMarkerAlt, FaFilter, FaSearch, FaSort } from 'react-icons/fa';
+import { FiLock, FiArrowRight, FiAlertTriangle } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 import { useLoading } from '../contexts/LoadingContext';
 import { quotesAPI, api } from '../utils/api';
 import PageLoader from '../components/Loader/PageLoader';
 import toast from 'react-hot-toast';
 import useMarkAsRead from '../hooks/useMarkAsRead';
 import EnhancedQuoteResponse from '../components/QuoteResponse/EnhancedQuoteResponse';
+import { useProfileCompletionContext } from '../contexts/ProfileCompletionContext';
 
 const MemberQuotesPage = () => {
   const [quotes, setQuotes] = useState([]);
@@ -34,6 +37,14 @@ const MemberQuotesPage = () => {
   const [showResponseModal, setShowResponseModal] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const { withLoading } = useLoading();
+  const navigate = useNavigate();
+  const { missingRequired, profile } = useProfileCompletionContext();
+
+  // A company whose profile is incomplete (missing personal info / logo / bank
+  // details) must not be able to browse or respond to quotes. We only gate once
+  // the profile has actually loaded, so there is no flash on first paint.
+  const profileBlocked = !!profile && missingRequired.length > 0;
+  const missingLabels = missingRequired.flatMap((m) => (m.stepRequired ? [m.label] : m.pending));
 
   // Get unique values for filter dropdowns
   const uniqueValues = useMemo(() => {
@@ -503,7 +514,8 @@ const MemberQuotesPage = () => {
           )}
         </div>
 
-        {/* Quotes Grid */}
+        {/* Quotes Grid — blurred until the profile is complete */}
+        <div className={profileBlocked ? 'pointer-events-none select-none blur-[3px] opacity-50 transition-all duration-300' : ''}>
         {!filteredAndSortedQuotes || filteredAndSortedQuotes.length === 0 ? (
           <div className="text-center py-8">
             {quotes.length === 0 ? (
@@ -686,316 +698,374 @@ const MemberQuotesPage = () => {
             ))}
           </div>
         )}
+        </div>
+
+        {/* Profile-incomplete gate */}
+        {profileBlocked && (
+          <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
+            <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-[#bca142]/25 bg-white p-6 shadow-[0_25px_70px_-20px_rgba(188,161,66,0.55)] sm:p-8">
+              <div className="pointer-events-none absolute -top-20 -right-16 h-48 w-48 rounded-full bg-[#bca142]/20 blur-3xl" />
+              <div className="relative">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-500">
+                  <FiLock size={24} />
+                </div>
+                <h2 className="mt-4 text-xl font-bold text-gray-900">
+                  Complete your profile to view quotes
+                </h2>
+                <p className="mt-1.5 text-sm leading-relaxed text-gray-600">
+                  Quotes stay locked until your profile is complete. Please add the following:
+                </p>
+
+                <div className="mt-4 space-y-2">
+                  {missingLabels.map((label) => (
+                    <div
+                      key={label}
+                      className="flex items-center gap-2.5 rounded-2xl border border-rose-200/70 bg-rose-50/70 p-3"
+                    >
+                      <FiAlertTriangle className="flex-shrink-0 text-rose-500" size={16} />
+                      <span className="text-sm font-semibold text-rose-700">{label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-5 flex flex-col gap-2">
+                  <button
+                    onClick={() => navigate(missingRequired[0]?.link || '/company/edit-Profile')}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#bca142] to-[#a98f34] px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-[#bca142]/30 transition-all hover:from-[#a98f34] hover:to-[#8f7826]"
+                  >
+                    Complete Profile <FiArrowRight size={14} />
+                  </button>
+                  <button
+                    onClick={() => navigate('/company/dashboard')}
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900"
+                  >
+                    Back to Dashboard
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Quote Details Modal */}
         {selectedQuote && !showResponseModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-              <div className="p-4">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-2xl font-bold text-[#bca142]">
-                    Quote Details #{selectedQuote.id}
-                  </h2>
-                  <button
-                    onClick={() => setSelectedQuote(null)}
-                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
-                  >
-                    <FaTimes className="text-lg" />
-                  </button>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/30 backdrop-blur-sm">
+            <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col rounded-3xl overflow-hidden bg-white/70 backdrop-blur-2xl border border-white/60 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.35)]">
+              {/* Decorative gold glow */}
+              <div className="pointer-events-none absolute -top-24 -right-16 w-64 h-64 rounded-full opacity-40"
+                style={{ background: 'radial-gradient(circle, rgba(188,161,66,0.35), transparent)', filter: 'blur(50px)' }} />
+              <div className="pointer-events-none absolute -bottom-24 -left-16 w-64 h-64 rounded-full opacity-30"
+                style={{ background: 'radial-gradient(circle, rgba(188,161,66,0.3), transparent)', filter: 'blur(50px)' }} />
+
+              {/* Header */}
+              <div className="relative flex items-center justify-between gap-3 px-5 sm:px-7 py-4 border-b border-[#bca142]/20 bg-white/50 backdrop-blur-xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-2xl flex items-center justify-center shadow-lg shrink-0"
+                    style={{ background: 'linear-gradient(135deg, #d4b55e, #bca142)' }}>
+                    <FaEye className="text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#bca142]">Available Quote</p>
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">Quote #{selectedQuote.id}</h2>
+                  </div>
                 </div>
+                <button
+                  onClick={() => setSelectedQuote(null)}
+                  className="p-2.5 rounded-full text-gray-500 hover:text-gray-900 hover:bg-[#bca142]/10 transition-colors"
+                >
+                  <FaTimes className="text-lg" />
+                </button>
+              </div>
 
-                <div className="space-y-3">
-                  {/* Quote Header Info */}
-                  <div className="p-3 bg-[#bca142]/10 rounded-lg border-2 border-[#bca142]/30">
-                    <h3 className="text-lg font-bold text-black mb-2">Quote Information</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-700">Quote ID:</label>
-                        <p className="text-gray-900 font-bold">#{selectedQuote.id}</p>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-700">Submitted:</label>
-                        <p className="text-gray-800 text-sm">{new Date(selectedQuote.created_at || selectedQuote.arrival_date).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}</p>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-700">Status:</label>
-                        <span className="inline-block bg-[#bca142] text-white px-2 py-1 rounded-full text-xs font-medium">
-                          {selectedQuote.status || 'Active'}
-                        </span>
-                      </div>
+              {/* Body */}
+              <div className="relative flex-1 overflow-y-auto px-5 sm:px-7 py-5 space-y-4">
+                {/* Quote Information */}
+                <section className="rounded-2xl bg-white/60 backdrop-blur-md border border-[#bca142]/20 shadow-sm p-5">
+                  <h3 className="text-base font-bold uppercase tracking-wide text-gray-900 mb-4">Quote Information</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold uppercase tracking-wide text-gray-800 mb-1.5">Quote ID</label>
+                      <p className="text-gray-900 font-bold">#{selectedQuote.id}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold uppercase tracking-wide text-gray-800 mb-1.5">Submitted</label>
+                      <p className="text-gray-900 font-medium text-base">{new Date(selectedQuote.created_at || selectedQuote.arrival_date).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold uppercase tracking-wide text-gray-800 mb-1.5">Status</label>
+                      <span className="inline-flex items-center gap-1.5 bg-[#bca142]/15 text-[#8f7a2e] border border-[#bca142]/30 px-2.5 py-1 rounded-full text-xs font-semibold capitalize">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#bca142]" />
+                        {selectedQuote.status || 'Active'}
+                      </span>
                     </div>
                   </div>
+                </section>
 
-                  {/* Customer Info */}
-                  {(selectedQuote.user_name || selectedQuote.user_email) && (
-                    <div className="p-3 bg-[#bca142]/10 rounded-lg border-2 border-[#bca142]/30">
-                      <h3 className="text-lg font-bold text-[#bca142] mb-2 flex items-center gap-2">
-                        <FaMapMarkerAlt className="text-[#bca142]" />
-                        Customer Details
-                        {!canSeeContactInfo() && <svg className="w-4 h-4 text-black ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                        </svg>}
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div className="space-y-2">
-                          {selectedQuote.user_name && (
-                            <div>
-                              <label className="block text-xs font-semibold text-black">Customer:</label>
-                              <p className="text-black font-medium text-sm">{renderContactInfo(selectedQuote.user_name, 'Name')} ({selectedQuote.user_role || 'user'})</p>
-                            </div>
-                          )}
-                          {selectedQuote.user_email && (
-                            <div>
-                              <label className="block text-xs font-semibold text-black">Contact:</label>
-                              <p className="text-black text-sm">{renderContactInfo(selectedQuote.user_email, 'Email')}</p>
-                            </div>
-                          )}
-                          {selectedQuote.user_phone && (
-                            <div>
-                              <label className="block text-xs font-semibold text-black">Phone:</label>
-                              <p className="text-black text-sm">{renderContactInfo(selectedQuote.user_phone, 'Phone')}</p>
-                            </div>
-                          )}
-                        </div>
-                        <div className="space-y-2">
-                          {(selectedQuote.user_country || selectedQuote.user_state || selectedQuote.user_city) && (
-                            <div>
-                              <label className="block text-xs font-semibold text-black">Customer Location:</label>
-                              <p className="text-black text-sm">
-                                {[selectedQuote.user_country, selectedQuote.user_state, selectedQuote.user_city].filter(Boolean).join(', ')}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Shipping Requirements */}
-                  <div className="p-6 bg-[#bca142]/10 rounded-xl border-2 border-[#bca142]/30">
-                    <h3 className="text-xl font-bold text-[#bca142] mb-4 flex items-center gap-2">
-                      <FaTruck className="text-[#bca142]" />
-                      Shipping Requirements
+                {/* Customer Details */}
+                {(selectedQuote.user_name || selectedQuote.user_email) && (
+                  <section className="rounded-2xl bg-white/60 backdrop-blur-md border border-[#bca142]/20 shadow-sm p-5">
+                    <h3 className="flex items-center gap-2 text-base font-bold uppercase tracking-wide text-gray-900 mb-4">
+                      <span className="w-7 h-7 rounded-lg flex items-center justify-center bg-[#bca142]/15 text-[#bca142]"><FaMapMarkerAlt className="text-xs" /></span>
+                      Customer Details
+                      {!canSeeContactInfo() && <svg className="w-4 h-4 text-gray-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                      </svg>}
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div className="space-y-3">
-                        <div>
-                          <label className="block text-sm font-semibold text-black">Shipping Mode:</label>
-                          <p className="text-black font-medium capitalize flex items-center gap-2">
-                            {getShippingIcon(selectedQuote.shipping_mode, 'text-[#bca142]')}
-                            {selectedQuote.shipping_mode}
-                          </p>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-black">Arrival Date:</label>
-                          <p className="text-black font-medium">{formatDate(selectedQuote.arrival_date)}</p>
-                        </div>
-                        {selectedQuote.departure_date && (
+                        {selectedQuote.user_name && (
                           <div>
-                            <label className="block text-sm font-semibold text-black">Departure Date:</label>
-                            <p className="text-black">{formatDate(selectedQuote.departure_date)}</p>
+                            <label className="block text-sm font-semibold uppercase tracking-wide text-gray-800 mb-1.5">Customer</label>
+                            <p className="text-gray-900 font-semibold text-base">{renderContactInfo(selectedQuote.user_name, 'Name')} <span className="text-gray-500 font-normal capitalize">({selectedQuote.user_role || 'user'})</span></p>
                           </div>
                         )}
-                        {selectedQuote.incoterms && (
+                        {selectedQuote.user_email && (
                           <div>
-                            <label className="block text-sm font-semibold text-black">Incoterms:</label>
-                            <p className="text-black font-medium">{selectedQuote.incoterms}</p>
+                            <label className="block text-sm font-semibold uppercase tracking-wide text-gray-800 mb-1.5">Contact</label>
+                            <p className="text-gray-900 text-base">{renderContactInfo(selectedQuote.user_email, 'Email')}</p>
+                          </div>
+                        )}
+                        {selectedQuote.user_phone && (
+                          <div>
+                            <label className="block text-sm font-semibold uppercase tracking-wide text-gray-800 mb-1.5">Phone</label>
+                            <p className="text-gray-900 text-base">{renderContactInfo(selectedQuote.user_phone, 'Phone')}</p>
                           </div>
                         )}
                       </div>
                       <div className="space-y-3">
-                        <div>
-                          <label className="block text-sm font-semibold text-black">From:</label>
-                          <div className="text-black">
-                            <p className="font-medium">{selectedQuote.departure_country}</p>
-                            {selectedQuote.departure_state && <p className="text-sm">{selectedQuote.departure_state}</p>}
-                            {selectedQuote.departure_city && <p className="text-sm">{selectedQuote.departure_city}</p>}
-                            {selectedQuote.departure_type && <p className="text-xs text-gray-600">({selectedQuote.departure_type})</p>}
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-black">To:</label>
-                          <div className="text-black">
-                            <p className="font-medium">{selectedQuote.arrival_country}</p>
-                            {selectedQuote.arrival_state && <p className="text-sm">{selectedQuote.arrival_state}</p>}
-                            {selectedQuote.arrival_city && <p className="text-sm">{selectedQuote.arrival_city}</p>}
-                            {selectedQuote.arrival_type && <p className="text-xs text-gray-600">({selectedQuote.arrival_type})</p>}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Cargo Details */}
-                  <div className="p-6 bg-[#bca142]/10 rounded-xl border-2 border-[#bca142]/30">
-                    <h3 className="text-xl font-bold text-[#bca142] mb-4 flex items-center gap-2">
-                      <svg className="w-6 h-6 text-[#bca142]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                      </svg>
-                      Cargo Details
-                    </h3>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-semibold text-black">Product:</label>
-                        <p className="text-black font-medium">{selectedQuote.product_description}</p>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {selectedQuote.packing && (
+                        {(selectedQuote.user_country || selectedQuote.user_state || selectedQuote.user_city) && (
                           <div>
-                            <label className="block text-sm font-semibold text-black">Packing:</label>
-                            <p className="text-black capitalize">{selectedQuote.packing}</p>
-                          </div>
-                        )}
-                        {selectedQuote.type && (
-                          <div>
-                            <label className="block text-sm font-semibold text-black">Cargo Type:</label>
-                            <p className="text-black capitalize">{selectedQuote.type}</p>
-                          </div>
-                        )}
-                        {selectedQuote.quantity && (
-                          <div>
-                            <label className="block text-sm font-semibold text-black">Quantity:</label>
-                            <p className="text-black">{selectedQuote.quantity}</p>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {selectedQuote.weight && (
-                          <div>
-                            <label className="block text-sm font-semibold text-black">Weight:</label>
-                            <p className="text-black font-medium">{selectedQuote.weight}</p>
-                          </div>
-                        )}
-                        {(selectedQuote.length && selectedQuote.width && selectedQuote.height) && (
-                          <div>
-                            <label className="block text-sm font-semibold text-black">Dimensions:</label>
-                            <p className="text-black font-medium">
-                              {selectedQuote.length} x {selectedQuote.width} x {selectedQuote.height} {selectedQuote.dimension_unit || 'cm'}
+                            <label className="block text-sm font-semibold uppercase tracking-wide text-gray-800 mb-1.5">Customer Location</label>
+                            <p className="text-gray-900 text-base">
+                              {[selectedQuote.user_country, selectedQuote.user_state, selectedQuote.user_city].filter(Boolean).join(', ')}
                             </p>
                           </div>
                         )}
                       </div>
                     </div>
-                  </div>
+                  </section>
+                )}
 
-                  {/* Important Cargo Information */}
-                  {(selectedQuote.is_stackable !== undefined || selectedQuote.is_hazardous !== undefined || selectedQuote.has_insurance !== undefined) && (
-                    <div className="p-6 bg-[#bca142]/10 rounded-xl border-2 border-[#bca142]/30">
-                      <h3 className="text-xl font-bold text-[#bca142] mb-4 flex items-center gap-2">
-                        ⚠️ Important Cargo Information
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {selectedQuote.is_stackable !== undefined && (
-                          <div className="flex items-center gap-2">
-                            <label className="text-sm font-semibold text-black">Stackable:</label>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              selectedQuote.is_stackable 
-                                ? 'bg-[#bca142] text-white' 
-                                : 'bg-black text-white'
-                            }`}>
-                              {selectedQuote.is_stackable ? '✅ Yes' : '❌ No'}
-                            </span>
-                          </div>
-                        )}
-                        {selectedQuote.is_hazardous !== undefined && (
-                          <div className="flex items-center gap-2">
-                            <label className="text-sm font-semibold text-black">Hazardous:</label>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              selectedQuote.is_hazardous 
-                                ? 'bg-black text-white' 
-                                : 'bg-[#bca142] text-white'
-                            }`}>
-                              {selectedQuote.is_hazardous ? '⚠️ Yes - Special handling required' : '✅ No'}
-                            </span>
-                          </div>
-                        )}
-                        {selectedQuote.has_insurance !== undefined && (
-                          <div className="flex items-center gap-2">
-                            <label className="text-sm font-semibold text-black">Cargo Insurance:</label>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              selectedQuote.has_insurance 
-                                ? 'bg-[#bca142] text-white' 
-                                : 'bg-gray-100 text-gray-800'
-                            }`}>
-                              {selectedQuote.has_insurance ? '🛡️ Required' : '❌ Not required'}
-                            </span>
-                          </div>
-                        )}
+                {/* Shipping Requirements */}
+                <section className="rounded-2xl bg-white/60 backdrop-blur-md border border-[#bca142]/20 shadow-sm p-5">
+                  <h3 className="flex items-center gap-2 text-base font-bold uppercase tracking-wide text-gray-900 mb-4">
+                    <span className="w-7 h-7 rounded-lg flex items-center justify-center bg-[#bca142]/15 text-[#bca142]"><FaTruck className="text-xs" /></span>
+                    Shipping Requirements
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-semibold uppercase tracking-wide text-gray-800 mb-1.5">Shipping Mode</label>
+                        <p className="text-gray-900 font-semibold capitalize flex items-center gap-2">
+                          {getShippingIcon(selectedQuote.shipping_mode, 'text-[#bca142]')}
+                          {selectedQuote.shipping_mode}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold uppercase tracking-wide text-gray-800 mb-1.5">Arrival Date</label>
+                        <p className="text-gray-900 font-semibold">{formatDate(selectedQuote.arrival_date)}</p>
+                      </div>
+                      {selectedQuote.departure_date && (
+                        <div>
+                          <label className="block text-sm font-semibold uppercase tracking-wide text-gray-800 mb-1.5">Departure Date</label>
+                          <p className="text-gray-900 font-medium">{formatDate(selectedQuote.departure_date)}</p>
+                        </div>
+                      )}
+                      {selectedQuote.incoterms && (
+                        <div>
+                          <label className="block text-sm font-semibold uppercase tracking-wide text-gray-800 mb-1.5">Incoterms</label>
+                          <span className="inline-block bg-[#bca142] text-white px-3 py-1 rounded-full text-xs font-semibold">{selectedQuote.incoterms}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-semibold uppercase tracking-wide text-gray-800 mb-1.5">From</label>
+                        <div className="text-gray-900">
+                          <p className="font-semibold">{selectedQuote.departure_country}</p>
+                          {selectedQuote.departure_state && <p className="text-[15px] text-gray-700">{selectedQuote.departure_state}</p>}
+                          {selectedQuote.departure_city && <p className="text-[15px] text-gray-700">{selectedQuote.departure_city}</p>}
+                          {selectedQuote.departure_type && <p className="text-sm text-gray-500">({selectedQuote.departure_type})</p>}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold uppercase tracking-wide text-gray-800 mb-1.5">To</label>
+                        <div className="text-gray-900">
+                          <p className="font-semibold">{selectedQuote.arrival_country}</p>
+                          {selectedQuote.arrival_state && <p className="text-[15px] text-gray-700">{selectedQuote.arrival_state}</p>}
+                          {selectedQuote.arrival_city && <p className="text-[15px] text-gray-700">{selectedQuote.arrival_city}</p>}
+                          {selectedQuote.arrival_type && <p className="text-sm text-gray-500">({selectedQuote.arrival_type})</p>}
+                        </div>
                       </div>
                     </div>
-                  )}
+                  </div>
+                </section>
 
-                  {/* Additional Notes */}
-                  {selectedQuote.notes && (
-                    <div className="p-6 bg-[#bca142]/10 rounded-xl border-2 border-[#bca142]/30">
-                      <h3 className="text-xl font-bold text-[#bca142] mb-4 flex items-center gap-2">
-                        📝 Special Notes
-                      </h3>
-                      <p className="text-black bg-white p-4 rounded-lg border border-[#bca142]/30 italic">
-                        "{selectedQuote.notes}"
-                      </p>
+                {/* Cargo Details */}
+                <section className="rounded-2xl bg-white/60 backdrop-blur-md border border-[#bca142]/20 shadow-sm p-5">
+                  <h3 className="flex items-center gap-2 text-base font-bold uppercase tracking-wide text-gray-900 mb-4">
+                    <span className="w-7 h-7 rounded-lg flex items-center justify-center bg-[#bca142]/15 text-[#bca142]">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                      </svg>
+                    </span>
+                    Cargo Details
+                  </h3>
+                  <div className="space-y-5">
+                    <div>
+                      <label className="block text-sm font-semibold uppercase tracking-wide text-gray-800 mb-1.5">Product</label>
+                      <p className="text-gray-900 font-medium">{selectedQuote.product_description}</p>
                     </div>
-                  )}
 
-                  {/* Quote Statistics */}
-                  <div className="p-6 bg-[#bca142]/10 rounded-xl border-2 border-[#bca142]/30">
-                    <h3 className="text-xl font-bold text-[#bca142] mb-4">Quote Statistics</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {selectedQuote.packing && (
+                        <div>
+                          <label className="block text-sm font-semibold uppercase tracking-wide text-gray-800 mb-1.5">Packing</label>
+                          <p className="text-gray-900 capitalize">{selectedQuote.packing}</p>
+                        </div>
+                      )}
+                      {selectedQuote.type && (
+                        <div>
+                          <label className="block text-sm font-semibold uppercase tracking-wide text-gray-800 mb-1.5">Cargo Type</label>
+                          <p className="text-gray-900 capitalize">{selectedQuote.type}</p>
+                        </div>
+                      )}
+                      {selectedQuote.quantity && (
+                        <div>
+                          <label className="block text-sm font-semibold uppercase tracking-wide text-gray-800 mb-1.5">Quantity</label>
+                          <p className="text-gray-900">{selectedQuote.quantity}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {selectedQuote.weight && (
+                        <div>
+                          <label className="block text-sm font-semibold uppercase tracking-wide text-gray-800 mb-1.5">Weight</label>
+                          <p className="text-gray-900 font-medium">{selectedQuote.weight} kg</p>
+                        </div>
+                      )}
+                      {(selectedQuote.length && selectedQuote.width && selectedQuote.height) && (
+                        <div>
+                          <label className="block text-sm font-semibold uppercase tracking-wide text-gray-800 mb-1.5">Dimensions</label>
+                          <p className="text-gray-900 font-medium">
+                            {selectedQuote.length} × {selectedQuote.width} × {selectedQuote.height} {selectedQuote.dimension_unit || 'cm'}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </section>
+
+                {/* Important Cargo Information */}
+                {(selectedQuote.is_stackable !== undefined || selectedQuote.is_hazardous !== undefined || selectedQuote.has_insurance !== undefined) && (
+                  <section className="rounded-2xl bg-white/60 backdrop-blur-md border border-[#bca142]/20 shadow-sm p-5">
+                    <h3 className="flex items-center gap-2 text-base font-bold uppercase tracking-wide text-gray-900 mb-4">
+                      <span className="w-7 h-7 rounded-lg flex items-center justify-center bg-amber-100 text-amber-600">⚠️</span>
+                      Important Cargo Information
+                    </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-black">{selectedQuote.response_count || 0}</p>
-                        <p className="text-sm text-gray-700">Total Responses</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-black">#{selectedQuote.id}</p>
-                        <p className="text-sm text-gray-700">Quote ID</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-black">{formatDate(selectedQuote.created_at || selectedQuote.arrival_date)}</p>
-                        <p className="text-sm text-gray-700">Created</p>
-                      </div>
+                      {selectedQuote.is_stackable !== undefined && (
+                        <div>
+                          <label className="block text-sm font-semibold uppercase tracking-wide text-gray-800 mb-1.5">Stackable</label>
+                          <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${selectedQuote.is_stackable ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                            {selectedQuote.is_stackable ? '✅ Yes' : '❌ No'}
+                          </span>
+                        </div>
+                      )}
+                      {selectedQuote.is_hazardous !== undefined && (
+                        <div>
+                          <label className="block text-sm font-semibold uppercase tracking-wide text-gray-800 mb-1.5">Hazardous</label>
+                          <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${selectedQuote.is_hazardous ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                            {selectedQuote.is_hazardous ? '⚠️ Yes - Special handling' : '✅ No'}
+                          </span>
+                        </div>
+                      )}
+                      {selectedQuote.has_insurance !== undefined && (
+                        <div>
+                          <label className="block text-sm font-semibold uppercase tracking-wide text-gray-800 mb-1.5">Cargo Insurance</label>
+                          <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${selectedQuote.has_insurance ? 'bg-[#bca142]/20 text-[#8f7a2e]' : 'bg-gray-100 text-gray-600'}`}>
+                            {selectedQuote.has_insurance ? '🛡️ Required' : '❌ Not required'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </section>
+                )}
+
+                {/* Special Notes */}
+                {selectedQuote.notes && (
+                  <section className="rounded-2xl bg-white/60 backdrop-blur-md border border-[#bca142]/20 shadow-sm p-5">
+                    <h3 className="flex items-center gap-2 text-base font-bold uppercase tracking-wide text-gray-900 mb-4">
+                      <span className="w-7 h-7 rounded-lg flex items-center justify-center bg-[#bca142]/15">📝</span>
+                      Special Notes
+                    </h3>
+                    <p className="text-gray-700 bg-white/70 p-4 rounded-xl border border-[#bca142]/20 italic">
+                      "{selectedQuote.notes}"
+                    </p>
+                  </section>
+                )}
+
+                {/* Quote Statistics */}
+                <section className="rounded-2xl bg-gradient-to-br from-[#bca142]/10 to-white/40 backdrop-blur-md border border-[#bca142]/20 shadow-sm p-5">
+                  <h3 className="text-base font-bold uppercase tracking-wide text-gray-900 mb-4">Quote Statistics</h3>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="text-center rounded-xl bg-white/70 border border-[#bca142]/15 py-4">
+                      <p className="text-2xl font-bold text-[#bca142]">{selectedQuote.response_count || 0}</p>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-600 mt-1">Responses</p>
+                    </div>
+                    <div className="text-center rounded-xl bg-white/70 border border-[#bca142]/15 py-4">
+                      <p className="text-2xl font-bold text-[#bca142]">#{selectedQuote.id}</p>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-600 mt-1">Quote ID</p>
+                    </div>
+                    <div className="text-center rounded-xl bg-white/70 border border-[#bca142]/15 py-4">
+                      <p className="text-base font-bold text-[#bca142] leading-tight mt-1">{formatDate(selectedQuote.created_at || selectedQuote.arrival_date)}</p>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-600 mt-1">Created</p>
                     </div>
                   </div>
-                </div>
+                </section>
+              </div>
 
-                <div className="mt-4 flex space-x-2">
+              {/* Footer */}
+              <div className="relative flex gap-3 px-5 sm:px-7 py-4 border-t border-[#bca142]/20 bg-white/50 backdrop-blur-xl">
+                <button
+                  onClick={() => setSelectedQuote(null)}
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-white/70 text-gray-700 border border-gray-200 hover:bg-gray-100 transition-colors font-semibold text-sm"
+                >
+                  Close
+                </button>
+                {selectedQuote.already_responded ? (
                   <button
-                    onClick={() => setSelectedQuote(null)}
-                    className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm"
+                    disabled
+                    className="flex-1 py-2.5 px-4 rounded-xl bg-gray-200 text-gray-400 cursor-not-allowed font-semibold text-sm"
+                    title="You have already responded to this quote"
                   >
-                    Close
+                    Already Responded
                   </button>
-                  {selectedQuote.already_responded ? (
-                    <button
-                      disabled
-                      className="flex-1 bg-gray-300 text-gray-500 py-2 px-4 rounded-lg cursor-not-allowed font-medium text-sm"
-                      title="You have already responded to this quote"
-                    >
-                      Already Responded
-                    </button>
-                  ) : !canRespond ? (
-                    <button
-                      onClick={() => handleRespondToQuote(selectedQuote)}
-                      className="flex-1 bg-[#bca142] text-white py-2 px-4 rounded-lg hover:bg-black transition-all duration-300 transform hover:scale-105 shadow-lg font-medium text-sm"
-                    >
-                      🚀 Upgrade to Respond
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleRespondToQuote(selectedQuote)}
-                      className="flex-1 bg-[#bca142] text-white py-2 px-4 rounded-lg hover:bg-black transition-all duration-300 transform hover:scale-105 font-medium text-sm"
-                    >
-                      Respond to Quote
-                    </button>
-                  )}
-                </div>
+                ) : !canRespond ? (
+                  <button
+                    onClick={() => handleRespondToQuote(selectedQuote)}
+                    className="flex-1 py-2.5 px-4 rounded-xl text-white font-semibold text-sm shadow-lg transition-all duration-300 hover:scale-[1.02]"
+                    style={{ background: 'linear-gradient(135deg, #d4b55e, #bca142)' }}
+                  >
+                    🚀 Upgrade to Respond
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleRespondToQuote(selectedQuote)}
+                    className="flex-1 py-2.5 px-4 rounded-xl text-white font-semibold text-sm shadow-lg transition-all duration-300 hover:scale-[1.02]"
+                    style={{ background: 'linear-gradient(135deg, #d4b55e, #bca142)' }}
+                  >
+                    Respond to Quote
+                  </button>
+                )}
               </div>
             </div>
           </div>

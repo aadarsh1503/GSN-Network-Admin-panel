@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { FiCheck, FiX, FiUpload, FiDollarSign } from 'react-icons/fi';
 import { FaUniversity, FaCheckCircle } from 'react-icons/fa';
-import { subscriptionAPI } from '../../utils/api';
+import { subscriptionAPI, walletAPI } from '../../utils/api';
+import { formatSubDate } from '../../utils/formatDate';
+import { useCurrency } from '../../contexts/CurrencyContext';
 import toast from 'react-hot-toast';
 
 const PlansPage = () => {
@@ -14,6 +16,13 @@ const PlansPage = () => {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [prorationDetails, setProrationDetails] = useState(null);
   const [showUploadForm, setShowUploadForm] = useState(false);
+  const [rate, setRate] = useState(2.6526);
+  const { format, formatUsd, ready } = useCurrency();
+
+  // BHD is the base currency; amounts are shown in the user's local currency
+  // with the USD equivalent as a live secondary line.
+  const fmtBhd = (v) => format(v);
+  const toUsd = (v) => (ready ? `≈ ${formatUsd(v)}` : `≈ $${(Number(v || 0) * rate).toFixed(2)}`);
   
   // Upload form state
   const [transactionId, setTransactionId] = useState('');
@@ -23,6 +32,8 @@ const PlansPage = () => {
   useEffect(() => {
     fetchData();
     fetchBankDetails();
+    fetchRate();
+    const id = setInterval(fetchRate, 60000);
     
     // Check if coming from SubscriptionPage with selected plan
     if (location.state?.selectedPlan) {
@@ -30,7 +41,18 @@ const PlansPage = () => {
       setProrationDetails(location.state.prorationDetails);
       setShowUploadForm(true);
     }
+    return () => clearInterval(id);
   }, [location]);
+
+  const fetchRate = async () => {
+    try {
+      const r = await walletAPI.getCurrencyRate();
+      const live = Number(r?.bhdToUsd);
+      if (live > 0) setRate(live);
+    } catch (error) {
+      console.error('Error fetching currency rate:', error);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -151,7 +173,7 @@ const PlansPage = () => {
               Current Plan: <strong>{currentSubscription.plan_name}</strong>
               {currentSubscription.end_date && (
                 <span className="ml-2">
-                  (Expires: {new Date(currentSubscription.end_date).toLocaleDateString()})
+                  (Expires: {formatSubDate(currentSubscription.end_date)})
                 </span>
               )}
             </p>
@@ -183,8 +205,8 @@ const PlansPage = () => {
                   <p className="text-sm text-gray-600">{selectedPlan.description}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold text-[#bca142]">${selectedPlan.price}</p>
-                  <p className="text-sm text-gray-500">per month</p>
+                  <p className="text-2xl font-bold text-[#bca142]">{fmtBhd(selectedPlan.price)}</p>
+                  <p className="text-sm text-gray-500">{toUsd(selectedPlan.price)} · per month</p>
                 </div>
               </div>
 
@@ -196,15 +218,24 @@ const PlansPage = () => {
                     <div className="space-y-1 text-sm">
                       <div className="flex justify-between">
                         <span className="text-gray-600">New Plan Price:</span>
-                        <span className="font-semibold">${prorationDetails.newPlanPrice}</span>
+                        <span className="font-semibold text-right">
+                          {fmtBhd(prorationDetails.newPlanPrice)}
+                          <span className="block text-[10px] text-gray-400">{toUsd(prorationDetails.newPlanPrice)}</span>
+                        </span>
                       </div>
                       <div className="flex justify-between text-green-600">
                         <span>Unused Credit:</span>
-                        <span className="font-semibold">-${prorationDetails.unusedValue}</span>
+                        <span className="font-semibold text-right">
+                          -{fmtBhd(prorationDetails.unusedValue)}
+                          <span className="block text-[10px] text-gray-400">{toUsd(prorationDetails.unusedValue)}</span>
+                        </span>
                       </div>
                       <div className="border-t border-[#bca142] pt-2 flex justify-between font-bold">
                         <span>Amount to Pay:</span>
-                        <span className="text-[#bca142]">${prorationDetails.amountToCharge}</span>
+                        <span className="text-[#bca142] text-right">
+                          {fmtBhd(prorationDetails.amountToCharge)}
+                          <span className="block text-[10px] text-gray-400">{toUsd(prorationDetails.amountToCharge)}</span>
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -249,8 +280,9 @@ const PlansPage = () => {
                   <div>
                     <label className="text-xs font-semibold text-gray-500 uppercase">Amount to Transfer</label>
                     <p className="text-2xl font-bold text-[#bca142]">
-                      ${prorationDetails ? prorationDetails.amountToCharge : selectedPlan.price}
+                      {fmtBhd(prorationDetails ? prorationDetails.amountToCharge : selectedPlan.price)}
                     </p>
+                    <p className="text-xs text-gray-500">{toUsd(prorationDetails ? prorationDetails.amountToCharge : selectedPlan.price)}</p>
                   </div>
                 </div>
               </div>
@@ -342,14 +374,15 @@ const PlansPage = () => {
                   {plan.name}
                 </h2>
                 
-                <p className="text-4xl font-bold text-gray-800 mt-4">
-                  ${parseFloat(plan.price).toFixed(2)}
+                <p className="text-2xl sm:text-3xl font-bold leading-tight break-words text-gray-800 mt-4">
+                  {fmtBhd(plan.price)}
                   {plan.duration_months > 0 && (
                     <span className="text-base font-normal text-gray-500">
                       /{plan.duration_months} {plan.duration_months === 1 ? 'month' : 'months'}
                     </span>
                   )}
                 </p>
+                <p className="text-sm text-gray-500 mt-1">{toUsd(plan.price)}</p>
 
                 {plan.description && (
                   <p className="text-sm text-gray-500 mt-2">{plan.description}</p>

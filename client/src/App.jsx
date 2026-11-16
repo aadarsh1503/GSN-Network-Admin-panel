@@ -7,6 +7,8 @@ import { LoadingProvider } from "./contexts/LoadingContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { GlobalNotificationProvider } from "./contexts/GlobalNotificationContext";
 import { SubscriptionProvider } from "./contexts/SubscriptionContext";
+import { CurrencyProvider } from "./contexts/CurrencyContext";
+import { ProfileCompletionProvider } from "./contexts/ProfileCompletionContext";
 import activityTracker from "./utils/activityTracker";
 import { getToken } from "./utils/api";
 import keepAliveService from "./services/keepAliveService";
@@ -83,6 +85,11 @@ import AdminQuotes from "./pages/Admin/AdminQuotes";
 import AdminTransactions from "./pages/Admin/AdminTransactions";
 import AdminInvoices from "./pages/Admin/AdminInvoices";
 import AWSSettings from "./pages/Admin/AWSSettings";
+import AdminCoupons from "./pages/Admin/AdminCoupons";
+import AdminWalletSettings from "./pages/Admin/AdminWalletSettings";
+import AdminGiveMoney from "./pages/Admin/AdminGiveMoney";
+import AdminCompanyBankDetails from "./pages/Admin/AdminCompanyBankDetails";
+import ReferralPage from "./pages/Referrals/ReferralPage";
 
 // --- Company Pages ---
 import CompanyDashboard from "./companyPages/CompanyDashboard/CompanyDashboard";
@@ -97,9 +104,11 @@ import ManageCompanyBranch from "./companyPages/CompanyBranch/ManageCompanyBranc
 import AddCompanyMember from "./companyPages/CompanyMembers/CompanyMembers";
 import ManageCompanyMember from "./companyPages/CompanyMembers/ManageCompanyMember";
 import PlansPage from "./companyPages/Plans/PlansPage";
+import CompanySubscriptionPage from "./companyPages/Subscription/CompanySubscriptionPage";
 import MyCertificatePage from "./companyPages/MyCertificatePage/MyCertificatePage";
 import SubscriptionPage from "./pages/SubscriptionPage";
 import PaymentPage from "./pages/PaymentPage";
+import CompanyWallet from "./companyPages/Wallet/CompanyWallet";
 import MemberQuotesPage from "./pages/MemberQuotesPage";
 import Invoices from "./companyPages/Invoices/Invoices";
 import TransactionHistorycompany from "./companyPages/TransactionHistory/TransactionHistorycompany";
@@ -231,10 +240,12 @@ function App() {
 
   return (
     <LoadingProvider>
+      <CurrencyProvider>
       <NotificationProvider>
         <GlobalNotificationProvider>
           <SubscriptionProvider>
             <Router>
+            <ProfileCompletionProvider>
             {/* Title Manager - Updates page title dynamically based on user role and current page */}
             <TitleManager />
             
@@ -346,6 +357,10 @@ function App() {
           <Route path="transactions-management" element={<AdminTransactions />} />
           <Route path="invoices-management" element={<AdminInvoices />} />
           <Route path="aws-settings" element={<AWSSettings />} />
+          <Route path="coupons" element={<AdminCoupons />} />
+          <Route path="wallet-referral" element={<AdminWalletSettings />} />
+          <Route path="give-money" element={<AdminGiveMoney />} />
+          <Route path="company-bank-details" element={<AdminCompanyBankDetails />} />
         </Route>
 
         {/* ================= COMPANY ROUTES ================= */}
@@ -371,7 +386,7 @@ function App() {
           <Route path="add-member" element={<AddCompanyMember />} />
           <Route path="manage-member" element={<ManageCompanyMember />} />
           <Route path="plans" element={<PlansPage />} />
-          <Route path="subscriptions" element={<SubscriptionPage />} />
+          <Route path="subscriptions" element={<CompanySubscriptionPage />} />
           <Route path="available-quotes" element={<MemberQuotesPage />} />
           <Route path="bank-details" element={<BankDetailsManager />} />
           <Route path="payment-management" element={<PaymentManagement />} />
@@ -392,6 +407,8 @@ function App() {
           <Route path="my-quote-responses" element={<MyQuoteResponses />} />
           <Route path="blacklisted-companies" element={<BlacklistedCompanies />} />
           <Route path="help" element={<CompanyHelp />} />
+          <Route path="referrals" element={<ReferralPage />} />
+          <Route path="wallet" element={<CompanyWallet />} />
         </Route>
 
         {/* ================= USER ROUTES ================= */}
@@ -438,10 +455,12 @@ function App() {
           <Route path="help" element={<BusinessHelp />} />
         </Route>
       </Routes>
+            </ProfileCompletionProvider>
     </Router>
           </SubscriptionProvider>
         </GlobalNotificationProvider>
       </NotificationProvider>
+      </CurrencyProvider>
     </LoadingProvider>
   );
 }

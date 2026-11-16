@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, Link, useLocation } from 'react-router-dom';
 import { 
   FiMenu, FiMaximize2, FiMinimize2, FiBell, FiMail, FiChevronDown,
   FiUser, FiHome, FiMessageSquare, FiLogOut 
@@ -22,9 +22,16 @@ const AdminHeader = ({ toggleSidebar, toggleFullscreen, isFullscreen }) => {
   const toggleDropdown = () => setIsDropdownOpen(prevState => !prevState);
   const { messageUnreadCount } = useNotifications();
   const { isLogoutModalOpen, openLogoutModal, closeLogoutModal } = useLogoutModal();
+  const location = useLocation();
 
   // Fetch admin notifications unread count
   const fetchAdminUnreadCount = async () => {
+    // While the admin is on the notifications page, stop the bell from blinking
+    // and reset its count to 0.
+    if (location.pathname === '/admin/notifications') {
+      setAdminUnreadCount(0);
+      return;
+    }
     try {
       const response = await fetch('/api/admin/unread-notifications-count', {
         headers: {
@@ -45,7 +52,7 @@ const AdminHeader = ({ toggleSidebar, toggleFullscreen, isFullscreen }) => {
     fetchAdminUnreadCount();
     const interval = setInterval(fetchAdminUnreadCount, 30000); // Check every 30 seconds
     return () => clearInterval(interval);
-  }, []);
+  }, [location.pathname]);
 
   React.useEffect(() => {
     const handleClickOutside = (event) => {
@@ -83,7 +90,11 @@ const AdminHeader = ({ toggleSidebar, toggleFullscreen, isFullscreen }) => {
         <button onClick={toggleFullscreen} className="text-gray-500 text-xl transition-transform duration-300 hover:scale-110">
           {isFullscreen ? <FiMinimize2 /> : <FiMaximize2 />}
         </button>
-        <Link to="/admin/notifications" className="relative text-gray-500 text-xl transition-transform duration-300 hover:scale-110">
+        <Link
+          to="/admin/notifications"
+          onClick={() => setAdminUnreadCount(0)}
+          className="relative text-gray-500 text-xl transition-transform duration-300 hover:scale-110"
+        >
           <FiBell />
           {adminUnreadCount > 0 && (
             <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">

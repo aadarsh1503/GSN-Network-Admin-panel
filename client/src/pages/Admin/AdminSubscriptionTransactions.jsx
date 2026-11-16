@@ -2,8 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { FaSearch, FaFileDownload } from 'react-icons/fa';
 import { api } from '../../utils/api';
 import { adminToast } from '../../utils/adminToast';
+import { useCurrency } from '../../contexts/CurrencyContext';
 
 const AdminSubscriptionTransactions = () => {
+  const { format, formatUsd } = useCurrency();
+  // BHD is the platform base currency; format() keeps the admin's BHD primary look.
+  const fmtBhd = (v) => format(v);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -52,11 +56,11 @@ const AdminSubscriptionTransactions = () => {
     return filteredTransactions
       .filter(txn => txn.status === 'completed')
       .reduce((sum, txn) => sum + parseFloat(txn.amount), 0)
-      .toFixed(2);
+      .toFixed(3);
   };
 
   const exportToCSV = () => {
-    const headers = ['ID', 'User', 'Email', 'Plan', 'Amount', 'Payment Method', 'Reference', 'Status', 'Date'];
+    const headers = ['ID', 'User', 'Email', 'Plan', 'Amount (BHD)', 'Payment Method', 'Reference', 'Status', 'Date'];
     const rows = filteredTransactions.map(txn => [
       txn.id,
       txn.user_name,
@@ -96,7 +100,8 @@ const AdminSubscriptionTransactions = () => {
           </div>
           <div className="bg-white p-4 rounded-lg shadow">
             <p className="text-gray-600 text-sm">Total Revenue</p>
-            <p className="text-2xl font-bold text-green-600">${calculateTotalRevenue()}</p>
+            <p className="text-2xl font-bold text-green-600">{fmtBhd(calculateTotalRevenue())}</p>
+            <p className="text-xs text-gray-400">≈ {formatUsd(calculateTotalRevenue())}</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow">
             <p className="text-gray-600 text-sm">Completed</p>
@@ -191,7 +196,10 @@ const AdminSubscriptionTransactions = () => {
                         </div>
                       </td>
                       <td className="p-3">{txn.plan_name || 'N/A'}</td>
-                      <td className="p-3 font-bold text-green-600">${txn.amount}</td>
+                      <td className="p-3 font-bold text-green-600">
+                        {fmtBhd(txn.amount)}
+                        <div className="text-xs text-gray-400 font-normal">≈ {formatUsd(txn.amount)}</div>
+                      </td>
                       <td className="p-3">{txn.payment_method || 'N/A'}</td>
                       <td className="p-3 text-sm">{txn.transaction_reference || 'N/A'}</td>
                       <td className="p-3">

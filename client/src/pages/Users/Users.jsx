@@ -1,12 +1,14 @@
 // src/components/User.jsx
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { FaPen, FaEye, FaTimes, FaSave } from 'react-icons/fa';
+import { FaPen, FaEye, FaTimes, FaSave, FaTrash } from 'react-icons/fa';
 import { FaArrowUp, FaArrowDown } from 'react-icons/fa6';
 import { api } from '../../utils/api';
 import { adminToast } from '../../utils/adminToast';
 import StatusConfirmationModal from '../../components/Modal/StatusConfirmationModal';
 import BlacklistReasonModal from '../../components/Modal/BlacklistReasonModal';
+import ConfirmationModal from '../../components/Modal/ConfirmationModal';
+import UserDetailModal from '../../components/Modal/UserDetailModal';
 
 // --- Custom Toggle Switch Component ---
 const ToggleSwitch = ({ checked, onChange }) => {
@@ -29,7 +31,9 @@ function User() {
   const [error, setError] = useState(null);
 
   // --- New Modal States ---
-  const [viewingUser, setViewingUser] = useState(null);
+  const [detailTarget, setDetailTarget] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deletingUser, setDeletingUser] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [confirmModal, setConfirmModal] = useState({
@@ -76,12 +80,23 @@ function User() {
   };
 
   // --- Handlers for User Actions ---
-  const handleViewUser = async (user) => {
+  const handleViewUser = (user) => {
+    setDetailTarget({ id: user.id, name: user.name });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
     try {
-      const details = await api.get(`/api/user/profile/${user.id}`);
-      setViewingUser(details);
+      setDeletingUser(true);
+      const res = await api.delete(`/api/user/admin-delete/${deleteTarget.id}`);
+      adminToast.success(res?.message || 'User deleted successfully');
+      setDeleteTarget(null);
+      setDetailTarget(null);
+      fetchUsers();
     } catch (err) {
-      adminToast.error("Failed to fetch user details");
+      adminToast.error(err.response?.data?.message || err.message || 'Failed to delete user');
+    } finally {
+      setDeletingUser(false);
     }
   };
 
@@ -364,6 +379,7 @@ function User() {
                         <div className="flex space-x-2">
                           <button onClick={() => handleEditUser(user)} className="p-2 bg-[#bca142] text-white rounded hover:bg-[#b8932f]"><FaPen className="text-white" /></button>
                           <button onClick={() => handleViewUser(user)} className="p-2 bg-black text-white rounded hover:bg-gray-800"><FaEye className="text-white" /></button>
+                          <button onClick={() => setDeleteTarget({ id: user.id, name: user.name })} className="p-2 bg-red-600 text-white rounded hover:bg-red-700"><FaTrash className="text-white" /></button>
                         </div>
                       </td>
                     </tr>
@@ -424,27 +440,25 @@ function User() {
         </div>
       </div>
 
-      {/* --- View Detail Modal --- */}
-      {viewingUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-lg w-full p-6">
-            <div className="flex justify-between items-center mb-4 border-b pb-2">
-              <h3 className="text-xl font-bold text-black">Quote Requester Details</h3>
-              <button onClick={() => setViewingUser(null)} className="text-black hover:text-gray-600"><FaTimes size={20}/></button>
-            </div>
-            <div className="space-y-3">
-              <p><strong>Name:</strong> {viewingUser.name}</p>
-              <p><strong>Email:</strong> {viewingUser.email}</p>
-              <p><strong>Phone:</strong> {viewingUser.phone}</p>
-              <p><strong>Role:</strong> {viewingUser.role}</p>
-              <p><strong>Country:</strong> {viewingUser.country || 'N/A'}</p>
-              <p><strong>Registration Date:</strong> {new Date(viewingUser.created_at).toLocaleDateString()}</p>
-              <p><strong>Status:</strong> <span className={viewingUser.status ? 'text-[#bca142]' : 'text-black'}>{viewingUser.status ? 'Active' : 'Inactive'}</span></p>
-            </div>
-            <button onClick={() => setViewingUser(null)} className="mt-6 w-full bg-black hover:bg-gray-800 text-white py-2 rounded font-semibold">Close</button>
-          </div>
-        </div>
-      )}
+      {/* --- View Detail Modal (separate admin-details route) --- */}
+      <UserDetailModal
+        isOpen={!!detailTarget}
+        role="user"
+        userId={detailTarget?.id}
+        onClose={() => setDetailTarget(null)}
+        onDelete={(profile) => setDeleteTarget({ id: detailTarget?.id, name: profile?.name || detailTarget?.name })}
+      />
+
+      {/* --- Delete Confirmation Modal --- */}
+      <ConfirmationModal
+        isOpen={!!deleteTarget}
+        title="Delete User"
+        message={`Are you sure you want to permanently delete "${deleteTarget?.name || 'this user'}"? All their records (quotes, wallet, referrals, transactions and subscriptions) will be removed.`}
+        confirmText="Delete User"
+        isLoading={deletingUser}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteConfirm}
+      />
 
       {/* --- Edit Modal --- */}
       {editingUser && (
