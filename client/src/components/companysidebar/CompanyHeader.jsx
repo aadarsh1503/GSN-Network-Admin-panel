@@ -176,11 +176,9 @@ const CompanyHeader = ({ onMenuClick }) => {
                 </span>
                 <div className="w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
               </div>
-              {isTracked && (percentage >= 100 ? (
-                <span className="text-[11px] font-semibold text-green-600">Profile complete</span>
-              ) : (
+              {isTracked && percentage < 100 && (
                 <span className="text-[11px] font-semibold text-[#bca142]">{percentage}% complete</span>
-              ))}
+              )}
             </div>
           </button>
 

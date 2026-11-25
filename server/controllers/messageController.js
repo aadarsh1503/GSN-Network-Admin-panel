@@ -1,5 +1,6 @@
 // controllers/messageController.js
 import db from '../config/db.js';
+import realTimeNotificationService from '../services/realTimeNotificationService.js';
 
 // @desc    Send a message
 // @route   POST /api/messages/send
@@ -36,6 +37,16 @@ const sendMessage = async (req, res) => {
 
         const values = [senderId, receiverId, subject || null, message, quoteId || null];
         const [result] = await db.execute(sql, values);
+
+        // Push the message over SSE so the receiver's unread badge updates instantly
+        await realTimeNotificationService.notifyNewMessage({
+            id: result.insertId,
+            sender_id: senderId,
+            receiver_id: receiverId,
+            sender_name: req.user.name,
+            message,
+            quote_id: cleanQuoteId
+        });
 
         res.status(201).json({
             message: 'Message sent successfully',
@@ -390,6 +401,117 @@ GSN Network Support Team`;
     }
 };
 
+// @desc    Mark every unread message for the current user as read
+// @route   PUT /api/messages/read-all
+// @access  Private
+const markAllMessagesRead = async (req, res) => {
+    const userId = req.user.id;
+
+    try {
+        const [result] = await db.execute(
+            'UPDATE messages SET is_read = 1 WHERE receiver_id = ? AND is_read = 0',
+            [userId]
+        );
+
+        res.status(200).json({ message: 'All messages marked as read', updatedCount: result.affectedRows });
+
+    } catch (error) {
+        console.error('Error marking all messages as read:', error);
+        res.status(500).json({ message: 'Server error updating messages' });
+    }
+};
+
+// @desc    List every conversation happening between members (admin monitoring)
+// @route   GET /api/messages/admin/conversations
+// @access  Private/Admin
+const getAllUserConversations = async (req, res) => {
+    try {
+        // Only member-to-member threads (companies / business / users), never
+        // admin's own chats, so the admin can oversee who is talking to whom.
+        const [pairs] = await db.execute(`
+            SELECT
+                LEAST(m.sender_id, m.receiver_id) AS user_a,
+                GREATEST(m.sender_id, m.receiver_id) AS user_b,
+                COUNT(*) AS message_count,
+                MAX(m.created_at) AS last_message_time,
+                (
+                    SELECT m2.message
+                    FROM messages m2
+                    WHERE (m2.sender_id = m.sender_id AND m2.receiver_id = m.receiver_id)
+                       OR (m2.sender_id = m.receiver_id AND m2.receiver_id = m.sender_id)
+                    ORDER BY m2.created_at DESC
+                    LIMIT 1
+                ) AS last_message
+            FROM messages m
+            JOIN users sender ON sender.id = m.sender_id
+            JOIN users receiver ON receiver.id = m.receiver_id
+            WHERE sender.role <> 'admin' AND receiver.role <> 'admin'
+            GROUP BY user_a, user_b
+            ORDER BY last_message_time DESC
+            LIMIT 200
+        `);
+
+        if (pairs.length === 0) {
+            return res.status(200).json([]);
+        }
+
+        const ids = [...new Set(pairs.flatMap((p) => [p.user_a, p.user_b]))];
+        const placeholders = ids.map(() => '?').join(',');
+        const [users] = await db.execute(
+            `SELECT id, name, email, role, logo FROM users WHERE id IN (${placeholders})`,
+            ids
+        );
+        const userMap = new Map(users.map((u) => [u.id, u]));
+
+        const conversations = pairs
+            .map((pair) => {
+                const a = userMap.get(pair.user_a) || { id: pair.user_a, name: 'Unknown', role: 'user' };
+                const b = userMap.get(pair.user_b) || { id: pair.user_b, name: 'Unknown', role: 'user' };
+                return {
+                    user_a: a,
+                    user_b: b,
+                    message_count: pair.message_count,
+                    last_message: pair.last_message || '',
+                    last_message_time: pair.last_message_time,
+                };
+            })
+            .filter((c) => c.user_a && c.user_b);
+
+        res.status(200).json(conversations);
+
+    } catch (error) {
+        console.error('Error fetching all user conversations:', error);
+        res.status(500).json({ message: 'Server error fetching conversations' });
+    }
+};
+
+// @desc    Read the full thread between two members (admin monitoring)
+// @route   GET /api/messages/admin/conversation/:userA/:userB
+// @access  Private/Admin
+const getAdminConversationBetween = async (req, res) => {
+    const { userA, userB } = req.params;
+
+    try {
+        const [rows] = await db.execute(`
+            SELECT m.*,
+                   sender.name as sender_name, sender.logo as sender_logo, sender.role as sender_role,
+                   receiver.name as receiver_name, receiver.logo as receiver_logo, receiver.role as receiver_role
+            FROM messages m
+            JOIN users sender ON m.sender_id = sender.id
+            JOIN users receiver ON m.receiver_id = receiver.id
+            WHERE (m.sender_id = ? AND m.receiver_id = ?)
+               OR (m.sender_id = ? AND m.receiver_id = ?)
+            ORDER BY m.created_at ASC
+        `, [userA, userB, userB, userA]);
+
+        res.status(200).json(rows);
+
+    } catch (error) {
+        console.error('Error fetching monitored conversation:', error);
+        res.status(500).json({ message: 'Server error fetching conversation' });
+    }
+};
+
 export {
     sendMessage,
     getInboxMessages,
@@ -399,5 +521,8 @@ export {
     getUnreadCount,
     getConversations,
     markConversationAsRead,
-    sendWelcomeMessage
+    sendWelcomeMessage,
+    markAllMessagesRead,
+    getAllUserConversations,
+    getAdminConversationBetween
 };

@@ -41,6 +41,9 @@ const ProfileCompletionCard = ({ className = '', compact = false }) => {
   }, [hiddenUntil, hideKey]);
 
   if (!role || !steps?.length) return null;
+  // Once the profile is 100% complete there is nothing left to nudge the user
+  // about, so the completion card is hidden in every panel.
+  if (isComplete) return null;
   if (hiddenUntil > Date.now()) return null;
 
   const handleClose = () => {
@@ -115,7 +118,9 @@ const ProfileCompletionCard = ({ className = '', compact = false }) => {
                   .join(' & ')}{' '}
                 required.
               </span>{' '}
-              Without this you will not receive quotes. Please fill it in now.
+              {role === 'company'
+                ? 'Without this you will not receive quotes. Please fill it in now.'
+                : 'We need these details so that if any issue comes up, we can contact you and make sure your deal runs smoothly. Please fill it in now.'}
             </p>
           </div>
         )}

@@ -13,13 +13,16 @@ import {
   FaCheck,
   FaTimes
 } from 'react-icons/fa';
-import { FiClock, FiPackage, FiUser } from 'react-icons/fi';
+import { FiClock, FiPackage, FiUser, FiTag } from 'react-icons/fi';
+import { useCurrency } from '../../contexts/CurrencyContext';
 import toast from 'react-hot-toast';
 import { api } from '../../utils/api';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { useNavigate } from 'react-router-dom';
 
 const UserNotifications = () => {
+  // Quote prices are stored in USD; show them in the viewer's local currency.
+  const { format } = useCurrency();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -443,8 +446,8 @@ const UserNotifications = () => {
                               </div>
                               {notification.data.price && (
                                 <div className="flex items-center gap-1">
-                                  <FaDollarSign className="text-white" />
-                                  <span className="text-white">${notification.data.price}</span>
+                                  <FiTag className="text-white" />
+                                  <span className="text-white">{format(notification.data.price, 'USD')}</span>
                                 </div>
                               )}
                               {notification.data.company_name && (

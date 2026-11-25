@@ -21,6 +21,7 @@ import {
     getUserQuotes,
     getCompanyResponses,
     getAdminDashboardStats,
+    getAllTransactionsUnified,
     blockUser,
     deleteUser,
     activateUser,
@@ -51,6 +52,7 @@ router.get('/transactions', getAllTransactions); // Quote-related transactions
 router.get('/accepted-quote-transactions', getAcceptedQuoteTransactions); // Accepted quotes as transactions
 router.delete('/transactions/:id', deleteTransaction); // Delete transaction
 router.get('/subscription-transactions', getSubscriptionTransactions); // Subscription plan transactions
+router.get('/all-transactions', getAllTransactionsUnified); // Unified feed: every transaction, newest first
 
 // ==================== SUBSCRIPTION REQUEST ROUTES ====================
 router.get('/subscription-requests', getSubscriptionRequests);

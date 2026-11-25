@@ -366,6 +366,7 @@ export const api = {
 export const subscriptionAPI = {
   getPlans: () => api.get('/api/subscriptions/plans'),
   getMySubscription: () => api.get('/api/subscriptions/my-subscription'),
+  getPaypalStatus: () => api.get('/api/subscriptions/paypal-status'),
   activateSubscription: (planId, paymentMethod = 'manual', paymentData = {}) => 
     api.post('/api/subscriptions/activate', { 
       planId, 
@@ -443,15 +444,108 @@ export const bankAccountAPI = {
 export const settingsAPI = {
   getPaypalSettings: () => api.get('/api/general-settings/paypal'),
   updatePaypalSettings: (data) => api.put('/api/general-settings/paypal', data),
+  testPaypalConnection: () => api.post('/api/general-settings/paypal/test'),
+  updatePaypalFee: (data) => api.put('/api/general-settings/paypal-fee', data),
+  syncPaypalFee: (days = 30) => api.post('/api/general-settings/paypal-fee/sync', { days }),
 };
 
-// PayPal client id comes only from build env (VITE_PAYPAL_CLIENT_ID) — used to load the checkout SDK.
-export const getPaypalClientId = async () => import.meta.env.VITE_PAYPAL_CLIENT_ID || '';
+// PayPal checkout config (client id + environment) is managed in the admin panel,
+// so the checkout always follows what the admin configured — no build-time env.
+// Sandbox is assumed until the answer arrives, which is the safe default.
+let paypalConfig = { clientId: '', sandbox: true };
+let paypalConfigPromise = null;
 
-// Environment switch for hosted (non-SDK) PayPal checkout links. Set VITE_PAYPAL_SANDBOX=true
-// to route test payments through sandbox.paypal.com; anything else uses live.
-export const isPaypalSandbox = () =>
-  String(import.meta.env.VITE_PAYPAL_SANDBOX || '').toLowerCase() === 'true';
+export const getPaypalConfig = () => {
+  if (!paypalConfigPromise) {
+    paypalConfigPromise = fetch('/api/general-settings/paypal')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        const data = json?.data || {};
+        paypalConfig = {
+          clientId: data.paypal_client_id || '',
+          sandbox: data.paypal_env !== 'live',
+        };
+        return paypalConfig;
+      })
+      .catch(() => paypalConfig);
+  }
+  return paypalConfigPromise;
+};
+
+// Kick the lookup off at startup so the synchronous sandbox check below is
+// already accurate by the time a checkout modal renders. The promise is shared,
+// so this costs a single request per page load.
+getPaypalConfig();
+
+// Client id used to load the PayPal checkout SDK.
+export const getPaypalClientId = async () => (await getPaypalConfig()).clientId;
+
+// Whether checkout should go through sandbox.paypal.com instead of paypal.com.
+export const isPaypalSandbox = () => paypalConfig.sandbox;
+
+// ── PayPal processing fee (checkout gross-up) ────────────────────────────────
+// PayPal exposes no API for its fee *rates*, so the percentages are admin
+// configuration served by the backend. Cached for the session — the numbers
+// change rarely, and the server re-checks authoritatively at payment time.
+let paypalFeeConfig = null;
+let paypalFeeConfigPromise = null;
+
+export const getPaypalFeeConfig = ({ refresh = false } = {}) => {
+  if (refresh || !paypalFeeConfigPromise) {
+    paypalFeeConfigPromise = fetch('/api/general-settings/paypal-fee')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        const d = json?.data || {};
+        paypalFeeConfig = {
+          enabled: d.enabled !== false,
+          merchantCountry: d.merchantCountry || 'Bahrain',
+          intlPct: Number(d.intlPct) || 0,
+          intlFixed: Number(d.intlFixed) || 0,
+          domesticPct: Number(d.domesticPct) || 0,
+          domesticFixed: Number(d.domesticFixed) || 0,
+          source: d.source || 'default',
+          lastSync: d.lastSync || null,
+        };
+        return paypalFeeConfig;
+      })
+      .catch(() => paypalFeeConfig);
+  }
+  return paypalFeeConfigPromise;
+};
+
+/** Fee config already in memory (null until the first fetch resolves). */
+export const getCachedPaypalFeeConfig = () => paypalFeeConfig;
+
+/**
+ * Mirrors the server's gross-up so the buyer sees the exact amount they will be
+ * charged: enough that the seller still receives `baseUsd` after PayPal's cut.
+ *     charge = (base + fixed) / (1 - percent)
+ * Unknown buyer country counts as international, same as the server.
+ */
+export const computePaypalFee = (baseUsd, config, userCountry) => {
+  const base = Math.round((Number(baseUsd) || 0) * 100) / 100;
+  const cfg = config || {};
+  const merchant = String(cfg.merchantCountry || '').trim().toLowerCase();
+  const buyer = String(userCountry ?? '').trim().toLowerCase();
+  const international = !buyer || buyer !== merchant;
+  const pct = international ? Number(cfg.intlPct) || 0 : Number(cfg.domesticPct) || 0;
+  const fixed = international ? Number(cfg.intlFixed) || 0 : Number(cfg.domesticFixed) || 0;
+
+  if (cfg.enabled === false || base <= 0) {
+    return { enabled: false, base, fee: 0, total: base, percent: 0, fixed: 0, international };
+  }
+  const rate = Math.min(Math.max(pct, 0), 99) / 100;
+  const total = Math.round(((base + fixed) / (1 - rate)) * 100) / 100;
+  return {
+    enabled: true,
+    base,
+    fee: Math.round((total - base) * 100) / 100,
+    total,
+    percent: pct,
+    fixed,
+    international,
+  };
+};
 
 // Quotes API methods
 export const quotesAPI = {

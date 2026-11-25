@@ -37,8 +37,8 @@ export const NotificationProvider = ({ children }) => {
       
       const newCount = data.unreadCount || data.count || 0;
       setUnreadCount(newCount);
-      // Pending quote responses are surfaced on the "My Quotes" badge instead
-      setQuoteUnreadCount(isUserPanel ? (data.quoteUnreadCount || 0) : 0);
+      // Quote-related unread items are surfaced on the "My Quotes" badge instead
+      setQuoteUnreadCount(data.quoteUnreadCount || 0);
     } catch (error) {
       console.error('Error fetching unread count:', error);
     }

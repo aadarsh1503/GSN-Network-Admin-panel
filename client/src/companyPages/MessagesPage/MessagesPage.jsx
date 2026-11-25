@@ -8,11 +8,13 @@ import { FaCheck, FaClock } from 'react-icons/fa';
 import { api } from '../../utils/api';
 import toast from 'react-hot-toast';
 import useMarkAsRead from '../../hooks/useMarkAsRead';
+import { useNotifications } from '../../contexts/NotificationContext';
 import RoleBadge from '../../components/RoleBadge/RoleBadge';
 import UserAvatar from '../../components/UserAvatar/UserAvatar';
 import { getConversationHeaderInfo, getMessageSenderInfo } from '../../utils/userRoleUtils';
 
 const MessagesPage = () => {
+  const { fetchMessageUnreadCount } = useNotifications();
   const location = useLocation();
   const messagesEndRef = useRef(null);
   const [conversations, setConversations] = useState([]);
@@ -38,8 +40,15 @@ const MessagesPage = () => {
   }, [conversationMessages]);
 
   useEffect(() => {
+    // Opening the Messages page clears the unread badge for this panel
+    api.put('/api/messages/read-all')
+      .then(() => {
+        fetchMessageUnreadCount();
+        fetchUnreadCount();
+      })
+      .catch((error) => console.error('Error clearing unread messages:', error));
+
     fetchConversations();
-    fetchUnreadCount();
   }, []);
 
   // Handle navigation from other pages (like MyQuotes) and URL parameters
@@ -225,11 +234,11 @@ const MessagesPage = () => {
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
   return (
-    <div className="flex h-[calc(100vh-120px)] bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="flex h-[calc(100vh-120px)] bg-white rounded-2xl ring-1 ring-gray-100 shadow-[0_12px_40px_-24px_rgba(15,23,42,0.35)] overflow-hidden">
       {/* Left Sidebar - Message List */}
-      <aside className="w-80 flex-shrink-0 border-r border-gray-200 flex flex-col">
+      <aside className="w-80 flex-shrink-0 border-r border-gray-200/80 flex flex-col bg-gradient-to-b from-white to-[#fbfaf6]">
         {/* Header */}
-        <header className="flex items-center justify-between p-4 border-b border-gray-200">
+        <header className="flex items-center justify-between p-4 border-b border-gray-200/80 bg-gradient-to-r from-white via-white to-[#fbf7ea]">
           <div className="flex items-center gap-2">
             <FiMessageSquare className="text-[#bca142]" size={24} />
             <h1 className="text-md font-bold text-gray-800">MESSAGES</h1>
@@ -249,36 +258,38 @@ const MessagesPage = () => {
         </header>
 
         {/* Single Messages Header */}
-        <div className="border-b border-gray-200 py-2 px-4">
-          <p className="text-sm text-gray-600">All Conversations</p>
+        <div className="border-b border-gray-200/80 py-2 px-4">
+          <p className="text-xs font-bold uppercase tracking-wider text-gray-500">All Conversations</p>
         </div>
 
         {/* Search */}
-        <div className="p-4">
+        <div className="p-3">
           <div className="relative">
-            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <FiSearch className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
             <input 
               type="text" 
               placeholder="Search messages..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-gray-100 rounded-lg py-2 pl-10 pr-4 border border-transparent focus:outline-none focus:ring-2 focus:ring-[#bca142]"
+              className="w-full bg-gray-100 rounded-full py-2 pl-10 pr-4 border border-transparent text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#bca142]/40 transition-all duration-300"
             />
           </div>
         </div>
 
         {/* Conversation List - Independent Scrolling */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto p-2 space-y-1">
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#bca142] mx-auto mb-2"></div>
               <p className="text-gray-500">Loading conversations...</p>
             </div>
           ) : filteredConversations.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <FiMessageSquare size={48} className="mx-auto mb-4 text-gray-300" />
-              <p>No conversations found</p>
-              {searchTerm && <p className="text-sm">Try adjusting your search</p>}
+            <div className="text-center py-10 text-gray-500">
+              <div className="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <FiMessageSquare size={22} className="text-gray-400" />
+              </div>
+              <p className="text-sm font-medium text-gray-600">No conversations found</p>
+              {searchTerm && <p className="text-xs text-gray-400 mt-1">Try adjusting your search</p>}
             </div>
           ) : (
             filteredConversations.map((conv) => {
@@ -288,9 +299,9 @@ const MessagesPage = () => {
                 <div
                   key={conv.other_user_id}
                   onClick={() => handleSelectConversation(conv)}
-                  className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
-                    isSelected ? 'bg-yellow-50' : ''
-                  } ${conv.unread_count > 0 ? 'bg-blue-50' : ''}`}
+                  className={`p-2.5 rounded-xl cursor-pointer transition-all duration-300 border ${
+                    isSelected ? 'bg-[#bca142]/10 border-[#bca142]/40 shadow-lg' : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                  } ${conv.unread_count > 0 ? 'ring-2 ring-[#bca142]/20' : ''}`}
                 >
                   <div className="flex items-start gap-3">
                     <UserAvatar 
@@ -327,7 +338,7 @@ const MessagesPage = () => {
                         </div>
                       </div>
                       <p className="text-sm text-gray-500 truncate">{conv.last_message}</p>
-                      {conv.has_system_messages && (
+                      {!!conv.has_system_messages && (
                         <div className="flex items-center gap-1 mt-1">
                           <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                           <span className="text-xs text-green-600">System Updates</span>
@@ -347,10 +358,10 @@ const MessagesPage = () => {
         {selectedConversation ? (
           <>
             {/* Chat Header */}
-            <header className="flex items-center p-4 border-b border-gray-200">
+            <header className="flex items-center gap-3 px-5 py-3.5 border-b border-gray-100 bg-white shadow-[0_6px_22px_-20px_rgba(15,23,42,0.6)] relative z-10">
               <button 
                 onClick={() => setSelectedConversation(null)}
-                className="md:hidden mr-3 text-gray-500"
+                className="md:hidden text-gray-400 hover:text-[#bca142] transition-colors"
               >
                 <FiChevronLeft size={24} />
               </button>
@@ -362,18 +373,17 @@ const MessagesPage = () => {
                 }}
                 size="md"
                 showRoleIndicator={true}
-                className="mr-3"
               />
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h2 className="font-semibold text-gray-800">{selectedConversation.userName}</h2>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <h2 className="font-bold text-gray-900 text-[15px] truncate">{selectedConversation.userName}</h2>
                   <RoleBadge 
                     role={selectedConversation.userRole || 'user'}
                     size="sm"
                     showIcon={true}
                   />
                 </div>
-                <p className="text-sm text-gray-500">
+                <p className="text-xs text-gray-500">
                   {selectedConversation.userRole === 'admin' ? 'Platform Administrator' :
                    selectedConversation.userRole === 'business' ? 'Business Owner' :
                    selectedConversation.userRole === 'company' ? 'Logistics Company' :
@@ -383,7 +393,13 @@ const MessagesPage = () => {
             </header>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+            <div
+              className="flex-1 overflow-y-auto p-5 space-y-3 bg-[#faf7ef]"
+              style={{
+                backgroundImage: 'radial-gradient(rgba(188,161,66,0.10) 1px, transparent 1px)',
+                backgroundSize: '20px 20px'
+              }}
+            >
               {conversationLoading ? (
                 // Futuristic Loader
                 <div className="flex items-center justify-center h-full">
@@ -469,39 +485,44 @@ const MessagesPage = () => {
                 
                 return (
                   <div key={msg.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[70%] ${isOwn ? 'bg-[#bca142] text-white' : 'bg-white'} rounded-lg p-3 shadow-sm`}>
+                    <div className={`relative max-w-[72%] px-4 py-2.5 transition-all duration-300 rounded-2xl ${
+                      isOwn
+                        ? 'bg-gradient-to-br from-[#c9ad55] to-[#a88c2f] text-white rounded-br-md shadow-[0_12px_26px_-12px_rgba(150,124,45,0.9)]'
+                        : 'bg-white border border-gray-100 text-gray-800 rounded-bl-md shadow-[0_10px_24px_-18px_rgba(15,23,42,0.6)]'
+                    }`}>
+                      <span className={`absolute -bottom-[5px] w-3 h-3 rotate-45 rounded-[2px] ${
+                        isOwn ? 'right-4 bg-[#a88c2f]' : 'left-4 bg-white'
+                      }`}></span>
                       {!isOwn && (
-                        <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center gap-2 mb-1.5">
                           <UserAvatar 
                             user={{
                               name: msg.sender_display_name || msg.sender_name || 'User',
                               role: msg.sender_role || 'user'
                             }}
-                            size="sm"
+                            size="xs"
                             showRoleIndicator={false}
-                            className="w-8 h-8"
                           />
-                          <span className="text-xs font-semibold text-gray-600">
+                          <span className="text-xs font-semibold text-[#a88c2f]">
                             {msg.sender_role === 'admin' ? 'Admin' : (msg.sender_display_name || msg.sender_name || 'User')}
                           </span>
                           <RoleBadge 
                             role={msg.sender_role || 'user'}
                             size="sm"
                             showIcon={true}
-                            className="ml-1"
+                            className="ml-0.5"
                           />
                         </div>
                       )}
                       {isOwn && (
-                        <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center gap-2 mb-1.5">
                           <UserAvatar 
                             user={{
                               name: currentUser.name,
                               role: currentUser.role || 'company'
                             }}
-                            size="sm"
+                            size="xs"
                             showRoleIndicator={false}
-                            className="w-4 h-4"
                           />
                           <span className="text-xs font-semibold text-yellow-100">
                             You
@@ -510,12 +531,12 @@ const MessagesPage = () => {
                             role={currentUser.role || 'company'}
                             size="sm"
                             showIcon={true}
-                            className="ml-1 bg-yellow-200/20 text-yellow-100"
+                            className="ml-0.5 bg-yellow-200/20! text-yellow-100!"
                           />
                         </div>
                       )}
-                      <p className="text-sm">{msg.message}</p>
-                      <p className={`text-xs mt-1 ${isOwn ? 'text-yellow-100' : 'text-gray-400'}`}>
+                      <p className="text-sm leading-relaxed whitespace-pre-line">{msg.message}</p>
+                      <p className={`text-[10px] mt-1 font-medium ${isOwn ? 'text-yellow-100/80' : 'text-gray-400'}`}>
                         {formatDate(msg.created_at)}
                       </p>
                     </div>
@@ -528,19 +549,19 @@ const MessagesPage = () => {
             </div>
 
             {/* Message Input */}
-            <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-200 bg-white">
-              <div className="flex gap-2">
+            <form onSubmit={handleSendMessage} className="p-3 border-t border-gray-100 bg-white">
+              <div className="flex items-center gap-2 bg-[#fbfaf6] border border-gray-100 rounded-full pl-4 pr-1.5 py-1.5 shadow-[0_10px_28px_-20px_rgba(15,23,42,0.6)] focus-within:ring-2 focus-within:ring-[#bca142]/30 focus-within:border-[#bca142]/30 transition-all duration-300">
                 <input
                   type="text"
                   placeholder="Type a message..."
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142]"
+                  className="flex-1 bg-transparent text-sm text-gray-800 placeholder-gray-400 focus:outline-none"
                 />
                 <button
                   type="submit"
                   disabled={sendingMessage || !newMessage.trim()}
-                  className="bg-[#bca142] text-white px-6 py-3 rounded-lg hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="shrink-0 w-10 h-10 flex items-center justify-center bg-gradient-to-br from-[#c9ad55] to-[#a88c2f] text-white rounded-full shadow-[0_8px_20px_-6px_rgba(188,161,66,0.8)] transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
                   <FiSend />
                 </button>

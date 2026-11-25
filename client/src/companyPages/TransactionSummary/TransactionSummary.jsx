@@ -5,8 +5,11 @@ import {
 } from 'react-icons/fi';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
+import { useCurrency } from '../../contexts/CurrencyContext';
 
 const TransactionSummary = () => {
+  // Quote payments are captured in USD and shown in the viewer's own currency.
+  const { format } = useCurrency();
   const [transactionData, setTransactionData] = useState({
     totalAmount: 0,
     verifiedPayments: 0,
@@ -198,7 +201,7 @@ const TransactionSummary = () => {
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-bold text-[#bca142]">
-                      ${parseFloat(transaction.price || 0).toLocaleString()}
+                      {format(transaction.price || 0, 'USD')}
                     </p>
                   </div>
                 </div>

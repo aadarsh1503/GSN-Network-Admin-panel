@@ -8,6 +8,7 @@ import StatusConfirmationModal from '../../components/Modal/StatusConfirmationMo
 import BlacklistReasonModal from '../../components/Modal/BlacklistReasonModal'; 
 import ConfirmationModal from '../../components/Modal/ConfirmationModal';
 import UserDetailModal from '../../components/Modal/UserDetailModal';
+import UsersBulkActions from '../../components/UsersBulkActions/UsersBulkActions';
 
 // Custom Toggle Switch Component
 const ToggleSwitch = ({ checked, onChange }) => {
@@ -78,7 +79,7 @@ function CompanyOwners() {
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [sortConfig, setSortConfig] = useState({ key: 'created_at', direction: 'descending' });
-  const [filters, setFilters] = useState({ status: '', blacklist: '' });
+  const [filters, setFilters] = useState({ status: '', blacklist: '', subscription: '' });
   const [editingUser, setEditingUser] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [detailTarget, setDetailTarget] = useState(null);
@@ -414,7 +415,10 @@ const handleEditUser = async (user) => {
     sortableUsers = sortableUsers.filter(user => {
       const statusMatch = filters.status ? String(user.status) === filters.status : true;
       const blacklistMatch = filters.blacklist ? String(user.onBlacklist) === filters.blacklist : true;
-      return statusMatch && blacklistMatch;
+      const subscriptionMatch = filters.subscription
+        ? (filters.subscription === 'yes' ? user.hasSubscription : !user.hasSubscription)
+        : true;
+      return statusMatch && blacklistMatch && subscriptionMatch;
     });
 
     // Apply Search
@@ -496,7 +500,7 @@ const handleEditUser = async (user) => {
       <div className="max-w-7xl mx-auto">
         {/* --- Top Filter Section --- */}
         <div className="bg-white p-4 rounded-t-lg ">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
                 <select 
                     className="w-full p-2 border border-gray-300 rounded-md"
                     value={filters.status}
@@ -515,6 +519,15 @@ const handleEditUser = async (user) => {
                     <option value="true">On Blacklist</option>
                     <option value="false">Not on Blacklist</option>
                 </select>
+                <select 
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    value={filters.subscription}
+                    onChange={(e) => setFilters({...filters, subscription: e.target.value})}
+                >
+                    <option value="">All Subscriptions</option>
+                    <option value="yes">Subscribed</option>
+                    <option value="no">Not Subscribed</option>
+                </select>
                 <select className="w-full p-2 border border-gray-300 rounded-md" 
                         value={`${sortConfig.key}-${sortConfig.direction}`} 
                         onChange={(e) => {
@@ -530,7 +543,7 @@ const handleEditUser = async (user) => {
                 </select>
                 <button 
                   type="button" 
-                  onClick={() => { setFilters({ status: '', blacklist: '' }); setSearchTerm(''); setSortConfig({ key: 'created_at', direction: 'descending' }); }}
+                  onClick={() => { setFilters({ status: '', blacklist: '', subscription: '' }); setSearchTerm(''); setSortConfig({ key: 'created_at', direction: 'descending' }); }}
                   className="w-full flex items-center justify-center bg-[#bca142] hover:bg-[#B8941F] text-white font-bold py-2 px-4 rounded-md"
                 >
                     Reset Filters
@@ -540,10 +553,9 @@ const handleEditUser = async (user) => {
 
         {/* --- Main Content and Table Section --- */}
         <div className="bg-white p-6 rounded-b-lg shadow">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
             <h2 className="text-2xl font-semibold">Company Owners</h2>
-            {/* Temporary Test Button - Remove after testing */}
-            
+            <UsersBulkActions role="company" onImported={fetchUsers} />
           </div>
           
           <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
@@ -589,6 +601,7 @@ const handleEditUser = async (user) => {
                   <SortableHeader name="email">Email</SortableHeader>
                   <SortableHeader name="mobile">Mobile</SortableHeader>
                   <SortableHeader name="created_at">Registered</SortableHeader>
+                  <th className="p-3">Subscription</th>
                   <SortableHeader name="onBlacklist">On Blacklist</SortableHeader>
                   <SortableHeader name="status">Status</SortableHeader>
                   <th className="p-3">Action</th>
@@ -603,6 +616,22 @@ const handleEditUser = async (user) => {
                       <td className="p-3">{user.email}</td>
                       <td className="p-3">{user.mobile}</td>
                       <td className="p-3 text-sm">{user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}</td>
+                      <td className="p-3">
+                        {user.hasSubscription ? (
+                          <div>
+                            <span className="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+                              Subscribed
+                            </span>
+                            {user.plan_name && (
+                              <div className="text-[11px] text-gray-500 mt-1">{user.plan_name}</div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-500">
+                            Not Subscribed
+                          </span>
+                        )}
+                      </td>
                       <td className="p-3">
                         <ToggleSwitch 
                             checked={user.onBlacklist} 

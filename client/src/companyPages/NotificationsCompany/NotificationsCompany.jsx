@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaSort, FaTimes } from 'react-icons/fa';
+import { FaTimes, FaBell, FaSearch, FaChevronDown } from 'react-icons/fa';
 import { FiClock } from 'react-icons/fi'; 
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +11,8 @@ const NotificationsCompany = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(null); // State for image modal
+  const [page, setPage] = useState(1);
+  const [expanded, setExpanded] = useState({}); // Tracks which long messages are expanded
   const { markAsRead, fetchUnreadCount } = useNotifications();
   const navigate = useNavigate();
 
@@ -148,13 +150,6 @@ const NotificationsCompany = () => {
     }
   };
 
-  const SortableHeader = ({ children }) => (
-    <div className="flex items-center justify-between">
-      <span>{children}</span>
-      <FaSort className="text-gray-400" />
-    </div>
-  );
-
   // 3. Search Filter with additional safety checks
   const filteredData = Array.isArray(notifications) 
     ? notifications.filter(item => {
@@ -167,17 +162,39 @@ const NotificationsCompany = () => {
     : [];
 
   // 4. Pagination Slicing
-  const displayData = filteredData.slice(0, entries);
+  const pageSize = Number(entries) || 10;
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const startIndex = (currentPage - 1) * pageSize;
+  const displayData = filteredData.slice(startIndex, startIndex + pageSize);
+
+  // 5. Long message handling - preview first 30 words with a Read More toggle
+  const MESSAGE_WORD_LIMIT = 30;
+  const getMessagePreview = (message = '') => {
+    const words = message.trim().split(/\s+/).filter(Boolean);
+    return {
+      text: words.slice(0, MESSAGE_WORD_LIMIT).join(' '),
+      isLong: words.length > MESSAGE_WORD_LIMIT,
+      wordCount: words.length,
+    };
+  };
+
+  const toggleExpanded = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
+
+  // Jump back to the first page whenever the filter or page size changes
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, entries]);
 
   // Image Modal Component
   const ImageModal = ({ image, title, onClose }) => {
     if (!image) return null;
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-        <div className="relative max-w-4xl max-h-[90vh] bg-white rounded-2xl overflow-hidden shadow-2xl">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+        <div className="relative max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl">
           {/* Modal Header */}
-          <div className="bg-[#bca142] p-4 text-white">
+          <div className="bg-gradient-to-r from-[#bca142] to-[#8f7a2e] p-4 text-white">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-bold truncate">{title || 'Notification Image'}</h3>
               <button 
@@ -247,17 +264,32 @@ const NotificationsCompany = () => {
   }, [selectedImage]);
 
   return (
-    <div className="bg-white p-6 md:p-8 rounded-lg shadow-md w-full">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Notification</h2>
+    <div className="w-full">
+      {/* Header */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#bca142] to-[#8f7a2e] p-6 mb-6 shadow-lg">
+        <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10" />
+        <div className="absolute right-6 top-12 h-16 w-16 rounded-full bg-white/10" />
+        <div className="relative flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur">
+            <FaBell className="text-xl text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white">Notifications</h2>
+            <p className="text-sm text-white/80">
+              {filteredData.length} {filteredData.length === 1 ? 'notification' : 'notifications'} total
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Top Controls */}
-      <div className="flex flex-col md:flex-row items-center justify-between mb-4 gap-4">
-        <div className="flex items-center gap-2 text-sm text-gray-600">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-5">
+        <div className="flex items-center gap-2 text-sm text-slate-600">
           <span>Show</span>
           <select 
             value={entries} 
             onChange={(e) => setEntries(e.target.value)}
-            className="border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#bca142]"
+            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 focus:border-[#bca142] focus:outline-none focus:ring-2 focus:ring-[#bca142]/30"
           >
             <option value="10">10</option>
             <option value="25">25</option>
@@ -265,131 +297,183 @@ const NotificationsCompany = () => {
           </select>
           <span>entries</span>
         </div>
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <label htmlFor="search">Search:</label>
+        <div className="relative w-full md:w-72">
+          <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400" />
           <input 
             id="search"
             type="text" 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#bca142]"
+            placeholder="Search notifications..."
+            className="w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 py-2 text-sm focus:border-[#bca142] focus:outline-none focus:ring-2 focus:ring-[#bca142]/30"
           />
         </div>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white">
-          <thead className="bg-[#bca142] text-white text-sm">
-            <tr>
-              <th className="p-3 text-left font-semibold"><SortableHeader>Sr.No</SortableHeader></th>
-              <th className="p-3 text-left font-semibold"><SortableHeader>Image</SortableHeader></th>
-              <th className="p-3 text-left font-semibold"><SortableHeader>Title</SortableHeader></th>
-              <th className="p-3 text-left font-semibold"><SortableHeader>Date</SortableHeader></th>
-              <th className="p-3 text-left font-semibold"><SortableHeader>Message</SortableHeader></th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-                <tr><td colSpan="5" className="p-4 text-center">Loading notifications...</td></tr>
-            ) : !Array.isArray(displayData) || displayData.length === 0 ? (
-                <tr><td colSpan="5" className="p-4 text-center">No notifications found.</td></tr>
-            ) : (
+      {/* Notification List */}
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead className="bg-gradient-to-r from-[#bca142] to-[#8f7a2e] text-white">
+              <tr className="text-left text-xs uppercase tracking-wide">
+                <th className="p-3 font-semibold">Sr.No</th>
+                <th className="p-3 font-semibold">Image</th>
+                <th className="p-3 font-semibold">Title</th>
+                <th className="p-3 font-semibold">Date</th>
+                <th className="p-3 font-semibold">Message</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                [0, 1, 2].map((i) => (
+                  <tr key={`skeleton-${i}`} className="animate-pulse border-b border-slate-100 last:border-0">
+                    <td className="p-3"><div className="h-3 w-6 rounded bg-slate-200" /></td>
+                    <td className="p-3"><div className="h-16 w-20 rounded-lg bg-slate-200" /></td>
+                    <td className="p-3"><div className="h-3 w-32 rounded bg-slate-200" /></td>
+                    <td className="p-3"><div className="h-3 w-24 rounded bg-slate-100" /></td>
+                    <td className="p-3"><div className="h-3 w-64 rounded bg-slate-100" /></td>
+                  </tr>
+                ))
+              ) : displayData.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="p-12 text-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#bca142]/10">
+                        <FaBell className="text-xl text-[#bca142]" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-slate-500">No notifications found</p>
+                        <p className="text-sm text-slate-400">You're all caught up.</p>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
                 displayData.map((item, index) => {
-                  // Safety check for each item
                   if (!item || !item.id) {
                     return (
-                      <tr key={`empty-${index}`} className="border-b border-gray-200">
-                        <td colSpan="5" className="p-4 text-center text-gray-400">Invalid notification data</td>
+                      <tr key={`empty-${index}`} className="border-b border-slate-100 last:border-0">
+                        <td colSpan="5" className="p-4 text-center text-sm text-slate-400">Invalid notification data</td>
                       </tr>
                     );
                   }
-                  
+
+                  const isPayment = item.type === 'payment_proof';
+                  const message = item.message || 'No Message';
+                  const { text, isLong, wordCount } = getMessagePreview(message);
+                  const isExpanded = !!expanded[item.id];
+
                   return (
-                    <tr 
-                      key={item.id} 
-                      className={`border-b border-gray-200 last:border-b-0 hover:bg-gray-50 transition-colors ${
-                        item.type === 'payment_proof' ? 'cursor-pointer hover:bg-[#bca142]/10' : ''
+                    <tr
+                      key={item.id}
+                      onClick={() => { if (isPayment) handleNotificationClick(item); }}
+                      title={isPayment ? 'Click to review in Payment Management' : ''}
+                      className={`group border-b border-slate-100 transition-colors last:border-0 ${
+                        isPayment ? 'cursor-pointer hover:bg-[#bca142]/10' : 'hover:bg-[#bca142]/5'
                       }`}
-                      onClick={() => item.type === 'payment_proof' ? handleNotificationClick(item) : null}
-                      title={item.type === 'payment_proof' ? 'Click to view Payment Management' : ''}
                     >
-                        <td className="p-3 text-sm text-gray-700 align-top">{index + 1}</td>
-                        <td className="p-3 align-top">
+                      {/* Sr.No */}
+                      <td className="p-3 align-top text-sm font-medium text-slate-500">
+                        {startIndex + index + 1}
+                      </td>
+
+                      {/* Image */}
+                      <td className="p-3 align-top">
                         {item.image ? (
-                            <div className="relative group">
-                              <img 
-                                  src={item.image} 
-                                  alt={item.title || 'Notification'} 
-                                  className="h-16 w-24 object-contain border p-1 rounded-md bg-white cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 transform" 
-                                  onClick={(e) => {
-                                    e.stopPropagation(); // Prevent row click when clicking image
-                                    handleImageClick(item.image, item.title);
-                                  }}
-                                  title="Click to view larger image"
-                              />
-                              {/* Hover overlay with zoom icon */}
-                              <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-md cursor-pointer"
-                                   onClick={(e) => {
-                                     e.stopPropagation(); // Prevent row click when clicking overlay
-                                     handleImageClick(item.image, item.title);
-                                   }}>
-                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                                </svg>
-                              </div>
-                            </div>
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); handleImageClick(item.image, item.title); }}
+                            className="relative h-16 w-20 overflow-hidden rounded-lg border border-slate-200 bg-white"
+                          >
+                            <img 
+                              src={item.image} 
+                              alt={item.title || 'Notification'} 
+                              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                              onError={(e) => { e.target.src = 'https://via.placeholder.com/160x120?text=No+Image'; }}
+                            />
+                            <span className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                              <FaSearch className="text-sm text-white" />
+                            </span>
+                          </button>
                         ) : (
-                            <span className="text-gray-400 text-xs">No Image</span>
+                          <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-gradient-to-br from-[#bca142] to-[#8f7a2e] text-white">
+                            <FaBell />
+                          </div>
                         )}
-                        </td>
-                        <td className="p-3 text-sm text-gray-700 align-top">
-                          <div className="flex items-center gap-2">
-                            {item.type === 'payment_proof' && (
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#bca142] text-white">
-                                 Payment Proof
-                              </span>
-                            )}
-                            {/* <span>{item.title || 'No Title'}</span> */}
-                          </div>
-                        </td>
-                        <td className="p-3 text-sm text-gray-700 align-top whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                            <FiClock />
-                            <span>{item.created_at ? formatDate(item.created_at) : 'No Date'}</span>
+                      </td>
+
+                      {/* Title */}
+                      <td className="p-3 align-top text-sm">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-semibold text-slate-800">{item.title || 'Notification'}</span>
+                          {isPayment && (
+                            <span className="inline-flex items-center rounded-full bg-[#bca142] px-2 py-0.5 text-[11px] font-semibold text-white">
+                              Payment Proof
+                            </span>
+                          )}
                         </div>
-                        </td>
-                        <td className="p-3 text-sm text-gray-700 align-top">
-                          <div className="flex items-center gap-2">
-                            <span>{item.message || 'No Message'}</span>
-                            {item.type === 'payment_proof' && (
-                              <span className="text-xs text-[#bca142] font-medium">
-                                (Click to review)
-                              </span>
-                            )}
-                          </div>
-                        </td>
+                      </td>
+
+                      {/* Date */}
+                      <td className="whitespace-nowrap p-3 align-top text-sm text-slate-500">
+                        <div className="flex items-center gap-2">
+                          <FiClock />
+                          <span>{item.created_at ? formatDate(item.created_at) : 'No Date'}</span>
+                        </div>
+                      </td>
+
+                      {/* Message */}
+                      <td className="min-w-[280px] max-w-xl p-3 align-top text-sm text-slate-600">
+                        <p className="whitespace-pre-line break-words leading-relaxed">
+                          {isExpanded || !isLong ? message : `${text}…`}
+                        </p>
+
+                        {isLong && (
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); toggleExpanded(item.id); }}
+                            className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-[#bca142] transition-colors hover:text-[#8f7a2e]"
+                          >
+                            {isExpanded ? 'Read Less' : 'Read More'}
+                            <FaChevronDown className={`text-[10px] transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                          </button>
+                        )}
+
+                        <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-slate-400">
+                          {isLong && <span>{wordCount} words</span>}
+                          {isPayment && <span className="font-medium text-[#bca142]">(Click to review)</span>}
+                        </div>
+                      </td>
                     </tr>
                   );
                 })
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Bottom Controls */}
-      <div className="flex flex-col md:flex-row items-center justify-between mt-4 gap-4">
-        <div className="text-sm text-gray-600">
-          Showing 1 to {Math.min(entries, Array.isArray(filteredData) ? filteredData.length : 0)} of {Array.isArray(filteredData) ? filteredData.length : 0} entries
+      <div className="mt-5 flex flex-col items-center justify-between gap-4 md:flex-row">
+        <div className="text-sm text-slate-500">
+          Showing {filteredData.length === 0 ? 0 : startIndex + 1} to {Math.min(startIndex + pageSize, filteredData.length)} of {filteredData.length} entries
         </div>
-        <div className="flex items-center">
-          <button className="px-3 py-1 border border-gray-300 rounded-l-md hover:bg-gray-100 disabled:opacity-50" disabled>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+          >
             Previous
           </button>
-          <button className="px-3 py-1 border-t border-b border-gray-300 text-white bg-[#bca142]">
-            1
-          </button>
-          <button className="px-3 py-1 border border-gray-300 rounded-r-md hover:bg-gray-100">
+          <span className="rounded-lg bg-[#bca142] px-3 py-1.5 text-sm font-semibold text-white">
+            {currentPage} / {totalPages}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage >= totalPages}
+            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+          >
             Next
           </button>
         </div>

@@ -1,5 +1,6 @@
 // controllers/enhancedQuoteController.js
 import db from '../config/db.js';
+import { checkResponseAllowed } from '../services/subscriptionLimitService.js';
 
 // @desc    Submit quote response with bank details
 // @route   POST /api/enhanced-quotes/submit-response
@@ -27,6 +28,17 @@ const submitQuoteResponseWithBankDetails = async (req, res) => {
     }
 
     try {
+        // Subscription gate: active plan + monthly response limit
+        const limit = await checkResponseAllowed(companyId);
+        if (!limit.allowed) {
+            return res.status(403).json({
+                message: limit.message,
+                requiresSubscription: limit.requiresSubscription || false,
+                currentResponses: limit.currentResponses,
+                maxResponses: limit.maxResponses,
+            });
+        }
+
         // Verify the quote exists and is still pending
         const [quoteRows] = await db.execute(
             'SELECT * FROM quotes WHERE id = ? AND status = "pending"',
@@ -227,6 +239,7 @@ const getCompanyResponsesWithPayments = async (req, res) => {
                 u.name as user_name,
                 u.email as user_email,
                 u.phone as user_phone,
+                u.country as user_country,
                 
                 -- Company details
                 c.name as company_name,
@@ -373,10 +386,13 @@ const getAllCompanyResponsesWithPayments = async (req, res) => {
                    u.name as user_name,
                    u.email as user_email,
                    u.phone as user_phone,
+                   u.country as user_country,
                    
                    -- Company details
                    c.name as company_name,
                    c.email as company_email,
+                   c.phone as company_phone,
+                   c.country as company_country,
                    
                    -- Bank details
                    c.paypal_email as company_paypal_email,
@@ -688,6 +704,33 @@ const getComprehensiveAdminQuotesByStatus = async (req, res) => {
     }
 };
 
+// @desc    Count the payment proofs waiting for this company's verification
+//          (drives the "Payment Verification" sidebar badge)
+// @route   GET /api/enhanced-quotes/pending-payments-count
+// @access  Private/Company
+const getPendingPaymentsCount = async (req, res) => {
+    const companyId = req.user.id;
+
+    try {
+        const [rows] = await db.execute(`
+            SELECT COUNT(DISTINCT qr.id) as pendingCount
+            FROM quote_responses qr
+            LEFT JOIN user_quote_status uqs ON qr.id = uqs.quote_response_id
+            LEFT JOIN payment_proofs pp ON uqs.payment_proof_id = pp.id
+            LEFT JOIN payment_verifications pv ON pp.id = pv.payment_proof_id
+            WHERE qr.company_id = ?
+              AND pp.id IS NOT NULL
+              AND (pv.verification_status IS NULL OR pv.verification_status = 'pending')
+        `, [companyId]);
+
+        res.json({ pendingCount: Number(rows[0]?.pendingCount) || 0 });
+
+    } catch (error) {
+        console.error('Error counting pending payments:', error);
+        res.status(500).json({ message: 'Server error counting pending payments' });
+    }
+};
+
 export {
     submitQuoteResponseWithBankDetails,
     getQuoteResponsesWithBankDetails,
@@ -696,5 +739,6 @@ export {
     getQuoteResponsesWithBankDetailsAdmin,
     getComprehensiveAdminQuotes,
     getComprehensiveAdminQuotesByStatus,
-    updateQuoteResponseBankDetails
+    updateQuoteResponseBankDetails,
+    getPendingPaymentsCount
 };

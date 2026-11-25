@@ -39,15 +39,16 @@ const submitQuoteResponse = async (req, res) => {
 
         const subscription = subscriptionRows[0];
 
-        // Check how many responses user has made this month
+        // Check how many responses user has made this month. Only responses made
+        // under the plan that is active now count, so changing plan starts fresh.
         const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
         const responseCountSql = `
             SELECT COUNT(*) as response_count
             FROM quote_responses 
-            WHERE company_id = ? AND DATE_FORMAT(created_at, '%Y-%m') = ?
+            WHERE company_id = ? AND DATE_FORMAT(created_at, '%Y-%m') = ? AND created_at >= ?
         `;
 
-        const [responseCountRows] = await db.execute(responseCountSql, [companyId, currentMonth]);
+        const [responseCountRows] = await db.execute(responseCountSql, [companyId, currentMonth, subscription.start_date]);
         const currentResponses = responseCountRows[0].response_count;
 
         // Check if user has reached response limit

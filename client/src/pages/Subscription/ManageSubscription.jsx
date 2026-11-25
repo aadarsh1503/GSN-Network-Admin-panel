@@ -8,6 +8,41 @@ import { useCurrency } from '../../contexts/CurrencyContext';
 const inputClass =
   'w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#bca142] focus:ring-2 focus:ring-[#bca142]/25';
 
+// Numeric plan limit with an explicit "Unlimited" toggle so admins don't have
+// to remember that -1 means unlimited. A value of 0 is a valid "none".
+const LimitField = ({ label, hint, value, onChange }) => {
+  const unlimited = Number(value) === -1;
+  const displayValue =
+    unlimited || value === '' || value === null || value === undefined ? '' : value;
+
+  return (
+    <div>
+      <label className="mb-1.5 block text-sm font-medium text-gray-700">{label}</label>
+      <div className="flex items-center gap-2">
+        <input
+          type="number"
+          min="0"
+          disabled={unlimited}
+          value={displayValue}
+          onChange={(e) => onChange(e.target.value === '' ? '' : parseInt(e.target.value, 10))}
+          placeholder="e.g. 20"
+          className={`${inputClass} disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400`}
+        />
+        <label className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">
+          <input
+            type="checkbox"
+            checked={unlimited}
+            onChange={(e) => onChange(e.target.checked ? -1 : 0)}
+            className="h-4 w-4 accent-[#bca142]"
+          />
+          Unlimited
+        </label>
+      </div>
+      <p className="mt-1.5 text-xs text-gray-400">{hint}</p>
+    </div>
+  );
+};
+
 const PricingCard = ({ plan, onEdit, onDelete, onToggle, deleting }) => {
   const { format, formatUsd } = useCurrency();
   const fmtBhd = (v) => format(v);
@@ -35,6 +70,11 @@ const PricingCard = ({ plan, onEdit, onDelete, onToggle, deleting }) => {
             )}
           </p>
           <p className="mt-0.5 text-xs text-gray-400">{formatUsd(plan.price)}</p>
+          {Number(plan.yearly_price) > 0 && (
+            <p className="mt-1 text-xs font-semibold text-[#8a7628]">
+              or {fmtBhd(plan.yearly_price)}/yr
+            </p>
+          )}
         </div>
         <span
           className={`flex-shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider ${
@@ -79,18 +119,18 @@ const PricingCard = ({ plan, onEdit, onDelete, onToggle, deleting }) => {
             )}
             <span className="text-gray-700">Priority Support</span>
           </li>
-          {plan.max_quotes !== -1 && (
-            <li className="flex items-start gap-2.5 text-sm">
-              <FiCheck className="mt-0.5 flex-shrink-0 text-emerald-500" />
-              <span className="text-gray-700">Max Quotes: {plan.max_quotes}</span>
-            </li>
-          )}
-          {plan.max_responses !== -1 && (
-            <li className="flex items-start gap-2.5 text-sm">
-              <FiCheck className="mt-0.5 flex-shrink-0 text-emerald-500" />
-              <span className="text-gray-700">Max Responses: {plan.max_responses}</span>
-            </li>
-          )}
+          <li className="flex items-start gap-2.5 text-sm">
+            <FiCheck className="mt-0.5 flex-shrink-0 text-emerald-500" />
+            <span className="text-gray-700">
+              Max Quote Requests: {plan.max_quotes === -1 ? 'Unlimited' : plan.max_quotes}
+            </span>
+          </li>
+          <li className="flex items-start gap-2.5 text-sm">
+            <FiCheck className="mt-0.5 flex-shrink-0 text-emerald-500" />
+            <span className="text-gray-700">
+              Max Quote Responses: {plan.max_responses === -1 ? 'Unlimited' : plan.max_responses}
+            </span>
+          </li>
         </ul>
       </div>
 
@@ -170,6 +210,9 @@ const ManageSubscription = () => {
     try {
       await api.put(`/api/subscriptions/admin/plans/${plan.id}`, {
         ...plan,
+        // The plan comes back as `yearly_price`; the API expects `yearlyPrice`.
+        // Sending it explicitly avoids wiping the annual price on a toggle.
+        yearlyPrice: plan.yearly_price ?? null,
         isActive: !plan.is_active
       });
       toast.success(`Plan ${plan.is_active ? 'deactivated' : 'activated'} successfully`);
@@ -194,6 +237,13 @@ const ManageSubscription = () => {
     }
   };
 
+  // Keep 0 as a valid "none" value; only blank/invalid becomes 0.
+  const toLimit = (value) => {
+    if (value === '' || value === null || value === undefined) return 0;
+    const n = parseInt(value, 10);
+    return Number.isFinite(n) ? n : 0;
+  };
+
   const handleSaveEdit = async () => {
     try {
       const featuresArray = editingPlan.features
@@ -205,9 +255,13 @@ const ManageSubscription = () => {
         name: editingPlan.name,
         description: editingPlan.description,
         price: parseFloat(editingPlan.price),
-        durationMonths: parseInt(editingPlan.duration_months),
-        maxQuotes: parseInt(editingPlan.max_quotes),
-        maxResponses: parseInt(editingPlan.max_responses),
+        yearlyPrice:
+          editingPlan.yearly_price === '' || editingPlan.yearly_price === null || editingPlan.yearly_price === undefined
+            ? null
+            : parseFloat(editingPlan.yearly_price),
+        durationMonths: Math.max(1, parseInt(editingPlan.duration_months, 10) || 1),
+        maxQuotes: toLimit(editingPlan.max_quotes),
+        maxResponses: toLimit(editingPlan.max_responses),
         directoryListing: editingPlan.directory_listing,
         prioritySupport: editingPlan.priority_support,
         isActive: editingPlan.is_active,
@@ -342,6 +396,55 @@ const ManageSubscription = () => {
                     className={inputClass}
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    Yearly Price (BHD)
+                  </label>
+                  <input
+                    type="number"
+                    value={editingPlan.yearly_price ?? ''}
+                    onChange={(e) =>
+                      setEditingPlan({ ...editingPlan, yearly_price: e.target.value })
+                    }
+                    placeholder="Blank = 10× monthly"
+                    className={inputClass}
+                  />
+                  <div className="mt-1.5 flex items-center justify-between gap-2">
+                    <p className="text-xs text-gray-400">Annual price shown when users pick yearly billing.</p>
+                    {Number(editingPlan.price) > 0 && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setEditingPlan({
+                            ...editingPlan,
+                            yearly_price: (Number(editingPlan.price) * 10).toFixed(2),
+                          })
+                        }
+                        className="shrink-0 text-xs font-semibold text-[#9d8635] hover:underline"
+                      >
+                        Use 10×
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <LimitField
+                  label="Max Quote Requests / month"
+                  hint="How many quote requests this plan can post each month. 0 = none."
+                  value={editingPlan.max_quotes}
+                  onChange={(v) => setEditingPlan({ ...editingPlan, max_quotes: v })}
+                />
+                <LimitField
+                  label="Max Quote Responses / month"
+                  hint="How many quote responses this plan can send each month. 0 = none (view only)."
+                  value={editingPlan.max_responses}
+                  onChange={(v) => setEditingPlan({ ...editingPlan, max_responses: v })}
+                />
               </div>
 
               <div>

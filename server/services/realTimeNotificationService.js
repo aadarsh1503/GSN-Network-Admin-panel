@@ -264,6 +264,9 @@ class RealTimeNotificationService {
           case 'user':
             eventType = NOTIFICATION_EVENTS.USER.NEW_MESSAGE;
             break;
+          case 'business':
+            eventType = NOTIFICATION_EVENTS.BUSINESS.NEW_MESSAGE;
+            break;
         }
 
         if (eventType) {
@@ -274,6 +277,33 @@ class RealTimeNotificationService {
       console.log(`✅ New message notification sent`);
     } catch (error) {
       console.error('Error sending new message notification:', error);
+    }
+  }
+
+  async notifyNewAdminNotification(notificationData) {
+    try {
+      const data = {
+        title: notificationData.title,
+        message: notificationData.message,
+        target_audience: notificationData.target_audience
+      };
+
+      const audienceRoles = {
+        all: ['admin', 'company', 'business', 'user'],
+        businesses: ['business'],
+        companies: ['company'],
+        users: ['user'],
+        admins: ['admin']
+      };
+
+      const roles = audienceRoles[notificationData.target_audience];
+      if (!roles) return;
+
+      roles.forEach((role) => broadcastToRole(NOTIFICATION_EVENTS.NEW_NOTIFICATION, data, role));
+
+      console.log(`✅ Admin notification broadcast to: ${roles.join(', ')}`);
+    } catch (error) {
+      console.error('Error broadcasting admin notification:', error);
     }
   }
 

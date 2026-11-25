@@ -20,6 +20,7 @@ import StatusConfirmationModal from '../../components/Modal/StatusConfirmationMo
 import BlacklistReasonModal from '../../components/Modal/BlacklistReasonModal';
 import ConfirmationModal from '../../components/Modal/ConfirmationModal';
 import UserDetailModal from '../../components/Modal/UserDetailModal';
+import UsersBulkActions from '../../components/UsersBulkActions/UsersBulkActions';
 
 // --- Custom Toggle Switch Component ---
 const ToggleSwitch = ({ checked, onChange }) => {
@@ -596,7 +597,10 @@ function BusinessOwners() {
 
         {/* --- Main Content and Table Section --- */}
         <div className="bg-white p-6 rounded-b-lg shadow">
-          <h2 className="text-2xl font-semibold mb-4">Business Owners</h2>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="text-2xl font-semibold">Business Owners</h2>
+            <UsersBulkActions role="business" onImported={fetchUsers} />
+          </div>
           
           <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
             <div className="flex items-center mb-2 sm:mb-0">

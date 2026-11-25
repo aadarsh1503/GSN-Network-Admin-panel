@@ -41,6 +41,8 @@ import adminAccountRoutes from './routes/adminAccountRoutes.js';
 import referralRoutes from './routes/referralRoutes.js';
 import walletRoutes from './routes/walletRoutes.js';
 import couponRoutes from './routes/couponRoutes.js';
+import paypalWebhookRoutes from './routes/paypalWebhookRoutes.js';
+import paypalService from './services/paypalService.js';
 // ==========================================================
 // CONFIGURE DOTENV AT THE VERY TOP
 dotenv.config();
@@ -66,6 +68,12 @@ realTimeAccountService.initialize(server);
 // Middlewares
 import cors from 'cors';
 app.use(cors({ origin: true, credentials: true })); // Allow all origins for dev
+
+// PayPal webhooks need the RAW request body to verify the signature, so they
+// must be mounted BEFORE express.json() consumes the stream.
+app.use('/api/webhooks', paypalWebhookRoutes);
+console.log('✅ PayPal webhook mounted at /api/webhooks/paypal (raw body, no auth)');
+
 app.use(express.json()); // Middleware to parse JSON bodies
 app.use('/uploads', express.static('uploads')); // Serve uploaded files
 
@@ -127,6 +135,18 @@ app.use('/api', businessRoutes); // Mount business directory routes at /api leve
 app.use('/api/email-queue', emailQueueRoutes);
 
 console.log('📍 All routes mounted successfully');
+
+// Prime the PayPal credentials from the admin panel (general_settings) so the
+// very first checkout can verify payments without a cold-cache miss.
+paypalService.refreshConfig()
+  .then(() => {
+    if (paypalService.isConfigured()) {
+      console.log(`✅ PayPal ready (${paypalService.getEnvironment()} mode)`);
+    } else {
+      console.log('⚠️ PayPal not configured — add credentials in Admin → Bank Details');
+    }
+  })
+  .catch(() => {});
 
 // Start the server with WebSocket support
 server.listen(PORT, () => {

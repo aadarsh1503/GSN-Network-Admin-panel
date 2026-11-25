@@ -9,6 +9,7 @@ import StatusConfirmationModal from '../../components/Modal/StatusConfirmationMo
 import BlacklistReasonModal from '../../components/Modal/BlacklistReasonModal';
 import ConfirmationModal from '../../components/Modal/ConfirmationModal';
 import UserDetailModal from '../../components/Modal/UserDetailModal';
+import UsersBulkActions from '../../components/UsersBulkActions/UsersBulkActions';
 
 // --- Custom Toggle Switch Component ---
 const ToggleSwitch = ({ checked, onChange }) => {
@@ -338,7 +339,7 @@ function User() {
               <h2 className="text-2xl font-semibold text-black">Quote Requesters</h2>
               <p className="text-black text-sm mt-1">Users who request quotes from companies</p>
             </div>
-            <div className="flex items-center mt-2 sm:mt-0">
+            <div className="flex flex-wrap items-center justify-end gap-2 mt-2 sm:mt-0">
               <label className="mr-2 text-black">Search:</label>
               <input 
                 type="text" 
@@ -347,6 +348,7 @@ function User() {
                 value={searchTerm} 
                 onChange={(e) => setSearchTerm(e.target.value)} 
               />
+              <UsersBulkActions role="user" onImported={fetchUsers} />
             </div>
           </div>
           

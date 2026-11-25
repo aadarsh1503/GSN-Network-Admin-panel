@@ -51,7 +51,15 @@ export const NOTIFICATION_EVENTS = {
     NEW_MESSAGE: 'user_new_message',
     DISPUTE_UPDATE: 'user_dispute_update',
     SUPPORT_TICKET_UPDATE: 'user_support_ticket_update'
-  }
+  },
+
+  // Business Panel Events
+  BUSINESS: {
+    NEW_MESSAGE: 'business_new_message'
+  },
+
+  // Notifications created from the admin panel (audience based)
+  NEW_NOTIFICATION: 'new_notification'
 };
 
 // SSE endpoint for real-time notifications

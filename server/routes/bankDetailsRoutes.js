@@ -513,6 +513,57 @@ router.delete('/admin/:id', protect, authorize('admin'), async (req, res) => {
   }
 });
 
+// @desc    Get the quote requester's (business / regular user) bank account
+// @route   GET /api/bank-details/quote-requester/:quoteId
+// @access  Private/Company
+router.get('/quote-requester/:quoteId', protect, authorize('company'), async (req, res) => {
+  try {
+    const companyId = req.user.id;
+    const { quoteId } = req.params;
+
+    // A company may only view this for a quote it has actually responded to.
+    const [allowed] = await db.execute(
+      'SELECT id FROM quote_responses WHERE quote_id = ? AND company_id = ? LIMIT 1',
+      [quoteId, companyId]
+    );
+    if (allowed.length === 0) {
+      return res.status(403).json({ message: 'You are not authorised to view this quote.' });
+    }
+
+    const [quotes] = await db.execute(
+      `SELECT q.user_id, u.role AS user_role
+       FROM quotes q LEFT JOIN users u ON q.user_id = u.id
+       WHERE q.id = ?`,
+      [quoteId]
+    );
+    if (quotes.length === 0) {
+      return res.status(404).json({ message: 'Quote not found' });
+    }
+
+    const { user_id: requesterId, user_role: requesterRole } = quotes[0];
+
+    // Companies do not keep their account here; only business & regular users do.
+    if (requesterRole !== 'business' && requesterRole !== 'user') {
+      return res.json({ bankDetails: [] });
+    }
+
+    await ensureUserBankDetailsTable();
+    const [banks] = await db.execute(
+      `SELECT id, bank_name, branch_name, branch_address, account_holder_name, account_number,
+              iban_number, swift_code, ifsc_code, payment_instructions, is_default
+       FROM user_bank_details
+       WHERE user_id = ?
+       ORDER BY is_default DESC, created_at DESC`,
+      [requesterId]
+    );
+
+    res.json({ bankDetails: banks });
+  } catch (error) {
+    console.error('Error fetching requester bank details:', error);
+    res.status(500).json({ message: 'Server error fetching requester bank details' });
+  }
+});
+
 // ===========================================================================
 // UNIFIED "MY BANK DETAILS" ENDPOINTS (company / business / user)
 // Company -> company_bank_details | business & user -> user_bank_details

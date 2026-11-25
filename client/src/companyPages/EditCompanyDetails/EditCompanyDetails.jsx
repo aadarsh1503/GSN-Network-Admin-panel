@@ -4,6 +4,10 @@ import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import api from '../../utils/api';
 
+// Country decides which quotes the company receives, so it is locked once it is set.
+// Flip this to false (single line) to allow changing the country again, e.g. for testing.
+const COUNTRY_CHANGE_LOCKED = true;
+
 // --- Reusable CONTROLLED Form Field Components ---
 const InputField = ({ label, name, value, onChange, placeholder, type = 'text' }) => (
     <div>
@@ -593,6 +597,9 @@ const EditCompanyDetails = () => {
         );
     }
 
+    // Locked as soon as a country is already set; an empty country can still be filled in once.
+    const countryLocked = COUNTRY_CHANGE_LOCKED && Boolean(formData.country);
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6 lg:p-8">
             <div className="max-w-6xl mx-auto">
@@ -766,20 +773,28 @@ const EditCompanyDetails = () => {
                         <section>
                             <SectionHeader title="Location Information" />
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <SelectField 
-                                    label="Country" 
-                                    name="country" 
-                                    value={formData.country} 
-                                    onChange={handleChange}
-                                    loading={loadingCountries}
-                                >
-                                    <option value="">Select Country...</option>
-                                    {countries.map(country => (
-                                        <option key={country.code} value={country.name}>
-                                            {country.name}
-                                        </option>
-                                    ))}
-                                </SelectField>
+                                <div>
+                                    <SelectField 
+                                        label="Country" 
+                                        name="country" 
+                                        value={formData.country} 
+                                        onChange={handleChange}
+                                        loading={loadingCountries}
+                                        disabled={countryLocked}
+                                    >
+                                        <option value="">Select Country...</option>
+                                        {countries.map(country => (
+                                            <option key={country.code} value={country.name}>
+                                                {country.name}
+                                            </option>
+                                        ))}
+                                    </SelectField>
+                                    {countryLocked && (
+                                        <p className="mt-1 text-xs text-gray-500">
+                                            Country is locked because it decides which quotes you receive. Contact support to change it.
+                                        </p>
+                                    )}
+                                </div>
                                 
                                 <SelectField 
                                     label="State" 

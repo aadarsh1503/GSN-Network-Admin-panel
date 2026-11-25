@@ -1,31 +1,98 @@
 import { useState, useEffect } from 'react';
 import { 
   FiSearch, FiDownload, FiTrash, FiFilter, FiTrendingUp, 
-  FiCreditCard, FiFileText, FiEye, FiCalendar 
+  FiCreditCard, FiFileText, FiEye, FiX, FiUser,
+  FiTruck, FiExternalLink, FiShield, FiToggleRight, FiRepeat
 } from 'react-icons/fi';
-import { FaSort, FaTrash } from 'react-icons/fa';
+import { FaSort, FaTrash, FaUniversity } from 'react-icons/fa';
+import Flag from 'react-world-flags';
 import { api } from '../../utils/api';
 import toast from 'react-hot-toast';
 import { useCurrency } from '../../contexts/CurrencyContext';
 
-// Admin sees the coupon code along with the percent/amount off.
-const getCouponLabel = (txn) => {
-  if (!txn || !txn.has_coupon) return '';
-  const value = Number(txn.coupon_discount_value || 0);
-  return txn.coupon_discount_type === 'percentage'
-    ? `${value}% off`
-    : `BHD ${value.toFixed(3)} off`;
+// --- Presentational helpers used by the view-details modal ---
+const InfoSection = ({ title, icon: Icon, children, className = '' }) => (
+  <div className={`border border-gray-200 rounded-xl overflow-hidden ${className}`}>
+    <div className="flex items-center gap-2 px-4 py-2 bg-[#bca142]/10 border-b border-[#bca142]/25">
+      {Icon && <Icon className="text-[#bca142]" />}
+      <h3 className="text-xs font-bold uppercase tracking-wide text-black">{title}</h3>
+    </div>
+    <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">{children}</div>
+  </div>
+);
+
+const InfoItem = ({ label, value, full = false }) => (
+  <div className={full ? 'sm:col-span-2' : ''}>
+    <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">{label}</p>
+    <div className="text-sm text-gray-900 break-words mt-0.5">
+      {value === null || value === undefined || value === '' ? (
+        <span className="text-gray-300">—</span>
+      ) : (
+        value
+      )}
+    </div>
+  </div>
+);
+
+// Country name -> ISO code so react-world-flags can render the right flag.
+const getCountryCode = (countryName) => {
+  const countryCodes = {
+    'UAE': 'AE', 'United Arab Emirates': 'AE', 'Saudi Arabia': 'SA', 'Kuwait': 'KW',
+    'Qatar': 'QA', 'Bahrain': 'BH', 'Oman': 'OM', 'India': 'IN', 'USA': 'US',
+    'United States': 'US', 'United Kingdom': 'GB', 'UK': 'GB', 'China': 'CN',
+    'Germany': 'DE', 'France': 'FR', 'Australia': 'AU', 'Canada': 'CA'
+  };
+  return countryCodes[countryName] || countryName?.substring(0, 2).toUpperCase();
 };
-const getCouponShortLabel = (txn) => {
-  const value = Number(txn.coupon_discount_value || 0);
-  return txn.coupon_discount_type === 'percentage'
-    ? `${value}%`
-    : `BHD ${value.toFixed(3)}`;
+
+// Flag + country name, used for route and contact rows.
+const CountryTag = ({ country, city, showName = true }) => {
+  if (!country) return <span className="text-gray-300">—</span>;
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span className="w-5 h-3.5 flex-shrink-0 overflow-hidden rounded-sm ring-1 ring-black/10">
+        <Flag code={getCountryCode(country)} className="w-full h-full object-cover" />
+      </span>
+      {showName && (
+        <span className="text-gray-900">{city ? `${city}, ${country}` : country}</span>
+      )}
+    </span>
+  );
+};
+
+const formatDate = (value) => {
+  if (!value) return null;
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return null;
+  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+};
+
+// Inclusions / terms may arrive as an array, a JSON string or a plain string.
+const formatList = (val) => {
+  if (val === null || val === undefined || val === '') return null;
+  if (Array.isArray(val)) return val.join(', ');
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (trimmed.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) return parsed.join(', ');
+      } catch {
+        /* not JSON — show the raw string */
+      }
+    }
+  }
+  return val;
 };
 
 const AdminTransactions = () => {
-  const { format, formatUsd } = useCurrency();
-  const fmtBhd = (v) => format(v);
+  const { format, formatUsd, convert } = useCurrency();
+  // Quote payments are stored in USD while subscriptions are stored in BHD.
+  // The admin's primary currency is BHD, so each amount must be converted from
+  // its real source currency instead of being treated as BHD.
+  const sourceCurrency = (txn) => (txn?.transaction_type === 'quote' ? 'USD' : 'BHD');
+  const fmtAmount = (v, txn) => format(v, sourceCurrency(txn));
+  const fmtUsdAmount = (v, txn) => formatUsd(v, sourceCurrency(txn));
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filteredTransactions, setFilteredTransactions] = useState([]);
@@ -35,6 +102,13 @@ const AdminTransactions = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'created_at', direction: 'desc' });
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, transactionId: null, transactionDetails: null });
+  const [viewTxn, setViewTxn] = useState(null);
+  const [showFullDetails, setShowFullDetails] = useState(false);
+
+  const openView = (transaction) => {
+    setViewTxn(transaction);
+    setShowFullDetails(false);
+  };
 
   useEffect(() => {
     fetchTransactions();
@@ -64,28 +138,52 @@ const AdminTransactions = () => {
         if (verifiedPayments.length > 0 && verifiedPayments[0].payment_status !== undefined) {
           quoteTransactions = verifiedPayments
             .filter(item => item.payment_status === 'verified')
-            .map(item => ({
-              id: item.id || `${item.quote_id}-${item.quote_response_id}`,
-              user_id: item.user_id,
-              user_name: item.user_name,
-              user_email: item.user_email,
-              company_id: item.company_id,
-              company_name: item.company_name,
-              company_email: item.company_email,
-              quote_id: item.quote_id,
-              product_description: item.product_description,
-              amount: item.coupon_final_amount || item.price,
-              original_amount: item.coupon_original_amount || item.price,
-              has_coupon: item.has_coupon,
-              coupon_code: item.coupon_code || null,
-              coupon_discount_amount: item.coupon_discount_amount,
-              coupon_discount_type: item.coupon_discount_type,
-              coupon_discount_value: item.coupon_discount_value,
-              transaction_reference: `VERIFIED-${item.quote_id}-${item.quote_response_id}`,
-              status: 'verified',
-              created_at: item.verification_date || item.created_at,
-              transaction_type: 'quote'
-            }));
+            .map(item => {
+              // The endpoint returns the quote response as `response_id`.
+              const responseId = item.response_id || item.quote_response_id;
+              return {
+                id: responseId || `${item.quote_id}-${responseId}`,
+                user_id: item.user_id,
+                user_name: item.user_name,
+                user_email: item.user_email,
+                user_phone: item.user_phone,
+                user_country: item.user_country,
+                company_id: item.company_id,
+                company_name: item.company_name,
+                company_email: item.company_email,
+                company_phone: item.company_phone,
+                company_country: item.company_country,
+                quote_id: item.quote_id,
+                product_description: item.product_description,
+                shipping_mode: item.shipping_mode,
+                departure_country: item.departure_country,
+                departure_city: item.departure_city,
+                arrival_country: item.arrival_country,
+                arrival_city: item.arrival_city,
+                transit_time: item.transit_time,
+                valid_until: item.valid_until,
+                inclusions: item.inclusions,
+                value_added_services: item.value_added_services,
+                terms: item.terms,
+                notes: item.notes,
+                amount: item.price,
+                payment_proof_url: item.payment_proof_url,
+                payment_proof_uploaded: item.payment_proof_uploaded,
+                verification_date: item.verification_date,
+                payment_company_notes: item.payment_company_notes,
+                company_paypal_email: item.company_paypal_email,
+                bank_name: item.bank_name,
+                account_holder_name: item.account_holder_name,
+                account_number: item.account_number,
+                routing_number: item.routing_number,
+                swift_code: item.swift_code,
+                iban_number: item.iban_number,
+                transaction_reference: `VERIFIED-${item.quote_id}-${responseId}`,
+                status: 'verified',
+                created_at: item.verification_date || item.created_at,
+                transaction_type: 'quote'
+              };
+            });
         } else {
           // This is the fallback accepted quotes data
           quoteTransactions = verifiedPayments.map(t => ({ ...t, transaction_type: 'quote' }));
@@ -214,8 +312,10 @@ const AdminTransactions = () => {
   const calculateTotalRevenue = () => {
     return filteredTransactions
       .filter(txn => ['completed', 'verified', 'paid'].includes(txn.status))
-      .reduce((sum, txn) => sum + parseFloat(txn.amount || txn.amount_paid || 0), 0)
-      .toFixed(3);
+      .reduce((sum, txn) => {
+        const value = parseFloat(txn.amount || txn.amount_paid || 0) || 0;
+        return sum + convert(value, sourceCurrency(txn), 'BHD');
+      }, 0);
   };
 
   const getTransactionStats = () => {
@@ -236,7 +336,7 @@ const AdminTransactions = () => {
   };
 
   const exportToCSV = () => {
-    const headers = ['ID', 'Type', 'User', 'Email', 'Company', 'Quote/Plan', 'Product/Description', 'Amount (BHD)', 'Coupon', 'Reference', 'Status', 'Date'];
+    const headers = ['ID', 'Type', 'User', 'Email', 'Company', 'Quote/Plan', 'Product/Description', 'Amount (BHD)', 'Reference', 'Status', 'Date'];
     const rows = filteredTransactions.map(txn => [
       txn.id,
       getTransactionTypeName(txn.transaction_type),
@@ -246,7 +346,6 @@ const AdminTransactions = () => {
       txn.quote_id || txn.plan_name || 'N/A',
       txn.product_description || txn.plan_description || 'N/A',
       txn.amount || txn.amount_paid,
-      txn.has_coupon ? `${txn.coupon_code} (${getCouponLabel(txn)})` : 'N/A',
       txn.transaction_reference || 'N/A',
       txn.status,
       new Date(txn.created_at).toLocaleDateString()
@@ -306,7 +405,7 @@ const AdminTransactions = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-500">Revenue</p>
-                <p className="text-lg font-bold text-[#bca142]">{fmtBhd(calculateTotalRevenue())}</p>
+                <p className="text-lg font-bold text-[#bca142]">{format(calculateTotalRevenue())}</p>
                 <p className="text-[10px] text-gray-400">≈ {formatUsd(calculateTotalRevenue())}</p>
               </div>
               <FiTrendingUp className="text-[#bca142]" />
@@ -446,9 +545,6 @@ const AdminTransactions = () => {
                       <FaSort className="ml-1 h-2 w-2 text-white" />
                     </div>
                   </th>
-                  <th scope="col" className="px-2 py-2 font-semibold min-w-[110px]">
-                    Coupon
-                  </th>
                   <th scope="col" className="px-2 py-2 font-semibold min-w-[120px]">
                     Reference
                   </th>
@@ -472,7 +568,7 @@ const AdminTransactions = () => {
               <tbody>
                 {currentItems.length === 0 ? (
                   <tr>
-                    <td colSpan="11" className="px-2 py-6 text-center text-gray-500 text-sm">
+                    <td colSpan="10" className="px-2 py-6 text-center text-gray-500 text-sm">
                       {transactions.length === 0 ? 'No transactions found.' : 'No transactions match your current filters.'}
                     </td>
                   </tr>
@@ -514,34 +610,9 @@ const AdminTransactions = () => {
                       </td>
                       <td className="px-2 py-2">
                         <div className="font-bold text-xs text-[#bca142]">
-                          {fmtBhd(transaction.amount || transaction.amount_paid || 0)}
+                          {fmtAmount(transaction.amount || transaction.amount_paid || 0, transaction)}
                         </div>
-                        <div className="text-[10px] text-gray-400">≈ {formatUsd(transaction.amount || transaction.amount_paid || 0)}</div>
-                        {transaction.has_coupon && (
-                          <div className="text-[10px] text-gray-400 line-through">
-                            {fmtBhd(transaction.original_amount)}
-                          </div>
-                        )}
-                        {transaction.has_coupon && (
-                          <div className="text-[10px] text-gray-400">≈ {formatUsd(transaction.original_amount)}</div>
-                        )}
-                      </td>
-                      <td className="px-2 py-2">
-                        {transaction.has_coupon ? (
-                          <div className="min-w-[110px]">
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#bca142]/15 text-[#8f7a2e] border border-[#bca142]/30">
-                              {transaction.coupon_code}
-                            </span>
-                            <div className="text-[10px] text-gray-500 mt-0.5">
-                              {getCouponShortLabel(transaction)} off
-                            </div>
-                            {transaction.coupon_discount_type !== 'percentage' && (
-                              <div className="text-[10px] text-gray-400">≈ {formatUsd(transaction.coupon_discount_value)}</div>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-gray-400 text-xs">—</span>
-                        )}
+                        <div className="text-[10px] text-gray-400">≈ {fmtUsdAmount(transaction.amount || transaction.amount_paid || 0, transaction)}</div>
                       </td>
                       <td className="px-2 py-2">
                         <div className="text-xs truncate min-w-[120px]" title={transaction.transaction_reference}>
@@ -555,7 +626,14 @@ const AdminTransactions = () => {
                         {new Date(transaction.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                       </td>
                       <td className="px-2 py-2">
-                        <div className="flex items-center">
+                        <div className="flex items-center gap-1">
+                          <button 
+                            onClick={() => openView(transaction)}
+                            className="p-1.5 bg-gradient-to-r from-[#bca142] to-[#a68d38] text-white rounded hover:from-[#a68d38] hover:to-[#8f7a2e] transition-all duration-200 shadow-sm hover:shadow-md"
+                            title="View Transaction Details"
+                          >
+                            <FiEye className="w-3 h-3" />
+                          </button>
                           <button 
                             onClick={() => showDeleteConfirm(transaction)}
                             className="p-1.5 bg-gradient-to-r from-red-500 to-red-600 text-white rounded hover:from-red-600 hover:to-red-700 transition-all duration-200 shadow-sm hover:shadow-md"
@@ -624,6 +702,182 @@ const AdminTransactions = () => {
           )}
         </div>
 
+        {/* View Transaction Modal */}
+        {viewTxn && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+              {/* Header */}
+              <div className="flex items-start justify-between gap-4 px-5 py-4 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#bca142]/10 flex items-center justify-center flex-shrink-0 text-xl">
+                    {getTransactionTypeIcon(viewTxn.transaction_type)}
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-black">Transaction Details</h2>
+                    <p className="text-xs text-gray-500">
+                      {viewTxn.transaction_type === 'quote'
+                        ? `Quote #${viewTxn.quote_id} · ${viewTxn.transaction_reference || ''}`
+                        : (viewTxn.plan_name || viewTxn.transaction_reference || 'Subscription')}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {getStatusBadge(viewTxn.status)}
+                  <button
+                    onClick={() => setViewTxn(null)}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <FiX className="text-lg text-gray-500" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Body */}
+              <div className="p-5 space-y-4 overflow-y-auto">
+                {viewTxn.transaction_type === 'quote' ? (
+                  <>
+                    {/* Contact Information */}
+                    <InfoSection title="Customer Contact" icon={FiUser}>
+                      <InfoItem label="Name" value={viewTxn.user_name} full />
+                      <InfoItem label="Email" value={viewTxn.user_email} full />
+                      <InfoItem label="Phone" value={viewTxn.user_phone} />
+                      <InfoItem label="Country" value={<CountryTag country={viewTxn.user_country} />} />
+                    </InfoSection>
+
+                    <InfoSection title="Company Contact" icon={FiUser}>
+                      <InfoItem label="Name" value={viewTxn.company_name} full />
+                      <InfoItem label="Email" value={viewTxn.company_email} full />
+                      <InfoItem label="Phone" value={viewTxn.company_phone} />
+                      <InfoItem label="Country" value={<CountryTag country={viewTxn.company_country} />} />
+                    </InfoSection>
+
+                    {/* Full Information */}
+                    <InfoSection title="Full Information" icon={FiTruck}>
+                      <InfoItem
+                        label="Departure"
+                        value={<CountryTag country={viewTxn.departure_country} city={viewTxn.departure_city} />}
+                      />
+                      <InfoItem
+                        label="Arrival"
+                        value={<CountryTag country={viewTxn.arrival_country} city={viewTxn.arrival_city} />}
+                      />
+                      <InfoItem label="Shipping Mode" value={viewTxn.shipping_mode} />
+                      <InfoItem label="Transit Time" value={viewTxn.transit_time} />
+                      <InfoItem label="Product Description" value={viewTxn.product_description} full />
+                    </InfoSection>
+
+                    {/* Quotes / Payment */}
+                    <InfoSection title="Quote & Payment" icon={FiCreditCard}>
+                      <InfoItem label="Quote ID" value={`#${viewTxn.quote_id}`} />
+                      <InfoItem label="Valid Until" value={formatDate(viewTxn.valid_until)} />
+                      <InfoItem
+                        label="Amount"
+                        full
+                        value={
+                          <span className="font-semibold text-[#bca142]">
+                            {fmtAmount(viewTxn.amount, viewTxn)}
+                            <span className="block text-xs font-normal text-gray-500">
+                              ≈ {fmtUsdAmount(viewTxn.amount, viewTxn)}
+                            </span>
+                          </span>
+                        }
+                      />
+                      <InfoItem label="Payment Status" value={<span className="capitalize">{viewTxn.status}</span>} />
+                      <InfoItem label="Verified On" value={formatDate(viewTxn.verification_date)} />
+                      <InfoItem label="Reference" value={viewTxn.transaction_reference} full />
+                      {viewTxn.payment_proof_url && (
+                        <InfoItem
+                          label="Proof of Payment"
+                          full
+                          value={
+                            <a
+                              href={viewTxn.payment_proof_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 text-[#bca142] font-semibold hover:underline"
+                            >
+                              <FiExternalLink />
+                              View proof
+                            </a>
+                          }
+                        />
+                      )}
+                    </InfoSection>
+
+                    {showFullDetails && (
+                      <>
+                        {(viewTxn.inclusions || viewTxn.value_added_services || viewTxn.terms || viewTxn.notes) && (
+                          <InfoSection title="Response Details" icon={FiFileText}>
+                            <InfoItem label="Inclusions" value={formatList(viewTxn.inclusions)} full />
+                            <InfoItem label="Value Added Services" value={formatList(viewTxn.value_added_services)} full />
+                            <InfoItem label="Terms & Conditions" value={viewTxn.terms} full />
+                            <InfoItem label="Response Notes" value={viewTxn.notes} full />
+                          </InfoSection>
+                        )}
+
+                        {viewTxn.bank_name && (
+                          <InfoSection title="Bank Details" icon={FaUniversity}>
+                            <InfoItem label="Bank Name" value={viewTxn.bank_name} />
+                            <InfoItem label="Account Holder" value={viewTxn.account_holder_name} />
+                            <InfoItem label="Account Number" value={viewTxn.account_number} />
+                            <InfoItem label="SWIFT Code" value={viewTxn.swift_code} />
+                            <InfoItem label="IBAN" value={viewTxn.iban_number} />
+                            <InfoItem label="Routing Number" value={viewTxn.routing_number} />
+                            {viewTxn.company_paypal_email && (
+                              <InfoItem label="PayPal Email" value={viewTxn.company_paypal_email} full />
+                            )}
+                          </InfoSection>
+                        )}
+
+                        <InfoSection title="Verification Notes" icon={FiShield}>
+                          <InfoItem label="Company Notes" value={viewTxn.payment_company_notes} full />
+                          <InfoItem label="Verified On" value={formatDate(viewTxn.verification_date)} full />
+                        </InfoSection>
+                      </>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => setShowFullDetails((v) => !v)}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[#bca142]/40 text-[#bca142] font-semibold text-sm hover:bg-[#bca142]/10 transition-colors"
+                    >
+                      <FiToggleRight className={`text-lg transition-transform ${showFullDetails ? 'rotate-180' : ''}`} />
+                      {showFullDetails ? 'Show less details' : 'Show full details'}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <InfoSection title="Customer Contact" icon={FiUser}>
+                      <InfoItem label="Name" value={viewTxn.user_name} full />
+                      <InfoItem label="Email" value={viewTxn.user_email} full />
+                    </InfoSection>
+
+                    <InfoSection title="Subscription" icon={FiRepeat}>
+                      <InfoItem label="Plan" value={viewTxn.plan_name || viewTxn.description} full />
+                      <InfoItem
+                        label="Amount"
+                        full
+                        value={
+                          <span className="font-semibold text-[#bca142]">
+                            {fmtAmount(viewTxn.amount || viewTxn.amount_paid, viewTxn)}
+                            <span className="block text-xs font-normal text-gray-500">
+                              ≈ {fmtUsdAmount(viewTxn.amount || viewTxn.amount_paid, viewTxn)}
+                            </span>
+                          </span>
+                        }
+                      />
+                      <InfoItem label="Payment Method" value={viewTxn.payment_method} />
+                      <InfoItem label="Status" value={<span className="capitalize">{viewTxn.status}</span>} />
+                      <InfoItem label="Reference" value={viewTxn.transaction_reference} full />
+                      <InfoItem label="Date" value={formatDate(viewTxn.created_at)} full />
+                    </InfoSection>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Delete Confirmation Modal */}
         {deleteConfirm.show && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -655,8 +909,8 @@ const AdminTransactions = () => {
                       <div className="flex justify-between">
                         <span className="text-gray-500">Amount:</span>
                         <span className="font-bold text-[#bca142] text-right">
-                          {fmtBhd(deleteConfirm.transactionDetails.amount || deleteConfirm.transactionDetails.amount_paid)}
-                          <span className="block text-[10px] text-gray-400 font-normal">≈ {formatUsd(deleteConfirm.transactionDetails.amount || deleteConfirm.transactionDetails.amount_paid)}</span>
+                          {fmtAmount(deleteConfirm.transactionDetails.amount || deleteConfirm.transactionDetails.amount_paid, deleteConfirm.transactionDetails)}
+                          <span className="block text-[10px] text-gray-400 font-normal">≈ {fmtUsdAmount(deleteConfirm.transactionDetails.amount || deleteConfirm.transactionDetails.amount_paid, deleteConfirm.transactionDetails)}</span>
                         </span>
                       </div>
                       <div className="flex justify-between">

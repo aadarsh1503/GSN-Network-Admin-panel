@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
 
-const InputField = ({ label, name, value, onChange, placeholder, type = 'text', required = false }) => (
+const InputField = ({ label, name, value, onChange, placeholder, type = 'text', required = false, hint }) => (
   <div>
     <label htmlFor={name} className="block text-sm font-medium text-gray-600 mb-1">
       {label} {required && <span className="text-red-500">*</span>}
@@ -18,6 +18,7 @@ const InputField = ({ label, name, value, onChange, placeholder, type = 'text', 
       required={required}
       className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-yellow-500 focus:border-yellow-500"
     />
+    {hint && <p className="mt-1 text-xs text-gray-400">{hint}</p>}
   </div>
 );
 
@@ -44,6 +45,7 @@ const CreateSubscriptionPlan = () => {
     name: '',
     description: '',
     price: '',
+    yearlyPrice: '',
     durationMonths: '1',
     maxQuotes: '-1',
     maxResponses: '-1',
@@ -51,6 +53,9 @@ const CreateSubscriptionPlan = () => {
     prioritySupport: false,
     features: ''
   });
+
+  // Blank yearly price falls back to 10× the monthly price.
+  const suggestedYearly = Number((parseFloat(formData.price || 0) * 10).toFixed(2));
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -80,9 +85,10 @@ const CreateSubscriptionPlan = () => {
         name: formData.name,
         description: formData.description,
         price: parseFloat(formData.price),
-        durationMonths: parseInt(formData.durationMonths),
-        maxQuotes: parseInt(formData.maxQuotes),
-        maxResponses: parseInt(formData.maxResponses),
+        yearlyPrice: formData.yearlyPrice === '' ? null : parseFloat(formData.yearlyPrice),
+        durationMonths: Math.max(1, parseInt(formData.durationMonths, 10) || 1),
+        maxQuotes: Number.isFinite(parseInt(formData.maxQuotes, 10)) ? parseInt(formData.maxQuotes, 10) : -1,
+        maxResponses: Number.isFinite(parseInt(formData.maxResponses, 10)) ? parseInt(formData.maxResponses, 10) : -1,
         directoryListing: formData.directoryListing,
         prioritySupport: formData.prioritySupport,
         features: featuresArray
@@ -125,6 +131,37 @@ const CreateSubscriptionPlan = () => {
               required
             />
 
+            <div>
+              <label htmlFor="yearlyPrice" className="block text-sm font-medium text-gray-600 mb-1">
+                Yearly Price (BHD)
+              </label>
+              <input
+                type="number"
+                id="yearlyPrice"
+                name="yearlyPrice"
+                value={formData.yearlyPrice}
+                onChange={handleChange}
+                placeholder={suggestedYearly > 0 ? suggestedYearly.toFixed(2) : '0.00'}
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-yellow-500 focus:border-yellow-500"
+              />
+              <div className="mt-1 flex items-center justify-between gap-2">
+                <p className="text-xs text-gray-400">
+                  {suggestedYearly > 0
+                    ? `Suggested: ${suggestedYearly.toFixed(2)} (10× monthly). Blank uses this automatically.`
+                    : 'Leave blank to auto-use 10× the monthly price.'}
+                </p>
+                {suggestedYearly > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setFormData((p) => ({ ...p, yearlyPrice: suggestedYearly.toFixed(2) }))}
+                    className="shrink-0 text-xs font-semibold text-[#9d8635] hover:underline"
+                  >
+                    Use suggested
+                  </button>
+                )}
+              </div>
+            </div>
+
             <InputField 
               label="Duration (Months)" 
               name="durationMonths" 
@@ -135,21 +172,23 @@ const CreateSubscriptionPlan = () => {
             />
 
             <InputField 
-              label="Max Quotes (-1 for unlimited)" 
+              label="Max Quote Requests / month" 
               name="maxQuotes" 
               value={formData.maxQuotes} 
               onChange={handleChange} 
               placeholder="-1"
               type="number"
+              hint="How many quote requests this plan can post each month. -1 = unlimited, 0 = none."
             />
 
             <InputField 
-              label="Max Quote Responses (-1 for unlimited)" 
+              label="Max Quote Responses / month" 
               name="maxResponses" 
               value={formData.maxResponses} 
               onChange={handleChange} 
               placeholder="-1"
               type="number"
+              hint="How many quote responses this plan can send each month. -1 = unlimited, 0 = none (view only)."
             />
 
             <div className="flex flex-col space-y-3 pt-6">

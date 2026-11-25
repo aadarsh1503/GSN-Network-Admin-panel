@@ -3,22 +3,86 @@ import {
   FiEye, FiCheckCircle, FiXCircle, FiClock, FiUser, FiMail, 
   FiDollarSign, FiCalendar, FiFileText, FiFilter, FiSearch,
   FiRefreshCw, FiX, FiTruck, FiMapPin, FiCreditCard, FiToggleLeft,
-  FiToggleRight, FiRepeat, FiShield
+  FiToggleRight, FiRepeat, FiShield, FiTag, FiExternalLink, FiPackage
 } from 'react-icons/fi';
 import { FaPaypal, FaUniversity, FaMoneyBillWave } from 'react-icons/fa';
 import Flag from 'react-world-flags';
 import api from '../../utils/api';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import toast from 'react-hot-toast';
+import { useCurrency } from '../../contexts/CurrencyContext';
+import { currencyForCountry } from '../../utils/currency';
 import './TransactionHistorycompany.css';
 
+// --- Presentational helpers used by the details modal ---
+const InfoSection = ({ title, icon: Icon, children, className = '' }) => (
+  <div className={`border border-gray-200 rounded-xl overflow-hidden ${className}`}>
+    <div className="flex items-center gap-2 px-4 py-2 bg-[#bca142]/10 border-b border-[#bca142]/25">
+      {Icon && <Icon className="text-[#bca142]" />}
+      <h3 className="text-xs font-bold uppercase tracking-wide text-black">{title}</h3>
+    </div>
+    <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">{children}</div>
+  </div>
+);
+
+const InfoItem = ({ label, value, full = false }) => (
+  <div className={full ? 'sm:col-span-2' : ''}>
+    <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">{label}</p>
+    <div className="text-sm text-gray-900 break-words mt-0.5">
+      {value === null || value === undefined || value === '' ? (
+        <span className="text-gray-300">—</span>
+      ) : (
+        value
+      )}
+    </div>
+  </div>
+);
+
+// 1 / true / '1' -> Yes
+const yesNo = (val) => (val === 1 || val === true || val === '1' ? 'Yes' : 'No');
+
+// Join the non-empty parts of a route / address into a single readable string.
+const joinParts = (parts, sep = ', ') => {
+  const clean = (parts || []).filter((v) => v !== null && v !== undefined && v !== '');
+  return clean.length ? clean.join(sep) : null;
+};
+
+// Inclusions / value added services arrive either as an array or a JSON string
+// (sometimes a plain comma separated list). Render all three shapes safely.
+const formatList = (val) => {
+  if (val === null || val === undefined || val === '') return null;
+  if (Array.isArray(val)) return val.join(', ');
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (trimmed.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) return parsed.join(', ');
+      } catch {
+        /* not JSON — fall through and show the raw string */
+      }
+    }
+  }
+  return val;
+};
+
 const TransactionHistorycompany = () => {
+  // Every amount is stored in its native currency — quote payments (PayPal) in
+  // USD, subscriptions in BHD — and shown here in the viewer's local currency.
+  const { format, formatUsd, formatIn } = useCurrency();
+
   // Toggle between payment verifications and subscription transactions
   const [viewMode, setViewMode] = useState('verifications'); // 'verifications' or 'subscriptions'
+
+  // Currency the raw filter values are compared against.
+  const sourceCurrency = viewMode === 'verifications' ? 'USD' : 'BHD';
   
   // Payment Verifications State
   const [verifications, setVerifications] = useState([]);
   const [selectedVerification, setSelectedVerification] = useState(null);
+  // Details modal starts with the essential ("half") info and can expand to the
+  // full ("max") info on demand.
+  const [showFullDetails, setShowFullDetails] = useState(false);
   
   // Subscription Transactions State
   const [subscriptionTransactions, setSubscriptionTransactions] = useState([]);
@@ -254,6 +318,7 @@ const TransactionHistorycompany = () => {
 
   const handleViewDetails = (item) => {
     setSelectedVerification(item);
+    setShowFullDetails(false);
     setShowModal(true);
   };
 
@@ -423,7 +488,7 @@ const TransactionHistorycompany = () => {
 
               {/* Amount Range Filters */}
               <div>
-                <label className="block text-xs font-semibold text-black mb-1">Min Amount ($)</label>
+                <label className="block text-xs font-semibold text-black mb-1">Min Amount ({sourceCurrency})</label>
                 <input
                   type="number"
                   placeholder="0"
@@ -434,7 +499,7 @@ const TransactionHistorycompany = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-black mb-1">Max Amount ($)</label>
+                <label className="block text-xs font-semibold text-black mb-1">Max Amount ({sourceCurrency})</label>
                 <input
                   type="number"
                   placeholder="10000"
@@ -573,7 +638,8 @@ const TransactionHistorycompany = () => {
                             </div>
                           </td>
                           <td className="px-3 py-2 whitespace-nowrap">
-                            <span className="text-sm font-bold text-black">${item.price}</span>
+                            <span className="text-sm font-bold text-black">{format(item.price, 'USD')}</span>
+                            <span className="block text-[11px] text-gray-500">≈ {formatUsd(item.price, 'USD')}</span>
                           </td>
                           <td className="px-3 py-2 whitespace-nowrap">
                             {getVerificationStatusBadge(item.payment_status)}
@@ -612,7 +678,7 @@ const TransactionHistorycompany = () => {
                             </div>
                           </td>
                           <td className="px-3 py-2 whitespace-nowrap">
-                            <span className="text-sm font-bold text-black">${item.amount_paid}</span>
+                            <span className="text-sm font-bold text-black">{format(item.amount_paid)}</span>
                           </td>
                           <td className="px-3 py-2 whitespace-nowrap">
                             <div className="flex items-center space-x-1">
@@ -650,12 +716,28 @@ const TransactionHistorycompany = () => {
       {/* Modal for viewing details */}
       {showModal && selectedVerification && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-4">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-bold text-[#bca142]">
-                  {viewMode === 'verifications' ? 'Payment Verification Details' : 'Transaction Details'}
-                </h2>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="flex items-start justify-between gap-4 px-5 py-4 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#bca142]/10 flex items-center justify-center flex-shrink-0">
+                  <FiFileText className="text-[#bca142] text-lg" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-black">
+                    {viewMode === 'verifications' ? 'Payment Verification Details' : 'Transaction Details'}
+                  </h2>
+                  <p className="text-xs text-gray-500">
+                    {viewMode === 'verifications'
+                      ? `Quote #${selectedVerification.quote_id}`
+                      : selectedVerification.transaction_id || selectedVerification.plan_name}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {viewMode === 'verifications'
+                  ? getVerificationStatusBadge(selectedVerification.payment_status)
+                  : getSubscriptionStatusBadge(selectedVerification.payment_status || selectedVerification.status)}
                 <button
                   onClick={() => setShowModal(false)}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -663,50 +745,251 @@ const TransactionHistorycompany = () => {
                   <FiX className="text-lg text-gray-500" />
                 </button>
               </div>
-              
-              <div className="space-y-3">
-                {viewMode === 'verifications' ? (
-                  <>
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <h3 className="font-semibold text-black mb-2 text-sm">Quote Information</h3>
-                      <p className="text-sm"><strong>Quote ID:</strong> #{selectedVerification.quote_id}</p>
-                      <p className="text-sm"><strong>Amount:</strong> ${selectedVerification.price}</p>
-                      <p className="text-sm"><strong>Status:</strong> {selectedVerification.payment_status}</p>
-                      <p className="text-sm"><strong>Verified At:</strong> {formatDate(selectedVerification.verification_date || selectedVerification.payment_proof_date)}</p>
-                    </div>
-                    
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <h3 className="font-semibold text-black mb-2 text-sm">Customer Information</h3>
-                      <p className="text-sm"><strong>Name:</strong> {selectedVerification.user_name}</p>
-                      <p className="text-sm"><strong>Email:</strong> {selectedVerification.user_email}</p>
-                    </div>
-                    
-                    {selectedVerification.payment_notes && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <h3 className="font-semibold text-black mb-2 text-sm">Verification Notes</h3>
-                        <p className="text-sm">{selectedVerification.payment_notes}</p>
-                      </div>
+            </div>
+
+            {/* Body */}
+            <div className="p-5 space-y-4 overflow-y-auto">
+              {viewMode === 'verifications' ? (
+                <>
+                  <InfoSection title="Quote Information" icon={FiFileText}>
+                    <InfoItem label="Quote ID" value={`#${selectedVerification.quote_id}`} />
+                    <InfoItem
+                      label="Amount"
+                      value={
+                        <span className="font-semibold text-[#bca142]">
+                          {format(selectedVerification.price, 'USD')}
+                          <span className="block text-xs font-normal text-gray-500">
+                            ≈ {formatUsd(selectedVerification.price, 'USD')}
+                            {currencyForCountry(selectedVerification.user_country) && (
+                              <> · Customer sees ≈ {formatIn(selectedVerification.price, currencyForCountry(selectedVerification.user_country), 'USD')}</>
+                            )}
+                          </span>
+                        </span>
+                      }
+                    />
+                    <InfoItem
+                      label="Payment Status"
+                      value={<span className="capitalize">{selectedVerification.payment_status}</span>}
+                    />
+                    <InfoItem
+                      label="Verified At"
+                      value={formatDate(selectedVerification.verification_date || selectedVerification.payment_proof_date)}
+                    />
+                    <InfoItem label="Quote Created" value={formatDate(selectedVerification.quote_created_at)} />
+                    <InfoItem label="Response Valid Until" value={formatDate(selectedVerification.valid_until)} />
+                  </InfoSection>
+
+                  <InfoSection title="Customer Information" icon={FiUser}>
+                    <InfoItem label="Name" value={selectedVerification.user_name} />
+                    <InfoItem label="Email" value={selectedVerification.user_email} />
+                    <InfoItem label="Phone" value={selectedVerification.user_phone} />
+                    <InfoItem label="Contact Name" value={selectedVerification.contact_name} />
+                    <InfoItem label="Contact Email" value={selectedVerification.contact_email} />
+                    <InfoItem label="Contact Phone" value={selectedVerification.contact_phone} />
+                  </InfoSection>
+
+                  {showFullDetails && (
+                    <>
+                  <InfoSection title="Shipment & Route" icon={FiTruck}>
+                    <InfoItem label="Shipping Mode" value={selectedVerification.shipping_mode} />
+                    <InfoItem label="Transit Time" value={selectedVerification.transit_time} />
+                    <InfoItem
+                      label="Departure"
+                      value={joinParts([
+                        selectedVerification.departure_city,
+                        selectedVerification.departure_state,
+                        selectedVerification.departure_country,
+                      ])}
+                    />
+                    <InfoItem label="Departure Type" value={selectedVerification.departure_type} />
+                    <InfoItem
+                      label="Arrival"
+                      value={joinParts([
+                        selectedVerification.arrival_city,
+                        selectedVerification.arrival_state,
+                        selectedVerification.arrival_country,
+                      ])}
+                    />
+                    <InfoItem label="Arrival Type" value={selectedVerification.arrival_type} />
+                    <InfoItem label="Arrival Date" value={formatDate(selectedVerification.arrival_date)} full />
+                  </InfoSection>
+
+                  <InfoSection title="Cargo Details" icon={FiPackage}>
+                    <InfoItem label="Product Description" value={selectedVerification.product_description} full />
+                    <InfoItem label="Packing" value={selectedVerification.packing} />
+                    <InfoItem label="Incoterms" value={selectedVerification.incoterms} />
+                    <InfoItem label="Quantity" value={selectedVerification.quantity} />
+                    <InfoItem label="Weight" value={selectedVerification.weight} />
+                    <InfoItem label="Cargo Type" value={selectedVerification.cargo_type} />
+                    <InfoItem
+                      label="Dimensions (L × W × H)"
+                      value={(() => {
+                        const dims = joinParts(
+                          [selectedVerification.length, selectedVerification.width, selectedVerification.height],
+                          ' × '
+                        );
+                        if (!dims) return null;
+                        return `${dims}${selectedVerification.dimension_unit ? ` ${selectedVerification.dimension_unit}` : ''}`;
+                      })()}
+                    />
+                    <InfoItem label="Stackable" value={yesNo(selectedVerification.is_stackable)} />
+                    <InfoItem label="Hazardous" value={yesNo(selectedVerification.is_hazardous)} />
+                    <InfoItem label="Insurance" value={yesNo(selectedVerification.has_insurance)} />
+                  </InfoSection>
+                    </>
+                  )}
+
+                  <InfoSection title="Payment" icon={FiCreditCard}>
+                    <InfoItem label="Payment Method" value={getPaymentMethodName(selectedVerification.payment_method)} />
+                    <InfoItem label="Proof Uploaded" value={yesNo(selectedVerification.payment_proof_uploaded)} />
+                    <InfoItem label="PayPal Order ID" value={selectedVerification.paypal_order_id} />
+                    <InfoItem label="PayPal Payer ID" value={selectedVerification.paypal_payer_id} />
+                    <InfoItem label="Proof Date" value={formatDate(selectedVerification.payment_proof_date)} />
+                    {selectedVerification.payment_proof_url && (
+                      <InfoItem
+                        label="Proof of Payment"
+                        full
+                        value={
+                          <a
+                            href={selectedVerification.payment_proof_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 text-[#bca142] font-semibold hover:underline"
+                          >
+                            <FiExternalLink />
+                            View proof
+                            {selectedVerification.payment_proof_filename
+                              ? ` (${selectedVerification.payment_proof_filename})`
+                              : ''}
+                          </a>
+                        }
+                      />
                     )}
-                  </>
-                ) : (
-                  <>
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <h3 className="font-semibold text-black mb-2 text-sm">Subscription Details</h3>
-                      <p className="text-sm"><strong>Plan:</strong> {selectedVerification.plan_name}</p>
-                      <p className="text-sm"><strong>Amount:</strong> ${selectedVerification.amount_paid}</p>
-                      <p className="text-sm"><strong>Status:</strong> {selectedVerification.payment_status}</p>
-                      <p className="text-sm"><strong>Payment Method:</strong> {getPaymentMethodName(selectedVerification.payment_method)}</p>
-                    </div>
-                    
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <h3 className="font-semibold text-black mb-2 text-sm">Subscription Period</h3>
-                      <p className="text-sm"><strong>Start Date:</strong> {formatDate(selectedVerification.start_date)}</p>
-                      <p className="text-sm"><strong>End Date:</strong> {formatDate(selectedVerification.end_date)}</p>
-                      <p className="text-sm"><strong>Transaction Date:</strong> {formatDate(selectedVerification.created_at)}</p>
-                    </div>
-                  </>
-                )}
-              </div>
+                  </InfoSection>
+
+                  {showFullDetails && (selectedVerification.has_coupon === 1 || selectedVerification.coupon_original_amount != null) && (
+                    <InfoSection title="Coupon & Discount" icon={FiTag}>
+                      <InfoItem
+                        label="Original Amount"
+                        value={
+                          selectedVerification.coupon_original_amount != null
+                            ? format(selectedVerification.coupon_original_amount, 'USD')
+                            : null
+                        }
+                      />
+                      <InfoItem
+                        label="Discount"
+                        value={
+                          selectedVerification.coupon_discount_amount != null
+                            ? `- ${format(selectedVerification.coupon_discount_amount, 'USD')}`
+                            : null
+                        }
+                      />
+                      <InfoItem
+                        label="Final Amount"
+                        value={
+                          selectedVerification.coupon_final_amount != null
+                            ? format(selectedVerification.coupon_final_amount, 'USD')
+                            : null
+                        }
+                      />
+                      <InfoItem
+                        label="Discount Type"
+                        value={
+                          selectedVerification.coupon_discount_type
+                            ? `${selectedVerification.coupon_discount_type}${
+                                selectedVerification.coupon_discount_value != null
+                                  ? ` — ${selectedVerification.coupon_discount_value}`
+                                  : ''
+                              }`
+                            : null
+                        }
+                      />
+                    </InfoSection>
+                  )}
+
+                  {showFullDetails && selectedVerification.bank_name && (
+                    <InfoSection title="Bank Details" icon={FaUniversity}>
+                      <InfoItem label="Bank Name" value={selectedVerification.bank_name} />
+                      <InfoItem label="Account Holder" value={selectedVerification.account_holder_name} />
+                      <InfoItem label="Account Number" value={selectedVerification.account_number} />
+                      <InfoItem label="SWIFT Code" value={selectedVerification.swift_code} />
+                      <InfoItem label="IBAN" value={selectedVerification.iban_number} />
+                      <InfoItem label="Branch" value={selectedVerification.branch_name} />
+                      {selectedVerification.payment_instructions && (
+                        <InfoItem label="Payment Instructions" value={selectedVerification.payment_instructions} full />
+                      )}
+                    </InfoSection>
+                  )}
+
+                  {showFullDetails && (selectedVerification.inclusions ||
+                    selectedVerification.value_added_services ||
+                    selectedVerification.terms ||
+                    selectedVerification.response_notes ||
+                    selectedVerification.customer_notes) && (
+                    <InfoSection title="Terms & Inclusions" icon={FiFileText}>
+                      <InfoItem label="Inclusions" value={formatList(selectedVerification.inclusions)} full />
+                      <InfoItem
+                        label="Value Added Services"
+                        value={formatList(selectedVerification.value_added_services)}
+                        full
+                      />
+                      <InfoItem label="Terms" value={selectedVerification.terms} full />
+                      <InfoItem label="Response Notes" value={selectedVerification.response_notes} full />
+                      <InfoItem label="Customer Notes" value={selectedVerification.customer_notes} full />
+                    </InfoSection>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setShowFullDetails((v) => !v)}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[#bca142]/40 text-[#bca142] font-semibold text-sm hover:bg-[#bca142]/10 transition-colors"
+                  >
+                    <FiToggleRight className={`text-lg transition-transform ${showFullDetails ? 'rotate-180' : ''}`} />
+                    {showFullDetails ? 'Show less details' : 'Show full details'}
+                  </button>
+
+                  <InfoSection title="Verification Notes" icon={FiShield}>
+                    <InfoItem
+                      label="Notes"
+                      value={selectedVerification.verification_notes || selectedVerification.payment_notes}
+                      full
+                    />
+                  </InfoSection>
+                </>
+              ) : (
+                <>
+                  <InfoSection title="Subscription Details" icon={FiRepeat}>
+                    <InfoItem label="Plan" value={selectedVerification.plan_name} />
+                    <InfoItem
+                      label="Amount Paid"
+                      value={<span className="font-semibold text-[#bca142]">{format(selectedVerification.amount_paid)}</span>}
+                    />
+                    <InfoItem
+                      label="Payment Status"
+                      value={<span className="capitalize">{selectedVerification.payment_status || selectedVerification.status}</span>}
+                    />
+                    <InfoItem label="Payment Method" value={getPaymentMethodName(selectedVerification.payment_method)} />
+                    <InfoItem label="Transaction ID" value={selectedVerification.transaction_id} />
+                    <InfoItem label="Plan Price" value={format(selectedVerification.plan_price)} />
+                    <InfoItem
+                      label="Duration"
+                      value={
+                        selectedVerification.duration_months
+                          ? `${selectedVerification.duration_months} month${selectedVerification.duration_months > 1 ? 's' : ''}`
+                          : null
+                      }
+                    />
+                    <InfoItem label="Type" value={selectedVerification.type} />
+                  </InfoSection>
+
+                  <InfoSection title="Subscription Period" icon={FiCalendar}>
+                    <InfoItem label="Start Date" value={formatDate(selectedVerification.start_date)} />
+                    <InfoItem label="End Date" value={formatDate(selectedVerification.end_date)} />
+                    <InfoItem label="Transaction Date" value={formatDate(selectedVerification.created_at)} full />
+                  </InfoSection>
+                </>
+              )}
             </div>
           </div>
         </div>

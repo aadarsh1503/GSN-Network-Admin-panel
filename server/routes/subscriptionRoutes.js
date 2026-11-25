@@ -15,7 +15,8 @@ import {
     getAllSubscriptions,
     deletePlan,
     submitBankTransferRequest,
-    getCompanySubscriptionTransactions
+    getCompanySubscriptionTransactions,
+    getPaypalStatus
 } from '../controllers/subscriptionController.js';
 
 // Configure Cloudinary storage for payment proofs
@@ -46,6 +47,7 @@ const upload = multer({
 router.get('/plans', getPlans);
 
 // User routes
+router.get('/paypal-status', protect, getPaypalStatus);
 router.get('/my-subscription', protect, getMySubscription);
 router.post('/activate', protect, activateSubscription);
 router.post('/bank-transfer-request', protect, upload.single('paymentProof'), submitBankTransferRequest);

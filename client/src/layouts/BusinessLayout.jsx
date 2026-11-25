@@ -3,6 +3,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { 
   FaTachometerAlt, 
   FaQuoteLeft, 
+  FaPlus,
   FaBell, 
   FaComments, 
   FaUser, 
@@ -31,9 +32,16 @@ const BusinessLayout = () => {
   const [user, setUser] = useState(null);
   const [businessProfile, setBusinessProfile] = useState(null);
   const location = useLocation();
-  const { unreadCount, messageUnreadCount, quoteUnreadCount, forceResetUnreadCount } = useNotifications();
+  const { unreadCount, messageUnreadCount, quoteUnreadCount, forceResetUnreadCount, fetchMessageUnreadCount, fetchUnreadCount } = useNotifications();
   const { isLogoutModalOpen, openLogoutModal, closeLogoutModal } = useLogoutModal();
   const { percentage, isTracked } = useProfileCompletionContext();
+
+  // Refresh the sidebar badges on every navigation inside the panel
+  useEffect(() => {
+    fetchMessageUnreadCount();
+    fetchUnreadCount();
+  }, [location.pathname]);
+
   
   // WebSocket connection for real-time account status
   const { isConnected, accountStatus, clearAccountStatus, handleLogout: wsHandleLogout } = useAccountStatusWebSocket();
@@ -173,6 +181,11 @@ const BusinessLayout = () => {
       path: '/business/dashboard',
       icon: FaTachometerAlt,
       label: 'Dashboard'
+    },
+    {
+      path: '/quote',
+      icon: FaPlus,
+      label: 'New Quote'
     },
     {
       path: '/business/quotes',
@@ -382,11 +395,6 @@ const BusinessLayout = () => {
                     <span className="text-[10px] font-extrabold text-[#bca142]">{percentage}%</span>
                   </div>
                 </ProfileRing>
-                {isTracked && (percentage >= 100 ? (
-                  <span className="text-xs font-semibold text-green-600">Profile complete</span>
-                ) : (
-                  <span className="text-xs font-semibold text-[#bca142]">{percentage}%</span>
-                ))}
               </div>
               
               {/* Quick Stats */}

@@ -3,6 +3,7 @@ import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
 import { 
   FaTachometerAlt, 
   FaQuoteLeft, 
+  FaPlus,
   FaBell, 
   FaComments, 
   FaUser, 
@@ -160,6 +161,11 @@ const UserLayout = () => {
       path: '/user/dashboard',
       icon: FaTachometerAlt,
       label: 'Dashboard'
+    },
+    {
+      path: '/quote',
+      icon: FaPlus,
+      label: 'New Quote'
     },
     {
       path: '/user/quotes',
@@ -326,11 +332,9 @@ const UserLayout = () => {
                     {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                   </div>
                 </ProfileRing>
-                {isTracked && (percentage >= 100 ? (
-                  <span className="text-sm font-semibold text-green-600">Profile complete</span>
-                ) : (
+                {isTracked && percentage < 100 && (
                   <span className="text-sm font-medium text-gray-500">{percentage}%</span>
-                ))}
+                )}
               </div>
             </div>
           </div>

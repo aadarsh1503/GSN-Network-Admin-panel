@@ -22,13 +22,30 @@ const SubscriptionPage = () => {
   const [loading, setLoading] = useState(true);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [rate, setRate] = useState(2.6526);
+  const [billingCycle, setBillingCycle] = useState('monthly');
   const { withLoading } = useLoading();
   const { format, formatUsd, ready, currency, country, countrySource } = useCurrency();
+
+  const isYearly = billingCycle === 'yearly';
 
   // BHD is the base currency; amounts are shown in the visitor's local currency
   // with the USD equivalent as a live secondary line.
   const fmtBhd = (v) => format(v);
   const toUsd = (v) => (ready ? `≈ ${formatUsd(v)}` : `≈ $${(Number(v || 0) * rate).toFixed(2)}`);
+
+  // ── Billing cycle helpers ──────────────────────────────────────────────────
+  // A plan's yearly price is set by the admin; when it is not set we fall back
+  // to 10× the monthly rate, matching the server.
+  const yearlyPriceOf = (plan) => {
+    const y = parseFloat(plan?.yearly_price);
+    if (Number.isFinite(y) && y >= 0) return y;
+    return Number((parseFloat(plan?.price || 0) * 10).toFixed(2));
+  };
+  const cyclePrice = (plan) => (isYearly ? yearlyPriceOf(plan) : parseFloat(plan?.price || 0));
+  const cycleMonths = (plan) => (isYearly ? 12 : parseInt(plan?.duration_months, 10) || 1);
+  const cycleSuffix = isYearly ? '/yr' : '/mo';
+  // What the yearly total works out to per month.
+  const perMonthOf = (plan) => Number((cyclePrice(plan) / 12).toFixed(2));
 
   useEffect(() => {
     initializePage();
@@ -85,7 +102,7 @@ const SubscriptionPage = () => {
     if (!currentSubscription.plan_price || !currentSubscription.end_date) return null;
 
     const currentPlanPrice = parseFloat(currentSubscription.plan_price || 0);
-    const newPlanPrice = parseFloat(newPlan.price);
+    const newPlanPrice = cyclePrice(newPlan);
 
     const now = new Date();
     // Parse dates as LOCAL midnight (not UTC) to avoid timezone-off-by-one-day bugs
@@ -111,7 +128,7 @@ const SubscriptionPage = () => {
       currentPlanPrice: currentPlanPrice.toFixed(2),
       currentPlanName: currentSubscription.plan_name,
       newPlanPrice: newPlanPrice.toFixed(2),
-      newPlanDurationMonths: parseInt(newPlan.duration_months || 1),
+      newPlanDurationMonths: cycleMonths(newPlan),
       daysRemaining,
       totalDaysInPeriod,
       unusedValue: unusedValue.toFixed(2),
@@ -161,10 +178,20 @@ const SubscriptionPage = () => {
       proration = calculateProration(plan);
     }
 
+    // The checkout page works off a single price/duration, so hand it a plan
+    // shaped for the selected cycle (a yearly plan bills 12 months at the
+    // annual rate). The server re-derives the same terms from `billingCycle`.
+    const checkoutPlan = {
+      ...plan,
+      price: cyclePrice(plan),
+      duration_months: cycleMonths(plan),
+    };
+
     navigate('/payment', {
       state: {
-        plan: plan,
+        plan: checkoutPlan,
         prorationDetails: proration,
+        billingCycle,
       },
     });
   };
@@ -282,6 +309,46 @@ const SubscriptionPage = () => {
             </div>
           )}
 
+          {/* ---------- Billing cycle toggle ---------- */}
+          {plans && plans.length > 0 && (
+            <div className="mb-8 flex justify-center">
+              <div
+                className="relative inline-flex items-center rounded-full border border-[#bca142]/30 bg-white p-1 shadow-[0_10px_30px_-24px_rgba(188,161,66,0.9)]"
+                role="tablist"
+                aria-label="Billing cycle"
+              >
+                {/* Sliding highlight — pinned to the button width so it never
+                    spills past the pill's rounded border */}
+                <span
+                  className="pointer-events-none absolute inset-y-1 left-1 w-36 rounded-full bg-gradient-to-r from-[#e2c66a] to-[#bca142] shadow-[0_8px_20px_-10px_rgba(188,161,66,1)] transition-transform duration-300 ease-out"
+                  style={{ transform: isYearly ? 'translateX(100%)' : 'translateX(0)' }}
+                />
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={!isYearly}
+                  onClick={() => setBillingCycle('monthly')}
+                  className={`relative z-10 w-36 rounded-full px-5 py-2.5 text-sm font-bold tracking-wide transition-colors duration-200 ${
+                    isYearly ? 'text-gray-500 hover:text-gray-700' : 'text-white'
+                  }`}
+                >
+                  Monthly
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={isYearly}
+                  onClick={() => setBillingCycle('yearly')}
+                  className={`relative z-10 w-36 rounded-full px-5 py-2.5 text-sm font-bold tracking-wide transition-colors duration-200 ${
+                    isYearly ? 'text-white' : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Yearly
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* ---------- Plans Grid ---------- */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
             {plans && plans.length > 0 ? (
@@ -363,11 +430,11 @@ const SubscriptionPage = () => {
                             return proration ? (
                               <div className="space-y-2">
                                 <div className="text-sm text-gray-400 line-through break-words">
-                                  Original: {fmtBhd(proration.newPlanPrice)}
+                                  Original: {fmtBhd(proration.newPlanPrice)}{cycleSuffix}
                                 </div>
                                 <div className="text-2xl sm:text-3xl font-extrabold leading-tight break-words text-[#bca142]">
                                   {fmtBhd(proration.amountToCharge)}
-                                  <span className="text-lg font-normal text-gray-500">/mo</span>
+                                  <span className="text-lg font-normal text-gray-500">{cycleSuffix}</span>
                                 </div>
                                 <div className="text-xs text-gray-500">
                                   {toUsd(proration.amountToCharge)}
@@ -397,18 +464,23 @@ const SubscriptionPage = () => {
                               </div>
                             ) : (
                               <div className="text-2xl sm:text-3xl font-extrabold leading-tight break-words text-black">
-                                {fmtBhd(plan.price)}
-                                <span className="text-lg font-normal text-gray-500">/mo</span>
+                                {fmtBhd(cyclePrice(plan))}
+                                <span className="text-lg font-normal text-gray-500">{cycleSuffix}</span>
                               </div>
                             );
                           })()}
                         {planRelation !== 'upgrade' && (
                           <div className="text-2xl sm:text-3xl font-extrabold leading-tight break-words text-black">
-                            {fmtBhd(plan.price)}
-                            <span className="text-lg font-normal text-gray-500">/mo</span>
+                            {fmtBhd(cyclePrice(plan))}
+                            <span className="text-lg font-normal text-gray-500">{cycleSuffix}</span>
                           </div>
                         )}
-                        <div className="text-xs text-gray-500 mt-1">{toUsd(plan.price)}</div>
+                        <div className="text-xs text-gray-500 mt-1">{toUsd(cyclePrice(plan))}</div>
+                        {isYearly && !isGuestPlan && planRelation !== 'upgrade' && (
+                          <div className="mt-1 text-xs font-semibold text-[#8a7628]">
+                            ≈ {fmtBhd(perMonthOf(plan))}/mo
+                          </div>
+                        )}
                       </div>
 
                       <div className="mb-8 flex-grow">

@@ -3,7 +3,6 @@ import { useLocation } from 'react-router-dom';
 import { 
   FaInbox, 
   FaPaperPlane, 
-  FaUser, 
   FaEnvelope,
   FaSearch,
   FaReply,
@@ -13,11 +12,13 @@ import {
 } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { api } from '../../utils/api';
+import { useNotifications } from '../../contexts/NotificationContext';
 import RoleBadge from '../../components/RoleBadge/RoleBadge';
 import UserAvatar from '../../components/UserAvatar/UserAvatar';
 import { getConversationHeaderInfo, getMessageSenderInfo } from '../../utils/userRoleUtils';
 
 const BusinessMessages = () => {
+  const { fetchMessageUnreadCount } = useNotifications();
   const location = useLocation();
   const messagesEndRef = useRef(null);
   const [conversations, setConversations] = useState([]);
@@ -63,6 +64,11 @@ const BusinessMessages = () => {
     }
     
     console.log('✅ Authentication verified, fetching data...');
+    // Opening the Messages page clears the unread badge for this panel
+    api.put('/api/messages/read-all')
+      .then(() => fetchMessageUnreadCount())
+      .catch((error) => console.error('Error clearing unread messages:', error));
+
     fetchConversations();
     fetchUnreadCount();
   }, []);
@@ -272,36 +278,38 @@ const BusinessMessages = () => {
         </div>
       </div>
 
-      <div className="flex-1 bg-white rounded-lg shadow overflow-hidden">
+      <div className="flex-1 bg-white rounded-2xl ring-1 ring-gray-100 shadow-[0_12px_40px_-24px_rgba(15,23,42,0.35)] overflow-hidden">
         <div className="flex h-[calc(100vh-200px)]">
           {/* Conversations List - Independent Scrolling */}
-          <div className="w-1/3 border-r border-gray-200 flex flex-col">
+          <div className="w-1/3 border-r border-gray-200/80 flex flex-col bg-gradient-to-b from-white to-[#fbfaf6]">
             {/* Header */}
-            <div className="border-b border-gray-200 py-3 px-4">
-              <p className="text-sm font-medium text-gray-700">All Conversations</p>
+            <div className="px-4 py-3 border-b border-gray-200/80 bg-gradient-to-r from-white via-white to-[#fbf7ea]">
+              <p className="text-xs font-bold uppercase tracking-wider text-gray-500">All Conversations</p>
             </div>
 
             {/* Search */}
-            <div className="p-4 border-b border-gray-200">
+            <div className="p-3 border-b border-gray-200/70">
               <div className="relative">
-                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <FaSearch className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
                 <input
                   type="text"
                   placeholder="Search messages..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 bg-gray-100 border border-transparent rounded-full text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#bca142]/40 transition-all duration-300"
                 />
               </div>
             </div>
 
             {/* Conversations List - Independent Scrolling */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto p-2 space-y-1">
               {filteredConversations.length === 0 ? (
-                <div className="p-4 text-center text-gray-500">
-                  <FaEnvelope className="mx-auto mb-2" size={24} />
-                  <p>No conversations found</p>
-                  {searchTerm && <p className="text-sm">Try adjusting your search</p>}
+                <div className="text-center py-10 text-gray-500">
+                  <div className="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <FaEnvelope size={22} className="text-gray-400" />
+                  </div>
+                  <p className="text-sm font-medium text-gray-600">No conversations found</p>
+                  {searchTerm && <p className="text-xs text-gray-400 mt-1">Try adjusting your search</p>}
                 </div>
               ) : (
                 filteredConversations.map((conv) => {
@@ -311,9 +319,9 @@ const BusinessMessages = () => {
                     <div
                       key={conv.other_user_id}
                       onClick={() => handleSelectConversation(conv)}
-                      className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
-                        isSelected ? 'bg-yellow-50 border-yellow-200' : ''
-                      } ${conv.unread_count > 0 ? 'bg-yellow-25' : ''}`}
+                      className={`p-2.5 rounded-xl cursor-pointer transition-all duration-300 border ${
+                        isSelected ? 'bg-[#bca142]/10 border-[#bca142]/40 shadow-lg' : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                      } ${conv.unread_count > 0 ? 'ring-2 ring-[#bca142]/20' : ''}`}
                     >
                       <div className="flex items-start">
                         {conv.other_user_logo ? (
@@ -342,7 +350,7 @@ const BusinessMessages = () => {
                           <p className="text-xs text-gray-500 truncate mt-1">
                             {conv.last_message}
                           </p>
-                          {conv.has_system_messages && (
+                          {!!conv.has_system_messages && (
                             <div className="flex items-center gap-1 mt-1">
                               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                               <span className="text-xs text-green-600">System Updates</span>
@@ -357,29 +365,33 @@ const BusinessMessages = () => {
             </div>
           </div>
 
-          {/* Chat Area */}
-          <div className="flex-1 flex flex-col">
+          {/* Main Chat Area */}
+          <div className="flex-1 flex flex-col bg-[#fbfaf6]">
             {selectedConversation ? (
               <>
                 {/* Chat Header */}
-                <div className="p-4 border-b border-gray-200">
-                  <div className="flex items-center">
-                    {selectedConversation.logo ? (
-                      <img src={selectedConversation.logo} alt={selectedConversation.userName} className="w-10 h-10 rounded-full object-cover mr-3" />
-                    ) : (
-                      <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center mr-3">
-                        <FaBuilding className="text-gray-600" />
-                      </div>
-                    )}
-                    <div>
-                      <h2 className="font-semibold text-gray-800">{selectedConversation.userName}</h2>
-                      <p className="text-sm text-gray-500">Company</p>
+                <div className="flex items-center gap-3 px-5 py-3.5 border-b border-gray-100 bg-white shadow-[0_6px_22px_-20px_rgba(15,23,42,0.6)] relative z-10">
+                  {selectedConversation.logo ? (
+                    <img src={selectedConversation.logo} alt={selectedConversation.userName} className="w-10 h-10 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                      <FaBuilding className="text-gray-600" />
                     </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h2 className="font-bold text-gray-900 text-[15px] truncate">{selectedConversation.userName}</h2>
+                    <p className="text-xs text-gray-500">Company</p>
                   </div>
                 </div>
 
                 {/* Messages */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+                <div
+                  className="flex-1 overflow-y-auto p-5 space-y-3 bg-[#faf7ef]"
+                  style={{
+                    backgroundImage: 'radial-gradient(rgba(188,161,66,0.10) 1px, transparent 1px)',
+                    backgroundSize: '20px 20px'
+                  }}
+                >
                   {conversationLoading ? (
                     // Futuristic Loader
                     <div className="flex items-center justify-center h-full">
@@ -466,19 +478,60 @@ const BusinessMessages = () => {
                     
                     return (
                       <div key={msg.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[70%] ${isOwn ? 'bg-[#bca142] text-white' : 'bg-white'} rounded-lg p-3 shadow-sm`}>
+                        <div className={`relative max-w-[72%] px-4 py-2.5 transition-all duration-300 rounded-2xl ${
+                          isOwn
+                            ? 'bg-gradient-to-br from-[#c9ad55] to-[#a88c2f] text-white rounded-br-md shadow-[0_12px_26px_-12px_rgba(150,124,45,0.9)]'
+                            : 'bg-white border border-gray-100 text-gray-800 rounded-bl-md shadow-[0_10px_24px_-18px_rgba(15,23,42,0.6)]'
+                        }`}>
+                          <span className={`absolute -bottom-[5px] w-3 h-3 rotate-45 rounded-[2px] ${
+                            isOwn ? 'right-4 bg-[#a88c2f]' : 'left-4 bg-white'
+                          }`}></span>
                           {!isOwn && (
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className="w-4 h-4 bg-blue-100 rounded-md flex items-center justify-center">
-                                <FaUser size={10} className="text-blue-600" />
-                              </div>
-                              <span className="text-xs font-semibold text-gray-600">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <UserAvatar
+                                user={{
+                                  name: msg.sender_display_name || msg.sender_name || 'User',
+                                  role: msg.sender_role || 'user'
+                                }}
+                                size="xs"
+                                showRoleIndicator={false}
+                              />
+                              <span className="text-xs font-semibold text-[#a88c2f]">
                                 {msg.sender_role === 'admin' ? 'Admin' : (msg.sender_display_name || msg.sender_name || 'User')}
                               </span>
+                              <RoleBadge
+                                role={msg.sender_role || 'user'}
+                                size="sm"
+                                showIcon={true}
+                                showPremium={false}
+                                className="ml-0.5"
+                              />
                             </div>
                           )}
-                          <p className="text-sm">{msg.message}</p>
-                          <p className={`text-xs mt-1 ${isOwn ? 'text-yellow-100' : 'text-gray-400'}`}>
+                          {isOwn && (
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <UserAvatar
+                                user={{
+                                  name: currentUser.name,
+                                  role: currentUser.role || 'business'
+                                }}
+                                size="xs"
+                                showRoleIndicator={false}
+                              />
+                              <span className="text-xs font-semibold text-yellow-100">
+                                You
+                              </span>
+                              <RoleBadge
+                                role={currentUser.role || 'business'}
+                                size="sm"
+                                showIcon={true}
+                                showPremium={false}
+                                className="ml-0.5 bg-yellow-200/20! text-yellow-100!"
+                              />
+                            </div>
+                          )}
+                          <p className="text-sm leading-relaxed whitespace-pre-line">{msg.message}</p>
+                          <p className={`text-[10px] mt-1 font-medium ${isOwn ? 'text-yellow-100/80' : 'text-gray-400'}`}>
                             {formatDate(msg.created_at)}
                           </p>
                         </div>
@@ -495,19 +548,19 @@ const BusinessMessages = () => {
                 </div>
 
                 {/* Message Input */}
-                <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-200 bg-white">
-                  <div className="flex gap-2">
+                <form onSubmit={handleSendMessage} className="p-3 border-t border-gray-100 bg-white">
+                  <div className="flex items-center gap-2 bg-[#fbfaf6] border border-gray-100 rounded-full pl-4 pr-1.5 py-1.5 shadow-[0_10px_28px_-20px_rgba(15,23,42,0.6)] focus-within:ring-2 focus-within:ring-[#bca142]/30 focus-within:border-[#bca142]/30 transition-all duration-300">
                     <input
                       type="text"
                       placeholder="Type a message..."
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
-                      className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 bg-transparent text-sm text-gray-800 placeholder-gray-400 focus:outline-none"
                     />
                     <button
                       type="submit"
                       disabled={sendingMessage || !newMessage.trim()}
-                      className="bg-[#bca142] text-white px-6 py-3 rounded-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="shrink-0 w-10 h-10 flex items-center justify-center bg-gradient-to-br from-[#c9ad55] to-[#a88c2f] text-white rounded-full shadow-[0_8px_20px_-6px_rgba(188,161,66,0.8)] transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
                     >
                       {sendingMessage ? (
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -519,10 +572,12 @@ const BusinessMessages = () => {
                 </form>
               </>
             ) : (
-              <div className="flex-1 flex items-center justify-center text-gray-500">
+              <div className="flex-1 flex items-center justify-center">
                 <div className="text-center">
-                  <FaEnvelope className="mx-auto mb-4" size={48} />
-                  <p>Select a conversation to start messaging</p>
+                  <div className="w-16 h-16 rounded-2xl bg-white ring-1 ring-[#bca142]/20 shadow-[0_12px_30px_-18px_rgba(188,161,66,0.8)] flex items-center justify-center mx-auto mb-4">
+                    <FaEnvelope size={28} className="text-[#bca142]" />
+                  </div>
+                  <p className="text-gray-500 font-medium">Select a conversation to start messaging</p>
                 </div>
               </div>
             )}

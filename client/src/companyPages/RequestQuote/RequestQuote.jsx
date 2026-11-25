@@ -22,6 +22,22 @@ import AccountTypeSelectionModal from '../../components/Modal/AccountTypeSelecti
 const fieldBase =
   'w-full rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 transition-all duration-200 hover:border-slate-300 focus:border-[#bca142] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#bca142]/10';
 
+// Fields that must contain a number only (digits + a single decimal point).
+const NUMERIC_FIELDS = ['quantity', 'weight', 'length', 'width', 'height'];
+
+// Strips anything that is not a digit or a decimal point, and keeps at most
+// one decimal point, so quantity/weight/dimensions can never hold letters.
+const sanitizeNumber = (raw) => {
+  let v = String(raw).replace(/[^0-9.]/g, '');
+  const dot = v.indexOf('.');
+  if (dot !== -1) {
+    v = v.slice(0, dot + 1) + v.slice(dot + 1).replace(/\./g, '');
+  }
+  // A lone "." becomes "0." so values like ".5" can still be typed.
+  if (v === '.') v = '0.';
+  return v;
+};
+
 const FieldLabel = ({ htmlFor, label, required = false }) => (
   <label htmlFor={htmlFor} className="mb-2 block text-sm font-medium text-slate-700">
     {label} {required && <span className="text-rose-500">*</span>}
@@ -29,7 +45,7 @@ const FieldLabel = ({ htmlFor, label, required = false }) => (
 );
 
 // --- Reusable Form Field Components ---
-const InputField = ({ label, name, placeholder, required = false, value, onChange, type = 'text', min, max, hint }) => (
+const InputField = ({ label, name, placeholder, required = false, value, onChange, type = 'text', min, max, maxLength, numeric = false, hint }) => (
   <div>
     <FieldLabel htmlFor={name} label={label} required={required} />
     <input
@@ -41,6 +57,8 @@ const InputField = ({ label, name, placeholder, required = false, value, onChang
       placeholder={placeholder}
       min={min}
       max={max}
+      maxLength={maxLength}
+      inputMode={numeric ? 'decimal' : undefined}
       className={fieldBase}
     />
     {hint && <p className="mt-1.5 text-xs text-slate-400">{hint}</p>}
@@ -300,10 +318,12 @@ const RequestQuote = () => {
     departureCountry: '',
     departureState: '',
     departureCity: '',
+    departureAddress: '',
     departureType: '',
     arrivalCountry: '',
     arrivalState: '',
     arrivalCity: '',
+    arrivalAddress: '',
     arrivalType: '',
     productDescription: '',
     packing: '',
@@ -323,9 +343,11 @@ const RequestQuote = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
+    // Numeric-only fields never store letters or stray symbols.
+    const nextValue = NUMERIC_FIELDS.includes(name) ? sanitizeNumber(value) : value;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : nextValue
     }));
 
     // Handle departure location cascading
@@ -334,7 +356,8 @@ const RequestQuote = () => {
         ...prev,
         departureCountry: value,
         departureState: '',
-        departureCity: ''
+        departureCity: '',
+        departureAddress: ''
       }));
       setDepartureStates([]);
       setDepartureCities([]);
@@ -345,7 +368,8 @@ const RequestQuote = () => {
       setFormData(prev => ({
         ...prev,
         departureState: value,
-        departureCity: ''
+        departureCity: '',
+        departureAddress: ''
       }));
       setDepartureCities([]);
       if (value && formData.departureCountry) {
@@ -359,7 +383,8 @@ const RequestQuote = () => {
         ...prev,
         arrivalCountry: value,
         arrivalState: '',
-        arrivalCity: ''
+        arrivalCity: '',
+        arrivalAddress: ''
       }));
       setArrivalStates([]);
       setArrivalCities([]);
@@ -370,7 +395,8 @@ const RequestQuote = () => {
       setFormData(prev => ({
         ...prev,
         arrivalState: value,
-        arrivalCity: ''
+        arrivalCity: '',
+        arrivalAddress: ''
       }));
       setArrivalCities([]);
       if (value && formData.arrivalCountry) {
@@ -464,20 +490,37 @@ const RequestQuote = () => {
       return;
     }
 
+    // The optional extra address is folded into the city value, so the server
+    // stores/prints a single "City, Address" string and every screen that
+    // already shows the city shows the address too — no changes needed there.
+    const quotePayload = {
+      ...formData,
+      departureCity: [formData.departureCity, formData.departureAddress]
+        .map((part) => (part || '').trim())
+        .filter(Boolean)
+        .join(', '),
+      arrivalCity: [formData.arrivalCity, formData.arrivalAddress]
+        .map((part) => (part || '').trim())
+        .filter(Boolean)
+        .join(', '),
+    };
+    delete quotePayload.departureAddress;
+    delete quotePayload.arrivalAddress;
+
     // Check if user is logged in
     const token = localStorage.getItem('token');
     const user = JSON.parse(localStorage.getItem('user') || '{}');
 
     // Check if company member is trying to submit
     if (user.id && user.role === 'company') {
-      setPendingQuoteData(formData);
+      setPendingQuoteData(quotePayload);
       setShowRestrictionModal(true);
       return;
     }
 
     if (!token || !user.id) {
       // User is not logged in, store quote data and show account type selection modal
-      localStorage.setItem('pendingQuote', JSON.stringify(formData));
+      localStorage.setItem('pendingQuote', JSON.stringify(quotePayload));
       setShowAccountTypeModal(true);
       return;
     }
@@ -485,7 +528,7 @@ const RequestQuote = () => {
     // User is logged in, submit the quote
     setLoading(true);
     try {
-      await api.post('/api/quotes/submit', formData);
+      await api.post('/api/quotes/submit', quotePayload);
 
       toast.success('Quote request submitted successfully!');
 
@@ -507,10 +550,12 @@ const RequestQuote = () => {
         departureCountry: '',
         departureState: '',
         departureCity: '',
+        departureAddress: '',
         departureType: '',
         arrivalCountry: '',
         arrivalState: '',
         arrivalCity: '',
+        arrivalAddress: '',
         arrivalType: '',
         productDescription: '',
         packing: '',
@@ -689,6 +734,17 @@ const RequestQuote = () => {
                         <option value="warehouse">Warehouse</option>
                         <option value="factory">Factory</option>
                       </SelectField>
+                      <div className="sm:col-span-2 xl:col-span-4">
+                        <InputField
+                          label="Additional address (optional)"
+                          name="departureAddress"
+                          value={formData.departureAddress}
+                          onChange={handleInputChange}
+                          placeholder="Street, building, landmark, warehouse no."
+                          maxLength={120}
+                          hint="Optional — saved and shown together with the city."
+                        />
+                      </div>
                     </div>
                   </div>
 
@@ -743,6 +799,17 @@ const RequestQuote = () => {
                         <option value="warehouse">Warehouse</option>
                         <option value="factory">Factory</option>
                       </SelectField>
+                      <div className="sm:col-span-2 xl:col-span-4">
+                        <InputField
+                          label="Additional address (optional)"
+                          name="arrivalAddress"
+                          value={formData.arrivalAddress}
+                          onChange={handleInputChange}
+                          placeholder="Street, building, landmark, warehouse no."
+                          maxLength={120}
+                          hint="Optional — saved and shown together with the city."
+                        />
+                      </div>
                     </div>
                   </div>
                 </section>
@@ -799,6 +866,7 @@ const RequestQuote = () => {
                       value={formData.quantity}
                       onChange={handleInputChange}
                       placeholder="Quantity"
+                      numeric
                       required
                     />
                   </div>
@@ -809,6 +877,7 @@ const RequestQuote = () => {
                       value={formData.weight}
                       onChange={handleInputChange}
                       placeholder="Weight (kg)"
+                      numeric
                       required
                     />
                     <SelectField
@@ -842,6 +911,7 @@ const RequestQuote = () => {
                       value={formData.length}
                       onChange={handleInputChange}
                       placeholder="Length"
+                      numeric
                       required
                     />
                     <InputField
@@ -850,6 +920,7 @@ const RequestQuote = () => {
                       value={formData.width}
                       onChange={handleInputChange}
                       placeholder="Width"
+                      numeric
                       required
                     />
                     <InputField
@@ -858,6 +929,7 @@ const RequestQuote = () => {
                       value={formData.height}
                       onChange={handleInputChange}
                       placeholder="Height"
+                      numeric
                       required
                     />
                     <SelectField

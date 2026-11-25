@@ -117,7 +117,7 @@ export const ROLE_CHECKLISTS = {
           { key: 'logo', label: 'Business logo' },
         ],
       },
-      { ...BANK_STEP, link: '/business/profile' },
+      { ...BANK_STEP, link: '/business/profile', hint: 'Add your bank account — we need it to settle payments and keep your deal running smoothly.' },
     ],
   },
   user: {
@@ -144,13 +144,12 @@ export const ROLE_CHECKLISTS = {
         weight: 25,
         required: false,
         link: '/user/profile',
-        hint: 'A profile photo and location build trust with service providers.',
+        hint: 'A profile photo builds trust with service providers.',
         items: [
           { key: 'logo', label: 'Profile photo' },
-          { key: 'city', label: 'City' },
         ],
       },
-      { ...BANK_STEP, link: '/user/profile' },
+      { ...BANK_STEP, link: '/user/profile', hint: 'Add your bank account — we need it to settle payments and keep your deal running smoothly.' },
     ],
   },
 };

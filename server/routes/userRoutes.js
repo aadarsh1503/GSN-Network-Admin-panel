@@ -34,7 +34,9 @@ import {
     refreshToken,
     keepAlive,
     adminGetUserDetails,
-    adminDeleteUser
+    adminDeleteUser,
+    adminExportUsers,
+    adminBulkImportUsers
 } from '../controllers/userController.js';
 
 // Public Routes
@@ -87,6 +89,10 @@ router.put('/company-profile/:id', protect, authorize('admin'), updateCompanyPro
 // Admin routes for full user details + deletion (user / business / company)
 router.get('/admin-details/:role/:id', protect, authorize('admin'), adminGetUserDetails);
 router.delete('/admin-delete/:id', protect, authorize('admin'), adminDeleteUser);
+
+// Admin bulk import / export for user, business and company lists
+router.get('/admin-export/:role', protect, authorize('admin'), adminExportUsers);
+router.post('/admin-bulk-import', protect, authorize('admin'), adminBulkImportUsers);
 
 // Help & Support routes for users
 router.post('/help/ticket', protect, submitUserTicket);

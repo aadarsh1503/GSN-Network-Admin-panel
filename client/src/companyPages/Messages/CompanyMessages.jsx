@@ -11,11 +11,13 @@ import {
 } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { api } from '../../utils/api';
+import { useNotifications } from '../../contexts/NotificationContext';
 import RoleBadge from '../../components/RoleBadge/RoleBadge';
 import UserAvatar from '../../components/UserAvatar/UserAvatar';
 import { getConversationHeaderInfo, getMessageSenderInfo } from '../../utils/userRoleUtils';
 
 const CompanyMessages = () => {
+  const { fetchMessageUnreadCount } = useNotifications();
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [conversationMessages, setConversationMessages] = useState([]);
@@ -26,36 +28,54 @@ const CompanyMessages = () => {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    fetchConversations();
+    initialize();
+  }, []);
+
+  const initialize = async () => {
+    // Opening the Messages page clears the unread badge for this panel
+    try {
+      await api.put('/api/messages/read-all');
+      fetchMessageUnreadCount();
+    } catch (error) {
+      console.error('Error clearing unread messages:', error);
+    }
+
+    const data = await fetchConversations();
     fetchUnreadCount();
-    
-    // Check for URL parameters to auto-select a conversation
+
+    // Auto-open the chat requested from another page (e.g. Available Quotes)
     const urlParams = new URLSearchParams(window.location.search);
     const recipientId = urlParams.get('recipient');
     const recipientName = urlParams.get('name');
-    
-    if (recipientId && recipientName) {
-      // Auto-select this conversation
-      setTimeout(() => {
-        handleSelectConversation({
-          other_user_id: parseInt(recipientId),
-          other_user_name: decodeURIComponent(recipientName),
+
+    if (recipientId) {
+      const existing = (data || []).find(
+        (conv) => String(conv.other_user_id) === String(recipientId)
+      );
+
+      handleSelectConversation(
+        existing || {
+          other_user_id: parseInt(recipientId, 10),
+          other_user_name: recipientName ? decodeURIComponent(recipientName) : 'Customer',
           other_user_logo: null,
+          other_user_role: 'user',
           unread_count: 0
-        });
-      }, 1000);
+        }
+      );
     }
-  }, []);
+  };
 
   const fetchConversations = async () => {
     setLoading(true);
     try {
       const data = await api.get('/api/messages/conversations');
       setConversations(data || []);
+      return data || [];
     } catch (error) {
       console.error('Error fetching conversations:', error);
       toast.error('Failed to fetch conversations');
       setConversations([]);
+      return [];
     } finally {
       setLoading(false);
     }
@@ -404,7 +424,7 @@ const CompanyMessages = () => {
                                 role={currentUser.role || 'company'}
                                 size="sm"
                                 showIcon={true}
-                                className="ml-1 bg-yellow-200/20 text-yellow-100"
+                                className="ml-1 bg-yellow-200/20! text-yellow-100!"
                               />
                             </div>
                           )}

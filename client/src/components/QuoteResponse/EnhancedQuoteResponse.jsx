@@ -8,9 +8,12 @@ import { FaPaypal } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import api from '../../utils/api';
 import { useProfileCompletionContext } from '../../contexts/ProfileCompletionContext';
+import { useCurrency } from '../../contexts/CurrencyContext';
 import "./enhence.css"
 const EnhancedQuoteResponse = ({ quote, onClose, onSuccess }) => {
   const { missingRequired } = useProfileCompletionContext();
+  // The company types the amount in its own currency; quote prices are stored in USD.
+  const { currency, convert, formatUsd, ready } = useCurrency();
   const [bankDetails, setBankDetails] = useState([]);
   const [selectedBankId, setSelectedBankId] = useState('');
   const [companyPaypal, setCompanyPaypal] = useState('');
@@ -92,12 +95,18 @@ const EnhancedQuoteResponse = ({ quote, onClose, onSuccess }) => {
       return;
     }
 
+    // The typed amount is in the company's own currency; store it in USD.
+    if (!ready) {
+      toast.error('Currency rates are still loading. Please try again in a moment.');
+      return;
+    }
+
     setLoading(true);
     
     try {
       const payload = {
         quoteId: quote.id,
-        price: parseFloat(responseData.amount),
+        price: Number(convert(responseData.amount, currency, 'USD').toFixed(2)),
         transitTime: responseData.transit_time || '5-7 days',
         inclusions: responseData.description,
         valueAddedServices: '',
@@ -228,10 +237,12 @@ const EnhancedQuoteResponse = ({ quote, onClose, onSuccess }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="amount" className="block text-sm font-semibold text-black mb-2">
-                    Quote Amount ($) *
+                    Quote Amount ({ready ? currency : 'USD'}) *
                   </label>
                  <div className="relative">
-  <FiDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#bca142]" />
+  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#bca142] text-sm font-semibold">
+    {ready ? currency : 'USD'}
+  </span>
   <input
     type="number"
     id="amount"
@@ -240,10 +251,15 @@ const EnhancedQuoteResponse = ({ quote, onClose, onSuccess }) => {
     onChange={handleInputChange}
     min="0"
     required
-    className="no-spinner w-full pl-10 pr-4 py-3 border-2 border-[#bca142]/30 rounded-xl focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142] transition-colors"
+    className="no-spinner w-full pl-16 pr-4 py-3 border-2 border-[#bca142]/30 rounded-xl focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142] transition-colors"
     placeholder="Enter your quote amount"
   />
 </div>
+                  {responseData.amount && ready && (
+                    <p className="mt-1 text-xs text-gray-500">
+                      Customer pays ≈ {formatUsd(responseData.amount, currency)} (PayPal or bank transfer)
+                    </p>
+                  )}
 
                 </div>
 

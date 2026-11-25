@@ -2,14 +2,16 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaPaypal, FaUniversity, FaArrowLeft, FaShieldAlt, FaLock, FaWallet } from 'react-icons/fa';
 import { FiAlertCircle, FiUpload, FiRefreshCw } from 'react-icons/fi';
-import { subscriptionAPI, walletAPI, getPaypalClientId } from '../utils/api';
+import { subscriptionAPI, walletAPI, getPaypalClientId, isPaypalSandbox, getPaypalFeeConfig, computePaypalFee } from '../utils/api';
 import { useCurrency } from '../contexts/CurrencyContext';
 import toast from 'react-hot-toast';
 
 const PaymentPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { plan, prorationDetails } = location.state || {};
+  const { plan, prorationDetails, billingCycle = 'monthly' } = location.state || {};
+  const isYearly = billingCycle === 'yearly';
+  const cycleSuffix = isYearly ? '/yr' : '/mo';
 
   const [paymentMethod, setPaymentMethod] = useState('paypal');
   const [paypalLoaded, setPaypalLoaded] = useState(false);
@@ -19,6 +21,7 @@ const PaymentPage = () => {
   const [uploading, setUploading] = useState(false);
   const [hasPendingRequest, setHasPendingRequest] = useState(false);
   const [checkingPending, setCheckingPending] = useState(true);
+  const [paypalStatus, setPaypalStatus] = useState(null); // null = not known yet
   const paypalRef = useRef(null);
   const submitRef = useRef(false);
 
@@ -27,17 +30,19 @@ const PaymentPage = () => {
   const [walletLoading, setWalletLoading] = useState(true);
   const [walletError, setWalletError] = useState(false);
   const [rate, setRate] = useState(2.6526);
+  const [paypalFeeCfg, setPaypalFeeCfg] = useState(null);
   const [applyWallet, setApplyWallet] = useState(false);
-  const [walletAmount, setWalletAmount] = useState('');
+  // Typed in the buyer's own currency — converted to BHD before it is applied.
+  const [walletAmountLocal, setWalletAmountLocal] = useState('');
 
-  const { format, formatUsd } = useCurrency();
+  const { format, formatUsd, baseCurrency, paymentCurrency, currency, convert } = useCurrency();
 
   const baseAmountBhd = prorationDetails ? Number(prorationDetails.amountToCharge) : (plan ? Number(plan.price) : 0);
 
   // ── Load ───────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!plan) { navigate('/subscription'); return; }
-    getPaypalClientId().then((clientId) => loadPayPalScript(clientId));
+    fetchPaypalStatus();
     fetchBankDetails();
     checkPendingRequest();
     fetchWallet();
@@ -67,6 +72,12 @@ const PaymentPage = () => {
     } catch { /* keep last known rate */ }
   };
 
+  // The PayPal fee percentages are admin configuration — PayPal publishes no fee
+  // API — so they are fetched once and cached for the whole session.
+  useEffect(() => {
+    getPaypalFeeConfig().then(setPaypalFeeCfg).catch(() => {});
+  }, []);
+
   const refreshRate = async () => {
     try {
       const r = await walletAPI.getCurrencyRate(true);
@@ -76,11 +87,32 @@ const PaymentPage = () => {
     } catch { toast.error('Could not refresh rate'); }
   };
 
+  // PayPal only earns a place in the checkout when the server can actually
+  // confirm the payment. Without it the payment would silently fall back to
+  // "wait for admin approval", which is exactly what we want to avoid.
+  const fetchPaypalStatus = async () => {
+    let configured = true;
+    try {
+      const s = await subscriptionAPI.getPaypalStatus();
+      configured = s?.configured !== false;
+    } catch (e) {
+      console.error('Could not read PayPal status', e);
+    }
+    const clientId = configured ? await getPaypalClientId() : '';
+    const available = configured && Boolean(clientId);
+    setPaypalStatus({ configured: available });
+    if (available) loadPayPalScript(clientId);
+    else setPaymentMethod('bank');
+  };
+
+  const paypalAvailable = paypalStatus?.configured !== false;
+
   const loadPayPalScript = (clientId) => {
     if (!clientId) return;
     if (window.paypal) { setPaypalLoaded(true); return; }
     const script = document.createElement('script');
-    script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD`;
+    const host = isPaypalSandbox() ? 'https://www.sandbox.paypal.com' : 'https://www.paypal.com';
+    script.src = `${host}/sdk/js?client-id=${clientId}&currency=USD`;
     script.async = true;
     script.onload = () => setPaypalLoaded(true);
     script.onerror = () => toast.error('Failed to load PayPal. Please try bank transfer.');
@@ -99,6 +131,9 @@ const PaymentPage = () => {
       if (r && r.pending_request) {
         setHasPendingRequest(true);
         toast.error('You already have a pending subscription request.', { duration: 5000 });
+      } else {
+        setHasPendingRequest(false);
+        toast.success('No pending request — you can continue.', { duration: 4000 });
       }
     } catch (e) { console.error(e); }
     finally { setCheckingPending(false); }
@@ -112,37 +147,54 @@ const PaymentPage = () => {
   const minUsage = Number(settings.walletMinUsageBhd || 0);
   const maxUsableByPct = Number(((baseAmountBhd * maxPct) / 100).toFixed(3));
   const maxWalletUsable = Math.max(0, Math.min(walletBalance, maxUsableByPct));
+  // The wallet itself is stored in BHD, but the buyer types and reads the amount
+  // in their own currency, so convert on the way in and out.
+  const localMaxUsable = Number(convert(maxWalletUsable, baseCurrency, currency).toFixed(2));
+  const localToBhd = (value) => Number(convert(Number(value) || 0, currency, baseCurrency).toFixed(3));
 
   const walletAppliedBhd = applyWallet
-    ? Math.min(Number(walletAmount) || 0, maxWalletUsable, baseAmountBhd)
+    ? Math.min(localToBhd(walletAmountLocal), maxWalletUsable, baseAmountBhd)
     : 0;
   const externalDueBhd = Number((baseAmountBhd - walletAppliedBhd).toFixed(3));
   const walletOnly = applyWallet && externalDueBhd <= 0.0005;
 
+  // ── PayPal processing fee ─────────────────────────────────────────────────
+  // The gateway settles in USD, so that is the figure PayPal takes its cut from.
+  // The buyer is charged the grossed-up total so the plan price still nets out;
+  // the server recomputes the identical figure before activating. Bank transfer
+  // has no PayPal fee, so nothing changes on that path.
+  const buyerCountry = (() => {
+    try { return JSON.parse(localStorage.getItem('user') || '{}').country || null; } catch { return null; }
+  })();
+  const externalUsd = Number((externalDueBhd * rate).toFixed(2));
+  const paypalFee = computePaypalFee(externalUsd, paypalFeeCfg, buyerCountry);
+  const paypalChargeUsd = paymentMethod === 'paypal' && !walletOnly ? paypalFee.total : externalUsd;
+  const showFee = paymentMethod === 'paypal' && !walletOnly && paypalFee.enabled && paypalFee.fee > 0 && externalUsd > 0;
+
   // Default the wallet amount to the maximum usable when enabled
   useEffect(() => {
-    if (applyWallet && (walletAmount === '' || Number(walletAmount) === 0)) {
-      setWalletAmount(String(Math.min(maxWalletUsable, baseAmountBhd).toFixed(3)));
+    if (applyWallet && (walletAmountLocal === '' || Number(walletAmountLocal) === 0)) {
+      setWalletAmountLocal(localMaxUsable.toFixed(2));
     }
-    if (!applyWallet) setWalletAmount('');
+    if (!applyWallet) setWalletAmountLocal('');
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [applyWallet, maxWalletUsable, baseAmountBhd]);
+  }, [applyWallet, localMaxUsable, baseAmountBhd]);
 
   // Re-render PayPal when the external amount changes (non wallet-only)
   useEffect(() => {
-    if (paypalLoaded && paymentMethod === 'paypal' && plan && !checkingPending && !walletLoading && !walletError && !hasPendingRequest && !walletOnly) {
+    if (paypalAvailable && paypalLoaded && paymentMethod === 'paypal' && plan && !checkingPending && !walletLoading && !walletError && !hasPendingRequest && !walletOnly) {
       const timer = setTimeout(() => renderPayPalButtons(), 100);
       return () => clearTimeout(timer);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paypalLoaded, paymentMethod, plan, hasPendingRequest, checkingPending, walletLoading, walletError, externalDueBhd, walletOnly]);
+  }, [paypalAvailable, paypalLoaded, paymentMethod, plan, hasPendingRequest, checkingPending, walletLoading, walletError, paypalChargeUsd, walletOnly]);
 
   // ── PayPal ─────────────────────────────────────────────────────────────────
   const renderPayPalButtons = () => {
     if (!paypalRef.current || !window.paypal) return;
     paypalRef.current.innerHTML = '';
-    const externalUsd = Number((externalDueBhd * rate).toFixed(2));
-    if (!(externalUsd > 0)) return;
+    const chargeUsd = paypalChargeUsd;
+    if (!(chargeUsd > 0)) return;
 
     window.paypal.Buttons({
       createOrder: async (data, actions) => {
@@ -153,7 +205,7 @@ const PaymentPage = () => {
         return actions.order.create({
           purchase_units: [{
             description: `${plan.name} Plan${walletAppliedBhd > 0 ? ' (balance applied)' : ''}`,
-            amount: { currency_code: 'USD', value: externalUsd.toFixed(2) },
+            amount: { currency_code: 'USD', value: chargeUsd.toFixed(2) },
           }],
         });
       },
@@ -179,17 +231,22 @@ const PaymentPage = () => {
     if (submitRef.current) return;
     submitRef.current = true;
     try {
-      const t = toast.loading('Submitting your subscription request...');
-      await subscriptionAPI.activateSubscription(plan.id, 'paypal', {
+      const t = toast.loading('Verifying your payment...');
+      const res = await subscriptionAPI.activateSubscription(plan.id, 'paypal', {
         orderId: order.id,
         payerId: order.payer?.payer_id,
         paymentDetails: order,
         prorationApplied: !!prorationDetails,
         prorationDetails,
         walletAmountApplied: walletAppliedBhd,
+        billingCycle,
       });
       toast.dismiss(t);
-      toast.success('✅ Payment successful! Awaiting admin approval.', { duration: 5000 });
+      if (res?.autoActivated) {
+        toast.success('✅ Payment received! Your membership is now active.', { duration: 5000 });
+      } else {
+        toast.success('✅ Payment received! Your request is under review.', { duration: 5000 });
+      }
       setTimeout(() => navigate('/company/dashboard'), 2000);
     } catch (e) {
       submitRef.current = false;
@@ -209,11 +266,12 @@ const PaymentPage = () => {
           prorationApplied: true,
           prorationDetails,
           walletAmountApplied: walletAppliedBhd,
+          billingCycle,
         });
         toast.dismiss(t);
         toast.success('✅ Wallet payment submitted! Awaiting admin approval.', { duration: 5000 });
       } else {
-        const res = await walletAPI.paySubscriptionWithWallet({ planId: plan.id, walletAmount: walletAppliedBhd });
+        const res = await walletAPI.paySubscriptionWithWallet({ planId: plan.id, walletAmount: walletAppliedBhd, billingCycle });
         toast.dismiss(t);
         toast.success(res?.message || '✅ Subscription activated using your wallet!', { duration: 5000 });
       }
@@ -246,6 +304,7 @@ const PaymentPage = () => {
       fd.append('paymentMethod', 'bank_transfer');
       fd.append('paymentProof', paymentProof);
       fd.append('walletAmountApplied', String(walletAppliedBhd));
+      fd.append('billingCycle', billingCycle);
       if (prorationDetails) { fd.append('prorationApplied', 'true'); fd.append('prorationDetails', JSON.stringify(prorationDetails)); }
       await subscriptionAPI.submitBankTransferRequest(fd);
       toast.success('✅ Payment proof submitted! Admin will review.', { duration: 5000 });
@@ -298,7 +357,9 @@ const PaymentPage = () => {
                 <span className="text-[10px] font-bold uppercase tracking-widest text-[#bca142]">Secure Checkout</span>
               </div>
               <h1 className="text-xl font-bold text-gray-800">Complete Your Payment</h1>
-              <p className="text-sm text-gray-400 mt-0.5">{plan.name} · {plan.duration_months} month{plan.duration_months > 1 ? 's' : ''}</p>
+              <p className="text-sm text-gray-400 mt-0.5">
+                {plan.name} · {isYearly ? 'Yearly' : 'Monthly'} ({plan.duration_months} month{plan.duration_months > 1 ? 's' : ''})
+              </p>
             </div>
             <div className="text-right">
               <p className="text-xs text-gray-400">Amount due</p>
@@ -313,7 +374,7 @@ const PaymentPage = () => {
             <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-white/70"
               style={{ border: '1px solid rgba(188,161,66,0.2)' }}>
               <span className="text-xs text-gray-500">
-                Live rate: <strong className="text-gray-700">1 BHD = {rate.toFixed(4)} USD</strong>
+                Live rate: <strong className="text-gray-700">1 {paymentCurrency} = {convert(1, paymentCurrency, currency).toFixed(4)} {currency}</strong>
               </span>
               <button onClick={refreshRate} className="flex items-center gap-1 text-xs font-medium text-[#bca142] hover:underline">
                 <FiRefreshCw className="w-3 h-3" /> Refresh
@@ -359,11 +420,21 @@ const PaymentPage = () => {
                 <FiAlertCircle className="text-red-500 mt-0.5 shrink-0" />
                 <div>
                   <p className="text-sm font-bold text-red-700 mb-1">Pending Subscription Request</p>
-                  <p className="text-xs text-red-500 mb-2">Please wait for admin to approve your current request before submitting a new one.</p>
-                  <button onClick={() => navigate('/company/dashboard')}
-                    className="text-xs font-semibold text-white bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded-lg transition-colors">
-                    Go to Dashboard
-                  </button>
+                  <p className="text-xs text-red-500 mb-2">
+                    A previous request is still open. If you already paid by PayPal, tap <strong>Check Status</strong> — a confirmed payment activates instantly.
+                    Bank transfers still need admin approval.
+                  </p>
+                  <div className="flex gap-2">
+                    <button onClick={checkPendingRequest}
+                      className="text-xs font-semibold text-white bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded-lg transition-colors">
+                      Check Status
+                    </button>
+                    <button onClick={() => navigate('/company/dashboard')}
+                      className="text-xs font-semibold text-gray-600 bg-white hover:bg-gray-50 px-3 py-1.5 rounded-lg transition-colors"
+                      style={{ border: '1px solid rgba(0,0,0,0.12)' }}>
+                      Go to Dashboard
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -393,21 +464,38 @@ const PaymentPage = () => {
                     {applyWallet && (
                       <>
                         <div className="flex items-center gap-2">
-                          <input type="number" min="0" max={maxWalletUsable} step="0.001" value={walletAmount}
-                            onChange={e => setWalletAmount(e.target.value)}
-                            className="flex-1 px-3 py-2.5 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#bca142]"
-                            style={{ border: '1px solid rgba(188,161,66,0.25)' }} />
-                          <button onClick={() => setWalletAmount(String(Math.min(maxWalletUsable, baseAmountBhd).toFixed(3)))}
+                          {/* The wallet is stored in BHD, but the buyer types and reads the
+                              amount in their own currency — it is converted on apply. */}
+                          <div className="relative flex-1">
+                            <input type="number" min="0" max={localMaxUsable} step="0.01" value={walletAmountLocal}
+                              onChange={e => setWalletAmountLocal(e.target.value)}
+                              className="w-full pl-3 pr-16 py-2.5 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#bca142]"
+                              style={{ border: '1px solid rgba(188,161,66,0.25)' }} />
+                            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-400">
+                              {currency}
+                            </span>
+                          </div>
+                          <button onClick={() => setWalletAmountLocal(localMaxUsable.toFixed(2))}
                             className="text-xs font-semibold px-3 py-2 rounded-lg bg-white text-[#bca142] hover:bg-white/80"
                             style={{ border: '1px solid rgba(188,161,66,0.3)' }}>
                             Max
                           </button>
                         </div>
-                        <div className="flex justify-between text-xs text-gray-500">
-                          <span>Usable from wallet: up to {fmtBhd(maxWalletUsable)} <span className="text-gray-400">({toUsd(maxWalletUsable)})</span></span>
+
+                        {walletAppliedBhd > 0 && (
+                          <p className="text-xs font-semibold text-[#9d8635]">
+                            Using {fmtBhd(walletAppliedBhd)} <span className="font-normal text-gray-500">({toUsd(walletAppliedBhd)})</span>
+                          </p>
+                        )}
+
+                        <div className="flex flex-wrap justify-between gap-x-3 gap-y-1 text-xs text-gray-500">
+                          <span>
+                            Max usable: {fmtBhd(maxWalletUsable)} <span className="text-gray-400">({toUsd(maxWalletUsable)})</span>
+                            {maxPct < 100 && <span className="text-gray-400"> · wallet covers up to {maxPct}% of the plan</span>}
+                          </span>
                           {minUsage > 0 && <span>Min {fmtBhd(minUsage)} <span className="text-gray-400">({toUsd(minUsage)})</span></span>}
                         </div>
-                        {(Number(walletAmount) || 0) > maxWalletUsable + 0.001 && (
+                        {(Number(walletAmountLocal) || 0) > localMaxUsable + 0.01 && (
                           <p className="text-xs text-red-500">You can apply at most {fmtBhd(maxWalletUsable)}.</p>
                         )}
                       </>
@@ -421,15 +509,37 @@ const PaymentPage = () => {
 
             {/* Breakdown */}
             <div className="rounded-xl px-4 py-3 bg-black/5 space-y-2" style={{ border: '1px solid rgba(0,0,0,0.08)' }}>
-              <Row label="Plan amount" value={fmtBhd(baseAmountBhd)} sub={toUsd(baseAmountBhd)} />
+              {prorationDetails ? (
+                <>
+                  <Row
+                    label={`${plan?.name || 'New plan'} rate`}
+                    value={`${fmtBhd(prorationDetails.newPlanPrice)}${cycleSuffix}`}
+                    sub={toUsd(prorationDetails.newPlanPrice)} />
+                  <Row
+                    label={`Less unused ${prorationDetails.currentPlanName || 'current'} time (${prorationDetails.daysRemaining} days left)`}
+                    value={`- ${fmtBhd(prorationDetails.unusedValue)}`}
+                    sub={toUsd(prorationDetails.unusedValue)}
+                    accent="text-emerald-600" />
+                  <Row label="Upgrade amount" value={fmtBhd(baseAmountBhd)} sub={toUsd(baseAmountBhd)} />
+                </>
+              ) : (
+                <Row label="Plan amount" value={fmtBhd(baseAmountBhd)} sub={toUsd(baseAmountBhd)} />
+              )}
               {walletAppliedBhd > 0 && (
                 <Row label="Wallet applied" value={`- ${fmtBhd(walletAppliedBhd)}`} sub={toUsd(walletAppliedBhd)} accent="text-emerald-600" />
+              )}
+              {showFee && (
+                <Row
+                  label={`PayPal processing fee (${paypalFee.percent}% + $${paypalFee.fixed.toFixed(2)})`}
+                  value={`+ ${formatUsd(paypalFee.fee, 'USD')}`}
+                  sub={paypalFee.international ? 'international payment' : 'domestic payment'}
+                  accent="text-gray-600" />
               )}
               <div className="border-t border-black/10 pt-2">
                 <Row
                   label={walletOnly ? 'Pay from wallet' : 'Pay now via gateway'}
                   value={fmtBhd(externalDueBhd)}
-                  sub={toUsd(externalDueBhd)}
+                  sub={showFee ? `PayPal charges ${formatUsd(paypalChargeUsd, 'USD')}` : toUsd(externalDueBhd)}
                   bold />
               </div>
             </div>
@@ -450,8 +560,19 @@ const PaymentPage = () => {
                 ) : (
                   <>
                     {/* Payment method toggle */}
+                    {!paypalAvailable && (
+                      <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-amber-50 border border-amber-100">
+                        <FiAlertCircle className="text-amber-500 mt-0.5 shrink-0" />
+                        <p className="text-xs text-amber-700">
+                          PayPal is temporarily unavailable. Please pay by <strong>bank transfer</strong> and upload your proof.
+                        </p>
+                      </div>
+                    )}
                     <div className="flex gap-2 p-1 rounded-xl bg-black/10" style={{ border: '1px solid rgba(0,0,0,0.10)' }}>
-                      {[{ key: 'paypal', label: 'PayPal', Icon: FaPaypal }, { key: 'bank', label: 'Bank Transfer', Icon: FaUniversity }].map(({ key, label, Icon }) => (
+                      {[
+                        ...(paypalAvailable ? [{ key: 'paypal', label: 'PayPal', Icon: FaPaypal }] : []),
+                        { key: 'bank', label: 'Bank Transfer', Icon: FaUniversity },
+                      ].map(({ key, label, Icon }) => (
                         <button key={key} onClick={() => setPaymentMethod(key)}
                           className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all"
                           style={paymentMethod === key
@@ -462,7 +583,7 @@ const PaymentPage = () => {
                       ))}
                     </div>
 
-                    {paymentMethod === 'paypal' && (
+                    {paymentMethod === 'paypal' && paypalAvailable && (
                       <div className="space-y-3">
                         {bankDetails?.paypal_id && (
                           <div className="rounded-xl px-4 py-3 bg-black/5" style={{ border: '1px solid rgba(0,0,0,0.10)' }}>
@@ -472,7 +593,7 @@ const PaymentPage = () => {
                         )}
                         <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-amber-50 border border-amber-100">
                           <span className="text-amber-500 text-sm">⚡</span>
-                          <p className="text-xs text-amber-700"><strong>Note:</strong> PayPal is charged in USD ({toUsd(externalDueBhd)}). Admin approval required after payment.</p>
+                          <p className="text-xs text-amber-700"><strong>Note:</strong> PayPal is charged in USD ({showFee ? formatUsd(paypalChargeUsd, 'USD') : toUsd(externalDueBhd)}{showFee ? `, including ${formatUsd(paypalFee.fee, 'USD')} processing fee` : ''}). Your membership activates automatically as soon as PayPal confirms the payment.</p>
                         </div>
                         {paypalLoaded
                           ? <div ref={paypalRef} className="w-full max-w-xs mx-auto pt-1" />

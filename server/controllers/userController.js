@@ -3,6 +3,7 @@
 import db from '../config/db.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { createAdminNotification } from './adminController.js';
 import { sendUserRegistrationNotificationToAdmin } from '../services/adminNotificationService.js';
 import realTimeNotificationService from '../services/realTimeNotificationService.js';
@@ -612,28 +613,48 @@ const getCompanies = async (req, res) => {
         // We select specific fields and alias them to match your frontend requirements
         // is_blacklisted -> onBlacklist
         // phone -> mobile
+        // The latest subscription (active first, then most recent) is joined so the
+        // admin can filter companies that do / do not have a subscription.
         const sql = `
             SELECT 
-                id, 
-                name, 
-                email, 
-                phone AS mobile, 
-                role, 
-                is_blacklisted AS onBlacklist, 
-                status,
-                created_at
-            FROM users 
-            WHERE role = 'company'
+                u.id, 
+                u.name, 
+                u.email, 
+                u.phone AS mobile, 
+                u.role, 
+                u.is_blacklisted AS onBlacklist, 
+                u.status,
+                u.created_at,
+                mp.name AS plan_name,
+                us.status AS subscription_status,
+                us.end_date AS subscription_end
+            FROM users u
+            LEFT JOIN user_subscriptions us
+                ON us.id = (
+                    SELECT us2.id
+                    FROM user_subscriptions us2
+                    WHERE us2.user_id = u.id
+                    ORDER BY (us2.status = 'active') DESC, us2.end_date DESC, us2.id DESC
+                    LIMIT 1
+                )
+            LEFT JOIN membership_plans mp ON mp.id = us.plan_id
+            WHERE u.role = 'company'
         `;
         
         const [rows] = await db.execute(sql);
         
-        // Ensure boolean values are actually booleans (MySQL returns 0/1)
-        const formattedRows = rows.map(user => ({
-            ...user,
-            onBlacklist: Boolean(user.onBlacklist),
-            status: Boolean(user.status)
-        }));
+        // Ensure boolean values are actually booleans (MySQL returns 0/1).
+        // hasSubscription = an active subscription whose end date has not passed.
+        const now = Date.now();
+        const formattedRows = rows.map(user => {
+            const end = user.subscription_end ? new Date(user.subscription_end).getTime() : 0;
+            return {
+                ...user,
+                onBlacklist: Boolean(user.onBlacklist),
+                status: Boolean(user.status),
+                hasSubscription: user.subscription_status === 'active' && end > now,
+            };
+        });
 
         res.status(200).json(formattedRows);
     } catch (error) {
@@ -1824,6 +1845,22 @@ const adminGetUserDetails = async (req, res) => {
                 [id]
             );
             response.wishlist = wish;
+
+            // Bank account added from the profile (business & regular user share
+            // the user_bank_details table). Table is created lazily, so guard it.
+            try {
+                const [banks] = await db.execute(
+                    `SELECT id, bank_name, branch_name, branch_address, account_holder_name,
+                            account_number, iban_number, swift_code, ifsc_code,
+                            payment_instructions, is_active, is_default, created_at
+                     FROM user_bank_details WHERE user_id = ?
+                     ORDER BY is_default DESC, created_at DESC`,
+                    [id]
+                );
+                response.bankDetails = banks;
+            } catch (bankErr) {
+                response.bankDetails = [];
+            }
         }
 
         response.counts = {
@@ -1946,9 +1983,168 @@ const adminDeleteUser = async (req, res) => {
     }
 };
 
+// @desc    Export every user of a given role with their complete profile data
+// @route   GET /api/user/admin-export/:role
+// @access  Private/Admin
+const adminExportUsers = async (req, res) => {
+    const { role } = req.params;
+    const allowedRoles = ['user', 'business', 'company'];
+
+    if (!allowedRoles.includes(role)) {
+        return res.status(400).json({ message: 'Invalid role. Must be user, business or company.' });
+    }
+
+    try {
+        // Every column is returned so the admin gets the full profile (logo links,
+        // address, socials, ...). The password hash is the only thing stripped.
+        const [rows] = await db.execute(
+            'SELECT * FROM users WHERE role = ? ORDER BY created_at DESC',
+            [role]
+        );
+
+        rows.forEach((row) => {
+            delete row.password;
+            if (row.is_blacklisted !== undefined) row.is_blacklisted = Boolean(row.is_blacklisted);
+            if (row.status !== undefined) row.status = Boolean(row.status);
+            if (row.email_verified !== undefined) row.email_verified = Boolean(row.email_verified);
+        });
+
+        if (role === 'company') {
+            // SELECT * keeps this working regardless of which optional bank columns
+            // exist in a given environment (the client only maps the ones it knows).
+            const [banks] = await db.execute(
+                'SELECT * FROM company_bank_details ORDER BY is_default DESC, id ASC'
+            );
+            const byCompany = banks.reduce((acc, bank) => {
+                (acc[bank.company_id] = acc[bank.company_id] || []).push(bank);
+                return acc;
+            }, {});
+            rows.forEach((row) => { row.bankDetails = byCompany[row.id] || []; });
+        }
+
+        res.status(200).json({ role, total: rows.length, users: rows });
+    } catch (error) {
+        console.error('Error exporting users:', error);
+        res.status(500).json({ message: 'Server error exporting users' });
+    }
+};
+
+// @desc    Bulk import users (CSV/Excel parsed on the client) for a given role
+// @route   POST /api/user/admin-bulk-import
+// @access  Private/Admin
+const adminBulkImportUsers = async (req, res) => {
+    const { role, users } = req.body;
+    const allowedRoles = ['user', 'business', 'company'];
+
+    if (!allowedRoles.includes(role)) {
+        return res.status(400).json({ message: 'Invalid role. Must be user, business or company.' });
+    }
+    if (!Array.isArray(users) || users.length === 0) {
+        return res.status(400).json({ message: 'No rows found in the uploaded file.' });
+    }
+    if (users.length > 1000) {
+        return res.status(400).json({ message: 'Too many rows — maximum 1000 users per upload.' });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // Regular users and business owners are activated immediately on import.
+    // Company owners start inactive until an admin approves them.
+    const initialStatus = role === 'company' ? 0 : 1;
+
+    const inserted = [];
+    const skipped = [];
+    const failed = [];
+
+    // Track values already handled in this upload so the same email or phone
+    // number cannot be imported twice from one file.
+    const seenEmails = new Set();
+    const seenPhones = new Set();
+
+    for (let i = 0; i < users.length; i++) {
+        const raw = users[i] || {};
+        const rowNumber = i + 2; // header occupies row 1 of the uploaded sheet
+
+        const name = (raw.name ?? '').toString().trim();
+        const email = (raw.email ?? '').toString().trim().toLowerCase();
+        const country = (raw.country ?? '').toString().trim();
+        const phone = (raw.phone ?? raw.mobile ?? '').toString().trim();
+        // Category is optional for imports — empty values are stored as NULL.
+        const category = (raw.category ?? '').toString().trim() || null;
+        const phoneKey = phone.replace(/\D/g, '');
+
+        if (!name || !email || !country || !phone) {
+            failed.push({ row: rowNumber, email, reason: 'Missing required field (name, email, country, phone).' });
+            continue;
+        }
+        if (!emailRegex.test(email)) {
+            failed.push({ row: rowNumber, email, reason: 'Invalid email address.' });
+            continue;
+        }
+
+        // Duplicate email / phone number inside the uploaded file itself.
+        if (seenEmails.has(email)) {
+            skipped.push({ row: rowNumber, email, reason: 'Duplicate email inside the uploaded file.' });
+            continue;
+        }
+        if (phoneKey && seenPhones.has(phoneKey)) {
+            skipped.push({ row: rowNumber, email, reason: 'Duplicate phone number inside the uploaded file.' });
+            continue;
+        }
+        seenEmails.add(email);
+        if (phoneKey) seenPhones.add(phoneKey);
+
+        try {
+            const [existingEmail] = await db.execute('SELECT id FROM users WHERE email = ?', [email]);
+            if (existingEmail.length > 0) {
+                skipped.push({ row: rowNumber, email, reason: 'Email already registered.' });
+                continue;
+            }
+
+            const [existingPhone] = await db.execute('SELECT id FROM users WHERE phone = ?', [phone]);
+            if (existingPhone.length > 0) {
+                skipped.push({ row: rowNumber, email, reason: 'Phone number already registered.' });
+                continue;
+            }
+
+            const generatedPassword = crypto.randomBytes(5).toString('hex'); // 10 chars
+            const hashedPassword = await bcrypt.hash(generatedPassword, 10);
+
+            const [result] = await db.execute(
+                `INSERT INTO users (name, email, phone, password, role, category, country, status)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                [name, email, phone, hashedPassword, role, category, country, initialStatus]
+            );
+
+            inserted.push({ id: result.insertId, name, email, password: generatedPassword });
+        } catch (err) {
+            console.error(`Bulk import failed for row ${rowNumber}:`, err.message);
+            failed.push({
+                row: rowNumber,
+                email,
+                reason: err.code === 'ER_DUP_ENTRY' ? 'Email or phone number already registered.' : 'Could not save this row.',
+            });
+        }
+    }
+
+    res.status(200).json({
+        message: `${inserted.length} of ${users.length} user(s) imported successfully.`,
+        summary: {
+            total: users.length,
+            inserted: inserted.length,
+            skipped: skipped.length,
+            failed: failed.length,
+        },
+        inserted,
+        skipped,
+        failed,
+    });
+};
+
 export {
     adminGetUserDetails,
     adminDeleteUser,
+    adminExportUsers,
+    adminBulkImportUsers,
     loginUser,
     getAdminData,
     registerUser,

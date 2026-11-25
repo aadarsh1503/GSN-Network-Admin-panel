@@ -415,7 +415,9 @@ const TopupsTab = () => {
   const { formatUsd } = useCurrency();
   const [topups, setTopups] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [status, setStatus] = useState('pending');
+  // Default to "all" so PayPal top-ups (auto-credited with status 'completed')
+  // are never hidden behind the 'pending' filter. Pending rows still sort first.
+  const [status, setStatus] = useState('');
 
   const load = useCallback(async (st) => {
     setLoading(true);
@@ -441,7 +443,7 @@ const TopupsTab = () => {
   return (
     <div className="space-y-4">
       <div className="flex gap-2 flex-wrap">
-        {['pending', 'approved', 'rejected', ''].map(s => (
+        {['pending', 'completed', 'approved', 'rejected', ''].map(s => (
           <button key={s || 'all'} onClick={() => setStatus(s)}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium capitalize transition-colors ${
               status === s ? 'bg-[#bca142] text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'

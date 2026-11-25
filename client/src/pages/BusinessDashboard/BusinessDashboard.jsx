@@ -508,6 +508,26 @@ const BusinessDashboard = () => {
         </div>
       </div>
 
+      {/* Big New Quote CTA */}
+      <Link
+        to="/quote"
+        onClick={handleRequestQuoteClick}
+        className="group block bg-[#bca142] hover:bg-black rounded-2xl p-6 md:p-8 shadow-xl hover:shadow-2xl transition-all duration-300 transform md:hover:scale-[1.01]"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-5">
+            <div className="p-4 bg-white/20 rounded-2xl">
+              <FaPlus className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold text-white">Create a New Quote</h2>
+              <p className="text-white/80 mt-1 text-sm md:text-base">Get competitive rates for your business shipments</p>
+            </div>
+          </div>
+          <ArrowUpRight className="hidden md:block h-8 w-8 text-white group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+        </div>
+      </Link>
+
       {/* Pending Quote Alert */}
       {showPendingQuote && (
         <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl">

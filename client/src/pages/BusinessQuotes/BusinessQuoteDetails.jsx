@@ -77,7 +77,7 @@ const BusinessCompactResponseRow = ({
       if (response.payment_status === 'pending') {
         return <span className="px-2 py-1 bg-orange-500 text-white text-xs rounded-full">⏳ Pending</span>;
       }
-      return <span className="px-2 py-1 bg-blue-500 text-white text-xs rounded-full">✅ Accepted</span>;
+      return <span className="px-2 py-1 bg-[#bca142] text-white text-xs rounded-full">✅ Accepted</span>;
     }
     if (response.user_response_status === 'rejected') {
       return <span className="px-2 py-1 bg-gray-500 text-white text-xs rounded-full">❌ Rejected</span>;
@@ -94,8 +94,8 @@ const BusinessCompactResponseRow = ({
         : 'border-gray-200 bg-white hover:border-[#bca142]'
     }`}>
       {/* Compact Row */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4 flex-1">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-4 flex-1">
           {/* Company Info */}
           <div className="flex items-center space-x-3">
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center relative ${
@@ -124,19 +124,20 @@ const BusinessCompactResponseRow = ({
           </div>
 
           {/* Key Metrics in Row */}
-          <div className="flex items-center space-x-6 text-sm">
-            <div className="flex items-center space-x-1">
-              <FaDollarSign className="h-4 w-4 text-[#bca142]" />
-              <span className="font-semibold">
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5">
+              <FaDollarSign className="h-3.5 w-3.5 text-[#bca142]" />
+              <span className="font-semibold text-slate-800 leading-tight">
                 {format(amount, 'USD')}
                 <span className="block text-[10px] font-normal text-gray-400">≈ {formatUsd(amount, 'USD')}</span>
               </span>
-              {response.has_coupon && (
-                <span className="text-xs text-slate-400 line-through">{format(Number(response.coupon_original_amount), 'USD')}</span>
+              {Boolean(response.has_coupon) && (
+                <span className="text-xs text-slate-400 line-through ml-1">{format(Number(response.coupon_original_amount), 'USD')}</span>
               )}
             </div>
-            {response.has_coupon && (
-              <div className="flex items-center space-x-1 text-[#8f7a2e]">
+
+            {Boolean(response.has_coupon) && (
+              <div className="flex items-center bg-[#bca142]/10 border border-[#bca142]/30 rounded-lg px-3 py-1.5 text-[#8f7a2e]">
                 <span className="font-semibold text-xs">
                   {response.coupon_discount_type === 'percentage'
                     ? `${Number(response.coupon_discount_value)}% off`
@@ -144,14 +145,18 @@ const BusinessCompactResponseRow = ({
                 </span>
               </div>
             )}
-            <div className="flex items-center space-x-1">
-              <Clock className="h-4 w-4 text-[#bca142]" />
-              <span>{response.transit_time}</span>
-            </div>
+
+            {response.transit_time && (
+              <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-slate-700">
+                <Clock className="h-3.5 w-3.5 text-[#bca142]" />
+                <span className="font-medium">Transit: {response.transit_time}</span>
+              </div>
+            )}
+
             {response.valid_until && (
-              <div className="flex items-center space-x-1">
-                <Calendar className="h-4 w-4 text-[#bca142]" />
-                <span>Valid: {formatDate(response.valid_until)}</span>
+              <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-slate-700">
+                <Calendar className="h-3.5 w-3.5 text-[#bca142]" />
+                <span className="font-medium">Valid: {formatDate(response.valid_until)}</span>
               </div>
             )}
           </div>
@@ -168,7 +173,7 @@ const BusinessCompactResponseRow = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-2 lg:justify-end">
           <button
             onClick={() => setShowDetails(!showDetails)}
             className="flex items-center space-x-1 px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm"
@@ -187,7 +192,7 @@ const BusinessCompactResponseRow = ({
 
           <button
             onClick={onMessageCompany}
-            className="flex items-center space-x-1 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm"
+            className="flex items-center space-x-1 px-3 py-1 bg-[#bca142] hover:bg-black text-white rounded-lg transition-colors text-sm"
           >
             <FaComments className="h-3 w-3" />
             <span>Message</span>
@@ -225,7 +230,7 @@ const BusinessCompactResponseRow = ({
               ) : (response.bank_name || response.account_number) && (
                 <button
                   onClick={onUploadPayment}
-                  className="flex items-center space-x-1 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm"
+                  className="flex items-center space-x-1 px-3 py-1 bg-[#bca142] hover:bg-black text-white rounded-lg transition-colors text-sm"
                 >
                   <Upload className="h-3 w-3" />
                   <span>Pay</span>
@@ -380,14 +385,14 @@ const BusinessCompactResponseRow = ({
           {!hasAcceptedResponse && !response.user_response_status && (
             <div className="flex flex-col sm:flex-row gap-3 pt-3 border-t border-gray-200">
               {!Boolean(response.payment_proof_uploaded) && (response.bank_name || response.account_number) && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between">
+                <div className="bg-[#bca142]/10 border border-[#bca142]/30 rounded-lg p-3 flex items-center justify-between">
                   <div>
-                    <h6 className="font-semibold text-blue-800 text-sm">Payment Required First</h6>
-                    <p className="text-blue-700 text-xs">Make payment and upload proof before accepting.</p>
+                    <h6 className="font-semibold text-[#8f7a2e] text-sm">Payment Required First</h6>
+                    <p className="text-[#8f7a2e]/80 text-xs">Make payment and upload proof before accepting.</p>
                   </div>
                   <button
                     onClick={onUploadPayment}
-                    className="flex items-center space-x-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                    className="flex items-center space-x-1 bg-[#bca142] hover:bg-black text-white px-3 py-1 rounded text-sm transition-colors"
                   >
                     <Upload className="h-3 w-3" />
                     <span>Upload Payment</span>
@@ -1176,7 +1181,7 @@ const BusinessQuoteDetails = () => {
                   {quote.weight && (
                     <div className="flex justify-between">
                       <span className="text-slate-600 font-medium">Weight:</span>
-                      <span className="text-slate-800 font-semibold">{quote.weight}</span>
+                      <span className="text-slate-800 font-semibold">{quote.weight} kg</span>
                     </div>
                   )}
                 </div>

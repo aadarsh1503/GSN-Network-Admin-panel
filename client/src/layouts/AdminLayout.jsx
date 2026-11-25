@@ -217,7 +217,7 @@ const AdminContent = () => {
     <div className="flex bg-slate-50 min-h-screen">
       <Sidebar isSidebarOpen={isSidebarOpen} />
       
-      <main className={`w-full p-6 transition-all duration-500 ease-in-out ${isSidebarOpen ? 'ml-68' : 'ml-0'}`}>
+      <main className={`flex-1 min-w-0 p-6 transition-all duration-500 ease-in-out ${isSidebarOpen ? 'ml-68' : 'ml-0'}`}>
         <AdminHeader 
           toggleSidebar={toggleSidebar}
           toggleFullscreen={toggleFullscreen}

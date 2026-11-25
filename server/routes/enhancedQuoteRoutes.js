@@ -7,6 +7,7 @@ import { protect as authenticateToken, authorize as authorizeRoles } from '../mi
 import db from '../config/db.js';
 import couponService from '../services/couponService.js';
 import { sendQuoteEmail } from '../services/quoteEmailService.js';
+import { checkResponseAllowed } from '../services/subscriptionLimitService.js';
 import {
     submitQuoteResponseWithBankDetails,
     getQuoteResponsesWithBankDetails,
@@ -15,7 +16,8 @@ import {
     getQuoteResponsesWithBankDetailsAdmin,
     getComprehensiveAdminQuotes,
     getComprehensiveAdminQuotesByStatus,
-    updateQuoteResponseBankDetails
+    updateQuoteResponseBankDetails,
+    getPendingPaymentsCount
 } from '../controllers/enhancedQuoteController.js';
 
 // Configure multer for file uploads
@@ -49,6 +51,17 @@ router.post('/respond', authenticateToken, authorizeRoles('company'), async (req
     }
 
     try {
+        // Subscription gate: active plan + monthly response limit
+        const limit = await checkResponseAllowed(companyId);
+        if (!limit.allowed) {
+            return res.status(403).json({
+                message: limit.message,
+                requiresSubscription: limit.requiresSubscription || false,
+                currentResponses: limit.currentResponses,
+                maxResponses: limit.maxResponses,
+            });
+        }
+
         // Verify the quote exists and is still accepting responses
         const [quoteRows] = await db.execute(
             'SELECT * FROM quotes WHERE id = ? AND status IN ("pending", "approved")',
@@ -114,6 +127,11 @@ router.post('/respond', authenticateToken, authorizeRoles('company'), async (req
 // @route   GET /api/enhanced-quotes/company-responses-with-payments
 // @access  Private/Company,Business
 router.get('/company-responses-with-payments', authenticateToken, authorizeRoles('company', 'business'), getCompanyResponsesWithPayments);
+
+// @desc    Count payment proofs waiting for this company's verification (sidebar badge)
+// @route   GET /api/enhanced-quotes/pending-payments-count
+// @access  Private/Company
+router.get('/pending-payments-count', authenticateToken, authorizeRoles('company'), getPendingPaymentsCount);
 
 // @desc    Get all companies' quote responses with payment status (Admin only)
 // @route   GET /api/enhanced-quotes/all-company-responses-with-payments

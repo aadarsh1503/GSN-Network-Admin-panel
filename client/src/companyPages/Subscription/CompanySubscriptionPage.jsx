@@ -22,13 +22,30 @@ const CompanySubscriptionPage = () => {
   const [loading, setLoading] = useState(true);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [rate, setRate] = useState(2.6526);
+  const [billingCycle, setBillingCycle] = useState('monthly');
   const { withLoading } = useLoading();
   const { format, formatUsd, ready } = useCurrency();
+
+  const isYearly = billingCycle === 'yearly';
 
   // BHD is the base currency; amounts are shown in the user's local currency
   // with the USD equivalent as a live secondary line.
   const fmtBhd = (v) => format(v);
   const toUsd = (v) => (ready ? `≈ ${formatUsd(v)}` : `≈ $${(Number(v || 0) * rate).toFixed(2)}`);
+
+  // ── Billing cycle helpers ──────────────────────────────────────────────────
+  // A plan's yearly price is set by the admin; when it is not set we fall back
+  // to 10× the monthly rate, matching the server.
+  const yearlyPriceOf = (plan) => {
+    const y = parseFloat(plan?.yearly_price);
+    if (Number.isFinite(y) && y >= 0) return y;
+    return Number((parseFloat(plan?.price || 0) * 10).toFixed(2));
+  };
+  const cyclePrice = (plan) => (isYearly ? yearlyPriceOf(plan) : parseFloat(plan?.price || 0));
+  const cycleMonths = (plan) => (isYearly ? 12 : parseInt(plan?.duration_months, 10) || 1);
+  const cycleSuffix = isYearly ? '/yr' : '/mo';
+  // What the yearly total works out to per month.
+  const perMonthOf = (plan) => Number((cyclePrice(plan) / 12).toFixed(2));
 
   useEffect(() => {
     initializePage();
@@ -85,7 +102,7 @@ const CompanySubscriptionPage = () => {
     if (!currentSubscription.plan_price || !currentSubscription.end_date) return null;
 
     const currentPlanPrice = parseFloat(currentSubscription.plan_price || 0);
-    const newPlanPrice = parseFloat(newPlan.price);
+    const newPlanPrice = cyclePrice(newPlan);
 
     const now = new Date();
     // Parse dates as LOCAL midnight (not UTC) to avoid timezone-off-by-one-day bugs
@@ -110,8 +127,9 @@ const CompanySubscriptionPage = () => {
     return {
       currentPlanPrice: currentPlanPrice.toFixed(2),
       currentPlanName: currentSubscription.plan_name,
+      newPlanName: newPlan.name,
       newPlanPrice: newPlanPrice.toFixed(2),
-      newPlanDurationMonths: parseInt(newPlan.duration_months || 1),
+      newPlanDurationMonths: cycleMonths(newPlan),
       daysRemaining,
       totalDaysInPeriod,
       unusedValue: unusedValue.toFixed(2),
@@ -161,10 +179,20 @@ const CompanySubscriptionPage = () => {
       proration = calculateProration(plan);
     }
 
+    // The checkout page works off a single price/duration, so hand it a plan
+    // shaped for the selected cycle (a yearly plan bills 12 months at the
+    // annual rate). The server re-derives the same terms from `billingCycle`.
+    const checkoutPlan = {
+      ...plan,
+      price: cyclePrice(plan),
+      duration_months: cycleMonths(plan),
+    };
+
     navigate('/payment', {
       state: {
-        plan: plan,
+        plan: checkoutPlan,
         prorationDetails: proration,
+        billingCycle,
       },
     });
   };
@@ -282,6 +310,46 @@ const CompanySubscriptionPage = () => {
             );
           })()}
 
+          {/* ---------- Billing cycle toggle ---------- */}
+          {plans && plans.length > 0 && (
+            <div className="mb-8 flex justify-center">
+              <div
+                className="relative inline-flex items-center rounded-full border border-[#bca142]/30 bg-white p-1 shadow-[0_10px_30px_-24px_rgba(188,161,66,0.9)]"
+                role="tablist"
+                aria-label="Billing cycle"
+              >
+                {/* Sliding highlight — pinned to the button width so it never
+                    spills past the pill's rounded border */}
+                <span
+                  className="pointer-events-none absolute inset-y-1 left-1 w-36 rounded-full bg-gradient-to-r from-[#e2c66a] to-[#bca142] shadow-[0_8px_20px_-10px_rgba(188,161,66,1)] transition-transform duration-300 ease-out"
+                  style={{ transform: isYearly ? 'translateX(100%)' : 'translateX(0)' }}
+                />
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={!isYearly}
+                  onClick={() => setBillingCycle('monthly')}
+                  className={`relative z-10 w-36 rounded-full px-5 py-2.5 text-sm font-bold tracking-wide transition-colors duration-200 ${
+                    isYearly ? 'text-gray-500 hover:text-gray-700' : 'text-white'
+                  }`}
+                >
+                  Monthly
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={isYearly}
+                  onClick={() => setBillingCycle('yearly')}
+                  className={`relative z-10 w-36 rounded-full px-5 py-2.5 text-sm font-bold tracking-wide transition-colors duration-200 ${
+                    isYearly ? 'text-white' : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Yearly
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* ---------- Plans Grid ---------- */}
           {plans && plans.length > 0 ? (
             <div className="grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2 xl:grid-cols-4">
@@ -361,22 +429,37 @@ const CompanySubscriptionPage = () => {
                     <div className="mt-4 min-w-0">
                       {planRelation === 'upgrade' && proration ? (
                         <>
-                          <div className="text-sm text-gray-400 line-through break-words">
-                            {fmtBhd(proration.newPlanPrice)}
-                          </div>
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#bca142]">
+                            Pay today (after credit)
+                          </p>
                           <div className="break-words text-2xl font-extrabold leading-tight text-[#bca142]">
                             {fmtBhd(proration.amountToCharge)}
-                            <span className="text-sm font-normal text-gray-500">/mo</span>
                           </div>
                           <div className="text-xs text-gray-500">{toUsd(proration.amountToCharge)}</div>
+                          <div className="mt-1 text-xs text-gray-500">
+                            Standard rate{' '}
+                            <span className="font-semibold text-black">
+                              {fmtBhd(proration.newPlanPrice)}{cycleSuffix}
+                            </span>
+                            {isYearly && (
+                              <span className="block text-[11px] text-gray-400">
+                                ≈ {fmtBhd(perMonthOf(plan))}/mo
+                              </span>
+                            )}
+                          </div>
                         </>
                       ) : (
                         <>
                           <div className="break-words text-2xl font-extrabold leading-tight text-black">
-                            {fmtBhd(plan.price)}
-                            <span className="text-sm font-normal text-gray-500">/mo</span>
+                            {fmtBhd(cyclePrice(plan))}
+                            <span className="text-sm font-normal text-gray-500">{cycleSuffix}</span>
                           </div>
-                          <div className="text-xs text-gray-500">{toUsd(plan.price)}</div>
+                          <div className="text-xs text-gray-500">{toUsd(cyclePrice(plan))}</div>
+                          {isYearly && !isGuestPlan && (
+                            <div className="mt-1 text-xs text-[#8a7628]">
+                              ≈ {fmtBhd(perMonthOf(plan))}/mo
+                            </div>
+                          )}
                         </>
                       )}
                     </div>
@@ -401,19 +484,48 @@ const CompanySubscriptionPage = () => {
 
                     {/* Proration detail strip */}
                     {proration && (
-                      <div className="mt-4 space-y-1.5 rounded-xl border border-green-200 bg-green-50 p-3.5">
+                      <div className="mt-4 rounded-xl border border-green-200 bg-green-50 p-3.5">
                         <p className="text-[11px] font-semibold uppercase tracking-wide text-green-700">
-                          💰 Proration Applied
+                          💰 How your price is calculated
                         </p>
-                        <p className="text-xs text-green-600">Unused time is credited automatically.</p>
-                        <div className="flex items-center justify-between gap-2 text-xs">
-                          <span className="text-green-600">Credit ({proration.daysRemaining}d left)</span>
-                          <span className="break-words font-bold text-green-700">{fmtBhd(proration.unusedValue)}</span>
+
+                        <div className="mt-2 flex items-start justify-between gap-2 text-xs">
+                          <span className="text-green-700">
+                            {proration.newPlanName} rate
+                            <span className="block text-[11px] text-green-600">
+                              {proration.newPlanDurationMonths} month{proration.newPlanDurationMonths > 1 ? 's' : ''} of membership
+                            </span>
+                          </span>
+                          <span className="break-words font-semibold text-green-800">
+                            {fmtBhd(proration.newPlanPrice)}{cycleSuffix}
+                          </span>
                         </div>
-                        <div className="flex items-center justify-between gap-2 text-xs">
-                          <span className="text-green-600">You save</span>
-                          <span className="break-words font-bold text-green-700">{fmtBhd(proration.savings)}</span>
+
+                        <div className="mt-2 flex items-start justify-between gap-2 text-xs">
+                          <span className="text-green-700">
+                            Unused time on {proration.currentPlanName}
+                            <span className="block text-[11px] text-green-600">
+                              {proration.daysRemaining} of {proration.totalDaysInPeriod} days still left
+                            </span>
+                          </span>
+                          <span className="break-words font-semibold text-green-800">
+                            − {fmtBhd(proration.unusedValue)}
+                          </span>
                         </div>
+
+                        <div className="mt-2.5 flex items-center justify-between gap-2 border-t border-green-200 pt-2.5">
+                          <span className="text-xs font-bold uppercase tracking-wide text-green-800">
+                            You pay today
+                          </span>
+                          <span className="break-words text-base font-extrabold text-green-800">
+                            {fmtBhd(proration.amountToCharge)}
+                          </span>
+                        </div>
+
+                        <p className="mt-1 text-[11px] leading-relaxed text-green-600">
+                          {toUsd(proration.amountToCharge)} · one-time · your new{' '}
+                          {proration.newPlanDurationMonths}-month period starts today
+                        </p>
                       </div>
                     )}
 

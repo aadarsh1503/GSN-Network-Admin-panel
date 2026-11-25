@@ -197,6 +197,68 @@ export const getUnreadNotificationsCount = async (req, res) => {
   }
 };
 
+// @desc    Bundle of "pending / needs admin action" counts for the sidebar badges.
+//          Every section that receives system-generated requests surfaces here so
+//          the admin can track them at a glance from the sidebar.
+// @route   GET /api/admin/pending-counts
+// @access  Admin
+export const getPendingCounts = async (req, res) => {
+  // Each count is isolated — if a table does not exist yet we fall back to 0
+  // instead of failing the whole endpoint.
+  const safeCount = async (sql, params = []) => {
+    try {
+      const [rows] = await db.execute(sql, params);
+      return Number(rows[0]?.count || 0);
+    } catch {
+      return 0;
+    }
+  };
+
+  try {
+    const [
+      pendingSubscriptions,
+      pendingTopups,
+      pendingTickets,
+      openDisputes,
+      unreadMessages,
+      pendingBusinessUsers,
+      pendingCompanyUsers,
+      pendingQuotes,
+    ] = await Promise.all([
+      // Subscriber Payment Review — payments awaiting approval/rejection
+      safeCount("SELECT COUNT(*) AS count FROM subscription_requests WHERE status = 'pending'"),
+      // Financial Hub → Wallet & Referral — bank top-ups awaiting approval
+      safeCount("SELECT COUNT(*) AS count FROM wallet_topup_requests WHERE status = 'pending'"),
+      // Support Center — tickets not yet answered
+      safeCount("SELECT COUNT(*) AS count FROM support_tickets WHERE status = 'pending'"),
+      // Dispute Center — disputes not yet resolved
+      safeCount("SELECT COUNT(*) AS count FROM disputes WHERE status IN ('pending', 'running')"),
+      // Communications — unread messages addressed to this admin
+      safeCount("SELECT COUNT(*) AS count FROM messages WHERE is_read = 0 AND receiver_id = ?", [req.user.id]),
+      // Users Management — business accounts awaiting activation
+      safeCount("SELECT COUNT(*) AS count FROM users WHERE status = 0 AND COALESCE(is_blacklisted, 0) = 0 AND role = 'business'"),
+      // Users Management — company accounts awaiting activation
+      safeCount("SELECT COUNT(*) AS count FROM users WHERE status = 0 AND COALESCE(is_blacklisted, 0) = 0 AND role = 'company'"),
+      // Quote Management — new quotes awaiting admin review
+      safeCount("SELECT COUNT(*) AS count FROM quotes WHERE status = 'pending'"),
+    ]);
+
+    res.status(200).json({
+      pendingSubscriptions,
+      pendingTopups,
+      pendingTickets,
+      openDisputes,
+      unreadMessages,
+      pendingBusinessUsers,
+      pendingCompanyUsers,
+      pendingQuotes,
+    });
+  } catch (error) {
+    console.error('Error fetching admin pending counts:', error);
+    res.status(500).json({ message: 'Server error fetching pending counts' });
+  }
+};
+
 // @desc    Mark toast notifications as seen by admin
 // @route   POST /api/admin/mark-toast-seen
 // @access  Admin

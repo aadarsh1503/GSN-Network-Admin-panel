@@ -1,4 +1,5 @@
 import db from '../config/db.js';
+import realTimeNotificationService from '../services/realTimeNotificationService.js';
 
 // @desc    Send a notification
 // @route   POST /api/notifications/send
@@ -45,6 +46,13 @@ const sendNotification = async (req, res) => {
         `;
 
         await db.execute(sql, [userType, title, message, imageUrl, targetAudience]);
+
+        // Push over SSE so the receivers' notification badge updates instantly
+        await realTimeNotificationService.notifyNewAdminNotification({
+            title,
+            message,
+            target_audience: targetAudience
+        });
 
         res.status(201).json({ message: 'Notification sent successfully', imageUrl });
 
@@ -154,7 +162,30 @@ const getUnreadCount = async (req, res) => {
 
         const [result] = await db.execute(sql, [userId, userId, userRole, userRole, userRole, userRole]);
 
-        res.status(200).json({ count: result[0].count });
+        // Quote-related unread notifications drive the "My Quotes" badge separately
+        // (same filter the 'quotes' pageType uses when marking them read).
+        const quoteSql = `
+            SELECT COUNT(DISTINCT n.id) as count
+            FROM notifications n
+            LEFT JOIN user_notifications un ON (n.id = un.notification_id AND un.user_id = ?)
+            WHERE (n.title LIKE '%Quote%' OR n.message LIKE '%quote%')
+            AND (
+                (n.target_role = 'user_specific' AND un.user_id = ?)
+                OR
+                ((n.target_audience = 'all' OR 
+                 (n.target_audience = 'companies' AND ? = 'company') OR
+                 (n.target_audience = 'businesses' AND ? = 'business') OR
+                 (n.target_audience = 'users' AND ? = 'user') OR
+                 (n.target_audience = 'admins' AND ? = 'admin'))
+                AND n.target_role != 'user_specific')
+            )
+            AND (un.is_read IS NULL OR un.is_read = 0)
+            AND n.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        `;
+
+        const [quoteResult] = await db.execute(quoteSql, [userId, userId, userRole, userRole, userRole, userRole]);
+
+        res.status(200).json({ count: result[0].count, quoteUnreadCount: quoteResult[0].count });
 
     } catch (error) {
         console.error('Error fetching unread count:', error);

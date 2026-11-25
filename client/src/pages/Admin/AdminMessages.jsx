@@ -2,16 +2,18 @@ import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { 
   FiMessageSquare, FiRefreshCw, FiSearch, FiSend,
-  FiUser, FiClock, FiChevronLeft, FiShield, FiUsers, FiBriefcase
+  FiUser, FiClock, FiChevronLeft, FiShield, FiUsers, FiBriefcase, FiEye
 } from 'react-icons/fi';
 import { FaCheck, FaClock, FaCrown } from 'react-icons/fa';
 import { api } from '../../utils/api';
 import toast from 'react-hot-toast';
+import { useNotifications } from '../../contexts/NotificationContext';
 import RoleBadge from '../../components/RoleBadge/RoleBadge';
 import UserAvatar from '../../components/UserAvatar/UserAvatar';
 import { getConversationHeaderInfo, getMessageSenderInfo } from '../../utils/userRoleUtils';
 
 const AdminMessages = () => {
+  const { fetchMessageUnreadCount } = useNotifications();
   const location = useLocation();
   const messagesEndRef = useRef(null);
   const [allUsers, setAllUsers] = useState([]);
@@ -27,6 +29,10 @@ const AdminMessages = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [activeTab, setActiveTab] = useState('all');
   const [userFilter, setUserFilter] = useState('all');
+  // Admin monitoring of member-to-member chats
+  const [monitorConversations, setMonitorConversations] = useState([]);
+  const [monitorLoading, setMonitorLoading] = useState(false);
+  const [monitorThread, setMonitorThread] = useState(null);
 
   // Auto-scroll to bottom when messages change
   const scrollToBottom = () => {
@@ -38,9 +44,15 @@ const AdminMessages = () => {
   }, [conversationMessages]);
 
   useEffect(() => {
+    // Opening the Messages page clears the admin's own unread badge
+    api.put('/api/messages/read-all')
+      .then(() => fetchMessageUnreadCount())
+      .catch((error) => console.error('Error clearing unread messages:', error));
+
     fetchAllUsers();
     fetchConversations();
     fetchUnreadCount();
+    fetchMonitorConversations();
   }, []);
 
   useEffect(() => {
@@ -115,6 +127,37 @@ const AdminMessages = () => {
     }
   };
 
+  // Admin monitoring: every member-to-member thread on the platform
+  const fetchMonitorConversations = async () => {
+    setMonitorLoading(true);
+    try {
+      const data = await api.get('/api/messages/admin/conversations');
+      setMonitorConversations(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching monitored conversations:', error);
+      toast.error('Failed to load member conversations');
+      setMonitorConversations([]);
+    } finally {
+      setMonitorLoading(false);
+    }
+  };
+
+  const openMonitorThread = async (conv) => {
+    setConversationLoading(true);
+    setMonitorThread({ userA: conv.user_a, userB: conv.user_b, messages: [] });
+    try {
+      const data = await api.get(`/api/messages/admin/conversation/${conv.user_a.id}/${conv.user_b.id}`);
+      setMonitorThread({ userA: conv.user_a, userB: conv.user_b, messages: Array.isArray(data) ? data : [] });
+    } catch (error) {
+      console.error('Error fetching monitored conversation:', error);
+      toast.error('Failed to load conversation');
+      setMonitorThread({ userA: conv.user_a, userB: conv.user_b, messages: [] });
+    } finally {
+      setConversationLoading(false);
+      setTimeout(scrollToBottom, 100);
+    }
+  };
+
   const filterUsers = () => {
     let filtered = allUsers;
     console.log('Filtering users. Total:', allUsers.length);
@@ -161,6 +204,7 @@ const AdminMessages = () => {
   };
 
   const startConversationWithUser = async (userId, userName, userLogo = null, userRole = 'user') => {
+    setMonitorThread(null);
     setSelectedConversation({
       userId: userId,
       userName: userName,
@@ -282,6 +326,13 @@ const AdminMessages = () => {
            conv.last_message?.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
+  const filteredMonitorConversations = monitorConversations.filter((conv) => {
+    const term = searchTerm.toLowerCase();
+    return conv.user_a?.name?.toLowerCase().includes(term) ||
+           conv.user_b?.name?.toLowerCase().includes(term) ||
+           conv.last_message?.toLowerCase().includes(term);
+  });
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="p-2">
@@ -308,6 +359,7 @@ const AdminMessages = () => {
                       fetchAllUsers();
                       fetchConversations();
                       fetchUnreadCount();
+                      fetchMonitorConversations();
                     }}
                     className="text-white hover:text-gray-200 p-1.5 rounded-lg hover:bg-black/10 transition-all duration-200"
                     title="Refresh"
@@ -320,11 +372,16 @@ const AdminMessages = () => {
                   <nav className="flex">
                     {[
                       { key: 'all', label: 'All Users', icon: FiUsers },
-                      { key: 'conversations', label: 'Chats', icon: FiMessageSquare }
+                      { key: 'conversations', label: 'Chats', icon: FiMessageSquare },
+                      { key: 'monitor', label: 'Monitor', icon: FiEye }
                     ].map((tab) => (
                       <button
                         key={tab.key}
-                        onClick={() => setActiveTab(tab.key)}
+                        onClick={() => {
+                          setActiveTab(tab.key);
+                          if (tab.key === 'monitor') setSelectedConversation(null);
+                          else setMonitorThread(null);
+                        }}
                         className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 text-sm font-medium border-b-2 transition-all duration-300 ${
                           activeTab === tab.key
                             ? 'border-[#bca142] text-[#bca142] bg-[#bca142]/5'
@@ -338,6 +395,11 @@ const AdminMessages = () => {
                             {conversations.length}
                           </span>
                         )}
+                        {tab.key === 'monitor' && monitorConversations.length > 0 && (
+                          <span className="bg-[#bca142] text-white text-xs px-1.5 py-0.5 rounded-full font-medium shadow-sm">
+                            {monitorConversations.length}
+                          </span>
+                        )}
                       </button>
                     ))}
                   </nav>
@@ -348,7 +410,11 @@ const AdminMessages = () => {
                     <FiSearch className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400" size={14} />
                     <input 
                       type="text" 
-                      placeholder={activeTab === 'all' ? "Search users..." : "Search conversations..."} 
+                      placeholder={
+                        activeTab === 'all' ? "Search users..." :
+                        activeTab === 'monitor' ? "Search member chats..." :
+                        "Search conversations..."
+                      } 
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-full bg-white rounded-lg py-1.5 pl-8 pr-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142] shadow-sm transition-all duration-200 placeholder-gray-400 text-sm"
@@ -451,6 +517,71 @@ const AdminMessages = () => {
                         </div>
                       )}
                     </div>
+                  ) : activeTab === 'monitor' ? (
+                    <div className="p-2">
+                      <div className="px-2 py-1.5 mb-2 bg-[#bca142]/10 rounded-lg border border-[#bca142]/20">
+                        <p className="text-xs text-black font-medium flex items-center gap-1">
+                          <FiEye size={12} className="text-[#bca142]" />
+                          <span className="font-bold text-[#bca142]">{filteredMonitorConversations.length}</span>
+                          member-to-member chats (read-only)
+                        </p>
+                      </div>
+
+                      {monitorLoading ? (
+                        <div className="text-center py-8">
+                          <div className="animate-spin rounded-full h-8 w-8 border-4 border-[#bca142]/20 border-t-[#bca142] mx-auto mb-3"></div>
+                          <p className="text-gray-500 font-medium text-sm">Loading member chats...</p>
+                        </div>
+                      ) : filteredMonitorConversations.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500">
+                          <div className="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center mx-auto mb-3">
+                            <FiEye size={24} className="text-gray-400" />
+                          </div>
+                          <p className="text-base font-medium text-gray-600 mb-1">No member conversations yet</p>
+                          <p className="text-xs text-gray-400">Chats between companies, businesses and users will appear here.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-1">
+                          {filteredMonitorConversations.map((conv) => {
+                            const isSelected = monitorThread?.userA?.id === conv.user_a.id &&
+                                               monitorThread?.userB?.id === conv.user_b.id;
+                            return (
+                              <div
+                                key={`${conv.user_a.id}-${conv.user_b.id}`}
+                                onClick={() => openMonitorThread(conv)}
+                                className={`p-2 rounded-lg cursor-pointer transition-all duration-300 border ${
+                                  isSelected
+                                    ? 'bg-[#bca142]/10 border-[#bca142]/40 shadow-lg'
+                                    : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                                }`}
+                              >
+                                <div className="flex items-center gap-1.5 mb-1.5">
+                                  <UserAvatar
+                                    user={{ name: conv.user_a.name, logo: conv.user_a.logo, role: conv.user_a.role }}
+                                    size="xs"
+                                    showRoleIndicator={true}
+                                  />
+                                  <FiMessageSquare size={10} className="text-[#bca142] flex-shrink-0" />
+                                  <UserAvatar
+                                    user={{ name: conv.user_b.name, logo: conv.user_b.logo, role: conv.user_b.role }}
+                                    size="xs"
+                                    showRoleIndicator={true}
+                                  />
+                                  <span className="text-xs text-gray-400 font-medium ml-auto">
+                                    {formatDate(conv.last_message_time)}
+                                  </span>
+                                </div>
+                                <p className={`text-sm font-semibold truncate ${isSelected ? 'text-[#bca142]' : 'text-black'}`}>
+                                  {conv.user_a.name} <span className="text-gray-400 font-normal">&amp;</span> {conv.user_b.name}
+                                </p>
+                                <p className="text-xs text-gray-500 truncate mt-0.5">{conv.last_message}</p>
+                                <p className="text-xs text-gray-400 mt-0.5">{conv.message_count} messages</p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     <div className="p-2">
                       {loading ? (
@@ -517,7 +648,7 @@ const AdminMessages = () => {
                                       </div>
                                     </div>
                                     <p className="text-xs text-gray-500 truncate mb-0.5">{conv.last_message}</p>
-                                    {conv.has_system_messages && (
+                                    {!!conv.has_system_messages && (
                                       <div className="flex items-center gap-1 mt-0.5">
                                         <div className="w-1 h-1 bg-[#bca142] rounded-full shadow-sm"></div>
                                         <span className="text-xs text-[#bca142] font-medium">System Updates</span>
@@ -536,12 +667,93 @@ const AdminMessages = () => {
               </aside>
 
               <main className="flex-1 flex flex-col bg-white">
-                {selectedConversation ? (
+                {monitorThread ? (
                   <>
-                    <header className="flex items-center p-3 border-b border-gray-200 bg-[#bca142]">
+                    <header className="flex items-center p-3 border-b border-gray-200 bg-black">
+                      <button
+                        onClick={() => setMonitorThread(null)}
+                        className="mr-2 text-white hover:text-gray-300 transition-colors duration-200"
+                      >
+                        <FiChevronLeft size={20} />
+                      </button>
+                      <FiEye size={18} className="text-[#bca142] mr-2" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h2 className="font-bold text-white text-base truncate">{monitorThread.userA.name}</h2>
+                          <RoleBadge role={monitorThread.userA.role} size="xs" showIcon={true} className="bg-white/20 text-white border-white/30" />
+                          <FiMessageSquare size={12} className="text-[#bca142]" />
+                          <h2 className="font-bold text-white text-base truncate">{monitorThread.userB.name}</h2>
+                          <RoleBadge role={monitorThread.userB.role} size="xs" showIcon={true} className="bg-white/20 text-white border-white/30" />
+                        </div>
+                        <p className="text-xs text-white/70">Admin monitoring — read-only conversation view</p>
+                      </div>
+                    </header>
+
+                    <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-[#fbfaf6] to-gray-50">
+                      {conversationLoading ? (
+                        <div className="flex items-center justify-center h-full">
+                          <div className="text-center">
+                            <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#bca142]/20 border-t-[#bca142] mx-auto mb-4"></div>
+                            <p className="text-gray-600 font-medium text-sm">Loading conversation...</p>
+                          </div>
+                        </div>
+                      ) : monitorThread.messages.length === 0 ? (
+                        <div className="flex items-center justify-center h-full">
+                          <p className="text-gray-500 text-sm">No messages in this conversation.</p>
+                        </div>
+                      ) : (
+                        monitorThread.messages.map((msg) => {
+                          const isUserA = msg.sender_id === monitorThread.userA.id;
+                          return (
+                            <div key={msg.id} className={`flex ${isUserA ? 'justify-start' : 'justify-end'}`}>
+                              <div className={`max-w-[72%] rounded-2xl px-4 py-2.5 transition-all duration-300 ${
+                                isUserA
+                                  ? 'bg-white border border-gray-200/80 text-gray-800 rounded-bl-md shadow-[0_2px_10px_rgba(15,23,42,0.06)]'
+                                  : 'bg-gradient-to-br from-[#c9ad55] to-[#a88c2f] text-white rounded-br-md shadow-[0_8px_20px_-6px_rgba(188,161,66,0.7)]'
+                              }`}>
+                                <div className="flex items-center gap-1.5 mb-1.5">
+                                  <span className={`text-xs font-semibold ${isUserA ? 'text-gray-600' : 'text-white/90'}`}>
+                                    {msg.sender_name}
+                                  </span>
+                                  <RoleBadge
+                                    role={msg.sender_role || 'user'}
+                                    size="xs"
+                                    showIcon={true}
+                                    className={isUserA ? '' : 'bg-white/20 text-white'}
+                                  />
+                                </div>
+                                {msg.subject && (
+                                  <p className={`text-xs font-medium mb-1 ${isUserA ? 'text-[#bca142]' : 'text-white/80'}`}>
+                                    {msg.subject}
+                                  </p>
+                                )}
+                                <p className={`text-sm leading-relaxed whitespace-pre-line ${isUserA ? 'text-gray-800' : 'text-white'}`}>
+                                  {msg.message}
+                                </p>
+                                <p className={`text-xs mt-1.5 ${isUserA ? 'text-gray-400' : 'text-white/70'}`}>
+                                  {formatDate(msg.created_at)}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                      <div ref={messagesEndRef} />
+                    </div>
+
+                    <div className="p-3 border-t border-gray-200 bg-gray-100 text-center">
+                      <p className="text-xs text-gray-500 font-medium flex items-center justify-center gap-1.5">
+                        <FiShield size={12} className="text-[#bca142]" />
+                        Read-only — messages are between members. You can review but not reply here.
+                      </p>
+                    </div>
+                  </>
+                ) : selectedConversation ? (
+                  <>
+                    <header className="flex items-center gap-3 px-5 py-3.5 border-b border-gray-100 bg-white shadow-[0_6px_22px_-20px_rgba(15,23,42,0.6)] relative z-10">
                       <button 
                         onClick={() => setSelectedConversation(null)}
-                        className="md:hidden mr-2 text-white hover:text-gray-200 transition-colors duration-200"
+                        className="md:hidden text-gray-400 hover:text-[#bca142] transition-colors duration-200"
                       >
                         <FiChevronLeft size={20} />
                       </button>
@@ -551,21 +763,19 @@ const AdminMessages = () => {
                           logo: selectedConversation.logo,
                           role: selectedConversation.userRole || 'user'
                         }}
-                        size="sm"
+                        size="md"
                         showRoleIndicator={true}
-                        className="mr-3"
                       />
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 mb-0.5">
-                          <h2 className="font-bold text-white text-base">{selectedConversation.userName}</h2>
+                          <h2 className="font-bold text-gray-900 text-[15px] truncate">{selectedConversation.userName}</h2>
                           <RoleBadge 
                             role={selectedConversation.userRole || 'user'}
                             size="xs"
                             showIcon={true}
-                            className="bg-white/20 text-white border-white/30"
                           />
                         </div>
-                        <p className="text-xs text-white/80">
+                        <p className="text-xs text-gray-500">
                           {selectedConversation.userRole === 'admin' ? 'Platform Administrator' :
                            selectedConversation.userRole === 'business' ? 'Business Owner' :
                            selectedConversation.userRole === 'company' ? 'Logistics Company' :
@@ -574,7 +784,13 @@ const AdminMessages = () => {
                       </div>
                     </header>
 
-                    <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+                    <div
+                      className="flex-1 overflow-y-auto p-5 space-y-3 bg-[#faf7ef]"
+                      style={{
+                        backgroundImage: 'radial-gradient(rgba(188,161,66,0.10) 1px, transparent 1px)',
+                        backgroundSize: '20px 20px'
+                      }}
+                    >
                       {conversationLoading ? (
                         // Futuristic Loader
                         <div className="flex items-center justify-center h-full">
@@ -641,11 +857,14 @@ const AdminMessages = () => {
                         
                         return (
                           <div key={msg.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-[70%] ${
-                              isOwn 
-                                ? 'bg-[#bca142] text-white shadow-lg' 
-                                : 'bg-white border border-gray-200 shadow-sm'
-                            } rounded-xl p-3 transition-all duration-300 hover:shadow-lg`}>
+                            <div className={`relative max-w-[72%] px-4 py-2.5 transition-all duration-300 rounded-2xl ${
+                              isOwn
+                                ? 'bg-gradient-to-br from-[#c9ad55] to-[#a88c2f] text-white rounded-br-md shadow-[0_12px_26px_-12px_rgba(150,124,45,0.9)]'
+                                : 'bg-white border border-gray-100 text-gray-800 rounded-bl-md shadow-[0_10px_24px_-18px_rgba(15,23,42,0.6)]'
+                            }`}>
+                              <span className={`absolute -bottom-[5px] w-3 h-3 rotate-45 rounded-[2px] ${
+                                isOwn ? 'right-4 bg-[#a88c2f]' : 'left-4 bg-white'
+                              }`}></span>
                               {!isOwn && (
                                 <div className="flex items-center gap-1.5 mb-1.5">
                                   <UserAvatar 
@@ -655,9 +874,8 @@ const AdminMessages = () => {
                                     }}
                                     size="xs"
                                     showRoleIndicator={false}
-                                    className="w-3 h-3"
                                   />
-                                  <span className="text-xs font-semibold text-gray-600">
+                                  <span className="text-xs font-semibold text-[#a88c2f]">
                                     {msg.sender_display_name || msg.sender_name || 'User'}
                                   </span>
                                   <RoleBadge 
@@ -678,12 +896,12 @@ const AdminMessages = () => {
                                     role="admin"
                                     size="xs"
                                     showIcon={true}
-                                    className="ml-0.5 bg-white/20 text-white"
+                                    className="ml-0.5 bg-white/20! text-white!"
                                   />
                                 </div>
                               )}
-                              <p className="text-sm leading-relaxed">{msg.message}</p>
-                              <p className={`text-xs mt-1.5 ${isOwn ? 'text-white/70' : 'text-gray-400'} font-medium`}>
+                              <p className="text-sm leading-relaxed whitespace-pre-line">{msg.message}</p>
+                              <p className={`text-[10px] mt-1 ${isOwn ? 'text-white/70' : 'text-gray-400'} font-medium`}>
                                 {formatDate(msg.created_at)}
                               </p>
                             </div>
@@ -694,19 +912,19 @@ const AdminMessages = () => {
                       <div ref={messagesEndRef} />
                     </div>
 
-                    <form onSubmit={handleSendMessage} className="p-3 border-t border-gray-200 bg-white shadow-lg">
-                      <div className="flex gap-2">
+                    <form onSubmit={handleSendMessage} className="p-3 border-t border-gray-100 bg-white">
+                      <div className="flex items-center gap-2 bg-[#fbfaf6] border border-gray-100 rounded-full pl-4 pr-1.5 py-1.5 shadow-[0_10px_28px_-20px_rgba(15,23,42,0.6)] focus-within:ring-2 focus-within:ring-[#bca142]/30 focus-within:border-[#bca142]/30 transition-all duration-300">
                         <input
                           type="text"
                           placeholder="Type a message as admin..."
                           value={newMessage}
                           onChange={(e) => setNewMessage(e.target.value)}
-                          className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#bca142] focus:border-[#bca142] transition-all duration-300 shadow-sm bg-white placeholder-gray-400 text-sm"
+                          className="flex-1 bg-transparent text-sm text-gray-800 placeholder-gray-400 focus:outline-none"
                         />
                         <button
                           type="submit"
                           disabled={sendingMessage || !newMessage.trim()}
-                          className="bg-[#bca142] text-white px-4 py-3 rounded-lg hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-xl disabled:hover:shadow-lg font-medium"
+                          className="shrink-0 w-10 h-10 flex items-center justify-center bg-gradient-to-br from-[#c9ad55] to-[#a88c2f] text-white rounded-full shadow-[0_8px_20px_-6px_rgba(188,161,66,0.8)] transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
                         >
                           {sendingMessage ? (
                             <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white"></div>

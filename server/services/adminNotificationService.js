@@ -232,6 +232,32 @@ const sendSubscriptionPaymentProofNotificationToAdmin = async (userId, userName,
     }
 };
 
+// Send wallet top-up notification to admin
+const sendWalletTopupNotificationToAdmin = async (userId, userName, amountBhd, method, reference) => {
+    try {
+        const methodLabel = method === 'paypal'
+            ? 'PayPal (auto-credited)'
+            : 'Bank transfer (awaiting approval)';
+        const title = `Wallet Top-Up — ${amountBhd} BHD`;
+        const message = `${userName} topped up their wallet with ${amountBhd} BHD via ${methodLabel}.${reference ? ` Ref: ${reference}` : ''}`;
+
+        const additionalData = {
+            user_id: userId,
+            user_name: userName,
+            amount_bhd: amountBhd,
+            method,
+            transaction_ref: reference || null,
+            action_type: 'wallet_topup'
+        };
+
+        await createAdminNotification('general', title, message, userId, additionalData);
+        console.log(`✅ Wallet top-up notification sent to admin for user ${userId}`);
+    } catch (error) {
+        console.error('❌ Error sending wallet top-up notification to admin:', error);
+        throw error;
+    }
+};
+
 export {
     createAdminNotification,
     sendQuoteAcceptanceNotificationToAdmin,
@@ -241,5 +267,6 @@ export {
     sendDisputeNotificationToAdmin,
     sendTicketNotificationToAdmin,
     sendUserRegistrationNotificationToAdmin,
-    sendSubscriptionPaymentProofNotificationToAdmin
+    sendSubscriptionPaymentProofNotificationToAdmin,
+    sendWalletTopupNotificationToAdmin
 };

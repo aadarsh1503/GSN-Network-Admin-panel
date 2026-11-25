@@ -6,7 +6,8 @@ import {
   markNotificationAsRead,
   getAdminStats,
   markToastAsSeen,
-  getUnreadNotificationsCount
+  getUnreadNotificationsCount,
+  getPendingCounts
 } from '../controllers/adminController.js';
 import { getAllUsersForMessaging } from '../controllers/userController.js';
 
@@ -23,6 +24,9 @@ router.get('/pending-notifications', getPendingNotifications);
 
 // Get unread notifications count
 router.get('/unread-notifications-count', getUnreadNotificationsCount);
+
+// Get bundled pending/action-required counts for sidebar badges
+router.get('/pending-counts', getPendingCounts);
 
 // Mark notification as read
 router.put('/notifications/:id/read', markNotificationAsRead);

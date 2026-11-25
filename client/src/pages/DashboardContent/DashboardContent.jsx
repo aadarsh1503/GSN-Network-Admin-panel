@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { api } from '../../utils/api';
 import { formatSubDate } from '../../utils/formatDate';
+import { formatMoney } from '../../utils/currency';
 import { useCurrency } from '../../contexts/CurrencyContext';
 
 // Amount actually paid outside the wallet (PayPal / bank transfer).
@@ -41,6 +42,7 @@ const MetricCard = ({
   color = 'yellow',
   prefix = '',
   suffix = '',
+  currencyCode = null,
   subtitle = '',
   animate = true,
   onClick = null
@@ -62,7 +64,9 @@ const MetricCard = ({
       const progress = Math.min((timestamp - startTime) / duration, 1);
       
       const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-      setDisplayValue(Math.floor(easeOutQuart * (value - startValue) + startValue));
+      const current = easeOutQuart * (value - startValue) + startValue;
+      // Land on the exact value so decimals (e.g. 37.600 BHD) survive the count-up.
+      setDisplayValue(progress >= 1 ? value : Math.floor(current));
       
       if (progress < 1) {
         requestAnimationFrame(animateValue);
@@ -83,6 +87,9 @@ const MetricCard = ({
   };
 
   const trend = calculateTrend();
+
+  // Money cards render with the currency's own decimal places (BHD -> 3, INR/USD -> 2).
+  const formattedValue = currencyCode ? formatMoney(displayValue, currencyCode) : displayValue.toLocaleString();
   
   const colorClasses = {
     yellow: {
@@ -154,7 +161,7 @@ const MetricCard = ({
           </p>
           <p className="text-3xl font-bold text-black">
             {prefix}
-            {displayValue.toLocaleString()}
+            {formattedValue}
             {suffix}
           </p>
           {subtitle && (
@@ -995,7 +1002,7 @@ const DetailedDataModal = ({ modalData, onClose }) => {
 };
 
 const Dashboard = () => {
-  const { format, formatUsd } = useCurrency();
+  const { format, formatUsd, currency } = useCurrency();
   const fmtBhd = (v) => format(v);
   const [stats, setStats] = useState({
     users: [],
@@ -1385,11 +1392,11 @@ const Dashboard = () => {
           />
           <MetricCard
             title="Platform Revenue"
-            value={Math.round(realTimeData.totalRevenue)}
-            previousValue={Math.round(realTimeData.totalRevenue * 0.85)}
+            value={realTimeData.totalRevenue}
+            previousValue={realTimeData.totalRevenue * 0.85}
             icon={Wallet}
             color="green"
-            prefix="BHD "
+            currencyCode={currency}
             subtitle={`≈ ${formatUsd(realTimeData.totalRevenue)}`}
             onClick={() => handleCardClick('subscriptions')}
           />

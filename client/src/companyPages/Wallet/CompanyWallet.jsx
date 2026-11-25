@@ -5,7 +5,7 @@ import {
   FiGift, FiClock, FiCheckCircle, FiXCircle, FiUpload, FiInfo, FiExternalLink
 } from 'react-icons/fi';
 import { FaPaypal, FaUniversity } from 'react-icons/fa';
-import { api, walletAPI, getPaypalClientId } from '../../utils/api';
+import { api, walletAPI, getPaypalClientId, isPaypalSandbox, getPaypalFeeConfig, computePaypalFee } from '../../utils/api';
 import { useCurrency } from '../../contexts/CurrencyContext';
 import toast from 'react-hot-toast';
 
@@ -333,27 +333,76 @@ const CompanyWallet = () => {
 
 // ─── Add Funds Modal ──────────────────────────────────────────────────────────
 const AddFundsModal = ({ rate, settings, onClose, onDone }) => {
-  const { format, formatUsd } = useCurrency();
+  const { format, formatUsd, currency, baseCurrency, convert } = useCurrency();
   const fmtBhd = (v) => format(v);
   const [method, setMethod] = useState('paypal');
-  const [amount, setAmount] = useState('');
+  // Typed in the buyer's own currency — converted to BHD before it is submitted.
+  const [amountLocal, setAmountLocal] = useState('');
   const [transactionRef, setTransactionRef] = useState('');
   const [proof, setProof] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [paypalReady, setPaypalReady] = useState(false);
   const [paypalClientId, setPaypalClientId] = useState('');
-  const [adminPaypalId, setAdminPaypalId] = useState('');
+  const [paypalAvailable, setPaypalAvailable] = useState(true);
+  const [adminBankDetails, setAdminBankDetails] = useState(null);
+  const [paypalFeeCfg, setPaypalFeeCfg] = useState(null);
   const paypalRef = useRef(null);
 
-  const minTopup = Number(settings.minTopupBhd || 1);
   const maxTopup = Number(settings.maxTopupBhd || 5000);
-  const amountBhd = Number(amount) || 0;
-  const amountUsd = amountBhd * rate;
+  // The wallet is denominated in BHD, but the buyer reads and types the amount
+  // in their own currency, so convert on the way in and out.
+  const localToBhd = (v) => Number(convert(Number(v) || 0, currency, baseCurrency).toFixed(3));
+  const localMaxTopup = Number(convert(maxTopup, baseCurrency, currency).toFixed(2));
+  const amountBhd = localToBhd(amountLocal);
+  const amountUsd = Number((amountBhd * rate).toFixed(2));
 
-  // Admin PayPal receiving id (from admin panel)
+  // A top-up has to clear both floors: the BHD minimum from settings and the
+  // hard USD minimum ($100 by default). The server enforces the same pair, so a
+  // top-up can never end up worth less than the configured dollar amount.
+  const minTopupUsd = Number(settings.minTopupUsd || 0);
+  const minTopup = Math.max(
+    Number(settings.minTopupBhd || 1),
+    minTopupUsd > 0 ? convert(minTopupUsd, 'USD', baseCurrency) : 0,
+  );
+  const localMinTopup = Number(convert(minTopup, baseCurrency, currency).toFixed(2));
+  // The same dollar floor converted into the buyer's own currency, so the
+  // company is told the exact figure it has to reach (the $100 equivalent).
+  const localMinTopupUsd = minTopupUsd > 0
+    ? Number(convert(minTopupUsd, 'USD', currency).toFixed(2))
+    : 0;
+
+  // ── PayPal processing fee ─────────────────────────────────────────────────
+  // Charged on top of the top-up so the wallet is still credited in full. The
+  // server recomputes the identical figure before crediting.
+  const buyerCountry = (() => {
+    try { return JSON.parse(localStorage.getItem('user') || '{}').country || null; } catch { return null; }
+  })();
+  const paypalFee = computePaypalFee(amountUsd, paypalFeeCfg, buyerCountry);
+  const chargeUsd = paypalFee.total;
+  const showFee = paypalFee.enabled && paypalFee.fee > 0 && amountUsd > 0;
+
+  // The PayPal fee percentages are admin configuration — PayPal publishes no fee
+  // API — so they are fetched once and cached for the whole session.
+  useEffect(() => {
+    getPaypalFeeConfig().then(setPaypalFeeCfg).catch(() => {});
+  }, []);
+
+  // Admin receiving account (from admin panel) + server-side PayPal readiness.
+  // The same endpoint returns both the bank details and the admin PayPal id, so
+  // the company can see exactly where to send the money. Without the server
+  // credentials a top-up can never be verified, so falling back to bank
+  // transfer is the only honest option.
   useEffect(() => {
     api.get('/api/bank-details/active')
-      .then((d) => setAdminPaypalId(d?.paypal_id || ''))
+      .then((d) => setAdminBankDetails(d || null))
+      .catch(() => {});
+    api.get('/api/subscriptions/paypal-status')
+      .then((s) => {
+        if (s && s.configured === false) {
+          setPaypalAvailable(false);
+          setMethod('bank');
+        }
+      })
       .catch(() => {});
   }, []);
 
@@ -364,12 +413,15 @@ const AddFundsModal = ({ rate, settings, onClose, onDone }) => {
       const clientId = await getPaypalClientId();
       if (cancelled) return;
       setPaypalClientId(clientId);
+      // No client id means the admin has not configured PayPal yet — offering
+      // the button would only end in a failed payment, so fall back to bank.
+      if (!clientId) { setPaypalAvailable(false); setMethod('bank'); return; }
       if (window.paypal) { setPaypalReady(true); return; }
-      if (!clientId) return;
       const existing = document.querySelector('script[data-wallet-paypal]');
       if (existing) { existing.addEventListener('load', () => setPaypalReady(true)); return; }
       const script = document.createElement('script');
-      script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD`;
+      const host = isPaypalSandbox() ? 'https://www.sandbox.paypal.com' : 'https://www.paypal.com';
+      script.src = `${host}/sdk/js?client-id=${clientId}&currency=USD`;
       script.async = true;
       script.dataset.walletPaypal = 'true';
       script.onload = () => setPaypalReady(true);
@@ -382,14 +434,14 @@ const AddFundsModal = ({ rate, settings, onClose, onDone }) => {
 
   // Render PayPal buttons for top-up
   useEffect(() => {
-    if (method !== 'paypal' || !paypalReady || !window.paypal || !paypalRef.current) return;
+    if (method !== 'paypal' || !paypalAvailable || !paypalReady || !window.paypal || !paypalRef.current) return;
     if (!(amountBhd >= minTopup)) { paypalRef.current.innerHTML = ''; return; }
     paypalRef.current.innerHTML = '';
     window.paypal.Buttons({
       createOrder: (d, actions) => actions.order.create({
         purchase_units: [{
-          description: `GSN Wallet Top-Up (${amountBhd.toFixed(3)} BHD)`,
-          amount: { currency_code: 'USD', value: amountUsd.toFixed(2) },
+          description: `GSN Wallet Top-Up (${formatUsd(amountUsd, 'USD')})`,
+          amount: { currency_code: 'USD', value: chargeUsd.toFixed(2) },
         }],
       }),
       onApprove: async (d, actions) => {
@@ -412,7 +464,7 @@ const AddFundsModal = ({ rate, settings, onClose, onDone }) => {
       onError: () => toast.error('PayPal payment failed. Please try again.'),
       style: { layout: 'vertical', color: 'gold', shape: 'rect', label: 'paypal' },
     }).render(paypalRef.current);
-  }, [method, paypalReady, amountBhd, amountUsd, minTopup, onDone]);
+  }, [method, paypalAvailable, paypalReady, amountBhd, chargeUsd, minTopup, onDone]);
 
   const handleFile = (e) => {
     const f = e.target.files[0];
@@ -424,8 +476,11 @@ const AddFundsModal = ({ rate, settings, onClose, onDone }) => {
 
   const submitBank = async (e) => {
     e.preventDefault();
-    if (!(amountBhd >= minTopup)) { toast.error(`Minimum top-up is ${minTopup} BHD`); return; }
-    if (maxTopup > 0 && amountBhd > maxTopup) { toast.error(`Maximum top-up is ${maxTopup} BHD`); return; }
+    if (!(amountBhd >= minTopup)) {
+      toast.error(`Minimum top-up is ${localMinTopup} ${currency} (≈ $${minTopupUsd})`);
+      return;
+    }
+    if (maxTopup > 0 && amountBhd > maxTopup) { toast.error(`Maximum top-up is ${localMaxTopup} ${currency}`); return; }
     if (!proof) { toast.error('Please upload the payment proof'); return; }
     try {
       setSubmitting(true);
@@ -453,8 +508,19 @@ const AddFundsModal = ({ rate, settings, onClose, onDone }) => {
           </div>
 
           {/* Method toggle */}
+          {!paypalAvailable && (
+            <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-amber-50 border border-amber-100 mb-4">
+              <FiInfo className="text-amber-500 shrink-0 mt-0.5" />
+              <p className="text-xs text-amber-700">
+                PayPal is temporarily unavailable. Please top up by <strong>bank transfer</strong> — your wallet is credited after admin approval.
+              </p>
+            </div>
+          )}
           <div className="flex gap-2 p-1 rounded-xl bg-black/5 mb-5">
-            {[{ key: 'paypal', label: 'PayPal', Icon: FaPaypal }, { key: 'bank', label: 'Bank Transfer', Icon: FaUniversity }].map(({ key, label, Icon }) => (
+            {[
+              ...(paypalAvailable ? [{ key: 'paypal', label: 'PayPal', Icon: FaPaypal }] : []),
+              { key: 'bank', label: 'Bank Transfer', Icon: FaUniversity },
+            ].map(({ key, label, Icon }) => (
               <button key={key} onClick={() => setMethod(key)}
                 className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${
                   method === key ? 'bg-white text-[#9d8635] shadow-sm' : 'text-gray-500'
@@ -465,30 +531,64 @@ const AddFundsModal = ({ rate, settings, onClose, onDone }) => {
           </div>
 
           {/* Amount */}
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Amount (BHD)</label>
-          <input type="number" min={minTopup} max={maxTopup} step="0.001" value={amount}
-            onChange={e => setAmount(e.target.value)}
-            placeholder={`Min ${minTopup} BHD`}
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Amount ({currency})</label>
+          <input type="number" min={localMinTopup} max={localMaxTopup} step="0.01" value={amountLocal}
+            onChange={e => setAmountLocal(e.target.value)}
+            placeholder={`Min ${localMinTopup} ${currency}`}
             className="w-full px-4 py-2.5 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#bca142] mb-1"
             style={{ border: '1px solid #ddd8c8' }} />
-          <p className="text-xs text-gray-400 mb-4">
-            {amountBhd > 0 ? `${fmtBhd(amountBhd)} ≈ ${formatUsd(amountBhd)} (rate ${rate.toFixed(4)})` : `Limits: ${minTopup} – ${maxTopup} BHD`}
+          <p className="text-xs text-gray-400 mb-3">
+            {amountBhd > 0 ? `${fmtBhd(amountBhd)} ≈ ${formatUsd(amountBhd)} (rate ${rate.toFixed(4)})` : `Limits: ${localMinTopup} – ${localMaxTopup} ${currency}`}
           </p>
+          {localMinTopupUsd > 0 && (
+            <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-[#bca142]/10 border border-[#bca142]/30 mb-4">
+              <FiInfo className="text-[#bca142] shrink-0 mt-0.5" />
+              <p className="text-xs text-gray-700">
+                Minimum top-up: <strong>{localMinTopup} {currency}</strong> — the equivalent of{' '}
+                <strong>${minTopupUsd}</strong> at today's rate. Smaller amounts are not accepted.
+              </p>
+            </div>
+          )}
 
-          {method === 'paypal' && (
+          {method === 'paypal' && paypalAvailable && (
             <div className="space-y-3">
-              {adminPaypalId && (
+              {adminBankDetails?.paypal_id && (
                 <div className="rounded-xl px-4 py-3 bg-black/5" style={{ border: '1px solid rgba(0,0,0,0.10)' }}>
                   <p className="text-[10px] text-gray-400 uppercase tracking-wide">Payment received by</p>
-                  <p className="text-sm font-semibold text-gray-700 break-all">{adminPaypalId}</p>
+                  <p className="text-sm font-semibold text-gray-700 break-all">{adminBankDetails.paypal_id}</p>
                 </div>
               )}
               <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-amber-50 border border-amber-100">
                 <FiInfo className="text-amber-500 shrink-0" />
-                <p className="text-xs text-amber-700">PayPal is charged in <strong>USD</strong> using the live BHD→USD rate. Your wallet is credited instantly.</p>
+                <p className="text-xs text-amber-700">
+                  PayPal is charged in <strong>USD</strong> using the live BHD→USD rate
+                  {showFee ? <> — you pay <strong>{formatUsd(chargeUsd, 'USD')}</strong> in total</> : null}.
+                  Your wallet is credited instantly.
+                </p>
               </div>
+              {showFee && (
+                <div className="rounded-xl px-4 py-3 bg-black/5 space-y-1.5" style={{ border: '1px solid rgba(0,0,0,0.08)' }}>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-500">Wallet top-up</span>
+                    <span className="font-semibold text-gray-700">{formatUsd(amountUsd, 'USD')}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-500">
+                      PayPal processing fee ({paypalFee.percent}% + ${paypalFee.fixed.toFixed(2)})
+                    </span>
+                    <span className="font-semibold text-gray-700">+ {formatUsd(paypalFee.fee, 'USD')}</span>
+                  </div>
+                  <div className="border-t border-black/10 pt-1.5 flex items-center justify-between text-xs">
+                    <span className="font-semibold text-gray-700">You pay</span>
+                    <span className="font-bold text-[#bca142]">{formatUsd(chargeUsd, 'USD')}</span>
+                  </div>
+                  <p className="text-[10px] text-gray-400">
+                    Your wallet is credited the full {formatUsd(amountUsd, 'USD')} — the fee only covers PayPal's cut.
+                  </p>
+                </div>
+              )}
               {amountBhd < minTopup ? (
-                <p className="text-sm text-gray-400 text-center py-6">Enter an amount of at least {minTopup} BHD to continue.</p>
+                <p className="text-sm text-gray-400 text-center py-6">Enter an amount of at least {localMinTopup} {currency} (≈ ${minTopupUsd}) to continue.</p>
               ) : !paypalClientId ? (
                 <p className="text-sm text-red-500 text-center py-4">PayPal is not configured. Please use bank transfer.</p>
               ) : (
@@ -499,6 +599,35 @@ const AddFundsModal = ({ rate, settings, onClose, onDone }) => {
 
           {method === 'bank' && (
             <form onSubmit={submitBank} className="space-y-4">
+              {adminBankDetails && (
+                <div className="rounded-xl p-4 space-y-3 bg-black/5" style={{ border: '1px solid rgba(0,0,0,0.10)' }}>
+                  <p className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <FaUniversity className="text-[#bca142]" /> Bank Details
+                  </p>
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-2.5">
+                    {[
+                      ['Bank Name', adminBankDetails.bank_name],
+                      ['Branch', adminBankDetails.branch_name],
+                      ['Account Holder', adminBankDetails.account_holder_name],
+                      ['Account No.', adminBankDetails.account_number],
+                      ['IBAN', adminBankDetails.iban_number || 'N/A'],
+                      ['SWIFT', adminBankDetails.swift_code || 'N/A'],
+                      ...(adminBankDetails.ifsc_code ? [['IFSC', adminBankDetails.ifsc_code]] : []),
+                    ].map(([l, v]) => (
+                      <div key={l}>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-wide">{l}</p>
+                        <p className="text-sm font-semibold text-gray-700 mt-0.5 break-all">{v || 'N/A'}</p>
+                      </div>
+                    ))}
+                  </div>
+                  {adminBankDetails.payment_instructions && (
+                    <div className="rounded-lg px-3 py-2.5 bg-amber-50 border border-amber-100">
+                      <p className="text-xs font-semibold text-amber-700 mb-0.5">Instructions</p>
+                      <p className="text-xs text-amber-600">{adminBankDetails.payment_instructions}</p>
+                    </div>
+                  )}
+                </div>
+              )}
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Transaction / Reference ID</label>
                 <input type="text" value={transactionRef} onChange={e => setTransactionRef(e.target.value)}

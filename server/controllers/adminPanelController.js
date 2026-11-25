@@ -1,5 +1,6 @@
 // controllers/adminPanelController.js
 import db from '../config/db.js';
+import currencyService from '../services/currencyService.js';
 import { processReferralReward } from '../services/referralService.js';
 import { issueOrderCompletionCoupons } from '../services/couponService.js';
 
@@ -230,6 +231,233 @@ export const getSubscriptionTransactions = async (req, res) => {
     } catch (error) {
         console.error('Error fetching subscription transactions:', error);
         res.status(500).json({ message: 'Server error fetching subscription transactions' });
+    }
+};
+
+// ==================== UNIFIED TRANSACTION FEED ====================
+
+// @desc    Every transaction across subscriptions, wallet top-ups, wallet activity
+//          and user (quote) payments in ONE chronological feed, newest first, plus
+//          a headline total.
+// @route   GET /api/admin-panel/all-transactions
+// @access  Admin
+export const getAllTransactionsUnified = async (req, res) => {
+    // Each source is fetched defensively so a single missing table/column can
+    // never break the whole page — that source simply contributes nothing.
+    const safeQuery = async (sql) => {
+        try {
+            const [rows] = await db.execute(sql);
+            return rows;
+        } catch (error) {
+            console.error('all-transactions source failed:', error.message);
+            return [];
+        }
+    };
+
+    const NEGATIVE_WALLET_TYPES = new Set(['debit', 'expiry']);
+
+    // A row only feeds the headline total when it represents money actually
+    // received (successful status + incoming direction), so pending/rejected
+    // records are shown but never inflate the total.
+    const isCounted = (row) => {
+        if (row.direction !== 'in') return false;
+        switch (row.source) {
+            case 'subscription':
+                return row.type === 'Subscription' ? row.status === 'active' : false;
+            case 'wallet_topup':
+                return row.status === 'completed' || row.status === 'approved';
+            case 'transaction':
+                // User-to-user (quote) payments are shown in the feed for the
+                // record but deliberately do NOT count toward the admin total.
+                return false;
+            case 'wallet_activity':
+                // Referral rewards, manual credits/debits and expiry are internal
+                // wallet movements — value granted to (or adjusted for) companies,
+                // not money the admin actually received. Shown in the feed only.
+                return false;
+            default:
+                return false;
+        }
+    };
+
+    try {
+        const rows = [];
+
+        // 1 ── Activated subscriptions (covers wallet + external payments)
+        const subs = await safeQuery(`
+            SELECT us.*, u.name AS user_name, u.email AS user_email, u.country AS user_country, mp.name AS plan_name
+            FROM user_subscriptions us
+            JOIN users u ON us.user_id = u.id
+            LEFT JOIN membership_plans mp ON us.plan_id = mp.id
+            WHERE us.amount_paid > 0
+            ORDER BY us.created_at DESC
+        `);
+        subs.forEach((s) => {
+            const amount = Number(s.amount_paid ?? 0) || Number(s.final_amount_bhd ?? 0);
+            rows.push({
+                id: `subscription-${s.id}`,
+                source: 'subscription',
+                type: 'Subscription',
+                description: `${s.plan_name || 'Subscription plan'}${s.payment_method ? ` · paid via ${s.payment_method}` : ''}`,
+                user_name: s.user_name,
+                user_email: s.user_email,
+                amount,
+                currency: 'BHD',
+                direction: 'in',
+                status: s.status || 'active',
+                reference: s.transaction_id || null,
+                details: s,
+                created_at: s.created_at,
+            });
+        });
+
+        // 2 ── Pending subscription requests (awaiting admin approval)
+        const subReqs = await safeQuery(`
+            SELECT sr.*, u.name AS user_name, u.email AS user_email, u.country AS user_country, mp.name AS plan_name
+            FROM subscription_requests sr
+            JOIN users u ON sr.user_id = u.id
+            LEFT JOIN membership_plans mp ON sr.plan_id = mp.id
+            WHERE sr.status = 'pending'
+            ORDER BY sr.created_at DESC
+        `);
+        subReqs.forEach((s) => {
+            const amount = Number(s.amount_paid ?? 0) || Number(s.final_amount_bhd ?? 0) || Number(s.plan_price ?? 0);
+            rows.push({
+                id: `subscription-request-${s.id}`,
+                source: 'subscription',
+                type: 'Subscription Request',
+                description: `${s.plan_name || 'Subscription plan'} · awaiting approval`,
+                user_name: s.user_name,
+                user_email: s.user_email,
+                amount,
+                currency: 'BHD',
+                direction: 'in',
+                status: 'pending',
+                reference: null,
+                details: s,
+                created_at: s.created_at,
+            });
+        });
+
+        // 3 ── Wallet top-up requests (PayPal + bank transfer)
+        const topups = await safeQuery(`
+            SELECT wt.*, u.name AS user_name, u.email AS user_email, u.country AS user_country
+            FROM wallet_topup_requests wt
+            JOIN users u ON wt.user_id = u.id
+            ORDER BY wt.created_at DESC
+        `);
+        topups.forEach((t) => {
+            rows.push({
+                id: `topup-${t.id}`,
+                source: 'wallet_topup',
+                type: 'Wallet Top-Up',
+                description: `${String(t.method || '').replace('_', ' ')} top-up`,
+                user_name: t.user_name,
+                user_email: t.user_email,
+                amount: Number(t.amount_bhd ?? 0),
+                currency: 'BHD',
+                direction: 'in',
+                status: t.status,
+                reference: t.transaction_ref || t.paypal_order_id || null,
+                details: t,
+                created_at: t.created_at,
+            });
+        });
+
+        // 4 ── Transactions with users (real quote payments, USD)
+        const qtx = await safeQuery(`
+            SELECT t.*, u.name AS user_name, u.email AS user_email, u.country AS user_country, c.name AS company_name
+            FROM transactions t
+            JOIN users u ON t.user_id = u.id
+            LEFT JOIN users c ON t.company_id = c.id
+            WHERE t.quote_response_id IS NOT NULL
+            ORDER BY t.created_at DESC
+        `);
+        qtx.forEach((t) => {
+            rows.push({
+                id: `transaction-${t.id}`,
+                source: 'transaction',
+                type: 'Transaction',
+                description: t.description || (t.company_name ? `Payment to ${t.company_name}` : 'Quote payment'),
+                user_name: t.user_name,
+                user_email: t.user_email,
+                amount: Number(t.amount ?? 0),
+                currency: 'USD',
+                direction: 'in',
+                status: t.status,
+                reference: t.transaction_reference || null,
+                details: t,
+                created_at: t.created_at,
+            });
+        });
+
+        // 5 ── Wallet activity (referral rewards, refunds, admin adjustments…).
+        //      'deposit' and 'subscription_payment' are excluded because they are
+        //      already represented by the top-up and subscription sources above.
+        const walletTx = await safeQuery(`
+            SELECT rt.*, u.name AS user_name, u.email AS user_email, u.country AS user_country
+            FROM referral_transactions rt
+            JOIN users u ON rt.user_id = u.id
+            WHERE rt.type NOT IN ('deposit', 'subscription_payment')
+            ORDER BY rt.created_at DESC
+        `);
+        walletTx.forEach((t) => {
+            rows.push({
+                id: `wallet-${t.id}`,
+                source: 'wallet_activity',
+                type: 'Wallet Activity',
+                description: t.description || `Wallet ${String(t.type || '').replace('_', ' ')}`,
+                user_name: t.user_name,
+                user_email: t.user_email,
+                amount: Number(t.amount_bhd ?? 0),
+                currency: 'BHD',
+                direction: NEGATIVE_WALLET_TYPES.has(t.type) ? 'out' : 'in',
+                status: t.status || 'completed',
+                reference: t.transaction_ref || null,
+                details: t,
+                created_at: t.created_at,
+            });
+        });
+
+        // Attach the user's local currency so the admin can read any amount in
+        // both the platform currency and the user's own currency (e.g. a
+        // top-up requested from India also shows its INR value).
+        rows.forEach((r) => {
+            const country = r.details?.user_country || null;
+            r.user_country = country;
+            r.local_currency = currencyService.countryToCurrency(country);
+        });
+
+        // Newest first across every source.
+        rows.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        // Normalize each amount to BHD (admin base) + build totals.
+        let totalBhd = 0;
+        const bySource = {};
+        const counts = {};
+        rows.forEach((r) => {
+            r.amountBhd = Number((r.currency === 'USD' ? currencyService.usdToBhd(r.amount) : r.amount).toFixed(3));
+            counts[r.source] = (counts[r.source] || 0) + 1;
+            if (isCounted(r)) {
+                totalBhd += r.amountBhd;
+                bySource[r.source] = Number(((bySource[r.source] || 0) + r.amountBhd).toFixed(3));
+            }
+        });
+        totalBhd = Number(totalBhd.toFixed(3));
+
+        res.status(200).json({
+            transactions: rows,
+            totals: {
+                bhd: totalBhd,
+                usd: currencyService.bhdToUsd(totalBhd),
+                count: rows.length,
+                bySource,
+                counts,
+            },
+        });
+    } catch (error) {
+        console.error('Error building unified transactions feed:', error);
+        res.status(500).json({ message: 'Server error fetching transactions' });
     }
 };
 

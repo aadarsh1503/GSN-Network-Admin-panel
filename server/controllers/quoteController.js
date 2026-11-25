@@ -3,6 +3,7 @@ import db from '../config/db.js';
 import realTimeNotificationService from '../services/realTimeNotificationService.js';
 import { queueSubscriptionEmails } from '../services/emailQueue.js';
 import { issueOrderCompletionCoupons } from '../services/couponService.js';
+import { checkQuoteRequestAllowed } from '../services/subscriptionLimitService.js';
 
 // Helper function to calculate distance between two coordinates using Haversine formula
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -42,6 +43,20 @@ const submitQuote = async (req, res) => {
     try {
         // Get user ID if logged in, otherwise null for guest quotes
         const userId = req.user ? req.user.id : null;
+
+        // Subscription gate for logged-in users: respect the plan's monthly
+        // quote-request limit (max_quotes). Guests and users without an active
+        // subscription are unaffected, so public quote posting keeps working.
+        if (userId) {
+            const limit = await checkQuoteRequestAllowed(userId);
+            if (!limit.allowed) {
+                return res.status(403).json({
+                    message: limit.message,
+                    currentQuotes: limit.currentQuotes,
+                    maxQuotes: limit.maxQuotes,
+                });
+            }
+        }
 
         const sql = `
             INSERT INTO quotes (
@@ -381,13 +396,15 @@ const getAvailableQuotes = async (req, res) => {
         
         if (hasActiveSubscription) {
             const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
+            // Only count responses made under the plan that is active now, so a
+            // plan change starts the month with a fresh allowance.
             const responseCountSql = `
                 SELECT COUNT(*) as response_count
                 FROM quote_responses 
-                WHERE company_id = ? AND DATE_FORMAT(created_at, '%Y-%m') = ?
+                WHERE company_id = ? AND DATE_FORMAT(created_at, '%Y-%m') = ? AND created_at >= ?
             `;
 
-            const [responseCountRows] = await db.execute(responseCountSql, [userId, currentMonth]);
+            const [responseCountRows] = await db.execute(responseCountSql, [userId, currentMonth, subscription.start_date]);
             currentResponses = responseCountRows[0].response_count;
 
             // Check if user has reached response limit

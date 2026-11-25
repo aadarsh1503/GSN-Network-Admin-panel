@@ -4,6 +4,45 @@ import fetch from 'node-fetch';
 
 const router = express.Router();
 
+// ipinfo.io is the primary provider (https://ipinfo.io/developers/ipinfo-api).
+// It is called from the server, never from the browser, so there is no CORS
+// problem and the visitor's real IP is the one being looked up.
+// Without a token the free endpoint is heavily rate-limited, so set
+// IPINFO_TOKEN in .env to use an authenticated (much higher quota) lookup.
+// The token is read lazily (not at import time) because dotenv.config() runs in
+// index.js after the ES module imports are evaluated.
+const getIpinfoToken = () => (process.env.IPINFO_TOKEN || '').trim();
+
+const ipinfoUrl = (ip) => {
+  const base = ip ? `https://ipinfo.io/${ip}/json` : 'https://ipinfo.io/json';
+  const token = getIpinfoToken();
+  return token ? `${base}?token=${token}` : base;
+};
+
+const timeoutSignal = (ms) => AbortSignal.timeout(ms);
+
+// Lookups are cached in memory: this route is hit on every page view by guests,
+// so repeat visitors must not burn the provider's quota.
+const GEO_CACHE_TTL_MS = 30 * 60 * 1000;
+const GEO_CACHE_MAX = 500;
+const geoCache = new Map();
+
+const readGeoCache = (key) => {
+  const hit = geoCache.get(key);
+  if (!hit) return null;
+  if (Date.now() - hit.at > GEO_CACHE_TTL_MS) {
+    geoCache.delete(key);
+    return null;
+  }
+  return hit.data;
+};
+
+const writeGeoCache = (key, data) => {
+  if (!key || !data) return;
+  if (geoCache.size >= GEO_CACHE_MAX) geoCache.clear();
+  geoCache.set(key, { data, at: Date.now() });
+};
+
 // @desc    Get user's country based on IP address
 // @route   GET /api/geo/country
 // @access  Public
@@ -75,18 +114,17 @@ router.get('/country', async (req, res) => {
     if (isLocalhost) {
       console.log('🔍 Localhost detected, trying to get public IP...');
       
-      // Try to get public IP from external services
+      // Try to get public IP from external services (ipinfo first)
       const publicIPServices = [
+        ipinfoUrl(null),
         'https://api.ipify.org?format=json',
-        'https://ipinfo.io/json',
-        'http://ip-api.com/json/',
         'https://api.myip.com'
       ];
 
       for (const service of publicIPServices) {
         try {
           console.log(`Trying public IP service: ${service}`);
-          const response = await fetch(service, { timeout: 5000 });
+          const response = await fetch(service, { signal: timeoutSignal(5000) });
           if (response.ok) {
             const data = await response.json();
             
@@ -118,60 +156,62 @@ router.get('/country', async (req, res) => {
     console.log('Final IP for geolocation:', clientIP);
     console.log('Final localhost status:', finalIsLocalhost);
 
-    // Enhanced geolocation services with better error handling
+    // Primary provider: ipinfo.io. The others are only used as fallbacks when
+    // ipinfo is unreachable or its quota is exhausted.
     const services = [
       {
         name: 'ipinfo.io',
-        url: finalIsLocalhost ? 'https://ipinfo.io/json' : `https://ipinfo.io/${clientIP}/json`,
+        url: ipinfoUrl(finalIsLocalhost ? null : clientIP),
         transform: (data) => ({
-          country_code: data.country || 'US',
-          country_name: getCountryName(data.country) || 'United States',
+          country_code: data.country || null,
+          country_name: getCountryName(data.country),
           city: data.city || 'Unknown',
           region: data.region || 'Unknown',
-          ip: data.ip || clientIP
+          ip: data.ip || clientIP,
+          provider: 'ipinfo.io'
         })
       },
       {
         name: 'ip-api.com',
         url: finalIsLocalhost ? 'http://ip-api.com/json/' : `http://ip-api.com/json/${clientIP}`,
         transform: (data) => ({
-          country_code: data.countryCode || 'US',
-          country_name: data.country || 'United States',
+          country_code: data.countryCode || null,
+          country_name: getCountryName(data.countryCode) || data.country || null,
           city: data.city || 'Unknown',
           region: data.regionName || 'Unknown',
-          ip: data.query || clientIP
+          ip: data.query || clientIP,
+          provider: 'ip-api.com'
         })
       },
       {
         name: 'ipapi.co',
         url: finalIsLocalhost ? 'https://ipapi.co/json/' : `https://ipapi.co/${clientIP}/json/`,
         transform: (data) => ({
-          country_code: data.country_code || 'US',
-          country_name: data.country_name || 'United States',
+          country_code: data.country_code || null,
+          country_name: getCountryName(data.country_code) || data.country_name || null,
           city: data.city || 'Unknown',
           region: data.region || 'Unknown',
-          ip: data.ip || clientIP
-        })
-      },
-      {
-        name: 'ipgeolocation.io',
-        url: finalIsLocalhost ? 'https://api.ipgeolocation.io/ipgeo?apiKey=free' : `https://api.ipgeolocation.io/ipgeo?apiKey=free&ip=${clientIP}`,
-        transform: (data) => ({
-          country_code: data.country_code2 || 'US',
-          country_name: data.country_name || 'United States',
-          city: data.city || 'Unknown',
-          region: data.state_prov || 'Unknown',
-          ip: data.ip || clientIP
+          ip: data.ip || clientIP,
+          provider: 'ipapi.co'
         })
       }
     ];
 
+    // Cache key: real visitor IP, or 'self' for the server's own public IP.
+    const cacheKey = finalIsLocalhost ? 'self' : clientIP;
+    countryData = readGeoCache(cacheKey);
+
+    if (countryData) {
+      console.log(`⚡ Served from cache for ${cacheKey}:`, countryData.country_name);
+    }
+
     // Try each service until one works
     for (const service of services) {
+      if (countryData) break;
       try {
         console.log(`🔄 Trying ${service.name}...`);
         const response = await fetch(service.url, {
-          timeout: 8000,
+          signal: timeoutSignal(8000),
           headers: {
             'User-Agent': 'Mozilla/5.0 (compatible; QuoteApp/1.0)'
           }
@@ -181,15 +221,16 @@ router.get('/country', async (req, res) => {
           const data = await response.json();
           console.log(`📊 ${service.name} raw response:`, data);
           
-          countryData = service.transform(data);
-          console.log(`✅ ${service.name} success:`, countryData);
+          const parsed = service.transform(data);
+          console.log(`✅ ${service.name} success:`, parsed);
           
-          // Validate the data
-          if (countryData.country_code && countryData.country_code !== 'undefined') {
-            break;
+          // Validate the data — a payload without a country code is useless and
+          // must not be cached or returned.
+          if (parsed.country_code && parsed.country_code !== 'undefined') {
+            countryData = parsed;
+            writeGeoCache(cacheKey, parsed);
           } else {
             console.log(`⚠️ ${service.name} returned invalid data, trying next service...`);
-            countryData = null;
           }
         } else {
           console.log(`❌ ${service.name} HTTP error: ${response.status}`);
@@ -488,8 +529,81 @@ router.post('/cities', async (req, res) => {
   }
 });
 
+// @desc    Reverse-geocode coordinates to a country/city (keyless online lookup)
+// @route   POST /api/geo/reverse
+// @access  Public
+// Used by the company profile to check that manually entered coordinates really
+// point to the country the company selected.
+router.post('/reverse', async (req, res) => {
+  const lat = parseFloat(req.body?.latitude);
+  const lng = parseFloat(req.body?.longitude);
+
+  if (
+    !Number.isFinite(lat) || !Number.isFinite(lng) ||
+    Math.abs(lat) > 90 || Math.abs(lng) > 180
+  ) {
+    return res.status(400).json({ success: false, message: 'Valid latitude and longitude are required.' });
+  }
+
+  // Primary: BigDataCloud's client reverse-geocode endpoint — free and keyless.
+  try {
+    const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`;
+    const response = await fetch(url, { signal: timeoutSignal(8000) });
+    if (response.ok) {
+      const data = await response.json();
+      if (data?.countryCode) {
+        return res.json({
+          success: true,
+          data: {
+            country: data.countryName || getCountryName(data.countryCode),
+            country_code: String(data.countryCode).toUpperCase(),
+            city: data.city || data.locality || data.principalSubdivision || '',
+            region: data.principalSubdivision || '',
+            provider: 'bigdatacloud'
+          }
+        });
+      }
+    }
+  } catch (error) {
+    console.warn('⚠️ BigDataCloud reverse geocode failed:', error.message);
+  }
+
+  // Fallback: OpenStreetMap Nominatim (also keyless; needs a User-Agent header).
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1`;
+    const response = await fetch(url, {
+      signal: timeoutSignal(8000),
+      headers: { 'User-Agent': 'GSN-Network/1.0 (coordinate verification)' }
+    });
+    if (response.ok) {
+      const data = await response.json();
+      const address = data?.address || {};
+      const code = address.country_code ? String(address.country_code).toUpperCase() : null;
+      if (code) {
+        return res.json({
+          success: true,
+          data: {
+            country: address.country || getCountryName(code),
+            country_code: code,
+            city: address.city || address.town || address.village || address.county || '',
+            region: address.state || '',
+            provider: 'nominatim'
+          }
+        });
+      }
+    }
+  } catch (error) {
+    console.warn('⚠️ Nominatim reverse geocode failed:', error.message);
+  }
+
+  res.json({ success: false, message: 'Could not determine the location for these coordinates.' });
+});
+
 // Helper function to get country name from country code
 function getCountryName(countryCode) {
+  if (!countryCode) return null;
+  const code = String(countryCode).toUpperCase();
+
   const countryNames = {
     'US': 'United States',
     'CA': 'Canada',
@@ -684,7 +798,11 @@ function getCountryName(countryCode) {
     'ZW': 'Zimbabwe'
   };
   
-  return countryNames[countryCode] || 'United States';
+  // Fall back to the full country list before returning the code itself — never
+  // silently claim the US for an unknown country.
+  return countryNames[code] ||
+    COUNTRIES_LIST.find((c) => c.code === code)?.name ||
+    code;
 }
 
 export default router;

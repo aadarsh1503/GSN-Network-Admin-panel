@@ -38,10 +38,9 @@ import PublicBlacklist from "./pages/PublicBlacklist/PublicBlacklist";
 import Dashboard from "./pages/DashboardContent/DashboardContent";
 import LogisticsCategories from "./pages/LogisticsCategories/LogisticsCategories";
 import BusinessCategories from "./pages/BusinessCategories/BusinessCategories";
-import User from "./pages/Users/Users";
 import BusinessOwners from "./pages/Users/BusinessOwners";
 import CompanyOwners from "./pages/Users/CompanyOwners";
-import RegularUsers from "./pages/Users/RegularUsers";
+import User from "./pages/Users/Users";
 import QuotesList from "./pages/Quotes/QuotesList";
 import ApprovedQuotesList from "./pages/Quotes/ApprovedQuotesList";
 import RejectedQuotes from "./pages/Quotes/RejectedQuotes";
@@ -83,9 +82,9 @@ import VersionManagement from "./pages/VersionManagement/VersionManagement";
 import AdminSubscriptions from "./pages/Admin/AdminSubscriptions";
 import AdminQuotes from "./pages/Admin/AdminQuotes";
 import AdminTransactions from "./pages/Admin/AdminTransactions";
+import AdminAllTransactions from "./pages/Admin/AdminAllTransactions";
 import AdminInvoices from "./pages/Admin/AdminInvoices";
 import AWSSettings from "./pages/Admin/AWSSettings";
-import AdminCoupons from "./pages/Admin/AdminCoupons";
 import AdminWalletSettings from "./pages/Admin/AdminWalletSettings";
 import AdminGiveMoney from "./pages/Admin/AdminGiveMoney";
 import AdminCompanyBankDetails from "./pages/Admin/AdminCompanyBankDetails";
@@ -313,7 +312,7 @@ function App() {
           <Route path="users" element={<User />} />
           <Route path="business-Owners" element={<BusinessOwners />} />
           <Route path="company-Owners" element={<CompanyOwners />} />
-          <Route path="regular-users" element={<RegularUsers />} />
+          <Route path="regular-users" element={<User />} />
           <Route path="quote-List" element={<QuotesList />} />
           <Route path="approved-Quotes" element={<ApprovedQuotesList />} />
           <Route path="rejected-Quotes" element={<RejectedQuotes />} />
@@ -354,10 +353,10 @@ function App() {
           <Route path="version-management" element={<VersionManagement />} />
           <Route path="subscriptions-management" element={<AdminSubscriptions />} />
           <Route path="quotes-management" element={<AdminQuotes />} />
+          <Route path="all-transactions" element={<AdminAllTransactions />} />
           <Route path="transactions-management" element={<AdminTransactions />} />
           <Route path="invoices-management" element={<AdminInvoices />} />
           <Route path="aws-settings" element={<AWSSettings />} />
-          <Route path="coupons" element={<AdminCoupons />} />
           <Route path="wallet-referral" element={<AdminWalletSettings />} />
           <Route path="give-money" element={<AdminGiveMoney />} />
           <Route path="company-bank-details" element={<AdminCompanyBankDetails />} />

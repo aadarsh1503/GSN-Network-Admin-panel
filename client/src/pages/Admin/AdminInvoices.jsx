@@ -248,7 +248,12 @@ const AdminInvoices = () => {
     });
   };
 
-  const formatCurrency = (amount) => format(amount);
+  // Subscription invoices are billed in BHD (the platform base currency), while
+  // transaction invoices (quote payments) are charged in USD. Amounts must be
+  // converted from the correct base, otherwise a $100 payment shows as BHD 100.
+  const invoiceCurrency = activeTab === 'subscription' ? 'BHD' : 'USD';
+
+  const formatCurrency = (amount) => format(amount, invoiceCurrency);
 
   // Filter and sort data
   const filteredAndSortedData = useMemo(() => {
@@ -472,7 +477,7 @@ const AdminInvoices = () => {
                     )}
                     <td className="p-3 whitespace-nowrap">
                       <span className="font-semibold text-[#bca142]">{formatCurrency(invoice.total_amount)}</span>
-                      <div className="text-xs text-gray-400">≈ {formatUsd(invoice.total_amount)}</div>
+                      <div className="text-xs text-gray-400">≈ {formatUsd(invoice.total_amount, invoiceCurrency)}</div>
                     </td>
                     <td className="p-3 whitespace-nowrap">
                       {getStatusBadge(invoice.status)}
@@ -758,7 +763,7 @@ const AdminInvoices = () => {
                         </td>
                         <td className="p-2 text-right font-semibold" style={{ border: '1px solid #D1D5DB', padding: '8px', textAlign: 'right', fontWeight: '600', fontSize: '12px', verticalAlign: 'top' }}>
                           {formatCurrency(selectedInvoice.amount)}
-                          <div className="text-xs text-gray-400 font-normal">≈ {formatUsd(selectedInvoice.amount)}</div>
+                          <div className="text-xs text-gray-400 font-normal">≈ {formatUsd(selectedInvoice.amount, invoiceCurrency)}</div>
                         </td>
                       </tr>
                     </tbody>
@@ -772,21 +777,21 @@ const AdminInvoices = () => {
                       <span>Subtotal:</span>
                       <span className="text-right">
                         {formatCurrency(selectedInvoice.amount)}
-                        <span className="block text-xs text-gray-400">≈ {formatUsd(selectedInvoice.amount)}</span>
+                        <span className="block text-xs text-gray-400">≈ {formatUsd(selectedInvoice.amount, invoiceCurrency)}</span>
                       </span>
                     </div>
                     <div className="flex justify-between py-1" style={{ borderBottom: '1px solid #D1D5DB', paddingTop: '4px', paddingBottom: '4px', fontSize: '12px' }}>
                       <span>{activeTab === 'subscription' ? 'Tax:' : 'Service Fee:'}</span>
                       <span className="text-right">
                         {formatCurrency(activeTab === 'subscription' ? (selectedInvoice.tax_amount || 0) : (selectedInvoice.service_fee || 0))}
-                        <span className="block text-xs text-gray-400">≈ {formatUsd(activeTab === 'subscription' ? (selectedInvoice.tax_amount || 0) : (selectedInvoice.service_fee || 0))}</span>
+                        <span className="block text-xs text-gray-400">≈ {formatUsd(activeTab === 'subscription' ? (selectedInvoice.tax_amount || 0) : (selectedInvoice.service_fee || 0), invoiceCurrency)}</span>
                       </span>
                     </div>
                     <div className="flex justify-between py-1 font-bold" style={{ borderBottom: '2px solid #1F2937', paddingTop: '4px', paddingBottom: '4px', fontWeight: 'bold', fontSize: '14px' }}>
                       <span>Total:</span>
                       <span className="text-right">
                         {formatCurrency(selectedInvoice.total_amount)}
-                        <span className="block text-xs text-gray-400 font-normal">≈ {formatUsd(selectedInvoice.total_amount)}</span>
+                        <span className="block text-xs text-gray-400 font-normal">≈ {formatUsd(selectedInvoice.total_amount, invoiceCurrency)}</span>
                       </span>
                     </div>
                   </div>

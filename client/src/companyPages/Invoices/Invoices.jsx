@@ -7,9 +7,12 @@ import api from '../../utils/api';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import QRScanner from '../../components/QRScanner/QRScanner';
 import toast from 'react-hot-toast';
+import { useCurrency } from '../../contexts/CurrencyContext';
 import GSNLogo from './GSN.jpg';
 
 const Invoices = () => {
+  // Invoice amounts are stored in BHD and shown in the viewer's local currency.
+  const { format } = useCurrency();
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
@@ -62,7 +65,7 @@ const Invoices = () => {
       alert(`Scanned Invoice Data:
       
 Invoice: ${qrData.invoiceNumber}
-Amount: $${qrData.amount}
+Amount: ${formatCurrency(qrData.amount)}
 Company: ${qrData.company}
 Plan: ${qrData.plan}
 Status: ${qrData.status}
@@ -235,12 +238,7 @@ Date: ${new Date(qrData.date).toLocaleDateString()}`);
     });
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
+  const formatCurrency = (amount) => format(amount);
 
   // Filter and pagination
   const filteredInvoices = invoices.filter(invoice => {

@@ -11,17 +11,22 @@ import {
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import useMarkAsRead from '../../hooks/useMarkAsRead';
+import { useCurrency } from '../../contexts/CurrencyContext';
 import LoadingSpinner, { InlineSpinner } from '../../components/LoadingSpinner/LoadingSpinner';
 import './MyQuotes.css';
 
 const MyQuotes = () => {
   const navigate = useNavigate();
+  // Quote prices are stored in USD and displayed in the viewer's local currency.
+  const { format } = useCurrency();
   const [quotes, setQuotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedQuote, setSelectedQuote] = useState(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [statusUpdatingId, setStatusUpdatingId] = useState(null);
   const [companyProfile, setCompanyProfile] = useState(null);
+  // Customer's (requester) bank account, fetched on demand from the "Bank Details" button
+  const [bankModal, setBankModal] = useState({ open: false, loading: false, rows: null, error: '' });
   
   // Filter states
   const [showFilters, setShowFilters] = useState(false);
@@ -315,6 +320,26 @@ const MyQuotes = () => {
     }
   };
 
+  // Load the requester's bank account (business / regular user) for this quote
+  const openBankDetails = async () => {
+    if (!selectedQuote?.id) return;
+    setBankModal({ open: true, loading: true, rows: null, error: '' });
+    try {
+      const res = await api.get(`/api/bank-details/quote-requester/${selectedQuote.id}`);
+      setBankModal({ open: true, loading: false, rows: res?.bankDetails || [], error: '' });
+    } catch (error) {
+      console.error('Bank details fetch error:', error);
+      setBankModal({
+        open: true,
+        loading: false,
+        rows: [],
+        error: error.message || 'Failed to load bank details'
+      });
+    }
+  };
+
+  const closeBankDetails = () => setBankModal({ open: false, loading: false, rows: null, error: '' });
+
   const getPaymentStatusBadge = (quote) => {
     // For approved quotes with verified payment, show the approval status prominently
     if (quote.status === 'approved' && quote.payment_status === 'verified') {
@@ -525,7 +550,7 @@ const MyQuotes = () => {
                       <FiDollarSign className="text-[#bca142] text-lg" />
                       <div>
                         <p className="text-sm text-gray-500">Your Quote Price</p>
-                        <p className="font-bold text-xl text-[#bca142]">${selectedQuote.price}</p>
+                        <p className="font-bold text-xl text-[#bca142]">{format(selectedQuote.price, 'USD')}</p>
                       </div>
                     </div>
 
@@ -963,6 +988,14 @@ const MyQuotes = () => {
                           Call
                         </a>
                       )}
+
+                      <button
+                        onClick={openBankDetails}
+                        className="flex items-center gap-2 px-4 py-2 bg-black text-white font-medium rounded-lg hover:bg-[#bca142] transform hover:-translate-y-0.5 transition-all duration-200"
+                      >
+                        <FiCreditCard className="text-sm" />
+                        Bank Details
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -1080,6 +1113,84 @@ const MyQuotes = () => {
                   </p>
                 </div>
               </div>
+
+              {/* Customer Bank Account Modal */}
+              {bankModal.open && (
+                <div
+                  className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+                  onClick={closeBankDetails}
+                >
+                  <div
+                    className="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl bg-white shadow-2xl"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+                      <h3 className="flex items-center gap-2 text-lg font-bold text-gray-800">
+                        <FiCreditCard className="text-[#bca142]" />
+                        Customer Bank Account
+                      </h3>
+                      <button onClick={closeBankDetails} className="text-gray-400 hover:text-gray-600">
+                        <FiX size={20} />
+                      </button>
+                    </div>
+
+                    <div className="p-5">
+                      {bankModal.loading ? (
+                        <div className="py-10 text-center text-gray-400">
+                          <InlineSpinner />
+                          <p className="mt-2 text-sm">Loading bank details…</p>
+                        </div>
+                      ) : bankModal.error ? (
+                        <p className="py-8 text-center text-sm text-rose-600">{bankModal.error}</p>
+                      ) : bankModal.rows && bankModal.rows.length > 0 ? (
+                        <div className="space-y-4">
+                          {bankModal.rows.map((b) => (
+                            <div key={b.id} className="rounded-xl border border-gray-200 p-4">
+                              <div className="mb-3 flex items-center justify-between">
+                                <p className="font-semibold text-gray-800">{b.bank_name}</p>
+                                {b.is_default ? (
+                                  <span className="rounded-full bg-[#bca142]/10 px-2 py-0.5 text-[10px] font-semibold text-[#9d8635]">
+                                    DEFAULT
+                                  </span>
+                                ) : null}
+                              </div>
+                              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                {[
+                                  ['Account Holder', b.account_holder_name],
+                                  ['Account Number', b.account_number],
+                                  ['IBAN', b.iban_number],
+                                  ['SWIFT', b.swift_code],
+                                  ['IFSC', b.ifsc_code],
+                                  ['Branch', b.branch_name],
+                                ]
+                                  .filter(([, value]) => value)
+                                  .map(([label, value]) => (
+                                    <div key={label}>
+                                      <p className="text-[10px] uppercase tracking-wide text-gray-400">{label}</p>
+                                      <p className="break-all text-sm font-medium text-gray-700">{value}</p>
+                                    </div>
+                                  ))}
+                              </div>
+                              {b.payment_instructions && (
+                                <div className="mt-3 rounded-lg border border-amber-100 bg-amber-50 px-3 py-2">
+                                  <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-700">
+                                    Payment Instructions
+                                  </p>
+                                  <p className="mt-0.5 text-xs text-amber-600">{b.payment_instructions}</p>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="py-8 text-center text-sm text-gray-400">
+                          This customer has not added a bank account yet.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1286,7 +1397,7 @@ const MyQuotes = () => {
 
               {/* Price Range Filters */}
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Min Price ($)</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Min Price (USD)</label>
                 <input
                   type="number"
                   placeholder="0"
@@ -1297,7 +1408,7 @@ const MyQuotes = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Max Price ($)</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Max Price (USD)</label>
                 <input
                   type="number"
                   placeholder="10000"
@@ -1426,7 +1537,7 @@ const MyQuotes = () => {
                       {/* Price - Compact */}
                       <td className="px-2 py-2 whitespace-nowrap">
                         <div className="text-center">
-                          <span className="text-sm font-bold text-green-600">${quote.price}</span>
+                          <span className="text-sm font-bold text-green-600">{format(quote.price, 'USD')}</span>
                           <div className="text-xs text-gray-500 flex items-center justify-center gap-1">
                             <FiCalendar className="text-gray-400" />
                             {new Date(quote.arrival_date).toLocaleDateString()}

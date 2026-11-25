@@ -1,15 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   FiGrid, FiUsers, FiFileText, FiUser, FiEdit, FiGitBranch,
   FiUserPlus, FiAward, FiRepeat, FiFile,
   FiHeart, FiMail, FiBell, FiChevronDown, FiCreditCard, FiSearch, FiShield, FiHelpCircle, FiDollarSign,
-  FiGift
+  FiGift, FiCheckCircle
 } from 'react-icons/fi';
 import { FaWallet } from 'react-icons/fa';
 import UserCard from './UserCard';
 import { useNotifications } from '../../contexts/NotificationContext';
 import CompanyQuoteRestrictionModal from '../Modal/CompanyQuoteRestrictionModal';
+import { api } from '../../utils/api';
 
 // Reorganized menu items by priority with sections
 const menuSections = [
@@ -20,8 +21,9 @@ const menuSections = [
       { name: 'Dashboard', icon: <FiGrid />, path: '/company/dashboard', priority: 1 },
       { name: 'Available Quotes', icon: <FiSearch />, path: '/company/available-quotes', priority: 2 },
       { name: 'My Quotes', icon: <FiFileText />, path: '/company/my-Quotes', priority: 3 },
-      { name: 'Messages', icon: <FiMail />, path: '/company/messages', priority: 4 },
-      { name: 'Notifications', icon: <FiBell />, path: '/company/notification-company', priority: 5 },
+      { name: 'Payment Verification', icon: <FiCheckCircle />, path: '/company/payment-management', priority: 4 },
+      { name: 'Messages', icon: <FiMail />, path: '/company/messages', priority: 5 },
+      { name: 'Notifications', icon: <FiBell />, path: '/company/notification-company', priority: 6 },
     ]
   },
   {
@@ -30,15 +32,7 @@ const menuSections = [
     items: [
       { name: 'Wallet', icon: <FaWallet />, path: '/company/wallet', priority: 1 },
       { name: 'Subscriptions', icon: <FiCreditCard />, path: '/company/subscriptions', priority: 2 },
-      {
-        name: 'Payment Management',
-        icon: <FiDollarSign />,
-        priority: 3,
-        subItems: [
-          { name: 'Bank Details', path: '/company/bank-details' },
-          { name: 'Payment Verification', path: '/company/payment-management' },
-        ],
-      },
+      { name: 'Bank Details', icon: <FiDollarSign />, path: '/company/bank-details', priority: 3 },
       { name: 'Invoices', icon: <FiFile />, path: '/company/invoices', priority: 4 },
       { name: 'Transaction History', icon: <FiRepeat />, path: '/company/transaction-History-Company', priority: 5 },
     ]
@@ -102,7 +96,24 @@ const CompanySidebarContent = () => {
   const location = useLocation();
   const [openDropdown, setOpenDropdown] = useState(null);
   const [showRestrictionModal, setShowRestrictionModal] = useState(false);
-  const { unreadCount, messageUnreadCount, markAsRead } = useNotifications();
+  const [pendingPaymentsCount, setPendingPaymentsCount] = useState(0);
+  const { unreadCount, messageUnreadCount, quoteUnreadCount, markAsRead, fetchUnreadCount, fetchMessageUnreadCount } = useNotifications();
+
+  const fetchPendingPaymentsCount = async () => {
+    try {
+      const data = await api.get('/api/enhanced-quotes/pending-payments-count');
+      setPendingPaymentsCount(Number(data?.pendingCount) || 0);
+    } catch {
+      // Silent: a badge should never break the sidebar
+    }
+  };
+
+  // Refresh the sidebar badges on every navigation inside the panel
+  useEffect(() => {
+    fetchUnreadCount();
+    fetchMessageUnreadCount();
+    fetchPendingPaymentsCount();
+  }, [location.pathname]);
 
   const handleDropdownClick = (itemName) => {
     setOpenDropdown(openDropdown === itemName ? null : itemName);
@@ -202,9 +213,19 @@ const CompanySidebarContent = () => {
                 {unreadCount > 99 ? '99+' : unreadCount}
               </span>
             )}
+            {item.name === 'Payment Verification' && pendingPaymentsCount > 0 && (
+              <span className="bg-red-500 text-white text-xs rounded-full h-5 min-w-5 px-1 flex items-center justify-center animate-pulse shadow-sm font-bold">
+                {pendingPaymentsCount > 99 ? '99+' : pendingPaymentsCount}
+              </span>
+            )}
             {item.name === 'Messages' && messageUnreadCount > 0 && (
               <span className="bg-[#bca142] text-white text-xs rounded-full h-6 w-6 flex items-center justify-center animate-bounce shadow-lg font-bold">
                 {messageUnreadCount > 99 ? '99+' : messageUnreadCount}
+              </span>
+            )}
+            {item.name === 'My Quotes' && quoteUnreadCount > 0 && (
+              <span className="bg-[#bca142] text-white text-xs rounded-full h-6 w-6 flex items-center justify-center animate-bounce shadow-lg font-bold">
+                {quoteUnreadCount > 99 ? '99+' : quoteUnreadCount}
               </span>
             )}
           </NavLink>

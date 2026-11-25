@@ -3,6 +3,7 @@ import { FiEye, FiPhone, FiGrid, FiList, FiSend, FiLock, FiTrendingUp } from 're
 import Flag from 'react-world-flags';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
+import { useCurrency } from '../../contexts/CurrencyContext';
 
 const RightSidebar = () => (
   <div className="space-y-6 mt-2">
@@ -21,6 +22,10 @@ const RightSidebar = () => (
 );
 
 const QuotesPage = () => {
+  // Quote prices are stored in USD, but a company types the price in its own
+  // currency (INR for an Indian company, BHD for a Bahraini one, ...). We show a
+  // live USD preview and convert back to USD when submitting.
+  const { currency, convert, formatUsd, ready } = useCurrency();
   const [viewMode, setViewMode] = useState('grid');
   const [currentView, setCurrentView] = useState('list');
   const [selectedQuote, setSelectedQuote] = useState(null);
@@ -119,11 +124,18 @@ const QuotesPage = () => {
       return;
     }
 
+    // The typed price is in the company's own currency; store it in USD.
+    if (!ready) {
+      toast.error('Currency rates are still loading. Please try again in a moment.');
+      return;
+    }
+
     setSubmittingResponse(true);
     try {
       await api.post('/api/quote-responses/submit', {
         quoteId: selectedQuote.id,
-        ...responseForm
+        ...responseForm,
+        price: Number(convert(responseForm.price, currency, 'USD').toFixed(2))
       });
 
       toast.success('Quote response submitted successfully!');
@@ -356,7 +368,7 @@ const QuotesPage = () => {
             <form onSubmit={handleSubmitResponse} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Price (USD) *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Price ({ready ? currency : 'USD'}) *</label>
                   <input
                     type="number"
                     name="price"
@@ -366,6 +378,11 @@ const QuotesPage = () => {
                     className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C9A959]"
                     required
                   />
+                  {responseForm.price && ready && (
+                    <p className="mt-1 text-xs text-gray-500">
+                      Customer pays ≈ {formatUsd(responseForm.price, currency)} (PayPal or bank transfer)
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Transit Time *</label>

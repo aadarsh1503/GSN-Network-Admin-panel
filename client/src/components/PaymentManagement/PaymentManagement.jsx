@@ -6,16 +6,18 @@ import {
   FiImage, FiDownload, FiAlertCircle, FiCheckCircle, FiClock, FiGlobe, FiTag
 } from 'react-icons/fi';
 import api from '../../utils/api';
+import { useCurrency } from '../../contexts/CurrencyContext';
+import { currencyForCountry } from '../../utils/currency';
 import './PaymentManagement.css';
 
 // Human-readable coupon label (percent off for percentage coupons, amount for fixed).
-// The company must never see the coupon code.
-const getCouponLabel = (item) => {
+// The company must never see the coupon code. Amounts are USD, formatted in the
+// company's own currency by the caller.
+const getCouponLabel = (item, fmtAmount) => {
   if (!item || !item.has_coupon) return '';
   const value = Number(item.coupon_discount_value || 0);
-  return item.coupon_discount_type === 'percentage'
-    ? `${value}% off`
-    : `$${value.toFixed(2)} off`;
+  if (item.coupon_discount_type === 'percentage') return `${value}% off`;
+  return `${fmtAmount ? fmtAmount(value) : `$${value.toFixed(2)}`} off`;
 };
 
 const getCouponOriginal = (item) =>
@@ -25,6 +27,9 @@ const getCouponFinal = (item) =>
 const getCouponDiscount = (item) => Number(item.coupon_discount_amount || 0);
 
 const PaymentManagement = () => {
+  // Quote/payment amounts are stored in USD; show them in the company's own
+  // currency with the USD equivalent and what the customer sees.
+  const { format, formatUsd, formatIn } = useCurrency();
   const [pendingPayments, setPendingPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPayment, setSelectedPayment] = useState(null);
@@ -208,16 +213,16 @@ const PaymentManagement = () => {
                       {payment.has_coupon ? (
                         <div className="mt-1">
                           <p className="text-gray-600">
-                            <span className="line-through text-gray-400">${getCouponOriginal(payment).toFixed(2)}</span>
-                            <span className="ml-2 font-semibold text-black">${getCouponFinal(payment).toFixed(2)}</span>
+                            <span className="line-through text-gray-400">{format(getCouponOriginal(payment), 'USD')}</span>
+                            <span className="ml-2 font-semibold text-black">{format(getCouponFinal(payment), 'USD')}</span>
                           </p>
                           <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-[#bca142]/15 text-[#8f7a2e] border border-[#bca142]/30">
                             <FiTag className="text-xs" />
-                            {getCouponLabel(payment)} (−${getCouponDiscount(payment).toFixed(2)})
+                            {getCouponLabel(payment, (v) => format(v, 'USD'))} (−{format(getCouponDiscount(payment), 'USD')})
                           </span>
                         </div>
                       ) : (
-                        <p className="text-gray-600">${payment.price}</p>
+                        <p className="text-gray-600">{format(payment.price, 'USD')}</p>
                       )}
                     </div>
                   </div>
@@ -399,17 +404,23 @@ const PaymentManagement = () => {
                           <p className="text-sm text-gray-600">Amount</p>
                           {selectedPayment.has_coupon ? (
                             <div>
-                              <p className="font-bold text-black text-xl">${getCouponFinal(selectedPayment).toFixed(2)}</p>
+                              <p className="font-bold text-black text-xl">{format(getCouponFinal(selectedPayment), 'USD')}</p>
                               <p className="text-sm text-gray-500">
-                                <span className="line-through">${getCouponOriginal(selectedPayment).toFixed(2)}</span>
+                                <span className="line-through">{format(getCouponOriginal(selectedPayment), 'USD')}</span>
                                 {' · '}
-                                <span className="text-[#8f7a2e] font-semibold">{getCouponLabel(selectedPayment)}</span>
-                                {` (−$${getCouponDiscount(selectedPayment).toFixed(2)})`}
+                                <span className="text-[#8f7a2e] font-semibold">{getCouponLabel(selectedPayment, (v) => format(v, 'USD'))}</span>
+                                {` (−${format(getCouponDiscount(selectedPayment), 'USD')})`}
                               </p>
                             </div>
                           ) : (
-                            <p className="font-bold text-black text-xl">${selectedPayment.price}</p>
+                            <p className="font-bold text-black text-xl">{format(selectedPayment.price, 'USD')}</p>
                           )}
+                          <p className="text-xs text-gray-500">
+                            ≈ {formatUsd(selectedPayment.price, 'USD')}
+                            {currencyForCountry(selectedPayment.user_country) && (
+                              <> · Customer sees ≈ {formatIn(selectedPayment.price, currencyForCountry(selectedPayment.user_country), 'USD')}</>
+                            )}
+                          </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
@@ -624,12 +635,12 @@ const PaymentManagement = () => {
                 <h3 className="font-semibold text-black mb-2">Customer: {selectedPayment.user_name}</h3>
                 {selectedPayment.has_coupon ? (
                   <p className="text-gray-600 text-sm">
-                    Amount: ${getCouponFinal(selectedPayment).toFixed(2)}{' '}
-                    <span className="text-[#8f7a2e] font-semibold">{getCouponLabel(selectedPayment)}</span>
-                    {` applied (−$${getCouponDiscount(selectedPayment).toFixed(2)} off $${getCouponOriginal(selectedPayment).toFixed(2)})`}
+                    Amount: {format(getCouponFinal(selectedPayment), 'USD')}{' '}
+                    <span className="text-[#8f7a2e] font-semibold">{getCouponLabel(selectedPayment, (v) => format(v, 'USD'))}</span>
+                    {` applied (−${format(getCouponDiscount(selectedPayment), 'USD')} off ${format(getCouponOriginal(selectedPayment), 'USD')})`}
                   </p>
                 ) : (
-                  <p className="text-gray-600 text-sm">Amount: ${selectedPayment.price}</p>
+                  <p className="text-gray-600 text-sm">Amount: {format(selectedPayment.price, 'USD')}</p>
                 )}
                 <p className="text-gray-600 text-sm">Email: {selectedPayment.user_email}</p>
               </div>

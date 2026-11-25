@@ -23,6 +23,8 @@ import ProfileCompletionModal from '../../components/Modal/ProfileCompletionModa
 import { useProfileCompletion } from '../../hooks/useProfileCompletion';
 import SharedReferralCard from '../../components/Referral/ReferralCard';
 import ProfileCompletionCard from '../../components/ProfileCompletion/ProfileCompletionCard';
+import { formatMoney } from '../../utils/currency';
+import { useCurrency } from '../../contexts/CurrencyContext';
 
 // Persistent logging function for company dashboard
 const persistentLog = (message, type = 'info') => {
@@ -59,6 +61,7 @@ const MetricCard = ({
   color = 'yellow',
   prefix = '',
   suffix = '',
+  currencyCode = null,
   animate = true,
   onClick = null
 }) => {
@@ -79,7 +82,10 @@ const MetricCard = ({
       const progress = Math.min((timestamp - startTime) / duration, 1);
       
       const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-      setDisplayValue(Math.floor(easeOutQuart * (value - startValue) + startValue));
+      const current = easeOutQuart * (value - startValue) + startValue;
+      // Keep integers during the count-up, but land on the exact value so
+      // decimals (e.g. 37.52) are never truncated away.
+      setDisplayValue(progress >= 1 ? value : Math.floor(current));
       
       if (progress < 1) {
         requestAnimationFrame(animateValue);
@@ -100,7 +106,10 @@ const MetricCard = ({
   };
 
   const trend = calculateTrend();
-  
+
+  // Money cards render with the currency's own decimal places (BHD -> 3, INR/USD -> 2).
+  const formattedValue = currencyCode ? formatMoney(displayValue, currencyCode) : displayValue.toLocaleString();
+
   const colorClasses = {
     yellow: {
       bg: 'bg-white border-l-4 border-[#bca142]',
@@ -169,9 +178,9 @@ const MetricCard = ({
           <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">
             {title}
           </p>
-          <p className="text-3xl font-bold text-gray-800">
+          <p className="text-2xl font-bold text-gray-800 break-words">
             {prefix}
-            {displayValue.toLocaleString()}
+            {formattedValue}
             {suffix}
           </p>
           {trend && (
@@ -538,6 +547,12 @@ const Dashboard = () => {
   const [transactionAmount, setTransactionAmount] = useState(0);
   const [loading, setLoading] = useState(true);
   const { notifications, fetchNotifications } = useNotifications();
+  const { convert, currency, ready } = useCurrency();
+
+  // Quote payments are captured in USD, so the total is converted into the
+  // viewer's own currency before it is shown.
+  const displayCurrency = ready ? currency : 'USD';
+  const displayTransactionAmount = convert(transactionAmount, 'USD');
 
   // Profile completion logic
   const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -860,11 +875,11 @@ const Dashboard = () => {
           />
           <MetricCard
             title="Transaction Amount"
-            value={transactionAmount}
-            previousValue={Math.max(0, transactionAmount - 100)}
+            value={displayTransactionAmount}
+            previousValue={Math.max(0, displayTransactionAmount - 100)}
             icon={TrendingUp}
             color="green"
-            prefix="$"
+            currencyCode={displayCurrency}
             onClick={() => window.location.href = '/company/transaction-History-Company'}
           />
           <MetricCard

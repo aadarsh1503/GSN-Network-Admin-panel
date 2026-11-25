@@ -12,6 +12,14 @@ import { useCurrency } from '../../contexts/CurrencyContext';
 const fmtDate = (d) => (d ? new Date(d).toLocaleDateString() : '—');
 const fmtDateTime = (d) => (d ? new Date(d).toLocaleString() : '—');
 
+// Business categories are stored as a comma separated string (or an array);
+// render them as a readable list.
+const fmtCategory = (c) => {
+  if (!c) return '';
+  const list = Array.isArray(c) ? c : String(c).split(',');
+  return list.map((s) => s.trim()).filter(Boolean).join(', ');
+};
+
 const ROLE_META = {
   user: { label: 'User', icon: FaUser, gradient: 'from-slate-700 to-black' },
   business: { label: 'Business Owner', icon: FaBriefcase, gradient: 'from-[#8a7525] to-black' },
@@ -148,7 +156,7 @@ const UserDetailModal = ({ isOpen, onClose, role, userId, onDelete }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 backdrop-blur-sm">
       <div className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
         {/* Header */}
-        <div className={`bg-gradient-to-r ${meta.gradient} px-6 py-5 text-white`}>
+        <div className={`shrink-0 bg-gradient-to-r ${meta.gradient} px-6 py-5 text-white`}>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4 min-w-0">
               {p.company_logo || p.logo ? (
@@ -207,8 +215,8 @@ const UserDetailModal = ({ isOpen, onClose, role, userId, onDelete }) => {
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 overflow-x-auto border-b border-gray-200 bg-gray-50 px-4">
+        {/* Tabs — wrap instead of clipping so no tab ever gets cut off */}
+        <div className="flex shrink-0 flex-wrap items-center gap-1 border-b border-gray-200 bg-gray-50 px-4">
           {tabs.map((t) => (
             <button
               key={t.id}
@@ -225,7 +233,7 @@ const UserDetailModal = ({ isOpen, onClose, role, userId, onDelete }) => {
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto bg-gray-50/60 p-5">
+        <div className="min-h-0 flex-1 overflow-y-auto bg-gray-50/60 p-5">
           {loading && (
             <div className="flex flex-col items-center justify-center py-24 text-gray-400">
               <FaSpinner className="animate-spin text-3xl mb-3 text-[#bca142]" />
@@ -275,11 +283,11 @@ const UserDetailModal = ({ isOpen, onClose, role, userId, onDelete }) => {
 
                     <div className="rounded-xl border border-gray-200 bg-white p-4">
                       <h4 className="mb-2 text-sm font-bold uppercase tracking-wide text-gray-500">
-                        {isCompany ? 'Company Profile' : 'Profile'}
+                        {isCompany ? 'Company Profile' : role === 'business' ? 'Business Profile' : 'Profile'}
                       </h4>
                       {isCompany ? (
                         <>
-                          <InfoRow icon={FaBriefcase} label="Category" value={p.category} />
+                          <InfoRow icon={FaBriefcase} label="Category" value={fmtCategory(p.category)} />
                           <InfoRow icon={FaUser} label="Owner" value={p.owner_name} />
                           <InfoRow icon={FaGlobe} label="Website" value={p.website} />
                           <InfoRow icon={FaMapMarkerAlt} label="Address" value={p.company_address} />
@@ -288,6 +296,9 @@ const UserDetailModal = ({ isOpen, onClose, role, userId, onDelete }) => {
                       ) : (
                         <>
                           <InfoRow icon={FaUser} label="Role" value={meta.label} />
+                          {role === 'business' && (
+                            <InfoRow icon={FaBriefcase} label="Category" value={fmtCategory(p.category)} />
+                          )}
                           <InfoRow icon={FaCheckCircle} label="Email Verified" value={p.email_verified ? 'Yes' : 'No'} />
                           <InfoRow icon={FaGift} label="Referral Code" value={p.referral_code} />
                           <InfoRow icon={FaQuoteRight} label="Quotes Submitted" value={counts.quotes ?? 0} />
@@ -480,6 +491,26 @@ const UserDetailModal = ({ isOpen, onClose, role, userId, onDelete }) => {
                           { key: 'invoice_number', label: 'Invoice #' },
                           { key: 'total_amount', label: 'Total', render: (r) => (<>{money(r.total_amount)}<div className="text-xs text-gray-400">{formatUsd(r.total_amount)}</div></>) },
                           { key: 'status', label: 'Status', render: (r) => <StatusPill status={r.status} /> }
+                        ]}
+                      />
+                    </div>
+                  )}
+
+                  {!isCompany && (
+                    <div>
+                      <h4 className="mb-2 text-sm font-bold uppercase tracking-wide text-gray-500">
+                        Bank Details
+                      </h4>
+                      <DataTable
+                        empty="No bank details"
+                        rows={data.bankDetails}
+                        columns={[
+                          { key: 'bank_name', label: 'Bank' },
+                          { key: 'account_holder_name', label: 'Holder' },
+                          { key: 'account_number', label: 'Account No.' },
+                          { key: 'swift_code', label: 'SWIFT' },
+                          { key: 'iban_number', label: 'IBAN' },
+                          { key: 'is_default', label: 'Default', render: (r) => (r.is_default ? 'Yes' : 'No') }
                         ]}
                       />
                     </div>

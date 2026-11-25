@@ -2,8 +2,13 @@ import { useState, useEffect } from 'react';
 import { FaEye, FaEdit, FaCheck, FaTimes, FaClock, FaUser } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { api } from '../../utils/api';
+import { useCurrency } from '../../contexts/CurrencyContext';
+import { currencyForCountry } from '../../utils/currency';
 
 const MyQuoteResponses = () => {
+  // Quote prices are stored in USD; show them in the company's own currency with
+  // the USD equivalent, plus what the customer sees in their country's currency.
+  const { format, formatUsd, formatIn } = useCurrency();
   const [responses, setResponses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updatingStatus, setUpdatingStatus] = useState(null);
@@ -156,8 +161,16 @@ const MyQuoteResponses = () => {
                     <td className="px-6 py-4">
                       <div className="text-sm">
                         <div className="font-medium text-gray-900">
-                          ${response.price}
+                          {format(response.price, 'USD')}
                         </div>
+                        <div className="text-gray-500 text-xs">
+                          ≈ {formatUsd(response.price, 'USD')}
+                        </div>
+                        {currencyForCountry(response.user_country) && (
+                          <div className="text-gray-500 text-xs">
+                            Customer sees ≈ {formatIn(response.price, currencyForCountry(response.user_country), 'USD')}
+                          </div>
+                        )}
                         <div className="text-gray-600">
                           {response.transit_time}
                         </div>

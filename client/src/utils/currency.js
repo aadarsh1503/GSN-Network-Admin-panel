@@ -85,7 +85,9 @@ const getFormatter = (code) => {
     formatter = new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: code,
-      currencyDisplay: 'narrowSymbol',
+      // 'symbol' instead of 'narrowSymbol' so ambiguous glyphs stay readable
+      // (e.g. CNY -> "CN¥" rather than "¥", which also means Japanese Yen).
+      currencyDisplay: 'symbol',
     });
   } catch {
     try {

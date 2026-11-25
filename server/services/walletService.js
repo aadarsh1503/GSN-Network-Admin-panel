@@ -25,6 +25,7 @@ const SETTING_KEYS = {
   walletMinUsageBhd:          'wallet_min_usage_bhd',
   walletMaxUsagePercent:      'wallet_max_usage_percent',
   minTopupBhd:                'min_topup_bhd',
+  minTopupUsd:                'min_topup_usd',
   maxTopupBhd:                'max_topup_bhd',
 };
 
@@ -44,12 +45,15 @@ const DEFAULTS = {
   walletMinUsageBhd: 0,
   walletMaxUsagePercent: 100,
   minTopupBhd: 1,
+  // Hard floor in USD: a top-up is never allowed below this, whatever the BHD
+  // minimum says. Keeps small, fee-eating top-ups out of the system.
+  minTopupUsd: 100,
   maxTopupBhd: 5000,
 };
 
 const NUMERIC_KEYS = new Set([
   'registrationRewardValue', 'registrationReferredRewardValue', 'subscriptionRewardValue', 'maxReferralsPerYear',
-  'walletMinUsageBhd', 'walletMaxUsagePercent', 'minTopupBhd', 'maxTopupBhd', 'welcomeBonusValue',
+  'walletMinUsageBhd', 'walletMaxUsagePercent', 'minTopupBhd', 'minTopupUsd', 'maxTopupBhd', 'welcomeBonusValue',
 ]);
 const BOOLEAN_KEYS = new Set([
   'referralEnabled', 'registrationRewardEnabled', 'subscriptionRewardEnabled',

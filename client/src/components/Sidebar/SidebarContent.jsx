@@ -1,13 +1,14 @@
 // src/components/Sidebar/SidebarContent.jsx
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { api } from '../../utils/api';
 import {
   LayoutDashboard,
   Users, User, UserPlus, Building2, Factory,
   ClipboardList, CheckCircle2, RotateCw, XCircle, Lock,
   DollarSign, CreditCard, FileText, Landmark, Wallet, Coins, Ticket,
-  ClipboardCheck,
+  ClipboardCheck, ReceiptText,
   MessageSquare, Bell, Send, Mail,
   Headphones, Clock,
   Package, Truck, LayoutGrid,
@@ -17,9 +18,72 @@ import {
   Cloud, Tag, TrendingUp,
 } from 'lucide-react';
 
+// Maps a sidebar page segment to the pending-count keys that badge it.
+// A page whose count is zero (or not listed here) shows no badge.
+const BADGE_KEY_BY_PATH = {
+  'business-Owners': ['pendingBusinessUsers'],
+  'company-Owners': ['pendingCompanyUsers'],
+  'all-company-Quotes': ['pendingQuotes'],
+  'wallet-referral': ['pendingTopups'],
+  'subscribers': ['pendingSubscriptions'],
+  'messages': ['unreadMessages'],
+  'pending-Ticket': ['pendingTickets'],
+  'all-Ticket': ['pendingTickets'],
+  'disputes': ['openDisputes'],
+};
+
+const SEEN_COUNTS_KEY = 'adminSidebarSeenCounts';
+
 const SidebarContent = () => {
   const location = useLocation();
   const [openDropdown, setOpenDropdown] = useState(null);
+
+  // Live "needs admin action" counts (pending subscriptions, top-ups, tickets…).
+  const [counts, setCounts] = useState({});
+  // Per-key snapshot of what the admin has already viewed, so opening a page
+  // clears its badge until genuinely new requests arrive.
+  const [seen, setSeen] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(SEEN_COUNTS_KEY) || '{}'); }
+    catch { return {}; }
+  });
+
+  const loadCounts = useCallback(async () => {
+    try { setCounts((await api.get('/api/admin/pending-counts')) || {}); }
+    catch { /* badges are non-critical */ }
+  }, []);
+
+  useEffect(() => {
+    loadCounts();
+    const timer = setInterval(loadCounts, 30000);
+    return () => clearInterval(timer);
+  }, [loadCounts]);
+
+  // Opening a page marks its pending items as seen → badge resets to 0.
+  useEffect(() => {
+    const segment = location.pathname.split('/').pop();
+    const keys = BADGE_KEY_BY_PATH[segment];
+    if (!keys?.length) return;
+    setSeen(prev => {
+      const next = { ...prev };
+      let changed = false;
+      keys.forEach(k => {
+        const current = Number(counts[k] || 0);
+        if (next[k] !== current) { next[k] = current; changed = true; }
+      });
+      if (!changed) return prev;
+      try { localStorage.setItem(SEEN_COUNTS_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  }, [location.pathname, counts]);
+
+  // Badge value = pending count minus what the admin has already seen.
+  const badgeFor = (keys) => {
+    if (!keys?.length) return 0;
+    return [...new Set(keys)].reduce(
+      (sum, k) => sum + Math.max(0, Number(counts[k] || 0) - Number(seen[k] || 0)),
+      0,
+    );
+  };
 
   // Reorganized menu items by priority with futuristic grouping
   const menuItems = [
@@ -40,9 +104,8 @@ const SidebarContent = () => {
       description: 'Manage all users',
       subItems: [
         { name: 'Users', path: 'users', icon: User },
-        { name: 'Regular Users', path: 'regular-users', icon: UserPlus },
-        { name: 'Business Owners', path: 'business-Owners', icon: Building2 },
-        { name: 'Company Owners', path: 'company-Owners', icon: Factory },
+        { name: 'Business Owners', path: 'business-Owners', icon: Building2, badgeKeys: ['pendingBusinessUsers'] },
+        { name: 'Company Owners', path: 'company-Owners', icon: Factory, badgeKeys: ['pendingCompanyUsers'] },
       ]
     },
 
@@ -53,7 +116,7 @@ const SidebarContent = () => {
       priority: 'high',
       description: 'Company quotes & deals',
       subItems: [
-        { name: 'All Quotes', path: 'all-company-Quotes', icon: ClipboardList },
+        { name: 'All Quotes', path: 'all-company-Quotes', icon: ClipboardList, badgeKeys: ['pendingQuotes'] },
         { name: 'Approved Quotes', path: 'all-approved-Quotes', icon: CheckCircle2 },
         { name: 'Running Quotes', path: 'all-running-Quotes', icon: RotateCw },
         { name: 'Rejected Quotes', path: 'all-rejected-Quotes', icon: XCircle },
@@ -68,13 +131,13 @@ const SidebarContent = () => {
       priority: 'high',
       description: 'Money & transactions',
       subItems: [
+        { name: 'All Transactions', path: 'all-transactions', icon: ReceiptText },
         { name: 'Transactions with Users', path: 'transactions-management', icon: CreditCard },
         { name: 'All Invoices', path: 'invoices-management', icon: FileText },
         { name: 'Bank Details', path: 'bank-details', icon: Landmark },
         { name: 'Company Bank Accounts', path: 'company-bank-details', icon: Building2 },
-        { name: 'Wallet & Referral', path: 'wallet-referral', icon: Wallet },
+        { name: 'Wallet & Referral', path: 'wallet-referral', icon: Wallet, badgeKeys: ['pendingTopups'] },
         { name: 'Give Money', path: 'give-money', icon: Coins },
-        { name: 'Coupons', path: 'coupons', icon: Ticket },
       ]
     },
 
@@ -83,6 +146,7 @@ const SidebarContent = () => {
       icon: ClipboardCheck,
       path: 'subscribers',
       priority: 'low',
+      badgeKeys: ['pendingSubscriptions'],
       description: 'Approve subscriber payments'
     },
 
@@ -93,7 +157,7 @@ const SidebarContent = () => {
       priority: 'medium',
       description: 'Messages & notifications',
       subItems: [
-        { name: 'Messages', path: 'messages', icon: MessageSquare },
+        { name: 'Messages', path: 'messages', icon: MessageSquare, badgeKeys: ['unreadMessages'] },
         { name: 'View Notifications', path: 'notifications', icon: Bell },
         { name: 'Send Notifications', path: 'send-notifications', icon: Send },
         { name: 'Send Emails', path: 'send-emails', icon: Mail },
@@ -107,8 +171,8 @@ const SidebarContent = () => {
       priority: 'medium',
       description: 'Customer support',
       subItems: [
-        { name: 'All Tickets', path: 'all-Ticket', icon: Ticket },
-        { name: 'Pending Tickets', path: 'pending-Ticket', icon: Clock },
+        { name: 'All Tickets', path: 'all-Ticket', icon: Ticket, badgeKeys: ['pendingTickets'] },
+        { name: 'Pending Tickets', path: 'pending-Ticket', icon: Clock, badgeKeys: ['pendingTickets'] },
         { name: 'Answered Tickets', path: 'answered-Ticket', icon: CheckCircle2 },
         { name: 'Closed Tickets', path: 'closed-Ticket', icon: Lock },
       ]
@@ -146,7 +210,7 @@ const SidebarContent = () => {
       description: 'Resolve conflicts',
       subItems: [
         { name: 'Dispute Reason', path: 'dispute-Reason', icon: FileText },
-        { name: 'Active Disputes', path: 'disputes', icon: Scale },
+        { name: 'Active Disputes', path: 'disputes', icon: Scale, badgeKeys: ['openDisputes'] },
       ]
     },
 
@@ -214,6 +278,9 @@ const SidebarContent = () => {
           const isParentActive = item.subItems?.some(sub => currentPathSegment === sub.path);
           const isActive = currentPathSegment === item.path || isParentActive;
           const ParentIcon = item.icon;
+          const itemBadge = badgeFor(
+            item.subItems ? item.subItems.flatMap(sub => sub.badgeKeys || []) : item.badgeKeys
+          );
 
           if (item.subItems) {
             return (
@@ -237,8 +304,14 @@ const SidebarContent = () => {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      {item.priority === 'high' && (
-                        <div className="w-2 h-2 bg-[#bca142] rounded-full animate-pulse"></div>
+                      {itemBadge > 0 ? (
+                        <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[11px] font-bold flex items-center justify-center">
+                          {itemBadge > 99 ? '99+' : itemBadge}
+                        </span>
+                      ) : (
+                        item.priority === 'high' && (
+                          <div className="w-2 h-2 bg-[#bca142] rounded-full animate-pulse"></div>
+                        )
                       )}
                       <svg
                         viewBox="0 0 24 24"
@@ -266,6 +339,7 @@ const SidebarContent = () => {
                     {item.subItems.map((subItem, subIndex) => {
                       const SubIcon = subItem.icon;
                       const subActive = currentPathSegment === subItem.path;
+                      const subBadge = badgeFor(subItem.badgeKeys);
                       return (
                         <Link
                           key={subIndex}
@@ -277,7 +351,14 @@ const SidebarContent = () => {
                           }`}
                         >
                           <SubIcon className={`w-[18px] h-[18px] shrink-0 ${subActive ? 'text-white' : 'text-[#bca142]'}`} />
-                          <span>{subItem.name}</span>
+                          <span className="flex-1">{subItem.name}</span>
+                          {subBadge > 0 && (
+                            <span className={`min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold flex items-center justify-center ${
+                              subActive ? 'bg-white text-[#bca142]' : 'bg-red-500 text-white'
+                            }`}>
+                              {subBadge > 99 ? '99+' : subBadge}
+                            </span>
+                          )}
                         </Link>
                       );
                     })}
@@ -307,8 +388,14 @@ const SidebarContent = () => {
                     <p className="text-xs text-gray-600 mt-0.5">{item.description}</p>
                   </div>
                 </div>
-                {item.priority === 'high' && (
-                  <div className="w-2 h-2 bg-[#bca142] rounded-full animate-pulse"></div>
+                {itemBadge > 0 ? (
+                  <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[11px] font-bold flex items-center justify-center">
+                    {itemBadge > 99 ? '99+' : itemBadge}
+                  </span>
+                ) : (
+                  item.priority === 'high' && (
+                    <div className="w-2 h-2 bg-[#bca142] rounded-full animate-pulse"></div>
+                  )
                 )}
               </div>
             </Link>

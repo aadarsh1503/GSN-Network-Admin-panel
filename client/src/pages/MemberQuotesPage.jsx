@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { FaShip, FaPlane,FaTimes , FaTruck, FaTrain, FaEye, FaReply, FaClock, FaMapMarkerAlt, FaFilter, FaSearch, FaSort } from 'react-icons/fa';
-import { FiLock, FiArrowRight, FiAlertTriangle } from 'react-icons/fi';
+import { FiLock, FiArrowRight, FiAlertTriangle, FiMessageCircle } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { useLoading } from '../contexts/LoadingContext';
 import { quotesAPI, api } from '../utils/api';
@@ -190,6 +190,16 @@ const MemberQuotesPage = () => {
 
   const handleViewDetails = (quote) => {
     setSelectedQuote(quote);
+  };
+
+  // Open a direct chat with the customer who requested this quote
+  const handleChatWithCustomer = (quote) => {
+    if (!quote.user_id) {
+      toast.error('Customer details are not available for this quote');
+      return;
+    }
+    const name = encodeURIComponent(quote.user_name || quote.contact_name || 'Customer');
+    navigate(`/company/messages?recipient=${quote.user_id}&name=${name}`);
   };
 
   const handleRespondToQuote = (quote) => {
@@ -658,38 +668,48 @@ const MemberQuotesPage = () => {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex space-x-1">
+                  <div className="flex gap-1">
                     <button
                       onClick={() => handleViewDetails(quote)}
-                      className="flex-1 bg-gray-100 text-gray-700 py-2 px-2 rounded-lg hover:bg-gray-200 transition-all duration-300 flex items-center justify-center font-medium shadow-sm text-xs"
+                      className="flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 bg-gray-100 text-gray-700 py-2 px-1 rounded-lg hover:bg-gray-200 transition-all duration-300 font-medium shadow-sm text-[11px] leading-tight text-center"
                     >
-                      <FaEye className="mr-1" />
-                      View
+                      <FaEye className="text-xs" />
+                      <span className="min-w-0">View</span>
                     </button>
+                    {hasActiveSubscription && (
+                      <button
+                        onClick={() => handleChatWithCustomer(quote)}
+                        className="flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 bg-black text-white py-2 px-1 rounded-lg hover:bg-[#bca142] transition-all duration-300 font-medium shadow-sm text-[11px] leading-tight text-center"
+                        title="Chat with this customer about the quote"
+                      >
+                        <FiMessageCircle className="text-xs" />
+                        <span className="min-w-0">Chat</span>
+                      </button>
+                    )}
                     {quote.already_responded ? (
                       <button
                         disabled
-                        className="flex-1 bg-gray-300 text-gray-500 py-2 px-2 rounded-lg cursor-not-allowed flex items-center justify-center font-medium text-xs"
+                        className="flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 bg-gray-300 text-gray-500 py-2 px-1 rounded-lg cursor-not-allowed font-medium text-[11px] leading-tight text-center"
                         title="You have already responded to this quote"
                       >
-                        <FaReply className="mr-1" />
-                        Responded
+                        <FaReply className="text-xs" />
+                        <span className="min-w-0">Responded</span>
                       </button>
                     ) : !canRespond ? (
                       <button
                         onClick={() => handleRespondToQuote(quote)}
-                        className="flex-1 bg-[#bca142] text-white py-2 px-2 rounded-lg hover:bg-black transition-all duration-300 flex items-center justify-center transform hover:scale-105 shadow-lg font-medium text-xs"
+                        className="flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 bg-[#bca142] text-white py-2 px-1 rounded-lg hover:bg-black transition-all duration-300 shadow-lg font-medium text-[11px] leading-tight text-center"
                       >
-                        <FaReply className="mr-1" />
-                        Upgrade to Respond
+                        <FaReply className="text-xs" />
+                        <span className="min-w-0">Upgrade to Respond</span>
                       </button>
                     ) : (
                       <button
                         onClick={() => handleRespondToQuote(quote)}
-                        className="flex-1 bg-[#bca142] text-white py-2 px-2 rounded-lg hover:bg-black transition-all duration-300 flex items-center justify-center transform hover:scale-105 font-medium text-xs"
+                        className="flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 bg-[#bca142] text-white py-2 px-1 rounded-lg hover:bg-black transition-all duration-300 font-medium text-[11px] leading-tight text-center"
                       >
-                        <FaReply className="mr-1" />
-                        Respond
+                        <FaReply className="text-xs" />
+                        <span className="min-w-0">Respond</span>
                       </button>
                     )}
                   </div>

@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { 
   FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiCheck, 
-  FiCreditCard, FiGlobe, FiMapPin, FiInfo, FiAlertCircle
+  FiCreditCard, FiGlobe, FiMapPin, FiInfo, FiAlertCircle, FiZap, FiRefreshCw
 } from 'react-icons/fi';
-import { api, settingsAPI } from '../../utils/api';
+import { api, settingsAPI, getPaypalFeeConfig } from '../../utils/api';
 import { adminToast } from '../../utils/adminToast';
 
 const AdminBankDetails = () => {
@@ -22,34 +22,191 @@ const AdminBankDetails = () => {
     payment_instructions: '',
     is_active: false
   });
-  const [adminPaypalId, setAdminPaypalId] = useState('');
+  const [paypalForm, setPaypalForm] = useState({
+    admin_paypal_id: '',
+    paypal_client_id: '',
+    paypal_client_secret: '',
+    paypal_webhook_id: '',
+    paypal_env: 'sandbox',
+  });
+  const [paypalStatus, setPaypalStatus] = useState({ secretSet: false, webhookSet: false, configured: false });
   const [paypalSaving, setPaypalSaving] = useState(false);
+  const [paypalTesting, setPaypalTesting] = useState(false);
+  const [paypalTest, setPaypalTest] = useState(null);
+  // PayPal processing fee added on top of every checkout (see paypalFeeService).
+  const [feeForm, setFeeForm] = useState({
+    enabled: true,
+    merchantCountry: 'Bahrain',
+    intlPct: 4.9,
+    intlFixed: 0.3,
+    domesticPct: 4.9,
+    domesticFixed: 0.3,
+  });
+  const [feeMeta, setFeeMeta] = useState({ source: 'default', lastSync: null });
+  const [feeSaving, setFeeSaving] = useState(false);
+  const [feeSyncing, setFeeSyncing] = useState(false);
+  const [feeMessage, setFeeMessage] = useState(null);
 
   useEffect(() => {
     fetchBankDetails();
     fetchPaypalSettings();
+    fetchPaypalFee();
   }, []);
+
+  // The secret is never sent back by the API, so this field always starts empty
+  // and is only written when the admin types a new value.
+  const applyPaypalSettings = (data) => {
+    setPaypalForm((prev) => ({
+      ...prev,
+      admin_paypal_id: data?.admin_paypal_id || '',
+      paypal_client_id: data?.paypal_client_id || '',
+      paypal_client_secret: '',
+      paypal_webhook_id: '',
+      paypal_env: data?.paypal_env === 'live' ? 'live' : 'sandbox',
+    }));
+    setPaypalStatus({
+      secretSet: Boolean(data?.paypal_secret_set),
+      webhookSet: Boolean(data?.paypal_webhook_set),
+      configured: Boolean(data?.paypal_configured),
+    });
+  };
 
   const fetchPaypalSettings = async () => {
     try {
       const res = await settingsAPI.getPaypalSettings();
-      setAdminPaypalId(res?.data?.admin_paypal_id || '');
+      applyPaypalSettings(res?.data);
     } catch (error) {
       console.error('Error fetching PayPal settings:', error);
     }
   };
 
+  // ── PayPal processing fee ────────────────────────────────────────────────
+  // Read through the public endpoint so the panel sees exactly what checkout
+  // uses, not a separate admin-only copy.
+  const fetchPaypalFee = async () => {
+    try {
+      const res = await fetch('/api/general-settings/paypal-fee');
+      const json = res.ok ? await res.json() : null;
+      const d = json?.data;
+      if (!d) return;
+      setFeeForm({
+        enabled: d.enabled !== false,
+        merchantCountry: d.merchantCountry || 'Bahrain',
+        intlPct: Number(d.intlPct) || 0,
+        intlFixed: Number(d.intlFixed) || 0,
+        domesticPct: Number(d.domesticPct) || 0,
+        domesticFixed: Number(d.domesticFixed) || 0,
+      });
+      setFeeMeta({ source: d.source || 'default', lastSync: d.lastSync || null });
+    } catch (error) {
+      console.error('Error fetching PayPal fee settings:', error);
+    }
+  };
+
+  const handleSaveFee = async () => {
+    try {
+      setFeeSaving(true);
+      setFeeMessage(null);
+      const res = await settingsAPI.updatePaypalFee({
+        enabled: feeForm.enabled,
+        merchantCountry: (feeForm.merchantCountry || '').trim() || 'Bahrain',
+        intlPct: Number(feeForm.intlPct) || 0,
+        intlFixed: Number(feeForm.intlFixed) || 0,
+        domesticPct: Number(feeForm.domesticPct) || 0,
+        domesticFixed: Number(feeForm.domesticFixed) || 0,
+      });
+      const d = res?.data;
+      if (d) setFeeMeta({ source: d.source || 'manual', lastSync: d.lastSync || null });
+      setFeeMessage({ ok: true, message: 'Processing fee saved. New checkouts use these rates immediately.' });
+      getPaypalFeeConfig({ refresh: true }).catch(() => {});
+    } catch (error) {
+      setFeeMessage({ ok: false, message: error.message || 'Could not save the processing fee' });
+    } finally {
+      setFeeSaving(false);
+    }
+  };
+
+  const handleSyncFee = async () => {
+    try {
+      setFeeSyncing(true);
+      setFeeMessage(null);
+      const res = await settingsAPI.syncPaypalFee(30);
+      const d = res?.data;
+      if (d) {
+        setFeeForm({
+          enabled: d.enabled !== false,
+          merchantCountry: d.merchantCountry || 'Bahrain',
+          intlPct: Number(d.intlPct) || 0,
+          intlFixed: Number(d.intlFixed) || 0,
+          domesticPct: Number(d.domesticPct) || 0,
+          domesticFixed: Number(d.domesticFixed) || 0,
+        });
+        setFeeMeta({ source: d.source || 'learned', lastSync: d.lastSync || null });
+        getPaypalFeeConfig({ refresh: true }).catch(() => {});
+      }
+      const learned = d?.learned;
+      const bits = [];
+      if (learned?.international) {
+        bits.push(`international ${learned.international.pct}% + $${Number(learned.international.fixed).toFixed(2)} (${learned.international.samples} txns)`);
+      }
+      if (learned?.domestic) {
+        bits.push(`domestic ${learned.domestic.pct}% + $${Number(learned.domestic.fixed).toFixed(2)} (${learned.domestic.samples} txns)`);
+      }
+      setFeeMessage({
+        ok: true,
+        message: bits.length
+          ? `Learned from ${learned.usable} of ${learned.scanned} transaction(s): ${bits.join(', ')}`
+          : (res?.message || 'Fee rates updated'),
+      });
+    } catch (error) {
+      setFeeMessage({ ok: false, message: error.message || 'Could not read your PayPal transactions' });
+    } finally {
+      setFeeSyncing(false);
+    }
+  };
+
+  // Worked example so the numbers are tangible: what a $100 international
+  // payment becomes once the fee is grossed up.
+  const feePreview = (() => {
+    const pct = Math.min(Math.max(Number(feeForm.intlPct) || 0, 0), 99) / 100;
+    const fixed = Number(feeForm.intlFixed) || 0;
+    const total = Math.round(((100 + fixed) / (1 - pct)) * 100) / 100;
+    return { total, fee: Math.round((total - 100) * 100) / 100 };
+  })();
+
   const handleSavePaypalSettings = async () => {
     try {
       setPaypalSaving(true);
       const res = await settingsAPI.updatePaypalSettings({
-        admin_paypal_id: adminPaypalId.trim(),
+        admin_paypal_id: paypalForm.admin_paypal_id.trim(),
+        paypal_client_id: paypalForm.paypal_client_id.trim(),
+        paypal_client_secret: paypalForm.paypal_client_secret.trim(),
+        paypal_webhook_id: paypalForm.paypal_webhook_id.trim(),
+        paypal_env: paypalForm.paypal_env,
       });
+      applyPaypalSettings(res?.data);
+      setPaypalTest(null); // credentials changed — an earlier test no longer applies
       adminToast.success(res?.message || 'PayPal settings saved successfully');
     } catch (error) {
       adminToast.error(error.response?.data?.message || error.message || 'Failed to save PayPal settings');
     } finally {
       setPaypalSaving(false);
+    }
+  };
+
+  const handleTestPaypal = async () => {
+    try {
+      setPaypalTesting(true);
+      setPaypalTest(null);
+      const res = await settingsAPI.testPaypalConnection();
+      setPaypalTest({ ok: true, message: res?.message || 'Connected to PayPal.' });
+      adminToast.success(res?.message || 'PayPal connection OK');
+    } catch (error) {
+      const message = error.response?.data?.message || error.message || 'PayPal connection failed';
+      setPaypalTest({ ok: false, message });
+      adminToast.error(message);
+    } finally {
+      setPaypalTesting(false);
     }
   };
 
@@ -192,13 +349,23 @@ const AdminBankDetails = () => {
 
         {/* PayPal Settings */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <FiGlobe className="text-[#bca142]" />
-            <h2 className="text-lg font-semibold text-gray-800">PayPal Settings</h2>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <FiGlobe className="text-[#bca142]" />
+              <h2 className="text-lg font-semibold text-gray-800">PayPal Settings</h2>
+            </div>
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
+              paypalStatus.configured ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+            }`}>
+              <FiCheck className={paypalStatus.configured ? '' : 'hidden'} />
+              {paypalStatus.configured ? 'Payments auto-verified' : 'Not configured — manual review'}
+            </span>
           </div>
           <p className="text-gray-500 text-sm mb-4">
-            Set the PayPal account that receives payments from companies. This reflects on the company panel
-            (wallet top-up and subscription payments).
+            Set the PayPal account that receives payments from companies, and the REST API credentials used to
+            verify those payments. Once the credentials are saved, company memberships and wallet top-ups are
+            <strong> activated automatically</strong> — no receipt upload or admin approval. Bank transfers stay manual.
+            No server restart or <code>.env</code> change is needed.
           </p>
 
           <div className="space-y-4">
@@ -208,22 +375,258 @@ const AdminBankDetails = () => {
               </label>
               <input
                 type="text"
-                value={adminPaypalId}
-                onChange={(e) => setAdminPaypalId(e.target.value)}
+                value={paypalForm.admin_paypal_id}
+                onChange={(e) => setPaypalForm((p) => ({ ...p, admin_paypal_id: e.target.value }))}
                 placeholder="e.g. payments@gulfstarnetwork.com"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent text-sm"
               />
               <p className="text-xs text-gray-400 mt-1">PayPal email or PayPal.me link shown to companies as the payment receiver.</p>
             </div>
 
-            <button
-              onClick={handleSavePaypalSettings}
-              disabled={paypalSaving}
-              className="px-5 py-2 bg-[#bca142] text-white rounded-lg hover:bg-[#B8941F] transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
-            >
-              <FiSave />
-              {paypalSaving ? 'Saving…' : 'Save PayPal Settings'}
-            </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                  PayPal REST Client ID
+                </label>
+                <input
+                  type="text"
+                  value={paypalForm.paypal_client_id}
+                  onChange={(e) => setPaypalForm((p) => ({ ...p, paypal_client_id: e.target.value }))}
+                  placeholder="Client ID from developer.paypal.com"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent text-sm font-mono"
+                />
+                <p className="text-xs text-gray-400 mt-1">Public value — it is also used by the checkout in the browser.</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                  PayPal REST Client Secret
+                </label>
+                <input
+                  type="password"
+                  value={paypalForm.paypal_client_secret}
+                  onChange={(e) => setPaypalForm((p) => ({ ...p, paypal_client_secret: e.target.value }))}
+                  placeholder={paypalStatus.secretSet ? '•••••••• saved — type to replace' : 'Client Secret from developer.paypal.com'}
+                  autoComplete="new-password"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent text-sm font-mono"
+                />
+                <p className="text-xs text-gray-400 mt-1">Server-only. Leave empty to keep the saved secret unchanged.</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                  Environment
+                </label>
+                <select
+                  value={paypalForm.paypal_env}
+                  onChange={(e) => setPaypalForm((p) => ({ ...p, paypal_env: e.target.value }))}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent text-sm"
+                >
+                  <option value="sandbox">Sandbox (testing)</option>
+                  <option value="live">Live (real payments)</option>
+                </select>
+                <p className="text-xs text-gray-400 mt-1">Must match the credentials above — sandbox keys only work in sandbox.</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                  PayPal Webhook ID (optional)
+                </label>
+                <input
+                  type="text"
+                  value={paypalForm.paypal_webhook_id}
+                  onChange={(e) => setPaypalForm((p) => ({ ...p, paypal_webhook_id: e.target.value }))}
+                  placeholder={paypalStatus.webhookSet ? '•••••••• saved — type to replace' : 'Webhook ID from the PayPal app'}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent text-sm font-mono"
+                />
+                <p className="text-xs text-gray-400 mt-1">Only used to verify webhook signatures (backup path). Optional.</p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={handleSavePaypalSettings}
+                disabled={paypalSaving}
+                className="px-5 py-2 bg-[#bca142] text-white rounded-lg hover:bg-[#B8941F] transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                <FiSave />
+                {paypalSaving ? 'Saving…' : 'Save PayPal Settings'}
+              </button>
+
+              <button
+                onClick={handleTestPaypal}
+                disabled={paypalTesting || paypalSaving}
+                className="px-5 py-2 bg-white text-[#bca142] border border-[#bca142] rounded-lg hover:bg-[#bca142]/10 transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                <FiZap />
+                {paypalTesting ? 'Testing…' : 'Test Connection'}
+              </button>
+              <span className="text-xs text-gray-400">
+                Checks the saved Client ID + Secret against PayPal. Save first if you just changed them.
+              </span>
+            </div>
+
+            {paypalTest && (
+              <div
+                className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${
+                  paypalTest.ok
+                    ? 'bg-green-50 border-green-200 text-green-700'
+                    : 'bg-red-50 border-red-200 text-red-700'
+                }`}
+              >
+                {paypalTest.ok ? <FiCheck className="mt-0.5 shrink-0" /> : <FiAlertCircle className="mt-0.5 shrink-0" />}
+                <span>{paypalTest.message}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* PayPal Processing Fee */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <FiZap className="text-[#bca142]" />
+              <h2 className="text-lg font-semibold text-gray-800">PayPal Processing Fee</h2>
+            </div>
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
+              feeForm.enabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+            }`}>
+              {feeForm.enabled ? 'Added to checkout' : 'Disabled'}
+            </span>
+          </div>
+          <p className="text-gray-500 text-sm mb-2">
+            PayPal takes a cut on every payment. These rates are added <strong>on top of</strong> the membership or
+            wallet top-up, so the full price still reaches the account. PayPal publishes no API for its fee rates, so
+            keep them in line with the account agreement — or let the system learn them from the fees PayPal already
+            charged on past payments.
+          </p>
+          <p className="text-gray-500 text-sm mb-4">
+            <strong>Set any value you need</strong> — for example 4.5, 5 or 10. Whatever you enter is applied to every
+            new checkout immediately (up to 99%). Everyone outside the merchant country pays the international rate.
+          </p>
+
+          <div className="space-y-4">
+            <label className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={feeForm.enabled}
+                onChange={(e) => setFeeForm((p) => ({ ...p, enabled: e.target.checked }))}
+                className="w-4 h-4 accent-[#bca142]"
+              />
+              <span className="text-sm text-gray-700">Charge the processing fee to the buyer at checkout</span>
+            </label>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                Merchant country
+              </label>
+              <input
+                type="text"
+                value={feeForm.merchantCountry}
+                onChange={(e) => setFeeForm((p) => ({ ...p, merchantCountry: e.target.value }))}
+                placeholder="e.g. Bahrain"
+                className="w-full md:w-72 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent text-sm"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Buyers registered in this country are charged the domestic rate; everyone else the international rate.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="rounded-lg border border-gray-200 p-4">
+                <p className="text-sm font-semibold text-gray-700 mb-3">International</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Fee %</label>
+                    <input
+                      type="number" step="0.01" min="0" max="99"
+                      value={feeForm.intlPct}
+                      onChange={(e) => setFeeForm((p) => ({ ...p, intlPct: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Fixed (USD)</label>
+                    <input
+                      type="number" step="0.01" min="0" max="100"
+                      value={feeForm.intlFixed}
+                      onChange={(e) => setFeeForm((p) => ({ ...p, intlFixed: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-gray-200 p-4">
+                <p className="text-sm font-semibold text-gray-700 mb-3">Domestic</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Fee %</label>
+                    <input
+                      type="number" step="0.01" min="0" max="99"
+                      value={feeForm.domesticPct}
+                      onChange={(e) => setFeeForm((p) => ({ ...p, domesticPct: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Fixed (USD)</label>
+                    <input
+                      type="number" step="0.01" min="0" max="100"
+                      value={feeForm.domesticFixed}
+                      onChange={(e) => setFeeForm((p) => ({ ...p, domesticFixed: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#bca142] focus:border-transparent text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={handleSaveFee}
+                disabled={feeSaving}
+                className="px-5 py-2 bg-[#bca142] text-white rounded-lg hover:bg-[#B8941F] transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                <FiSave />
+                {feeSaving ? 'Saving…' : 'Save Fee Settings'}
+              </button>
+
+              <button
+                onClick={handleSyncFee}
+                disabled={feeSyncing || feeSaving}
+                className="px-5 py-2 bg-white text-[#bca142] border border-[#bca142] rounded-lg hover:bg-[#bca142]/10 transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                <FiRefreshCw className={feeSyncing ? 'animate-spin' : ''} />
+                {feeSyncing ? 'Reading PayPal…' : 'Learn From PayPal'}
+              </button>
+              <span className="text-xs text-gray-400">
+                Reads the fee PayPal actually charged on your last 30 days of USD payments and derives the rates.
+              </span>
+            </div>
+
+            <p className="text-xs text-gray-400">
+              Example: a $100 international payment is charged{' '}
+              <strong className="text-gray-600">${feePreview.total.toFixed(2)}</strong>
+              {' '}($100 plus ${feePreview.fee.toFixed(2)} of fee). Rates in use:{' '}
+              <strong>
+                {feeMeta.source === 'learned'
+                  ? 'learned from your transactions'
+                  : feeMeta.source === 'default'
+                    ? 'defaults — not confirmed against your PayPal agreement yet'
+                    : 'set manually'}
+              </strong>
+              {feeMeta.lastSync ? ` · last learned ${new Date(feeMeta.lastSync).toLocaleString()}` : ''}
+            </p>
+
+            {feeMessage && (
+              <div className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${
+                feeMessage.ok ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'
+              }`}>
+                {feeMessage.ok ? <FiCheck className="mt-0.5 shrink-0" /> : <FiAlertCircle className="mt-0.5 shrink-0" />}
+                <span>{feeMessage.message}</span>
+              </div>
+            )}
           </div>
         </div>
 

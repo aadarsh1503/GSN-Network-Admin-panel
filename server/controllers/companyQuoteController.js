@@ -18,6 +18,7 @@ const getMyQuoteResponses = async (req, res) => {
             SELECT qr.*, q.product_description, q.departure_country, q.arrival_country,
                    q.shipping_mode, q.arrival_date, q.status as quote_status,
                    u.name as user_name, u.email as user_email,
+                   u.country as user_country,
                    uqs.status as user_response_status
             FROM quote_responses qr
             JOIN quotes q ON qr.quote_id = q.id

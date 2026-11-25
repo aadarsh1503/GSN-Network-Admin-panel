@@ -689,6 +689,16 @@ const sendBusinessMessage = async (req, res) => {
 
         const [result] = await db.execute(sql, [senderId, receiverId, subject || null, message, quoteId || null]);
 
+        // Push the message over SSE so the receiver's unread badge updates instantly
+        await realTimeNotificationService.notifyNewMessage({
+            id: result.insertId,
+            sender_id: senderId,
+            receiver_id: receiverId,
+            sender_name: req.user.name,
+            message,
+            quote_id: quoteId || null
+        });
+
         res.status(201).json({
             message: 'Message sent successfully',
             messageId: result.insertId
@@ -754,7 +764,7 @@ const getBusinessConversations = async (req, res) => {
                     last_message_time: message.created_at,
                     last_message: message.message,
                     unread_count: 0,
-                    has_system_messages: 0
+                    has_system_messages: false
                 });
             }
 
@@ -773,7 +783,7 @@ const getBusinessConversations = async (req, res) => {
 
             // Check for system messages
             if (message.subject && (message.subject.includes('Quote') || message.subject.includes('Status'))) {
-                conversation.has_system_messages = 1;
+                conversation.has_system_messages = true;
             }
         });
 
